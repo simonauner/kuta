@@ -11,7 +11,7 @@ type Mode = 'login' | 'signup' | 'recover'
 // Visas i stället för appen när ingen är inloggad.
 export function AuthPage() {
   const resetFailed = new URLSearchParams(window.location.search).get('reset') === 'failed'
-  const [mode, setMode] = useState<Mode>(resetFailed ? 'recover' : 'login')
+  const [mode, setMode] = useState<Mode>(() => resetFailed ? 'recover' : window.location.hash === '#skapa-konto' ? 'signup' : 'login')
   const [checkEmail, setCheckEmail] = useState<string | null>(null)
   const sessionChanged = useSessionChanged()
   // Bekräftelselänken (/api/auth/confirm) skickar hit med ?confirm=failed när länken är ogiltig eller använd
@@ -41,7 +41,7 @@ export function AuthPage() {
       <AuthShell title="Kolla din e-post">
         <p className="text-muted-foreground">{checkEmail}</p>
         <Button variant="outline" className="mt-6 w-full" onClick={() => {
-          if (resetFailed) { window.location.assign('/'); return }
+          if (resetFailed) { window.location.assign('/app'); return }
           setCheckEmail(null)
           setMode('login')
           submit.reset()
@@ -100,7 +100,7 @@ export function AuthPage() {
         variant="link"
         className="mt-4 w-full"
         onClick={() => {
-          if (resetFailed) { window.location.assign('/'); return }
+          if (resetFailed) { window.location.assign('/app'); return }
           setMode(mode === 'login' ? 'signup' : 'login')
           submit.reset()
         }}
@@ -121,7 +121,7 @@ export function ResetPasswordPage() {
   if (save.isSuccess) return (
     <AuthShell title="Lösenordet är ändrat">
       <p className="text-muted-foreground">Logga in med ditt nya lösenord. Dina tidigare sessioner har avslutats.</p>
-      <Button asChild className="mt-6 w-full"><a href="/">Till inloggningen</a></Button>
+      <Button asChild className="mt-6 w-full"><a href="/app">Till inloggningen</a></Button>
     </AuthShell>
   )
 
@@ -141,7 +141,7 @@ export function ResetPasswordPage() {
           {save.isPending ? 'Sparar…' : 'Spara nytt lösenord'}
         </Button>
       </form>
-      <Button asChild variant="link" className="mt-4 w-full"><a href="/?reset=failed">Begär en ny återställningslänk</a></Button>
+      <Button asChild variant="link" className="mt-4 w-full"><a href="/app?reset=failed">Begär en ny återställningslänk</a></Button>
     </AuthShell>
   )
 }
@@ -182,7 +182,12 @@ export function ChooseNamePage() {
 function AuthShell({ title, children }: { title: string; children: ReactNode }) {
   return (
     <main className="mx-auto flex min-h-dvh max-w-sm flex-col justify-center px-4 py-12">
-      <p className="text-sm font-semibold uppercase tracking-widest text-primary">Kuta</p>
+      <a href="/" aria-label="Kuta – startsida" className="self-start">
+        <picture>
+          <source media="(prefers-color-scheme: dark)" srcSet="/brand/logo-light.svg" />
+          <img src="/brand/logo.svg" alt="" width="144" height="48" className="h-12 w-auto" />
+        </picture>
+      </a>
       <h1 className="mb-6 mt-2 text-2xl font-semibold tracking-tight">{title}</h1>
       {children}
     </main>

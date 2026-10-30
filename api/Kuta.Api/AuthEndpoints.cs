@@ -110,9 +110,9 @@ public static class AuthEndpoints
         {
             http.Response.Headers.CacheControl = "no-store";
             var session = string.IsNullOrWhiteSpace(tokenHash) ? null : await supabase.VerifyRecoveryAsync(tokenHash, ct);
-            if (session is null) return Results.Redirect("/?reset=failed");
+            if (session is null) return Results.Redirect("/app?reset=failed");
             await PasswordRecovery.StartAsync(http, session, ct);
-            return Results.Redirect("/?reset=password");
+            return Results.Redirect("/app?reset=password");
         });
 
         auth.MapPost("/reset-password", (ResetPasswordRequest req, HttpContext http, SupabaseAuthClient supabase,
@@ -123,9 +123,9 @@ public static class AuthEndpoints
             HttpContext http, CancellationToken cancellationToken) =>
         {
             var session = string.IsNullOrWhiteSpace(tokenHash) ? null : await supabase.VerifyEmailAsync(tokenHash, cancellationToken);
-            if (session is null) return Results.Redirect("/?confirm=failed");
+            if (session is null) return Results.Redirect("/app?confirm=failed");
             await SupabaseCookieSession.SignInAsync(http, session, cancellationToken);
-            return Results.Redirect("/");
+            return Results.Redirect("/app");
         });
     }
 }
