@@ -6,7 +6,9 @@ export function LanguageSelect() {
   const id = useId()
   return (
     <div className="flex items-center justify-end gap-2 text-sm">
-      <label htmlFor={id}>{t('language')}</label>
+      <label htmlFor={id} className="sr-only">
+        {t('language')}
+      </label>
       <select
         id={id}
         className="rounded-md border bg-background px-2 py-1 text-foreground"
@@ -16,10 +18,10 @@ export function LanguageSelect() {
         }}
       >
         <option value="sv" lang="sv">
-          Svenska
+          🇸🇪 Svenska
         </option>
         <option value="en" lang="en">
-          English
+          🇬🇧 English
         </option>
       </select>
     </div>
