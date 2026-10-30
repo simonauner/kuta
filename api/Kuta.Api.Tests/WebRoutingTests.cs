@@ -19,20 +19,14 @@ public class WebRoutingTests
                 .WithWebHostBuilder(b => b.UseWebRoot(webRoot));
             using var client = factory.CreateClient(new WebApplicationFactoryClientOptions { AllowAutoRedirect = false });
             Assert.Contains("Public landing", await client.GetStringAsync("/", ct));
-            foreach (var path in new[] { "/app", "/app/", "/app/pass", "/app/statistik", "/app/profil", "/app?confirm=failed", "/app?reset=password", "/app?reset=failed" })
+            foreach (var path in new[] { "/app", "/app/", "/app/activities", "/app/stats", "/app/profile", "/app?confirm=failed", "/app?reset=password", "/app?reset=failed" })
             {
                 var html = await client.GetStringAsync(path, ct);
                 Assert.Contains("App shell", html);
                 Assert.Contains("noindex", html);
                 Assert.DoesNotContain("Public landing", html);
             }
-            foreach (var path in new[] { "/pass", "/statistik", "/profil" })
-            {
-                var response = await client.GetAsync($"{path}?x=1", ct);
-                Assert.Equal(HttpStatusCode.MovedPermanently, response.StatusCode);
-                Assert.Equal($"/app{path}?x=1", response.Headers.Location?.ToString());
-            }
-            foreach (var path in new[] { "/finns-inte", "/app/finns-inte", "/api/finns-inte" })
+            foreach (var path in new[] { "/finns-inte", "/app/finns-inte", "/api/finns-inte", "/pass", "/statistik", "/profil", "/app/pass", "/app/statistik", "/app/profil" })
                 Assert.Equal(HttpStatusCode.NotFound, (await client.GetAsync(path, ct)).StatusCode);
         }
         finally

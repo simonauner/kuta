@@ -1,3 +1,5 @@
+import { LanguageSelect } from '@/components/language-select'
+import { useTranslation } from 'react-i18next'
 import { useQuery } from '@tanstack/react-query'
 import { Link, Outlet, useRouterState } from '@tanstack/react-router'
 import { Activity, BarChart3, Home, User } from 'lucide-react'
@@ -9,13 +11,14 @@ import { AuthPage, ChooseNamePage, ResetPasswordPage } from '@/routes/auth'
 const copyrightYear = new Date().getFullYear()
 
 const tabs = [
-  { to: '/app', label: 'Flöde', icon: Home },
-  { to: '/app/pass', label: 'Pass', icon: Activity },
-  { to: '/app/statistik', label: 'Statistik', icon: BarChart3 },
-  { to: '/app/profil', label: 'Profil', icon: User },
+  { to: '/app', label: 'nav.feed', icon: Home },
+  { to: '/app/activities', label: 'nav.activities', icon: Activity },
+  { to: '/app/stats', label: 'nav.stats', icon: BarChart3 },
+  { to: '/app/profile', label: 'nav.profile', icon: User },
 ] as const
 
 export function Layout() {
+  const { t } = useTranslation()
   const pathname = useRouterState({ select: (s) => s.location.pathname })
   const me = useQuery(meQuery)
 
@@ -26,9 +29,12 @@ export function Layout() {
   if (me.isPending) return null
   if (me.isError)
     return (
-      <p role="alert" className="p-6 text-muted-foreground">
-        Kunde inte nå Kuta. Kontrollera anslutningen och ladda om sidan.
-      </p>
+      <div className="mx-auto max-w-2xl p-6">
+        <LanguageSelect />
+        <p role="alert" className="mt-4 text-muted-foreground">
+          {t('connectionError')}
+        </p>
+      </div>
     )
   if (!me.data) return <AuthPage />
   if (me.data.displayName === null) return <ChooseNamePage />
@@ -36,7 +42,7 @@ export function Layout() {
   return (
     <div className="flex min-h-dvh flex-col">
       <header className="fixed inset-x-0 bottom-0 z-20 border-t bg-background/80 pb-[env(safe-area-inset-bottom)] backdrop-blur md:sticky md:bottom-auto md:top-0 md:border-b md:border-t-0 md:pb-0">
-        <div className="mx-auto flex max-w-2xl items-center md:gap-8 md:px-4 md:py-3">
+        <div className="mx-auto flex max-w-5xl items-center md:gap-4 md:px-4 md:py-3">
           <Link
             to="/app"
             activeOptions={{ exact: true }}
@@ -44,7 +50,7 @@ export function Layout() {
           >
             Kuta
           </Link>
-          <nav aria-label="Huvudnavigering" className="flex-1">
+          <nav aria-label={t('nav.main')} className="flex-1">
             <ul className="flex justify-around md:justify-end md:gap-1">
               {tabs.map(({ to, label, icon: Icon }) => {
                 const active =
@@ -63,16 +69,22 @@ export function Layout() {
                       )}
                     >
                       <Icon aria-hidden="true" className="size-5" />
-                      {label}
+                      {t(label)}
                     </Link>
                   </li>
                 )
               })}
             </ul>
           </nav>
+          <div className="hidden md:block">
+            <LanguageSelect />
+          </div>
         </div>
       </header>
 
+      <div className="mx-auto w-full max-w-2xl px-4 pt-4 md:hidden">
+        <LanguageSelect />
+      </div>
       <main className="mx-auto w-full max-w-2xl flex-1 px-4 pb-8 pt-6">
         <motion.div
           key={pathname}
@@ -87,7 +99,13 @@ export function Layout() {
       <footer className="border-t pb-[calc(4rem+env(safe-area-inset-bottom))] md:pb-0">
         <div className="mx-auto flex max-w-2xl flex-wrap items-center justify-between gap-2 px-4 py-5 text-xs text-muted-foreground">
           <p>© {copyrightYear} Kuta</p>
-          <p>Version {import.meta.env.DEV ? 'utveckling' : import.meta.env.VITE_APP_VERSION}</p>
+          <p>
+            {t('footer.version', {
+              version: import.meta.env.DEV
+                ? t('footer.development')
+                : import.meta.env.VITE_APP_VERSION,
+            })}
+          </p>
         </div>
       </footer>
     </div>

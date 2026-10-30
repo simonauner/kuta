@@ -151,16 +151,21 @@ api.MapGet("/health", async (NpgsqlDataSource db) =>
     return Results.Ok(new { status = "ok", postgis });
 });
 
+api.MapGet("/locale", (HttpContext http) =>
+{
+    // IP-baserade standardspråk får inte återanvändas mellan besökare eller nätverk.
+    http.Response.Headers.CacheControl = "no-store";
+    return Results.Ok(new { isSwedishIp = SwedishIp.Contains(http.Connection.RemoteIpAddress) });
+});
+
 api.MapAntiforgery();
 api.MapAuth();
 api.MapMe();
 
 api.MapActivities();
 
-// Behåll gamla bokmärken. Startsidan är statisk; bara appens kända sökvägar får React-skalet.
-foreach (var path in new[] { "/pass", "/statistik", "/profil" })
-    app.MapGet(path, (HttpContext context) => Results.Redirect($"/app{context.Request.Path}{context.Request.QueryString}", permanent: true));
-foreach (var path in new[] { "/app", "/app/pass", "/app/statistik", "/app/profil" })
+// Startsidan är statisk; bara appens kända sökvägar får React-skalet.
+foreach (var path in new[] { "/app", "/app/activities", "/app/stats", "/app/profile" })
     app.MapFallbackToFile(path, "app.html", staticFiles);
 
 app.Run();

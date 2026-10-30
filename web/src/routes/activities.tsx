@@ -1,3 +1,5 @@
+import { ErrorMessage } from '@/components/error-message'
+import { useTranslation } from 'react-i18next'
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
 import { Link } from '@tanstack/react-router'
 import { useState, type ChangeEvent, type FormEvent } from 'react'
@@ -24,12 +26,6 @@ const activitiesQuery = {
   queryFn: () => api.get<Activity[]>('/api/activities'),
 }
 
-const dateFormat = new Intl.DateTimeFormat('sv-SE', { dateStyle: 'medium', timeStyle: 'short' })
-const kmFormat = new Intl.NumberFormat('sv-SE', {
-  minimumFractionDigits: 2,
-  maximumFractionDigits: 2,
-})
-
 function formatDuration(seconds: number) {
   const h = Math.floor(seconds / 3600)
   const m = Math.floor((seconds % 3600) / 60)
@@ -45,6 +41,15 @@ function formatPace(durationS: number, distanceM: number) {
 }
 
 export function ActivitiesPage() {
+  const { t, i18n } = useTranslation()
+  const dateFormat = new Intl.DateTimeFormat(i18n.resolvedLanguage, {
+    dateStyle: 'medium',
+    timeStyle: 'short',
+  })
+  const kmFormat = new Intl.NumberFormat(i18n.resolvedLanguage, {
+    minimumFractionDigits: 2,
+    maximumFractionDigits: 2,
+  })
   const queryClient = useQueryClient()
   const activities = useQuery(activitiesQuery)
   const { data: me } = useQuery(meQuery)
@@ -80,11 +85,11 @@ export function ActivitiesPage() {
 
   return (
     <section>
-      <h1 className="text-2xl font-semibold tracking-tight">Pass</h1>
+      <h1 className="text-2xl font-semibold tracking-tight">{t('nav.activities')}</h1>
 
       <form onSubmit={onSubmit} className="mt-6">
         <Label htmlFor="fit-file" className="mb-2">
-          FIT-fil från din klocka
+          {t('activities.file')}
         </Label>
         <Input
           id="fit-file"
@@ -99,25 +104,27 @@ export function ActivitiesPage() {
         {/* Valet visas bara tills samtycke finns; därefter ändras det på profilsidan */}
         {me?.hrConsent ? (
           <p className="mt-2 text-xs text-muted-foreground">
-            Pulsdata sparas. Ändra på{' '}
-            <Link to="/app/profil" className="underline underline-offset-2">
-              Profil
+            {t('activities.hrSaved')}{' '}
+            <Link to="/app/profile" className="underline underline-offset-2">
+              {t('nav.profile')}
             </Link>
           </p>
         ) : (
           <HeartRateConsent className="mt-4" />
         )}
         <Button type="submit" className="mt-4" disabled={!file || upload.isPending}>
-          {upload.isPending ? 'Laddar upp …' : 'Ladda upp'}
+          {upload.isPending ? t('activities.uploading') : t('activities.upload')}
         </Button>
         {upload.error && (
           <p role="alert" className="mt-2 text-sm text-destructive">
-            {upload.error.message}
+            <ErrorMessage error={upload.error} />
           </p>
         )}
       </form>
 
-      {activities.data?.length === 0 && <p className="mt-8 text-muted-foreground">Inga pass än.</p>}
+      {activities.data?.length === 0 && (
+        <p className="mt-8 text-muted-foreground">{t('activities.empty')}</p>
+      )}
       <ul className="mt-8 divide-y">
         {activities.data?.map((a) => (
           <li key={a.id} className="flex items-start justify-between gap-4 py-4">
@@ -134,12 +141,14 @@ export function ActivitiesPage() {
               size="sm"
               className="text-muted-foreground"
               disabled={remove.isPending}
-              aria-label={`Ta bort passet ${dateFormat.format(new Date(a.startedAt))}`}
+              aria-label={t('activities.deleteLabel', {
+                date: dateFormat.format(new Date(a.startedAt)),
+              })}
               onClick={() => {
-                if (window.confirm('Ta bort passet? Det går inte att ångra.')) remove.mutate(a.id)
+                if (window.confirm(t('activities.confirmDelete'))) remove.mutate(a.id)
               }}
             >
-              Ta bort
+              {t('activities.delete')}
             </Button>
           </li>
         ))}

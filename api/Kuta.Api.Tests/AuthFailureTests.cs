@@ -25,8 +25,9 @@ public class AuthFailureTests
 
         Assert.Equal(HttpStatusCode.ServiceUnavailable, response.StatusCode);
         Assert.Equal("application/json", response.Content.Headers.ContentType?.MediaType);
-        Assert.Equal("Inloggningen är tillfälligt otillgänglig. Försök igen om en stund.",
-            (await response.Content.ReadFromJsonAsync<ApiError>(ct))!.Error);
+        var error = (await response.Content.ReadFromJsonAsync<ApiError>(ct))!;
+        Assert.Equal("Inloggningen är tillfälligt otillgänglig. Försök igen om en stund.", error.Error);
+        Assert.Equal("authUnavailable", error.Code);
     }
 
     sealed class TimeoutHandler : HttpMessageHandler

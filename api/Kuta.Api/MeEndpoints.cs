@@ -27,7 +27,7 @@ public static class MeEndpoints
         {
             var displayName = req.DisplayName?.Trim();
             if (displayName is not { Length: > 0 and <= 100 })
-                return Results.BadRequest(new ApiError("Ange ett namn (högst 100 tecken)."));
+                return Results.BadRequest(new ApiError("Ange ett namn (högst 100 tecken).", "invalidName"));
 
             await using var conn = await db.OpenConnectionAsync();
             await conn.ExecuteAsync(
@@ -46,7 +46,7 @@ public static class MeEndpoints
             var updated = await conn.ExecuteAsync(
                 "update users set hr_consent_at = coalesce(hr_consent_at, now()) where id = @id", new { id = user.GetUserId() });
             return updated == 0
-                ? Results.Conflict(new ApiError("Välj ett namn först."))
+                ? Results.Conflict(new ApiError("Välj ett namn först.", "nameRequired"))
                 : Results.Ok(await LoadAsync(conn, user));
         });
 

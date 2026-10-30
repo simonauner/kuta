@@ -14,17 +14,17 @@ const feedRoute = createRoute({
 })
 const activitiesRoute = createRoute({
   getParentRoute: () => rootRoute,
-  path: '/app/pass',
+  path: '/app/activities',
   component: ActivitiesPage,
 })
 const statsRoute = createRoute({
   getParentRoute: () => rootRoute,
-  path: '/app/statistik',
+  path: '/app/stats',
   component: StatsPage,
 })
 const profileRoute = createRoute({
   getParentRoute: () => rootRoute,
-  path: '/app/profil',
+  path: '/app/profile',
   component: ProfilePage,
 })
 

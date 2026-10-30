@@ -24,13 +24,8 @@ const apiPort = Number(process.env.KUTA_API_PORT ?? 55302)
 
 // Samma dokumentvägar i Vites utvecklingsserver och förhandsvisning som i .NET.
 function configureHtmlRoutes(server: ViteDevServer | PreviewServer) {
-  server.middlewares.use((req, res, next) => {
+  server.middlewares.use((req, _res, next) => {
     const url = new URL(req.url ?? '/', 'http://localhost')
-    if (['/pass', '/statistik', '/profil'].includes(url.pathname)) {
-      res.writeHead(301, { Location: `/app${url.pathname}${url.search}` })
-      res.end()
-      return
-    }
     if (url.pathname === '/app' || url.pathname.startsWith('/app/'))
       req.url = `/app.html${url.search}`
     next()
@@ -76,7 +71,7 @@ export default defineConfig({
       // Bara appens navigeringar får appskalet; startsidan och API:t ska nå servern.
       workbox: {
         navigateFallback: '/app.html',
-        navigateFallbackAllowlist: [/^\/app(?:\/(?:pass|statistik|profil))?\/?(?:\?|$)/],
+        navigateFallbackAllowlist: [/^\/app(?:\/(?:activities|stats|profile))?\/?(?:\?|$)/],
       },
       includeAssets: [
         'favicon.svg',

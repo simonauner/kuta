@@ -1,3 +1,6 @@
+import { LanguageSelect } from '@/components/language-select'
+import { ErrorMessage } from '@/components/error-message'
+import { useTranslation } from 'react-i18next'
 import { useMutation, useQueryClient } from '@tanstack/react-query'
 import { useState, type FormEvent, type ReactNode } from 'react'
 import { Button } from '@/components/ui/button'
@@ -10,11 +13,14 @@ type Mode = 'login' | 'signup' | 'recover'
 
 // Visas i stället för appen när ingen är inloggad.
 export function AuthPage() {
+  const { t } = useTranslation()
   const resetFailed = new URLSearchParams(window.location.search).get('reset') === 'failed'
   const [mode, setMode] = useState<Mode>(() =>
-    resetFailed ? 'recover' : window.location.hash === '#skapa-konto' ? 'signup' : 'login',
+    resetFailed ? 'recover' : window.location.hash === '#signup' ? 'signup' : 'login',
   )
-  const [checkEmail, setCheckEmail] = useState<string | null>(null)
+  const [checkEmail, setCheckEmail] = useState<'auth.confirmSent' | 'auth.recoverySent' | null>(
+    null,
+  )
   const sessionChanged = useSessionChanged()
   // Bekräftelselänken (/api/auth/confirm) skickar hit med ?confirm=failed när länken är ogiltig eller använd
   const confirmFailed = new URLSearchParams(window.location.search).get('confirm') === 'failed'
@@ -31,7 +37,7 @@ export function AuthPage() {
     },
     onSuccess: async (result) => {
       // Registrering med e-postbekräftelse svarar 202 med ett meddelande; annars är vi inloggade
-      if (result) setCheckEmail(result.message)
+      if (result) setCheckEmail(mode === 'recover' ? 'auth.recoverySent' : 'auth.confirmSent')
       else await sessionChanged()
     },
   })
@@ -43,8 +49,8 @@ export function AuthPage() {
 
   if (checkEmail)
     return (
-      <AuthShell title="Kolla din e-post">
-        <p className="text-muted-foreground">{checkEmail}</p>
+      <AuthShell title={t('auth.checkEmail')}>
+        <p className="text-muted-foreground">{t(checkEmail)}</p>
         <Button
           variant="outline"
           className="mt-6 w-full"
@@ -58,7 +64,7 @@ export function AuthPage() {
             submit.reset()
           }}
         >
-          Tillbaka till inloggningen
+          {t('auth.back')}
         </Button>
       </AuthShell>
     )
@@ -66,27 +72,31 @@ export function AuthPage() {
   return (
     <AuthShell
       title={
-        mode === 'login' ? 'Logga in' : mode === 'signup' ? 'Skapa konto' : 'Återställ lösenord'
+        mode === 'login'
+          ? t('auth.login')
+          : mode === 'signup'
+            ? t('auth.signup')
+            : t('auth.recover')
       }
     >
       {resetFailed && mode === 'recover' && (
         <p role="alert" className="mb-4 text-sm text-destructive">
-          Återställningslänken är ogiltig eller redan använd. Begär en ny länk.
+          {t('auth.resetFailed')}
         </p>
       )}
       {confirmFailed && !submit.error && (
         <p role="alert" className="mb-4 text-sm text-destructive">
-          Bekräftelselänken är ogiltig eller redan använd. Logga in eller skapa kontot igen.
+          {t('auth.confirmFailed')}
         </p>
       )}
       <form onSubmit={onSubmit} className="space-y-4">
         <div className="space-y-2">
-          <Label htmlFor="email">E-post</Label>
+          <Label htmlFor="email">{t('auth.email')}</Label>
           <Input id="email" name="email" type="email" autoComplete="email" required />
         </div>
         {mode !== 'recover' && (
           <div className="space-y-2">
-            <Label htmlFor="password">Lösenord</Label>
+            <Label htmlFor="password">{t('auth.password')}</Label>
             <Input
               id="password"
               name="password"
@@ -99,17 +109,17 @@ export function AuthPage() {
         )}
         {submit.error && (
           <p role="alert" className="text-sm text-destructive">
-            {submit.error.message}
+            <ErrorMessage error={submit.error} />
           </p>
         )}
         <Button type="submit" className="w-full" disabled={submit.isPending}>
           {submit.isPending
-            ? 'Vänta…'
+            ? t('auth.wait')
             : mode === 'login'
-              ? 'Logga in'
+              ? t('auth.login')
               : mode === 'signup'
-                ? 'Skapa konto'
-                : 'Skicka återställningslänk'}
+                ? t('auth.signup')
+                : t('auth.sendRecovery')}
         </Button>
       </form>
       {mode === 'login' && (
@@ -121,7 +131,7 @@ export function AuthPage() {
             submit.reset()
           }}
         >
-          Glömt lösenord?
+          {t('auth.forgot')}
         </Button>
       )}
       <Button
@@ -136,13 +146,14 @@ export function AuthPage() {
           submit.reset()
         }}
       >
-        {mode === 'login' ? 'Inget konto? Skapa ett' : 'Tillbaka till inloggningen'}
+        {mode === 'login' ? t('auth.noAccount') : t('auth.back')}
       </Button>
     </AuthShell>
   )
 }
 
 export function ResetPasswordPage() {
+  const { t } = useTranslation()
   const sessionChanged = useSessionChanged()
   const save = useMutation({
     mutationFn: (password: string) => api.send('POST', '/api/auth/reset-password', { password }),
@@ -151,18 +162,16 @@ export function ResetPasswordPage() {
 
   if (save.isSuccess)
     return (
-      <AuthShell title="Lösenordet är ändrat">
-        <p className="text-muted-foreground">
-          Logga in med ditt nya lösenord. Dina tidigare sessioner har avslutats.
-        </p>
+      <AuthShell title={t('auth.passwordChanged')}>
+        <p className="text-muted-foreground">{t('auth.signInAgain')}</p>
         <Button asChild className="mt-6 w-full">
-          <a href="/app">Till inloggningen</a>
+          <a href="/app">{t('auth.toLogin')}</a>
         </Button>
       </AuthShell>
     )
 
   return (
-    <AuthShell title="Välj nytt lösenord">
+    <AuthShell title={t('auth.choosePassword')}>
       <form
         className="space-y-4"
         onSubmit={(e) => {
@@ -171,7 +180,7 @@ export function ResetPasswordPage() {
         }}
       >
         <div className="space-y-2">
-          <Label htmlFor="new-password">Nytt lösenord</Label>
+          <Label htmlFor="new-password">{t('auth.newPassword')}</Label>
           <Input
             id="new-password"
             name="password"
@@ -180,19 +189,19 @@ export function ResetPasswordPage() {
             minLength={8}
             required
           />
-          <p className="text-sm text-muted-foreground">Använd minst 8 tecken.</p>
+          <p className="text-sm text-muted-foreground">{t('auth.minPassword')}</p>
         </div>
         {save.error && (
           <p role="alert" className="text-sm text-destructive">
-            {save.error.message}
+            <ErrorMessage error={save.error} />
           </p>
         )}
         <Button type="submit" className="w-full" disabled={save.isPending}>
-          {save.isPending ? 'Sparar…' : 'Spara nytt lösenord'}
+          {save.isPending ? t('auth.saving') : t('auth.savePassword')}
         </Button>
       </form>
       <Button asChild variant="link" className="mt-4 w-full">
-        <a href="/app?reset=failed">Begär en ny återställningslänk</a>
+        <a href="/app?reset=failed">{t('auth.newLink')}</a>
       </Button>
     </AuthShell>
   )
@@ -200,6 +209,7 @@ export function ResetPasswordPage() {
 
 // Första inloggningen: profilen (users-raden) skapas när användaren väljer ett namn.
 export function ChooseNamePage() {
+  const { t } = useTranslation()
   const queryClient = useQueryClient()
   const save = useMutation({
     mutationFn: (displayName: string) => api.send<Me>('PUT', '/api/me', { displayName }),
@@ -212,19 +222,19 @@ export function ChooseNamePage() {
   }
 
   return (
-    <AuthShell title="Välkommen till Kuta">
+    <AuthShell title={t('auth.welcome')}>
       <form onSubmit={onSubmit} className="space-y-4">
         <div className="space-y-2">
-          <Label htmlFor="displayName">Vad vill du kallas?</Label>
+          <Label htmlFor="displayName">{t('auth.name')}</Label>
           <Input id="displayName" name="displayName" autoComplete="name" maxLength={100} required />
         </div>
         {save.error && (
           <p role="alert" className="text-sm text-destructive">
-            {save.error.message}
+            <ErrorMessage error={save.error} />
           </p>
         )}
         <Button type="submit" className="w-full" disabled={save.isPending}>
-          Fortsätt
+          {t('auth.continue')}
         </Button>
       </form>
     </AuthShell>
@@ -232,16 +242,25 @@ export function ChooseNamePage() {
 }
 
 function AuthShell({ title, children }: { title: string; children: ReactNode }) {
+  const { t } = useTranslation()
   return (
-    <main className="mx-auto flex min-h-dvh max-w-sm flex-col justify-center px-4 py-12">
-      <a href="/" aria-label="Kuta – startsida" className="self-start">
-        <picture>
-          <source media="(prefers-color-scheme: dark)" srcSet="/brand/logo-light.svg" />
-          <img src="/brand/logo.svg" alt="" width="144" height="48" className="h-12 w-auto" />
-        </picture>
-      </a>
-      <h1 className="mb-6 mt-2 text-2xl font-semibold tracking-tight">{title}</h1>
-      {children}
-    </main>
+    <div className="flex min-h-dvh flex-col">
+      <header className="hidden px-6 pt-6 md:block">
+        <LanguageSelect />
+      </header>
+      <main className="mx-auto flex w-full max-w-sm flex-1 flex-col justify-center px-4 py-12">
+        <div className="mb-6 md:hidden">
+          <LanguageSelect />
+        </div>
+        <a href="/" aria-label={t('home')} className="self-start">
+          <picture>
+            <source media="(prefers-color-scheme: dark)" srcSet="/brand/logo-light.svg" />
+            <img src="/brand/logo.svg" alt="" width="144" height="48" className="h-12 w-auto" />
+          </picture>
+        </a>
+        <h1 className="mb-6 mt-2 text-2xl font-semibold tracking-tight">{title}</h1>
+        {children}
+      </main>
+    </div>
   )
 }
