@@ -1,7 +1,7 @@
 import { useQuery } from '@tanstack/react-query'
 import { Link, Outlet, useRouterState } from '@tanstack/react-router'
 import { Activity, BarChart3, Home, User } from 'lucide-react'
-import { AnimatePresence, motion } from 'motion/react'
+import { motion } from 'motion/react'
 import { meQuery } from '@/lib/auth'
 import { cn } from '@/lib/utils'
 import { AuthPage, ChooseNamePage, ResetPasswordPage } from '@/routes/auth'
@@ -33,17 +33,14 @@ export function Layout() {
   return (
     <div className="mx-auto flex min-h-dvh max-w-2xl flex-col">
       <main className="flex-1 px-4 pb-28 pt-6">
-        <AnimatePresence mode="wait" initial={false}>
-          <motion.div
-            key={pathname}
-            initial={{ opacity: 0, y: 8 }}
-            animate={{ opacity: 1, y: 0 }}
-            exit={{ opacity: 0, y: -8 }}
-            transition={{ duration: 0.18, ease: 'easeOut' }}
-          >
-            <Outlet />
-          </motion.div>
-        </AnimatePresence>
+        <motion.div
+          key={pathname}
+          initial={{ opacity: 0, y: 8 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.18, ease: 'easeOut' }}
+        >
+          <Outlet />
+        </motion.div>
       </main>
 
       <nav
