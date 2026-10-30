@@ -1,0 +1,24 @@
+<Project Sdk="Microsoft.NET.Sdk.Web">
+
+  <PropertyGroup>
+    <TargetFramework>net10.0</TargetFramework>
+    <Nullable>enable</Nullable>
+    <ImplicitUsings>enable</ImplicitUsings>
+  </PropertyGroup>
+
+  <!-- OBS: skelettet är inte kompilerat än (ingen .NET SDK i miljön där det skrevs).
+       Flytande versioner används så att `dotnet restore` väljer senaste kompatibla;
+       pinna dem när det bygger. -->
+  <ItemGroup>
+    <PackageReference Include="Dapper" Version="2.*" />
+    <PackageReference Include="Npgsql" Version="10.*" />
+    <PackageReference Include="Npgsql.NetTopologySuite" Version="10.*" />
+    <PackageReference Include="dbup-postgresql" Version="6.*" />
+    <PackageReference Include="Dynastream.Fit" Version="21.*" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <EmbeddedResource Include="Migrations\*.sql" />
+  </ItemGroup>
+
+</Project>

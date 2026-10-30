@@ -1,0 +1,9 @@
+node_modules/
+dist/
+bin/
+obj/
+.vs/
+*.user
+.env
+.env.*
+!.env.example
