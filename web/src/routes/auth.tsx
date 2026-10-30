@@ -244,18 +244,23 @@ export function ChooseNamePage() {
 function AuthShell({ title, children }: { title: string; children: ReactNode }) {
   const { t } = useTranslation()
   return (
-    <main className="mx-auto flex min-h-dvh max-w-sm flex-col justify-center px-4 py-12">
-      <div className="mb-6">
+    <div className="flex min-h-dvh flex-col">
+      <header className="hidden px-6 pt-6 md:block">
         <LanguageSelect />
-      </div>
-      <a href="/" aria-label={t('home')} className="self-start">
-        <picture>
-          <source media="(prefers-color-scheme: dark)" srcSet="/brand/logo-light.svg" />
-          <img src="/brand/logo.svg" alt="" width="144" height="48" className="h-12 w-auto" />
-        </picture>
-      </a>
-      <h1 className="mb-6 mt-2 text-2xl font-semibold tracking-tight">{title}</h1>
-      {children}
-    </main>
+      </header>
+      <main className="mx-auto flex w-full max-w-sm flex-1 flex-col justify-center px-4 py-12">
+        <div className="mb-6 md:hidden">
+          <LanguageSelect />
+        </div>
+        <a href="/" aria-label={t('home')} className="self-start">
+          <picture>
+            <source media="(prefers-color-scheme: dark)" srcSet="/brand/logo-light.svg" />
+            <img src="/brand/logo.svg" alt="" width="144" height="48" className="h-12 w-auto" />
+          </picture>
+        </a>
+        <h1 className="mb-6 mt-2 text-2xl font-semibold tracking-tight">{title}</h1>
+        {children}
+      </main>
+    </div>
   )
 }
