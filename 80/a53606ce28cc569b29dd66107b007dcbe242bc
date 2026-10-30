@@ -1,0 +1,19 @@
+api/Kuta.Api/Program.cs
+  s_6fd5f3f6e9c798::t_3002efc1cd50cf 29
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.7.5",
+  "base_commit_sha": "80a53606ce28cc569b29dd66107b007dcbe242bc",
+  "prompts": {},
+  "sessions": {
+    "s_6fd5f3f6e9c798": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "110cb47e-0b75-4e34-90b9-538aef87a42f",
+        "model": "claude-opus-5-5"
+      },
+      "human_author": "Simon Aunér <simonauner@gmail.com>"
+    }
+  }
+}
