@@ -5,14 +5,14 @@ import { useTranslation } from 'react-i18next'
 import { ActivityCharts, type ChartSeries } from '@/components/activity-charts'
 import { ActivityMap } from '@/components/activity-map'
 import { ErrorMessage } from '@/components/error-message'
-import { ApiError, api } from '@/lib/api'
+import { ApiError } from '@/lib/api'
+import { activityQuery } from '@/lib/activity-query'
 import {
   activityTitle,
   average,
   formatDuration,
   formatPace,
   splits,
-  type ActivityDetail,
   type ActivityStreams,
 } from '@/lib/activity'
 
@@ -38,11 +38,7 @@ export function ActivityPage() {
   const { activityId } = useParams({ from: '/app/activities/$activityId' })
   const { t, i18n } = useTranslation()
   const [tab, setTab] = useState<'overview' | 'laps'>('overview')
-  const activity = useQuery({
-    queryKey: ['activity', activityId],
-    queryFn: () => api.get<ActivityDetail>(`/api/activities/${activityId}`),
-    retry: (count, error) => !(error instanceof ApiError && error.status === 404) && count < 1,
-  })
+  const activity = useQuery(activityQuery(activityId))
 
   const view = useMemo(() => {
     const streams = activity.data?.streams
@@ -119,7 +115,11 @@ export function ActivityPage() {
     <section>
       <BackLink />
       <p className="mt-4 text-sm text-muted-foreground">{when.format(new Date(a.startedAt))}</p>
-      <h1 className="mt-1 text-2xl font-semibold tracking-tight">{activityTitle(a, t)}</h1>
+      <h1 className="mt-1 text-2xl font-semibold tracking-tight">
+        <span className="inline-block" style={{ viewTransitionName: `activity-title-${a.id}` }}>
+          {activityTitle(a, t)}
+        </span>
+      </h1>
       {a.device && <p className="mt-1 text-xs text-muted-foreground">{a.device}</p>}
 
       <dl className="mt-6 grid grid-cols-3 gap-4">

@@ -108,7 +108,8 @@ export function ActivitiesPage() {
               <Link
                 to="/app/activities/$activityId"
                 params={{ activityId: a.id }}
-                className="font-medium underline-offset-2 hover:underline"
+                className="inline-block font-medium underline-offset-2 hover:underline"
+                style={{ viewTransitionName: `activity-title-${a.id}` }}
               >
                 {activityTitle(a, t)}
               </Link>

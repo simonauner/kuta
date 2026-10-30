@@ -9,6 +9,8 @@ import { ActivitiesPage } from '@/routes/activities'
 import { FeedPage } from '@/routes/feed'
 import { ProfilePage } from '@/routes/profile'
 import { StatsPage } from '@/routes/stats'
+import { activityQuery } from '@/lib/activity-query'
+import { queryClient } from '@/lib/query-client'
 
 const rootRoute = createRootRoute({ component: Layout })
 
@@ -26,6 +28,8 @@ const activitiesRoute = createRoute({
 const activityRoute = createRoute({
   getParentRoute: () => rootRoute,
   path: '/app/activities/$activityId',
+  // Vänta in titeln före ögonblicksbilden; queryn behåller passsidans felhantering.
+  loader: ({ params }) => queryClient.prefetchQuery(activityQuery(params.activityId)),
   component: lazyRouteComponent(() => import('@/routes/activity'), 'ActivityPage'),
 })
 const statsRoute = createRoute({
@@ -47,7 +51,21 @@ const routeTree = rootRoute.addChildren([
   profileRoute,
 ])
 
-export const router = createRouter({ routeTree, defaultPreload: 'intent' })
+export const router = createRouter({
+  routeTree,
+  defaultPreload: 'intent',
+  defaultViewTransition: {
+    types: ({ fromLocation, toLocation }) => {
+      const from = fromLocation?.pathname ?? ''
+      const to = toLocation.pathname
+      return !window.matchMedia('(prefers-reduced-motion: reduce)').matches &&
+        ((from === '/app/activities' && to.startsWith('/app/activities/')) ||
+          (to === '/app/activities' && from.startsWith('/app/activities/')))
+        ? ['activity-title']
+        : false
+    },
+  },
+})
 
 declare module '@tanstack/react-router' {
   interface Register {
