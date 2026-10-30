@@ -1,6 +1,6 @@
 # Kuta
 
-Kuta (kuta.io) är en Strava-liknande löparapp: ladda upp pass från Garmin (FIT) eller logga manuellt, följ statistik över tid (puls, fart, max distans), logga skor per pass, få rekord ("snabbaste 5k", "snabbaste 5k i år"), och följ andra löpare med flöde, profiler och grupper. Svenskt namn, ska funka internationellt. Webbapp som PWA (sparas till hemskärmen) – ingen App Store i början.
+Kuta är en Strava-liknande löparapp: ladda upp pass från Garmin (FIT) eller logga manuellt, följ statistik över tid (puls, fart, max distans), logga skor per pass, få rekord ("snabbaste 5k", "snabbaste 5k i år"), och följ andra löpare med flöde, profiler och grupper. Svenskt namn, ska funka internationellt. Webbapp som PWA (sparas till hemskärmen) – ingen App Store i början.
 
 ## Arbetsflöde
 - Håll bestående projektregler i `AGENTS.md`, körinstruktioner i `README.md` och återanvändbara agentprocedurer i `.agents/skills/`. Uppdatera berörd dokumentation när ett arbetssätt eller beslut ändras; undvik ändringsloggar och dubblerade instruktioner.
@@ -35,7 +35,7 @@ Kuta (kuta.io) är en Strava-liknande löparapp: ladda upp pass från Garmin (FI
 - Ändra aldrig en körd migrering – nya ändringar i nästa nummer. Migreringsfilerna finns i `api/Kuta.Api/Migrations/`.
 - Privat repo: github.com/simonauner/kuta. Node 24 (`.nvmrc`).
 - Driftsatt på https://kuta.fly.dev (en maskin i `arn`, `fly deploy --ha=false` tills migreringar och token-förnyelse klarar flera maskiner; ingen automatisk deploy vid push): `Dockerfile` (API:t servar den byggda webben från `wwwroot`, samma origin), `fly.toml` (egen app `kuta`, `arn`), steg i README. Utanför Development krävs `DataProtection__Certificate`; lokala värden ligger bara i `appsettings.Development.json`. Pipelinens ordning i `Program.cs` är medveten (headers → statiska filer → routing → auth) – se kommentarerna.
-- Hostat Supabase-projekt: `https://hrkqzqfyisvdyzfxzokf.supabase.co`. Data Protection-nycklarna i drift är verifierat krypterade med certifikatet. Egen SMTP saknas (Scaleway TEM, kräver verifierad domän) – tills dess når bekräftelsemejl bara projektets medlemmar.
+- Hostat Supabase-projekt: `https://hrkqzqfyisvdyzfxzokf.supabase.co`. Data Protection-nycklarna i drift är verifierat krypterade med certifikatet. Egen SMTP saknas (Scaleway TEM, kräver verifierad domän; ingen domän vald än) – tills dess når bekräftelsemejl bara projektets medlemmar.
 - **Hemligheter bara via 1Password:** `fly.secrets.tpl` (op://-referenser, objektet `fly-kuta` i valvet `Development`) och `scripts/fly-secrets.sh fly.toml --stage`. Aldrig värden i filer, argument eller kommandon; icke-hemliga inställningar i `fly.toml` under `[env]`. Vid uppsättning: EU-region, stäng av Data API i dashboarden (grants är redan återkallade, se nedan), lägg in bekräftelsemallen och minsta lösenordslängd 8 i dashboarden, och sätt via miljövariabler: `ConnectionStrings__Default` (session pooler, port 5432, `Maximum Pool Size` under poolstorleken), `Supabase__Url`, `Supabase__PublishableKey` och `Supabase__SecretKey` (gör att besökarens IP skickas vidare till Supabase). Före produktion: skydda Data Protection-nycklarna med certifikat och konfigurera forwarded headers så att rate limiten ser klientens IP.
 
 ## Designbeslut att hålla fast vid
