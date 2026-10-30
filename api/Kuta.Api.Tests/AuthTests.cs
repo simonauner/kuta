@@ -29,7 +29,13 @@ public class AuthTests(WebApplicationFactory<Program> factory) : IClassFixture<W
             var me = await client.GetFromJsonAsync<Dictionary<string, object>>("/api/me", ct);
             Assert.Equal(email, me!["email"].ToString());
             Assert.Equal("Testlöpare", me["displayName"].ToString());
-            Assert.Equal(HttpStatusCode.OK, (await client.GetAsync("/api/activities", ct)).StatusCode);
+            await using (var conn = await factory.Services.GetRequiredService<NpgsqlDataSource>().OpenConnectionAsync(ct))
+                await conn.ExecuteAsync(
+                    "insert into activities (user_id, source, started_at, duration_s, distance_m) values (@id, 'manual', now(), 1800, 5000)",
+                    new { id = Guid.Parse(me["id"].ToString()!) });
+            var activities = await client.GetStringAsync("/api/activities", ct);
+            Assert.Contains("\"startedAt\"", activities);
+            Assert.Contains("\"distanceM\":5000", activities);
 
             var duplicate = await client.PostAsJsonAsync("/api/auth/register",
                 new { email, password = "hemligt-lösen", displayName = "Igen" }, ct);

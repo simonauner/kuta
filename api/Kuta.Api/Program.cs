@@ -77,7 +77,7 @@ api.MapAuth();
 api.MapGet("/activities", async (NpgsqlDataSource db, ClaimsPrincipal user) =>
 {
     await using var conn = await db.OpenConnectionAsync();
-    var rows = await conn.QueryAsync(
+    var rows = await conn.QueryAsync<ActivitySummary>(
         """
         select id, sport, title, started_at, duration_s, distance_m, avg_hr, shoe_id
         from activities
@@ -94,3 +94,8 @@ return 0;
 
 // Synlig för WebApplicationFactory i testerna
 public partial class Program;
+
+// Typade records, inte dynamic: Dapper-rader serialiseras som dictionary med snake_case-nycklar.
+public record ActivitySummary(
+    Guid Id, string Sport, string? Title, DateTime StartedAt,
+    int DurationS, double DistanceM, short? AvgHr, Guid? ShoeId);
