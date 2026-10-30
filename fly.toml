@@ -12,9 +12,9 @@ swap_size_mb = 512
   # Klientens IP från Flys proxy för rate limiten, och https från X-Forwarded-Proto.
   ASPNETCORE_FORWARDEDHEADERS_ENABLED = 'true'
   ForwardedHeaders__ForwardedForHeaderName = 'Fly-Client-IP'
-  # Fylls i när Supabase-projektet finns. Den publika nyckeln är inte hemlig.
-  # Supabase__Url = 'https://<projekt-ref>.supabase.co'
-  # Supabase__PublishableKey = 'sb_publishable_...'
+  Supabase__Url = 'https://hrkqzqfyisvdyzfxzokf.supabase.co'
+  # Publik nyckel, inte hemlig.
+  Supabase__PublishableKey = 'sb_publishable_Df2B4jm1aXH1_uOy52EsXg_BmM8THXV'
 
 [http_service]
   internal_port = 8080
