@@ -37,6 +37,8 @@ export default defineConfig({
     tailwindcss(),
     VitePWA({
       registerType: 'autoUpdate',
+      // Navigeringar till API:t (t.ex. bekräftelselänken i mejlet) måste nå servern, inte appens index.html
+      workbox: { navigateFallbackDenylist: [/^\/api\//] },
       includeAssets: ['favicon.svg'],
       manifest: {
         name: 'Kuta',
