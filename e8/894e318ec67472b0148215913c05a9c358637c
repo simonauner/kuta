@@ -1,0 +1,32 @@
+web/index.html
+  s_74b0ea734d309d::t_5181726db501bb 38-39,287-288
+  s_74b0ea734d309d::t_1df313ee18fad4 6-7,126,129-130,134,140,147,154,162-163,199-222
+  s_74b0ea734d309d::t_d574a69b49762c 36-37,285-286
+web/src/index.css
+  s_74b0ea734d309d::t_1df313ee18fad4 3
+web/src/theme.css
+  s_74b0ea734d309d::t_1df313ee18fad4 1-42
+web/src/landing.css
+  s_74b0ea734d309d::t_1df313ee18fad4 1-2,4,6-7,10-14,30,49,78-79,87,96-97,115-117,143,151,158-159,169,182-184,188,201,211,221,226,243,274,314,319,334,342,344,358,364,371,374,377,383,393,416,419,424,436,453,463,467,472-473,496,502-503,510,522-523,535,546,560,566,577,583,590,605,611,617,630,684-687
+  s_74b0ea734d309d::t_5bdd87f6bfe0c6 361
+README.md
+  s_74b0ea734d309d::t_1df313ee18fad4 7
+web/public/brand/logo.svg
+  s_74b0ea734d309d::t_3162aaef85d59c 1
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.7.5",
+  "base_commit_sha": "e8894e318ec67472b0148215913c05a9c358637c",
+  "prompts": {},
+  "sessions": {
+    "s_74b0ea734d309d": {
+      "agent_id": {
+        "tool": "codex",
+        "id": "01a18ef0-a2f6-70e2-809f-47f846fe002e",
+        "model": "gpt-6.1-sol"
+      },
+      "human_author": "Simon Aunér <simonauner@gmail.com>"
+    }
+  }
+}
