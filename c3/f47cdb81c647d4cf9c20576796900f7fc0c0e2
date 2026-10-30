@@ -1,0 +1,28 @@
+AGENTS.md
+  s_cc085519824d9e::t_e347a309962f4c 8,13-20
+  s_acd06763c92952::t_7d36af644b189e 21
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.7.5",
+  "base_commit_sha": "c3f47cdb81c647d4cf9c20576796900f7fc0c0e2",
+  "prompts": {},
+  "sessions": {
+    "s_acd06763c92952": {
+      "agent_id": {
+        "tool": "codex",
+        "id": "01a18efb-8bf3-72a0-93fc-3e606809cffe",
+        "model": "gpt-6.1-sol"
+      },
+      "human_author": "Simon Aunér <simonauner@gmail.com>"
+    },
+    "s_cc085519824d9e": {
+      "agent_id": {
+        "tool": "codex",
+        "id": "01a18f08-a7f0-7892-b6f5-cb83b369d3c4",
+        "model": "gpt-6.1-sol"
+      },
+      "human_author": "Simon Aunér <simonauner@gmail.com>"
+    }
+  }
+}
