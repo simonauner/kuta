@@ -1,0 +1,72 @@
+web/.prettierignore
+  s_d76f222bb24440::t_86725079d8bdf8 1-2
+web/src/landing.css
+  s_d76f222bb24440::t_d9b71f1afdbdcd 1-636,638-655,658-838
+web/src/components/ui/label.tsx
+  s_d76f222bb24440::t_86725079d8bdf8 1-3,5,10-11
+web/src/router.tsx
+  s_d76f222bb24440::t_86725079d8bdf8 1,31
+web/tests/api.test.mjs
+  s_d76f222bb24440::t_86725079d8bdf8 1-121
+web/src/routes/auth.tsx
+  s_d76f222bb24440::t_86725079d8bdf8 25-28,48-52,54-60,67-71,87-99,106-112,116-123,131,133-134,152-158,160-162,166-172,175-182,185-189,194,196
+  s_d76f222bb24440::t_d9b71f1afdbdcd 14-16
+  s_d76f222bb24440::t_f196a3d5e634d7 53,132,159,195
+web/src/components/ui/input.tsx
+  s_d76f222bb24440::t_86725079d8bdf8 1-2,4,10-13
+web/src/components/heart-rate-consent.tsx
+  s_d76f222bb24440::t_490ff8227d4639 1-13,16-23,29-45,48-58
+  s_d76f222bb24440::t_86725079d8bdf8 14-15,24-28,46-47
+web/index.html
+  s_d76f222bb24440::t_d9b71f1afdbdcd 8-11,17-20,34-36,45-52,56-62,65-83,89-98,100-173,177-210,212-230,234-261,263-269
+web/src/components/layout.tsx
+  s_d76f222bb24440::t_86725079d8bdf8 20-21
+  s_d76f222bb24440::t_d9b71f1afdbdcd 53-54
+web/src/components/ui/button.tsx
+  s_d76f222bb24440::t_86725079d8bdf8 1-4,11,13,15-18,21,23-28,32-33,35,40-41,44,48,61
+web/tsconfig.json
+  s_d76f222bb24440::t_86725079d8bdf8 5
+web/vite.config.ts
+  s_d76f222bb24440::t_d9b71f1afdbdcd 76-82,98-103
+web/.prettierrc.json
+  s_d76f222bb24440::t_86725079d8bdf8 1-5
+web/src/routes/profile.tsx
+  s_d76f222bb24440::t_490ff8227d4639 2,20
+  s_d76f222bb24440::t_86725079d8bdf8 21-26,29-33
+web/package.json
+  s_d76f222bb24440::t_86725079d8bdf8 10-12,35
+web/src/routes/activities.tsx
+  s_d76f222bb24440::t_88f7ec85afcfd7 98
+  s_d76f222bb24440::t_490ff8227d4639 2-4,9,50,94-97,99-104
+  s_d76f222bb24440::t_86725079d8bdf8 22-25,28-31,81-83,115,121-122
+.github/workflows/frontend.yml
+  s_d76f222bb24440::t_86725079d8bdf8 1-39
+README.md
+  s_d76f222bb24440::t_86725079d8bdf8 50-55
+web/src/routes/feed.tsx
+  s_d76f222bb24440::t_86725079d8bdf8 5
+web/src/routes/stats.tsx
+  s_d76f222bb24440::t_86725079d8bdf8 5
+web/app.html
+  s_d76f222bb24440::t_d9b71f1afdbdcd 9
+web/src/lib/api.ts
+  s_d76f222bb24440::t_86725079d8bdf8 20-25,50-54
+web/package-lock.json
+  s_d76f222bb24440::t_2505d7d751476c 30,8042-8057
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.7.5",
+  "base_commit_sha": "129bc476b03a270f8b5b4cffcd62f1588f09fddb",
+  "prompts": {},
+  "sessions": {
+    "s_d76f222bb24440": {
+      "agent_id": {
+        "tool": "codex",
+        "id": "01a18e9f-9776-78e1-9256-f3abe0ea2364",
+        "model": "gpt-6.1-sol"
+      },
+      "human_author": "Simon Aunér <simonauner@gmail.com>"
+    }
+  }
+}
