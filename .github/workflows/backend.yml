@@ -1,0 +1,36 @@
+name: Backend
+
+on:
+  pull_request:
+    paths:
+      - 'api/**'
+      - 'supabase/**'
+      - 'global.json'
+      - '.github/workflows/backend.yml'
+      - 'Dockerfile'
+      - '.dockerignore'
+      - '!**/*.md'
+  push:
+    branches: [main]
+    paths:
+      - 'api/**'
+      - 'supabase/**'
+      - 'global.json'
+      - '.github/workflows/backend.yml'
+      - 'Dockerfile'
+      - '.dockerignore'
+      - '!**/*.md'
+
+permissions:
+  contents: read
+
+jobs:
+  backend:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v7
+      - uses: actions/setup-dotnet@v6
+        with:
+          global-json-file: global.json
+      - run: dotnet build api/Kuta.Api.Tests/Kuta.Api.Tests.csproj --configuration Release
