@@ -1,0 +1,24 @@
+api/Kuta.Api.Tests/WebRoutingTests.cs
+  s_6fd5f3f6e9c798::t_c2dda9626b9f7d 29
+  s_6fd5f3f6e9c798::t_8aafeafd40c686 22
+api/Kuta.Api/Program.cs
+  s_6fd5f3f6e9c798::t_bb5813fddddf6c 168
+AGENTS.md
+  s_6fd5f3f6e9c798::t_d179a81dc4b668 42
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.7.5",
+  "base_commit_sha": "e53c62ed8530a6160b3b224d6607fccf15ba7619",
+  "prompts": {},
+  "sessions": {
+    "s_6fd5f3f6e9c798": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "110cb47e-0b75-4e34-90b9-538aef87a42f",
+        "model": "claude-opus-5-5"
+      },
+      "human_author": "Simon Aunér <simonauner@gmail.com>"
+    }
+  }
+}
