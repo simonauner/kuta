@@ -1,0 +1,34 @@
+web/src/components/ui/label.tsx
+  s_6fd5f3f6e9c798::t_4a39c8a3751061 1,3-21
+  s_6fd5f3f6e9c798::t_087d0ec535d5c9 2
+web/src/components/ui/button.tsx
+  s_6fd5f3f6e9c798::t_4a39c8a3751061 1-2,4-63
+  s_6fd5f3f6e9c798::t_087d0ec535d5c9 3
+web/package.json
+  s_6fd5f3f6e9c798::t_0a3b9680fd9c70 20
+web/src/components/ui/input.tsx
+  s_6fd5f3f6e9c798::t_087d0ec535d5c9 2
+  s_6fd5f3f6e9c798::t_4a39c8a3751061 1,3-20
+web/src/index.css
+  s_6fd5f3f6e9c798::t_b729d035ae58a5 16-22,35-41,54-60,88-94
+web/tsconfig.json
+  s_6fd5f3f6e9c798::t_b729d035ae58a5 3-4
+web/package-lock.json
+  s_6fd5f3f6e9c798::t_1926dc3b859c0d 18,1595-1632,2038-3536,3538-3545,3548-3551,3553-3560,3563-3566,3568-3575,3578-3581,3583-3593,3596-3599,3601-3611,3614-3617,3619-3634,3637-3642,5076,5496-5507,6017-6022,6548-6556,8066-8142,8164-8232,9284-9326
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.7.5",
+  "base_commit_sha": "464ffadfa9bd5625189ae0fefe861d54c935e7c6",
+  "prompts": {},
+  "sessions": {
+    "s_6fd5f3f6e9c798": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "110cb47e-0b75-4e34-90b9-538aef87a42f",
+        "model": "claude-opus-5-5"
+      },
+      "human_author": "Simon Aunér <simonauner@gmail.com>"
+    }
+  }
+}
