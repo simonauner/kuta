@@ -21,6 +21,11 @@ export function ProfilePage() {
       <Button variant="outline" className="mt-8" disabled={logout.isPending} onClick={() => logout.mutate()}>
         Logga ut
       </Button>
+      {logout.error && (
+        <p role="alert" className="mt-4 text-sm text-destructive">
+          {logout.error.message}
+        </p>
+      )}
     </section>
   )
 }
