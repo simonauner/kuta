@@ -4,7 +4,7 @@ Kuta (kuta.io) är en Strava-liknande löparapp: ladda upp pass från Garmin (FI
 
 ## Stack (beslutad)
 - **API:** .NET 10, ASP.NET Core minimal API, **Dapper** (inte EF Core), Npgsql, Postgres + PostGIS, NetTopologySuite.
-- **Supabase:** hanterad Postgres (EU-region) och **Supabase Auth**. Webben loggar in med supabase-js och skickar JWT:n som Bearer till vårt API, som validerar den (`AddJwtBearer`, JWKS). All data går via vårt API – webben använder inte Supabases Data API. Lokalt: `supabase start` (portar 553xx, se `supabase/config.toml`).
+- **Supabase:** hanterad Postgres (EU-region) och **Supabase Auth**. Inloggningen går via vårt API (BFF, samma mönster som Kredovis): API:t pratar med Supabase Auth och lägger sessionen i en krypterad HttpOnly-cookie, så tokens aldrig når JavaScript. Webben använder varken supabase-js eller Supabases Data API och behöver inga Supabase-nycklar. Lokalt: `supabase start` (portar 553xx, se `supabase/config.toml`).
 - **Migreringar:** DbUp med inbäddade SQL-filer i `api/Kuta.Api/Migrations/`.
 - **Web:** React + Vite + TypeScript, TanStack Router (kodbaserad) + Query, Tailwind v4, shadcn/ui (components.json finns, komponenter läggs till med `npx shadcn@latest add ...`), Motion för animationer, vite-plugin-pwa, MapLibre GL.
 - **Filer:** Cloudflare R2 (S3-kompatibelt) för rå-FIT-filer och PMTiles-kartor. `activities.raw_file_key` pekar på objektnyckeln.
@@ -14,10 +14,17 @@ Kuta (kuta.io) är en Strava-liknande löparapp: ladda upp pass från Garmin (FI
 ## Status
 - `web/`: bygger (`npm run build` OK). Skal med routes Flöde/Pass/Statistik/Profil, bottennavigering, sidövergångar, PWA-manifest. PNG-ikoner (192/512/maskable, apple-touch-icon) saknas.
 - `api/`: bygger och körs mot lokal Supabase; `/api/health` svarar med PostGIS-version. Paketversioner pinnade. Namnmatchning snake_case→PascalCase är satt via `DefaultTypeMap.MatchNamesWithUnderscores`.
-- Auth: Supabase Auth. `users` är en profiltabell med samma id som `auth.users` (FK, kaskadradering). `GET /api/me` ger id, e-post (från JWT:n) och `displayName` (null tills profilen skapats); `PUT /api/me` skapar/uppdaterar profilen. Webbens inloggning saknas.
+- Auth (portad och slimmad från Kredovis `SupabaseAuthClient`/`SupabaseCookieSession`):
+  - `POST /api/auth/signup|login|logout`, `GET /api/auth/confirm?token_hash=` (länken i bekräftelsemejlet, mall i `supabase/templates/confirmation.html`), `GET /api/antiforgery`.
+  - Alla skrivande `/api`-anrop kräver `X-CSRF-TOKEN` från `GET /api/antiforgery`. Token är knuten till användaren: hämta en ny efter in- och utloggning.
+  - Sessioner i `user_sessions` (kontrolleras vid varje anrop, utloggning slår igenom direkt). Cookien glider 30 dagar, hård gräns 180 dagar. Access-token förnyas strax före utgång; Supabase tillfrågas om återkallelse högst var 5:e minut.
+  - Data Protection-nycklar i `data_protection_keys`. Rate limit 10 auth-anrop/5 min/IP.
+  - `users` är en profiltabell med samma id som `auth.users` (FK, kaskadradering). `GET /api/me` ger id, e-post och `displayName` (null tills profilen skapats); `PUT /api/me` skapar/uppdaterar profilen.
+  - Saknas: lösenordsåterställning, MFA, inloggning med Google/Apple, logga ut andra sessioner, städning av gamla sessionsrader, Turnstile.
+  - Lokalt: kommer bekräftelsemejlet i Mailpit (http://127.0.0.1:55324) med Supabases engelska standardmall har auth-containern startat före Kong – kör `docker restart supabase_auth_kuta`.
 - Migreringar körda: 001–003. Ändra aldrig en körd migrering – nya ändringar i nästa nummer.
 - Privat repo: github.com/simonauner/kuta. Node 24 (`.nvmrc`).
-- Inget hostat Supabase-projekt än. Vid uppsättning: EU-region, stäng av Data API i dashboarden (grants är redan återkallade, se nedan), sätt `ConnectionStrings:Default` och `Supabase:Url` via miljövariabler.
+- Inget hostat Supabase-projekt än. Vid uppsättning: EU-region, stäng av Data API i dashboarden (grants är redan återkallade, se nedan), lägg in bekräftelsemallen och minsta lösenordslängd 8 i dashboarden, och sätt via miljövariabler: `ConnectionStrings__Default` (session pooler, port 5432, `Maximum Pool Size` under poolstorleken), `Supabase__Url`, `Supabase__PublishableKey` och `Supabase__SecretKey` (gör att besökarens IP skickas vidare till Supabase). Före produktion: skydda Data Protection-nycklarna med certifikat och konfigurera forwarded headers så att rate limiten ser klientens IP.
 
 ## Designbeslut att hålla fast vid
 - **Tidsserier som arrayer** i `activity_streams` (en rad per pass), inte en rad per sekund.
@@ -32,7 +39,7 @@ Kuta (kuta.io) är en Strava-liknande löparapp: ladda upp pass från Garmin (FI
 
 ## Nästa steg (i ordning)
 1. ~~GitHub-repo~~, ~~bygga och köra API:t~~, ~~auth i API:t (Supabase)~~ – klart.
-2. Webb: inloggning med supabase-js (och profilnamn via `PUT /api/me`), skicka JWT till API:t.
+2. Webb: inloggnings-/registreringssidor mot `/api/auth/*` (med CSRF-token), profilnamn via `PUT /api/me`.
 3. Hostat Supabase-projekt (EU) och deploy av API:t.
 4. FIT-uppladdning: endpoint, lagring i R2, parsning med `Garmin.FIT.Sdk`, skriv `activities` + `activity_streams`.
 5. Rekordmotor (glidande fönster över distans/tid-strömmen), tester med riktiga FIT-filer.
