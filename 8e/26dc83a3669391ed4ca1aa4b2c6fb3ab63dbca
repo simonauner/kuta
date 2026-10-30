@@ -1,0 +1,50 @@
+api/Kuta.Api/SupabaseAuthClient.cs
+  s_cb96cc4f32edb9::t_383308538a8398 15,62-67,70,76-80,83-102
+  s_cb96cc4f32edb9::t_0cc734efda51ab 81-82
+  s_cb96cc4f32edb9::t_84e63240b3220f 103
+web/src/components/layout.tsx
+  s_cb96cc4f32edb9::t_1687c36be58271 21
+  s_cb96cc4f32edb9::t_62610892cd457b 7,20
+  s_cb96cc4f32edb9::t_68531e3ca7062c 22
+api/Kuta.Api.Tests/PasswordRecoveryTests.cs
+  s_cb96cc4f32edb9::t_0cc734efda51ab 52
+  s_cb96cc4f32edb9::t_36a9e04714cc79 81-119
+  s_cb96cc4f32edb9::t_e0405604dc3a3c 1-51,53-80,120-176
+AGENTS.md
+  s_cb96cc4f32edb9::t_c38a6658b4d0e8 33-34,54,63
+api/Kuta.Api.Tests/RecoveryClientTests.cs
+  s_cb96cc4f32edb9::t_8a267ac72cab84 1-39
+supabase/templates/recovery.html
+  s_cb96cc4f32edb9::t_86dc4a6813d9bd 1-4
+web/src/routes/auth.tsx
+  s_cb96cc4f32edb9::t_62610892cd457b 9,13-14,23,43,45-48,55-60,71,81,88,91-98,108,114-146
+  s_cb96cc4f32edb9::t_1687c36be58271 44,103
+  s_cb96cc4f32edb9::t_34094b9454c7ec 147-148
+README.md
+  s_cb96cc4f32edb9::t_c38a6658b4d0e8 34-39,50
+api/Kuta.Api/AuthEndpoints.cs
+  s_cb96cc4f32edb9::t_86dc4a6813d9bd 8-9,98-118
+  s_cb96cc4f32edb9::t_c51d742283b1ed 119
+api/Kuta.Api/PasswordRecovery.cs
+  s_cb96cc4f32edb9::t_86dc4a6813d9bd 1-11,15-38,41-49,51-59,63-68,70-71,73-79,81,83,85-89,91-93
+  s_cb96cc4f32edb9::t_7a03b620c08530 13-14,39,50,60-61,82,90
+  s_cb96cc4f32edb9::t_9f82b0f2028d0c 12,40,62,69,72,80,84
+supabase/config.toml
+  s_cb96cc4f32edb9::t_86dc4a6813d9bd 232-235
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.7.5",
+  "base_commit_sha": "8e26dc83a3669391ed4ca1aa4b2c6fb3ab63dbca",
+  "prompts": {},
+  "sessions": {
+    "s_cb96cc4f32edb9": {
+      "agent_id": {
+        "tool": "codex",
+        "id": "01a18e9e-212f-72b0-872b-d07492c92c8f",
+        "model": "gpt-6.1-sol"
+      },
+      "human_author": "Simon Aunér <simonauner@gmail.com>"
+    }
+  }
+}
