@@ -1,0 +1,81 @@
+web/public/brand/app-icon-maskable.svg
+  s_d76f222bb24440::t_97f0286897a7f9 1
+web/index.html
+  s_d76f222bb24440::t_08d33bda340543 28,74
+  s_d76f222bb24440::t_5781a2c4b20cd8 40
+  s_d76f222bb24440::t_53c0a773edaec2 71
+  s_d76f222bb24440::t_653573024fa74b 42
+  s_d76f222bb24440::t_5e0960860d2f3a 5,9-12,15,23,26-27,34-35,44,51-52,68,70,73
+  s_d76f222bb24440::t_265cd41c6368e2 43
+  s_d76f222bb24440::t_fc7541bc355120 55,69
+  s_d76f222bb24440::t_770f84f89e807e 6,16-18,29-33,36-39,41,45-50,53-54,56-67,72
+  s_d76f222bb24440::t_eda70c74200c47 7-8,13-14,20-22
+web/public/favicon.svg
+  s_d76f222bb24440::t_08d33bda340543 1
+api/Kuta.Api/Program.cs
+  s_d76f222bb24440::t_8bc65c44f28556 173-177
+api/Kuta.Api/AuthEndpoints.cs
+  s_d76f222bb24440::t_5e0960860d2f3a 101,103
+web/public/robots.txt
+  s_d76f222bb24440::t_5e0960860d2f3a 1-4
+web/vite.config.ts
+  s_d76f222bb24440::t_8bc65c44f28556 42-43,48-49,52-53,56,71,84
+  s_d76f222bb24440::t_595f55fff608bd 44-47,72-75,82-83
+  s_d76f222bb24440::t_775459e09d7c8b 4,25-39,54-55
+  s_d76f222bb24440::t_fc6aafd5476bde 76,90-92
+web/src/components/layout.tsx
+  s_d76f222bb24440::t_23bc1aad66d2a9 52
+  s_d76f222bb24440::t_5e0960860d2f3a 10-13
+web/src/landing.css
+  s_d76f222bb24440::t_770f84f89e807e 1,6,9,11,14-97,100-101,103,105-113,116-118,120,122-123,125-153,155-156
+  s_d76f222bb24440::t_5e0960860d2f3a 2-5,7-8,10,98-99,102,114-115,154,157-160
+  s_d76f222bb24440::t_08d33bda340543 12-13,104,119
+  s_d76f222bb24440::t_46c6cb246a2b55 121,124
+api/Kuta.Api.Tests/WebRoutingTests.cs
+  s_d76f222bb24440::t_ee3a1191b77ded 13-15
+  s_d76f222bb24440::t_775459e09d7c8b 1-12,16-43
+api/Kuta.Api.Tests/SecurityHeadersTests.cs
+  s_d76f222bb24440::t_8bc65c44f28556 17,21
+web/app.html
+  s_d76f222bb24440::t_5e0960860d2f3a 1-24
+web/public/sitemap.xml
+  s_d76f222bb24440::t_5e0960860d2f3a 1-4
+web/src/router.tsx
+  s_d76f222bb24440::t_5e0960860d2f3a 16,21,26,31
+web/src/routes/auth.tsx
+  s_d76f222bb24440::t_5e0960860d2f3a 13
+  s_d76f222bb24440::t_08d33bda340543 129-134
+README.md
+  s_d76f222bb24440::t_46c6cb246a2b55 7
+  s_d76f222bb24440::t_8bc65c44f28556 5-6,8,11-12
+  s_d76f222bb24440::t_08d33bda340543 10
+  s_d76f222bb24440::t_a359282fc09429 9
+web/public/brand/logo-light.svg
+  s_d76f222bb24440::t_08d33bda340543 1
+web/public/brand/app-icon.svg
+  s_d76f222bb24440::t_97f0286897a7f9 1
+web/public/brand/logo.svg
+  s_d76f222bb24440::t_08d33bda340543 1
+api/Kuta.Api.Tests/AuthTests.cs
+  s_d76f222bb24440::t_5e0960860d2f3a 42,62
+AGENTS.md
+  s_d76f222bb24440::t_498a611c048c23 15,38
+  s_d76f222bb24440::t_7561a192e66878 32
+  s_d76f222bb24440::t_a3b0257e96d5d6 23
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.7.5",
+  "base_commit_sha": "2deef7d016f3b478c63ce3e5b34861527ffc2580",
+  "prompts": {},
+  "sessions": {
+    "s_d76f222bb24440": {
+      "agent_id": {
+        "tool": "codex",
+        "id": "01a18e9f-9776-78e1-9256-f3abe0ea2364",
+        "model": "gpt-6.1-sol"
+      },
+      "human_author": "Simon Aunér <simonauner@gmail.com>"
+    }
+  }
+}
