@@ -6,6 +6,8 @@ import { meQuery } from '@/lib/auth'
 import { cn } from '@/lib/utils'
 import { AuthPage, ChooseNamePage, ResetPasswordPage } from '@/routes/auth'
 
+const copyrightYear = new Date().getFullYear()
+
 const tabs = [
   { to: '/app', label: 'Flöde', icon: Home },
   { to: '/app/pass', label: 'Pass', icon: Activity },
@@ -32,8 +34,46 @@ export function Layout() {
   if (me.data.displayName === null) return <ChooseNamePage />
 
   return (
-    <div className="mx-auto flex min-h-dvh max-w-2xl flex-col">
-      <main className="flex-1 px-4 pb-28 pt-6">
+    <div className="flex min-h-dvh flex-col">
+      <header className="fixed inset-x-0 bottom-0 z-20 border-t bg-background/80 pb-[env(safe-area-inset-bottom)] backdrop-blur md:sticky md:bottom-auto md:top-0 md:border-b md:border-t-0 md:pb-0">
+        <div className="mx-auto flex max-w-2xl items-center md:gap-8 md:px-4 md:py-3">
+          <Link
+            to="/app"
+            activeOptions={{ exact: true }}
+            className="hidden rounded-md text-2xl font-semibold tracking-tight text-primary focus-visible:outline-2 focus-visible:outline-offset-4 focus-visible:outline-ring md:block"
+          >
+            Kuta
+          </Link>
+          <nav aria-label="Huvudnavigering" className="flex-1">
+            <ul className="flex justify-around md:justify-end md:gap-1">
+              {tabs.map(({ to, label, icon: Icon }) => {
+                const active =
+                  to === '/app'
+                    ? pathname === '/app' || pathname === '/app/'
+                    : pathname.startsWith(to)
+                return (
+                  <li key={to}>
+                    <Link
+                      to={to}
+                      activeOptions={{ exact: to === '/app' }}
+                      aria-current={active ? 'page' : undefined}
+                      className={cn(
+                        'flex flex-col items-center gap-1 px-4 py-3 text-xs transition-colors hover:text-primary focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-ring md:flex-row md:gap-2 md:rounded-lg md:px-3 md:text-sm md:font-medium',
+                        active ? 'text-primary md:bg-primary/10' : 'text-muted-foreground',
+                      )}
+                    >
+                      <Icon aria-hidden="true" className="size-5" />
+                      {label}
+                    </Link>
+                  </li>
+                )
+              })}
+            </ul>
+          </nav>
+        </div>
+      </header>
+
+      <main className="mx-auto w-full max-w-2xl flex-1 px-4 pb-8 pt-6">
         <motion.div
           key={pathname}
           initial={{ opacity: 0, y: 8 }}
@@ -44,31 +84,12 @@ export function Layout() {
         </motion.div>
       </main>
 
-      <nav
-        className="fixed inset-x-0 bottom-0 border-t bg-background/80 backdrop-blur"
-        style={{ paddingBottom: 'env(safe-area-inset-bottom)' }}
-      >
-        <ul className="mx-auto flex max-w-2xl justify-around">
-          {tabs.map(({ to, label, icon: Icon }) => {
-            const active =
-              to === '/app' ? pathname === '/app' || pathname === '/app/' : pathname.startsWith(to)
-            return (
-              <li key={to}>
-                <Link
-                  to={to}
-                  className={cn(
-                    'flex flex-col items-center gap-1 px-4 py-3 text-xs transition-colors',
-                    active ? 'text-primary' : 'text-muted-foreground',
-                  )}
-                >
-                  <Icon className="size-5" />
-                  {label}
-                </Link>
-              </li>
-            )
-          })}
-        </ul>
-      </nav>
+      <footer className="border-t pb-[calc(4rem+env(safe-area-inset-bottom))] md:pb-0">
+        <div className="mx-auto flex max-w-2xl flex-wrap items-center justify-between gap-2 px-4 py-5 text-xs text-muted-foreground">
+          <p>© {copyrightYear} Kuta</p>
+          <p>Version {import.meta.env.DEV ? 'utveckling' : import.meta.env.VITE_APP_VERSION}</p>
+        </div>
+      </footer>
     </div>
   )
 }
