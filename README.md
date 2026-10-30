@@ -1,6 +1,6 @@
 # Kuta
 
-Löparapp med Garmin-import, statistik, rekord och socialt flöde. Se `CLAUDE.md` för beslut och nästa steg.
+Löparapp med Garmin-import, statistik, rekord och socialt flöde. Se `AGENTS.md` för beslut och nästa steg.
 
 ## Köra lokalt
 
