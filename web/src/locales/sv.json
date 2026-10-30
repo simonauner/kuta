@@ -3,7 +3,8 @@
     "feed": "Flöde",
     "activities": "Pass",
     "stats": "Statistik",
-    "profile": "Profil"
+    "profile": "Profil",
+    "main": "Huvudnavigering"
   },
   "language": "Språk",
   "connectionError": "Kunde inte nå Kuta. Kontrollera anslutningen och ladda om sidan.",
@@ -83,5 +84,9 @@
     "passwordUnchanged": "Välj ett annat lösenord än ditt nuvarande.",
     "recoveryExpired": "Återställningslänken är ogiltig eller har gått ut. Begär en ny länk."
   },
-  "home": "Kuta – startsida"
+  "home": "Kuta – startsida",
+  "footer": {
+    "version": "Version {{version}}",
+    "development": "utveckling"
+  }
 }

@@ -3,7 +3,8 @@
     "feed": "Feed",
     "activities": "Activities",
     "stats": "Statistics",
-    "profile": "Profile"
+    "profile": "Profile",
+    "main": "Main navigation"
   },
   "language": "Language",
   "connectionError": "Could not reach Kuta. Check your connection and reload the page.",
@@ -83,5 +84,9 @@
     "passwordUnchanged": "Choose a different password from your current one.",
     "recoveryExpired": "The reset link is invalid or has expired. Request a new link."
   },
-  "home": "Kuta – home"
+  "home": "Kuta – home",
+  "footer": {
+    "version": "Version {{version}}",
+    "development": "development"
+  }
 }

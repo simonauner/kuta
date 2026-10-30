@@ -42,6 +42,11 @@ export default defineConfig({
       },
     },
   },
+  define: {
+    'import.meta.env.VITE_APP_VERSION': JSON.stringify(
+      new Date().toISOString().replace(/[-:]/g, '').slice(0, 15).replace('T', '.'),
+    ),
+  },
   plugins: [
     react(),
     {

@@ -61,6 +61,9 @@ Frontendkontroller med Node-versionen i `.nvmrc`: kör `npm ci` i `web/`, sedan
 Nodes inbyggda testverktyg och mockade nätverksanrop; de kräver inte Supabase.
 GitHub Actions kör frontendkontrollerna på berörda pull requests och push till `main`.
 
+Footern visar copyright och webbens byggnummer (`ÅÅÅÅMMDD.ttmmss`, UTC), som sätts
+automatiskt av Vite vid bygget, även i Docker. I utvecklingsläge visas `Version utveckling`.
+
 ## Driftsättning (Fly.io)
 
 En egen Fly-app (`kuta`, region `arn`). `Dockerfile` bygger webben och API:t till en image där API:t servar webben, så att de delar origin. Migreringarna körs när appen startar.
