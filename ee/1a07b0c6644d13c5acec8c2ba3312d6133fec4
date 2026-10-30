@@ -1,0 +1,23 @@
+global.json
+  s_e9be55d9b23841::t_89686362a3fc81 2-6
+README.md
+  s_e9be55d9b23841::t_89686362a3fc81 7
+Dockerfile
+  s_e9be55d9b23841::t_89686362a3fc81 11
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.7.5",
+  "base_commit_sha": "ee1a07b0c6644d13c5acec8c2ba3312d6133fec4",
+  "prompts": {},
+  "sessions": {
+    "s_e9be55d9b23841": {
+      "agent_id": {
+        "tool": "codex",
+        "id": "01a18eba-bcb6-72d0-8f6b-f96eb9f15923",
+        "model": "gpt-6.1-sol"
+      },
+      "human_author": "Simon Aunér <simonauner@gmail.com>"
+    }
+  }
+}
