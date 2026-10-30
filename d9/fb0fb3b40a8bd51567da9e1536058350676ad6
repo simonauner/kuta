@@ -1,0 +1,33 @@
+web/src/routes/profile.tsx
+  s_5f03f08d183b07::t_aea10b79ca6dc3 1,38
+AGENTS.md
+  s_5f03f08d183b07::t_74e5998796cc0c 40
+web/src/locales/en.json
+  s_5f03f08d183b07::t_aea10b79ca6dc3 129-153
+web/src/locales/sv.json
+  s_5f03f08d183b07::t_aea10b79ca6dc3 129-153
+web/src/components/delete-all-activities.tsx
+  s_5f03f08d183b07::t_4c2b356bfa9bfb 1,13,28-37,54-107
+  s_5f03f08d183b07::t_aea10b79ca6dc3 2-12,14-19,23-27,38-45,53,113-115
+  s_5f03f08d183b07::t_dc72b125650cd7 20-22,46-52,108-112
+api/Kuta.Api.Tests/DeleteAllActivitiesTests.cs
+  s_5f03f08d183b07::t_dc72b125650cd7 1-94
+api/Kuta.Api/ActivityEndpoints.cs
+  s_5f03f08d183b07::t_0627eacde99c1c 150-166
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.7.5",
+  "base_commit_sha": "d9fb0fb3b40a8bd51567da9e1536058350676ad6",
+  "prompts": {},
+  "sessions": {
+    "s_5f03f08d183b07": {
+      "agent_id": {
+        "tool": "codex",
+        "id": "01a18f0c-1c1e-72e3-9aad-04f4f5154b59",
+        "model": "gpt-6.1-sol"
+      },
+      "human_author": "Simon Aunér <simonauner@gmail.com>"
+    }
+  }
+}
