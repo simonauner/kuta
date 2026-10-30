@@ -229,6 +229,10 @@ otp_expiry = 3600
 subject = "Bekräfta din e-postadress för Kuta"
 content_path = "./supabase/templates/confirmation.html"
 
+[auth.email.template.recovery]
+subject = "Återställ ditt lösenord för Kuta"
+content_path = "./supabase/templates/recovery.html"
+
 # Uncomment to customize email template
 # [auth.email.template.invite]
 # subject = "You have been invited"

@@ -30,7 +30,8 @@ Kuta är en Strava-liknande löparapp: ladda upp pass från Garmin (FIT) eller l
   - `users` är en profiltabell med samma id som `auth.users` (FK, kaskadradering). `GET /api/me` ger id, e-post och `displayName` (null tills profilen skapats); `PUT /api/me` skapar/uppdaterar profilen.
     - Webben: `src/lib/api.ts` (fetch med CSRF-token, `ApiError` från API:ts `{ error }`), `src/lib/auth.ts` (`meQuery`, null = utloggad), `src/routes/auth.tsx` (inloggning/registrering/kolla e-post, namnval första gången). `Layout` visar inloggningen i stället för appen när `me` är null. Fel från API:t har formen `{ "error": "..." }` på svenska och visas som de är.
   - PWA:ns service worker får aldrig svara på navigeringar till `/api/` (`navigateFallbackDenylist` i `vite.config.ts`) – annars når bekräftelselänken aldrig API:t.
-  - Saknas: lösenordsåterställning, MFA, inloggning med Google/Apple, logga ut andra sessioner, städning av gamla sessionsrader, Turnstile.
+  - Lösenordsåterställning: `POST /api/auth/recover`, mejllänk till `GET /api/auth/reset-password?token_hash=`, sedan `POST /api/auth/reset-password`. Separat krypterad HttpOnly-cookie (högst 15 minuter), engångsanvändning via `user_sessions`; ger ingen appåtkomst. Lyckat byte avslutar kontots Kuta-sessioner. Mall och driftinställning finns i README.
+  - Saknas: MFA, inloggning med Google/Apple, logga ut andra sessioner, städning av gamla sessionsrader, Turnstile.
   - Lokalt: kommer bekräftelsemejlet i Mailpit (http://127.0.0.1:55324) med Supabases engelska standardmall har auth-containern startat före Kong – kör `docker restart supabase_auth_kuta`.
 - Ändra aldrig en körd migrering – nya ändringar i nästa nummer. Migreringsfilerna finns i `api/Kuta.Api/Migrations/`.
 - Privat repo: github.com/simonauner/kuta. Node 24 (`.nvmrc`).
@@ -50,7 +51,7 @@ Kuta är en Strava-liknande löparapp: ladda upp pass från Garmin (FIT) eller l
 - **Milen är 1609,344 m.** `best_efforts.distance_m = 1609` är bara en etikett; rekordmotorn räknar med exakt längd.
 
 ## Säkerhet (XSS/CSRF)
-- **CSRF:** sessionscookien är `SameSite=Lax` och alla skrivande `/api`-anrop kräver `X-CSRF-TOKEN`. GET-anrop får aldrig ändra data (undantaget är `/api/auth/confirm`, mejllänken). Öppna inte CORS.
+- **CSRF:** sessionscookien är `SameSite=Lax` och alla skrivande `/api`-anrop kräver `X-CSRF-TOKEN`. GET-anrop får aldrig ändra data (undantagen är mejllänkarna `/api/auth/confirm` och `/api/auth/reset-password`, som verifierar engångstoken och skapar en session; själva lösenordsbytet kräver POST). Öppna inte CORS.
 - **XSS:** tokens ligger i HttpOnly-cookien och går inte att stjäla, men ett injicerat skript kan ändå anropa API:t som användaren. Förhindra XSS: rendera användardata som text i React, aldrig `dangerouslySetInnerHTML` med användardata, inga `javascript:`-länkar från användardata.
 - **CSP för webben** injiceras vid bygget i `web/vite.config.ts` (`script-src 'self'`, inga inline-skript eller `<style>`-taggar). Lägg till origins där när appen hämtar från nya ställen (t.ex. R2 för kartor) i stället för att lätta på reglerna. Kolla konsolen efter CSP-fel med `npm run build && npx vite preview` när beroenden läggs till – bibliotek som injicerar `<style>` behöver hanteras.
 - **API-svar** har `default-src 'none'; frame-ancestors 'none'`, `nosniff` och `X-Frame-Options: DENY` (middleware i `Program.cs`, test i `SecurityHeadersTests`).
@@ -59,7 +60,7 @@ Kuta är en Strava-liknande löparapp: ladda upp pass från Garmin (FIT) eller l
 ## Nästa steg (i ordning)
 1. ~~GitHub-repo~~, ~~bygga och köra API:t~~, ~~auth (API + webb)~~, ~~driftsättning (Fly + Supabase)~~ – klart.
 2. Egen SMTP (Scaleway TEM) och egen domän **kutaapp.com** (kuta.io/.se/.com är tagna): verifiera domänen, SMTP i Supabase, Site URL och certifikat hos Fly.
-3. Lösenordsåterställning (Supabase `/recover` + mejlmall som länkar till API:t) – före riktiga användare.
+3. ~~Lösenordsåterställning (Supabase `/recover` + mejlmall som länkar till API:t)~~ – implementerad; återställningsmallen måste konfigureras i hostad Supabase före användning i drift.
 4. FIT-uppladdning: endpoint, lagring i R2, parsning med `Garmin.FIT.Sdk`, skriv `activities` + `activity_streams`.
 5. Rekordmotor (glidande fönster över distans/tid-strömmen), tester med riktiga FIT-filer.
 6. Webb: uppladdning, passsida med karta + grafer (Recharts, uPlot för långa serier), statistikvyer, skor.

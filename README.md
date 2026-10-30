@@ -31,6 +31,12 @@ Flyttar hela portserien: webben på BAS, API:t på BAS+2 och en egen Supabase-st
 
 Kommer bekräftelsemejlet ändå på engelska med en länk till Supabase har auth-containern startat före Kong (skriptet hanterar det när det själv startar Supabase): `docker restart supabase_auth_kuta` och registrera igen.
 
+### Lösenordsåterställning
+
+Välj **Glömt lösenord?** på inloggningssidan. Mejlet finns i instansens Mailpit och länkar till `/api/auth/reset-password`. API:t verifierar länken och ger en separat krypterad HttpOnly-cookie som gäller i högst 15 minuter och bara för lösenordsbytet. Efter bytet avslutas kontots Kuta-sessioner och användaren loggar in med det nya lösenordet. Både begäran och lösenordsbytet kräver CSRF-token; ogiltiga, använda och utgångna länkar kräver en ny begäran.
+
+Den lokala mejlmallen anges i `supabase/config.toml`. Om en redan körande miljö saknar återställningsmallen måste dess ägare stoppa och starta just den Supabase-instansen för att läsa in konfigurationen. Ändra inte en lånad instans.
+
 Tester (kräver `supabase start`): `dotnet test --project api/Kuta.Api.Tests`.
 
 ## Driftsättning (Fly.io)
@@ -41,6 +47,7 @@ En egen Fly-app (`kuta`, region `arn`). `Dockerfile` bygger webben och API:t til
 - EU-region. Stäng av Data API. Minsta lösenordslängd 8.
 - Authentication → URL Configuration: Site URL `https://kuta.fly.dev` (bekräftelselänken byggs på den).
 - Authentication → Email Templates → Confirm signup: innehållet i `supabase/templates/confirmation.html`.
+- Authentication → Email Templates → Reset password: innehållet i `supabase/templates/recovery.html`. Krävs före användning av lösenordsåterställning i drift; standardmallen skickar sessionstokens till webbläsaren i stället för vårt API.
 - Egen SMTP (Authentication → SMTP). Supabases inbyggda mejl skickar bara till projektets egna medlemmar och några få per timme.
 
 **Hemligheter** ligger i 1Password, aldrig i filer eller kommandon. [fly.secrets.tpl](fly.secrets.tpl) listar dem som `op://`-referenser; värdena finns i objektet `fly-kuta` i valvet `Development`, ett fält per hemlighet med hemlighetens namn:

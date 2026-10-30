@@ -5,6 +5,8 @@ public record Credentials(string? Email, string? Password);
 public record ApiError(string Error);
 public record ApiMessage(string Message);
 public record AntiforgeryToken(string Token);
+public record RecoveryRequest(string? Email);
+public record ResetPasswordRequest(string? Password);
 
 public static class AuthEndpoints
 {
@@ -92,6 +94,28 @@ public static class AuthEndpoints
             await SupabaseCookieSession.SignOutAsync(http, cancellationToken);
             return Results.NoContent();
         });
+
+        auth.MapPost("/recover", async (RecoveryRequest req, SupabaseAuthClient supabase, CancellationToken ct) =>
+        {
+            if (string.IsNullOrWhiteSpace(req.Email) || !System.Net.Mail.MailAddress.TryCreate(req.Email.Trim(), out var address)
+                || address.Address != req.Email.Trim())
+                return Results.BadRequest(new ApiError("Ange en giltig e-postadress."));
+            await supabase.RecoverAsync(address.Address, ct);
+            return Results.Accepted(null, new ApiMessage("Om adressen har ett konto får du ett mejl med en länk för att återställa lösenordet."));
+        });
+
+        auth.MapGet("/reset-password", async ([FromQuery(Name = "token_hash")] string? tokenHash,
+            SupabaseAuthClient supabase, HttpContext http, CancellationToken ct) =>
+        {
+            http.Response.Headers.CacheControl = "no-store";
+            var session = string.IsNullOrWhiteSpace(tokenHash) ? null : await supabase.VerifyRecoveryAsync(tokenHash, ct);
+            if (session is null) return Results.Redirect("/?reset=failed");
+            await PasswordRecovery.StartAsync(http, session, ct);
+            return Results.Redirect("/?reset=password");
+        });
+
+        auth.MapPost("/reset-password", (ResetPasswordRequest req, HttpContext http, SupabaseAuthClient supabase,
+            Npgsql.NpgsqlDataSource db, CancellationToken ct) => PasswordRecovery.ResetAsync(req.Password, http, supabase, db, ct));
 
         // Länken i bekräftelsemejlet (supabase/templates/confirmation.html) landar här.
         auth.MapGet("/confirm", async ([FromQuery(Name = "token_hash")] string? tokenHash, SupabaseAuthClient supabase,

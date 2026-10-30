@@ -12,6 +12,7 @@ public sealed record AuthSession(Guid UserId, string Email, string AccessToken,
 public enum SignUpResult { SignedIn, ConfirmationSent, WeakPassword, Rejected }
 
 public enum SignInResult { SignedIn, WrongCredentials, EmailNotConfirmed }
+public enum PasswordResetResult { Updated, WeakPassword, SamePassword, Rejected }
 
 public sealed class SupabaseAuthClient(HttpClient http, IConfiguration configuration, IHttpContextAccessor httpContext)
 {
@@ -58,12 +59,46 @@ public sealed class SupabaseAuthClient(HttpClient http, IConfiguration configura
 
     // Byter token_hash från bekräftelsemejlet mot en session. Null när länken är ogiltig eller använd.
     public async Task<AuthSession?> VerifyEmailAsync(string tokenHash, CancellationToken cancellationToken)
+        => await VerifyAsync(tokenHash, "email", cancellationToken);
+
+    public async Task<AuthSession?> VerifyRecoveryAsync(string tokenHash, CancellationToken cancellationToken)
+        => await VerifyAsync(tokenHash, "recovery", cancellationToken);
+
+    private async Task<AuthSession?> VerifyAsync(string tokenHash, string type, CancellationToken cancellationToken)
     {
         using var request = ClientRequest(HttpMethod.Post, "/auth/v1/verify");
-        request.Content = JsonContent.Create(new { type = "email", token_hash = tokenHash });
+        request.Content = JsonContent.Create(new { type, token_hash = tokenHash });
         using var response = await http.SendAsync(request, cancellationToken);
         ThrowIfUnavailable(response);
         return response.IsSuccessStatusCode ? await ReadSessionResponseAsync(response, cancellationToken) : null;
+    }
+
+    public async Task RecoverAsync(string email, CancellationToken cancellationToken)
+    {
+        using var request = ClientRequest(HttpMethod.Post, "/auth/v1/recover");
+        request.Content = JsonContent.Create(new { email });
+        using var response = await http.SendAsync(request, cancellationToken);
+        // Mejlets cooldown får inte avslöja vilka adresser som har konto.
+        if (response.StatusCode == HttpStatusCode.TooManyRequests) return;
+        ThrowIfUnavailable(response);
+        // Samma svar även för okända adresser och avvisade mejl för att inte avslöja konton.
+    }
+
+    public async Task<PasswordResetResult> ResetPasswordAsync(string accessToken, string password,
+        CancellationToken cancellationToken)
+    {
+        using var request = ClientRequest(HttpMethod.Put, "/auth/v1/user");
+        request.Headers.Authorization = new AuthenticationHeaderValue("Bearer", accessToken);
+        request.Content = JsonContent.Create(new { password });
+        using var response = await http.SendAsync(request, cancellationToken);
+        ThrowIfUnavailable(response);
+        if (response.IsSuccessStatusCode) return PasswordResetResult.Updated;
+        return await ReadErrorCodeAsync(response, cancellationToken) switch
+        {
+            "weak_password" => PasswordResetResult.WeakPassword,
+            "same_password" => PasswordResetResult.SamePassword,
+            _ => PasswordResetResult.Rejected,
+        };
     }
 
     // Null när Supabase avvisar refresh-token. Nätverksfel och serverfel kastar, så att anroparen kan skilja
