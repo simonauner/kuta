@@ -1,5 +1,6 @@
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
-import { useId, type ChangeEvent } from 'react'
+import { useId, useState, type ChangeEvent, type FormEvent } from 'react'
+import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
 import { api } from '@/lib/api'
@@ -39,6 +40,8 @@ export function ActivitiesPage() {
   const queryClient = useQueryClient()
   const activities = useQuery(activitiesQuery)
 
+  const [file, setFile] = useState<File | null>(null)
+
   const upload = useMutation({
     mutationFn: (file: File) => {
       const form = new FormData()
@@ -48,28 +51,45 @@ export function ActivitiesPage() {
     onSuccess: () => queryClient.invalidateQueries({ queryKey: ['activities'] }),
   })
 
-  function onFile(e: ChangeEvent<HTMLInputElement>) {
-    const file = e.currentTarget.files?.[0]
-    e.currentTarget.value = ''
-    if (file) upload.mutate(file)
+  // Att välja en fil laddar inte upp den: användaren ska hinna ta ställning till pulsen först.
+  function onSubmit(e: FormEvent<HTMLFormElement>) {
+    e.preventDefault()
+    if (!file) return
+    const form = e.currentTarget
+    upload.mutate(file, {
+      onSuccess: () => {
+        form.reset()
+        setFile(null)
+      },
+    })
   }
 
   return (
     <section>
       <h1 className="text-2xl font-semibold tracking-tight">Pass</h1>
 
-      <div className="mt-6 space-y-2">
-        <Label htmlFor="fit-file">Ladda upp en FIT-fil från din klocka</Label>
-        <Input id="fit-file" type="file" accept=".fit" onChange={onFile} disabled={upload.isPending} />
-        {upload.isPending && <p className="text-sm text-muted-foreground">Laddar upp …</p>}
+      <form onSubmit={onSubmit} className="mt-6">
+        <Label htmlFor="fit-file" className="mb-2">FIT-fil från din klocka</Label>
+        <Input
+          id="fit-file"
+          type="file"
+          accept=".fit"
+          disabled={upload.isPending}
+          onChange={(e: ChangeEvent<HTMLInputElement>) => {
+            setFile(e.currentTarget.files?.[0] ?? null)
+            upload.reset()
+          }}
+        />
+        <HeartRateConsent />
+        <Button type="submit" className="mt-4" disabled={!file || upload.isPending}>
+          {upload.isPending ? 'Laddar upp …' : 'Ladda upp'}
+        </Button>
         {upload.error && (
-          <p role="alert" className="text-sm text-destructive">
+          <p role="alert" className="mt-2 text-sm text-destructive">
             {upload.error.message}
           </p>
         )}
-      </div>
-
-      <HeartRateConsent />
+      </form>
 
       {activities.data?.length === 0 && (
         <p className="mt-8 text-muted-foreground">Inga pass än.</p>
@@ -110,7 +130,7 @@ function HeartRateConsent() {
   }
 
   return (
-    <div className="mt-6 rounded-lg border p-4">
+    <div className="mt-4 rounded-lg border p-4">
       <div className="flex items-start gap-3">
         <input
           id={id}
