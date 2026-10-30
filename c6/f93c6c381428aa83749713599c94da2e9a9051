@@ -6,6 +6,7 @@ web/tests/api.test.mjs
   s_d609c1139dbd7e::t_05c65f660cf6e7 26-29,38-42,50-51,53-55,58-62,92-96,114-120
 web/src/routes/activities.tsx
   s_6fd5f3f6e9c798::t_18d4a2549558b3 22-25,28-31,84-87,88,93,115,121-122
+  s_d609c1139dbd7e::t_0215f5f16dc1df 81-83
 web/index.html
   s_d609c1139dbd7e::t_05c65f660cf6e7 6
 web/src/components/ui/label.tsx
