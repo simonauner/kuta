@@ -29,7 +29,7 @@ builder.Services.AddSingleton(dataSource);
 builder.Services.ConfigureHttpJsonOptions(o =>
     o.SerializerOptions.PropertyNamingPolicy = System.Text.Json.JsonNamingPolicy.CamelCase);
 
-// Inloggning via vårt API mot Supabase Auth (BFF, som i Kredovis); sessionen ligger i en krypterad HttpOnly-cookie
+// Inloggning via vårt API mot Supabase Auth (BFF); sessionen ligger i en krypterad HttpOnly-cookie
 builder.Services.AddHttpContextAccessor();
 builder.Services.AddHttpClient<SupabaseAuthClient>();
 builder.Services.AddSingleton<SharedTokenRefresh>();

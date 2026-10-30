@@ -1,4 +1,4 @@
-# Fly.io-appen för Kuta, separat från Kredovis. Hemligheterna sätts med `fly secrets set` (se README, Driftsättning).
+# Fly.io-appen för Kuta. Hemligheterna sätts med `fly secrets set` (se README, Driftsättning).
 app = 'kuta'
 primary_region = 'arn'
 # Utan swap dödar kärnan processen när den passerar maskinens minne.

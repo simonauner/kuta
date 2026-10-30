@@ -1,7 +1,7 @@
 using System.Security.Cryptography;
 using System.Security.Cryptography.X509Certificates;
 
-// Portad från Kredovis. Det aktuella certifikatet krypterar nya Data Protection-nycklar i databasen; det förra
+// Det aktuella certifikatet krypterar nya Data Protection-nycklar i databasen; det förra
 // dekrypterar bara nycklar från före ett certifikatbyte.
 public sealed record DataProtectionCertificates(X509Certificate2? Current, X509Certificate2? Previous)
 {

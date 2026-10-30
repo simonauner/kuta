@@ -4,7 +4,7 @@ using System.Net.Http.Headers;
 using System.Net.Http.Json;
 using System.Text.Json;
 
-// Portad (slimmad) från Kredovis. API:t pratar med Supabase Auth åt webben; webben ser aldrig tokens.
+// API:t pratar med Supabase Auth åt webben; webben ser aldrig tokens.
 
 public sealed record AuthSession(Guid UserId, string Email, string AccessToken,
     string RefreshToken, DateTimeOffset AccessTokenExpiresAt);
