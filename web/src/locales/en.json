@@ -19,6 +19,7 @@
     "logout": "Log out"
   },
   "activities": {
+    "week": "Week {{week}}",
     "hrSaved": "Heart rate data is saved. Change this in",
     "empty": "No activities yet.",
     "delete": "Delete",

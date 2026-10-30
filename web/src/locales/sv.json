@@ -19,6 +19,7 @@
     "logout": "Logga ut"
   },
   "activities": {
+    "week": "v. {{week}}",
     "hrSaved": "Pulsdata sparas. Ändra på",
     "empty": "Inga pass än.",
     "delete": "Ta bort",
