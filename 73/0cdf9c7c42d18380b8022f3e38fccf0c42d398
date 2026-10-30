@@ -1,0 +1,47 @@
+api/Kuta.Api.Tests/BestEffortCalculatorTests.cs
+  s_7939d167deadcc::t_be30cdcac84079 1-130
+README.md
+  s_7939d167deadcc::t_17be15d366bf3b 67-100
+web/src/locales/en.json
+  s_7939d167deadcc::t_17be15d366bf3b 119
+api/Kuta.Api/ActivityEndpoints.cs
+  s_7939d167deadcc::t_1d44481a4a1c86 141
+api/Kuta.Api.Tests/BestEffortTests.cs
+  s_7939d167deadcc::t_d538d7e4d37db1 29-31
+  s_7939d167deadcc::t_1cf3aa68f1d2e6 83-95
+  s_7939d167deadcc::t_1e51ba55256b53 117,130
+  s_7939d167deadcc::t_c20f6efb927221 1-23,25-28,32-63,65-82,96-116,118-129,131-133
+  s_7939d167deadcc::t_17be15d366bf3b 24,64
+api/Kuta.Api/BestEffortEndpoints.cs
+  s_7939d167deadcc::t_1d44481a4a1c86 1-33,47,49-54,57-73
+  s_7939d167deadcc::t_d538d7e4d37db1 34-46,48
+  s_7939d167deadcc::t_17be15d366bf3b 55-56
+api/Kuta.Api/BestEffortCalculator.cs
+  s_7939d167deadcc::t_1d44481a4a1c86 1-61
+api/Kuta.Api/Migrations/006_best_effort_precision.sql
+  s_7939d167deadcc::t_1d44481a4a1c86 1-3
+web/src/locales/sv.json
+  s_7939d167deadcc::t_17be15d366bf3b 119
+AGENTS.md
+  s_7939d167deadcc::t_17be15d366bf3b 46,76
+api/Kuta.Api/Program.cs
+  s_7939d167deadcc::t_1d44481a4a1c86 166
+api/Kuta.Api/BestEfforts.cs
+  s_7939d167deadcc::t_1d44481a4a1c86 1-22
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.7.5",
+  "base_commit_sha": "730cdf9c7c42d18380b8022f3e38fccf0c42d398",
+  "prompts": {},
+  "sessions": {
+    "s_7939d167deadcc": {
+      "agent_id": {
+        "tool": "codex",
+        "id": "01a18ef7-1385-7523-ad5f-c4a64d27172e",
+        "model": "gpt-6.1-sol"
+      },
+      "human_author": "Simon Aunér <simonauner@gmail.com>"
+    }
+  }
+}
