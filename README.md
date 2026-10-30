@@ -39,6 +39,10 @@ Den lokala mejlmallen anges i `supabase/config.toml`. Om en redan körande milj�
 
 Tester (kräver `supabase start`, med Storage påslaget): `dotnet test --project api/Kuta.Api.Tests`, eller `KUTA_PORTS=BAS dotnet test …` mot en egen instans.
 
+Frontendkontroller med Node-versionen i `.nvmrc`: kör `npm ci` i `web/`, sedan
+`npm test`, `npm run lint` och `npm run build`. API-klientens tester använder
+Nodes inbyggda testverktyg och mockade nätverksanrop; de kräver inte Supabase.
+
 ## Driftsättning (Fly.io)
 
 En egen Fly-app (`kuta`, region `arn`). `Dockerfile` bygger webben och API:t till en image där API:t servar webben, så att de delar origin. Migreringarna körs när appen startar.
