@@ -11,11 +11,9 @@ public static class AuthEndpoints
     // Webben hämtar en ny token efter varje in- och utloggning, eftersom token är knuten till användaren.
     public static void MapAntiforgery(this RouteGroupBuilder api)
     {
+        // Antiforgery sätter själv no-store på svaret
         api.MapGet("/antiforgery", (HttpContext http, IAntiforgery antiforgery) =>
-        {
-            http.Response.Headers.CacheControl = "no-store";
-            return Results.Ok(new AntiforgeryToken(antiforgery.GetAndStoreTokens(http).RequestToken!));
-        });
+            Results.Ok(new AntiforgeryToken(antiforgery.GetAndStoreTokens(http).RequestToken!)));
 
         // Alla skrivande anrop kräver token i X-CSRF-TOKEN, även inloggningen (annars kan en annan sajt
         // logga in besökaren på angriparens konto).
