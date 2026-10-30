@@ -1,0 +1,26 @@
+web/src/components/layout.tsx
+  s_5f8423a9cb8a7e::t_3b261d6683a1a3 9-10,89
+  s_5f8423a9cb8a7e::t_58cf66392d8d71 42
+  s_5f8423a9cb8a7e::t_7e270c89104b2c 37-40,43-49,54-57,59-75
+  s_5f8423a9cb8a7e::t_1f23a276875e6c 76,87-88,90-92
+web/vite.config.ts
+  s_5f8423a9cb8a7e::t_1f23a276875e6c 50-54
+README.md
+  s_5f8423a9cb8a7e::t_1f23a276875e6c 56-58
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.7.5",
+  "base_commit_sha": "05109318971ca78f1247d8ccd1ca9939dd00187b",
+  "prompts": {},
+  "sessions": {
+    "s_5f8423a9cb8a7e": {
+      "agent_id": {
+        "tool": "codex",
+        "id": "01a18ed5-8437-7373-b805-c4fd31fc1f5e",
+        "model": "gpt-6.1-sol"
+      },
+      "human_author": "Simon Aunér <simonauner@gmail.com>"
+    }
+  }
+}
