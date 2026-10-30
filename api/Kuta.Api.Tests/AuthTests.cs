@@ -1,46 +1,55 @@
 using System.Net;
 using System.Net.Http.Json;
 using System.Text.Json;
+using System.Text.RegularExpressions;
 using Dapper;
 using Microsoft.AspNetCore.Mvc.Testing;
 using Microsoft.Extensions.DependencyInjection;
 using Npgsql;
 using Xunit;
 
-// Kräver lokal Supabase (`supabase start`): användaren skapas på riktigt i Supabase Auth.
+// Kräver lokal Supabase (`supabase start`): kontot skapas på riktigt i Supabase Auth och
+// bekräftelsemejlet läses från Mailpit.
 public class AuthTests(WebApplicationFactory<Program> factory) : IClassFixture<WebApplicationFactory<Program>>
 {
-    const string SupabaseUrl = "http://127.0.0.1:55321";
-    // Supabase CLI:s lokala standardnyckel, samma för alla installationer och avsedd att vara publik
-    const string PublishableKey = "sb_publishable_ACJWlzQHlZjBrEguHvfOxg_3BJgxAaH";
+    const string MailpitUrl = "http://127.0.0.1:55324";
+    const string Password = "hemligt-lösen";
 
     [Fact]
-    public async Task Supabase_token_gives_access_to_own_profile_and_activities()
+    public async Task Signup_confirm_logout_and_login()
     {
         var ct = TestContext.Current.CancellationToken;
         var email = $"test-{Guid.NewGuid():N}@example.com";
-        var client = factory.CreateClient();
+        var client = factory.CreateClient(new WebApplicationFactoryClientOptions { AllowAutoRedirect = false });
         await using var conn = await factory.Services.GetRequiredService<NpgsqlDataSource>().OpenConnectionAsync(ct);
         try
         {
-            Assert.Equal(HttpStatusCode.Unauthorized, (await client.GetAsync("/api/activities", ct)).StatusCode);
-
-            var token = await SignUp(email, ct);
-            client.DefaultRequestHeaders.Authorization = new("Bearer", Tamper(token));
             Assert.Equal(HttpStatusCode.Unauthorized, (await client.GetAsync("/api/me", ct)).StatusCode);
 
-            client.DefaultRequestHeaders.Authorization = new("Bearer", token);
+            var withoutCsrf = await client.PostAsJsonAsync("/api/auth/signup", new { email, password = Password }, ct);
+            Assert.Equal(HttpStatusCode.BadRequest, withoutCsrf.StatusCode);
+
+            await UseCsrfToken(client, ct);
+            var signup = await client.PostAsJsonAsync("/api/auth/signup", new { email, password = Password }, ct);
+            Assert.Equal(HttpStatusCode.Accepted, signup.StatusCode);
+
+            var beforeConfirm = await client.PostAsJsonAsync("/api/auth/login", new { email, password = Password }, ct);
+            Assert.Equal(HttpStatusCode.Forbidden, beforeConfirm.StatusCode);
+
+            var tokenHash = await ConfirmationTokenHash(email, ct);
+            var confirm = await client.GetAsync($"/api/auth/confirm?token_hash={tokenHash}", ct);
+            Assert.Equal(HttpStatusCode.Redirect, confirm.StatusCode);
+            Assert.Equal("/", confirm.Headers.Location?.ToString());
+            var sessionCookies = confirm.Headers.GetValues("Set-Cookie").Select(c => c.Split(';')[0]).ToList();
+
             var me = await client.GetFromJsonAsync<JsonElement>("/api/me", ct);
             Assert.Equal(email, me.GetProperty("email").GetString());
             Assert.Equal(JsonValueKind.Null, me.GetProperty("displayName").ValueKind);
 
-            var bad = await client.PutAsJsonAsync("/api/me", new { displayName = " " }, ct);
-            Assert.Equal(HttpStatusCode.BadRequest, bad.StatusCode);
-
+            // Antiforgery-token är knuten till användaren och måste hämtas om efter inloggning
+            await UseCsrfToken(client, ct);
             var put = await client.PutAsJsonAsync("/api/me", new { displayName = "Testlöpare" }, ct);
             Assert.Equal(HttpStatusCode.OK, put.StatusCode);
-            me = await client.GetFromJsonAsync<JsonElement>("/api/me", ct);
-            Assert.Equal("Testlöpare", me.GetProperty("displayName").GetString());
 
             await conn.ExecuteAsync(
                 "insert into activities (user_id, source, started_at, duration_s, distance_m) values (@id, 'manual', now(), 1800, 5000)",
@@ -48,28 +57,58 @@ public class AuthTests(WebApplicationFactory<Program> factory) : IClassFixture<W
             var activities = await client.GetStringAsync("/api/activities", ct);
             Assert.Contains("\"startedAt\"", activities);
             Assert.Contains("\"distanceM\":5000", activities);
+
+            var reused = await client.GetAsync($"/api/auth/confirm?token_hash={tokenHash}", ct);
+            Assert.Equal("/?confirm=failed", reused.Headers.Location?.ToString());
+
+            var replay = factory.CreateClient(new WebApplicationFactoryClientOptions { HandleCookies = false });
+            replay.DefaultRequestHeaders.Add("Cookie", string.Join("; ", sessionCookies));
+            Assert.Equal(HttpStatusCode.OK, (await replay.GetAsync("/api/me", ct)).StatusCode);
+
+            Assert.Equal(HttpStatusCode.NoContent, (await client.PostAsync("/api/auth/logout", null, ct)).StatusCode);
+            Assert.Equal(HttpStatusCode.Unauthorized, (await client.GetAsync("/api/me", ct)).StatusCode);
+            // En kopia av den gamla cookien fungerar inte heller: sessionen är avslutad i databasen
+            Assert.Equal(HttpStatusCode.Unauthorized, (await replay.GetAsync("/api/me", ct)).StatusCode);
+
+            await UseCsrfToken(client, ct);
+            var wrong = await client.PostAsJsonAsync("/api/auth/login", new { email, password = "fel-lösen" }, ct);
+            Assert.Equal(HttpStatusCode.Unauthorized, wrong.StatusCode);
+
+            var login = await client.PostAsJsonAsync("/api/auth/login", new { email, password = Password }, ct);
+            Assert.Equal(HttpStatusCode.NoContent, login.StatusCode);
+            me = await client.GetFromJsonAsync<JsonElement>("/api/me", ct);
+            Assert.Equal("Testlöpare", me.GetProperty("displayName").GetString());
         }
         finally
         {
-            // Kaskaderar till users och activities
+            // Kaskaderar till users, user_sessions och activities
             await conn.ExecuteAsync("delete from auth.users where email = @email", new { email });
         }
     }
 
-    static async Task<string> SignUp(string email, CancellationToken ct)
+    static async Task UseCsrfToken(HttpClient client, CancellationToken ct)
     {
-        using var supabase = new HttpClient();
-        supabase.DefaultRequestHeaders.Add("apikey", PublishableKey);
-        var res = await supabase.PostAsJsonAsync($"{SupabaseUrl}/auth/v1/signup",
-            new { email, password = "hemligt-lösen" }, ct);
-        res.EnsureSuccessStatusCode();
-        return (await res.Content.ReadFromJsonAsync<JsonElement>(ct)).GetProperty("access_token").GetString()!;
+        var token = await client.GetFromJsonAsync<JsonElement>("/api/antiforgery", ct);
+        client.DefaultRequestHeaders.Remove("X-CSRF-TOKEN");
+        client.DefaultRequestHeaders.Add("X-CSRF-TOKEN", token.GetProperty("token").GetString());
     }
 
-    // Byter ett tecken mitt i signaturen
-    static string Tamper(string jwt)
+    static async Task<string> ConfirmationTokenHash(string email, CancellationToken ct)
     {
-        var i = jwt.LastIndexOf('.') + 10;
-        return jwt[..i] + (jwt[i] == 'A' ? 'B' : 'A') + jwt[(i + 1)..];
+        using var mailpit = new HttpClient { BaseAddress = new Uri(MailpitUrl) };
+        for (var attempt = 0; attempt < 20; attempt++)
+        {
+            var search = await mailpit.GetFromJsonAsync<JsonElement>($"/api/v1/search?query=to:{email}", ct);
+            if (search.GetProperty("messages").EnumerateArray().FirstOrDefault() is { ValueKind: JsonValueKind.Object } message)
+            {
+                var full = await mailpit.GetFromJsonAsync<JsonElement>($"/api/v1/message/{message.GetProperty("ID").GetString()}", ct);
+                var match = Regex.Match(full.GetProperty("HTML").GetString()!, "token_hash=([0-9a-f]+)");
+                Assert.True(match.Success,
+                    "Mejlet saknar vår länk. Supabase har laddat standardmallen; kör `docker restart supabase_auth_kuta`.");
+                return match.Groups[1].Value;
+            }
+            await Task.Delay(250, ct);
+        }
+        throw new TimeoutException($"Inget bekräftelsemejl till {email} i Mailpit.");
     }
 }

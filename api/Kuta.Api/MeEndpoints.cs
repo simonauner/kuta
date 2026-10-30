@@ -7,9 +7,9 @@ public record Me(Guid Id, string? Email, string? DisplayName);
 
 public static class MeEndpoints
 {
-    // Supabase-JWT:ns sub är auth.users.id, som också är users.id
+    // auth.users.id, som också är users.id
     public static Guid GetUserId(this ClaimsPrincipal user) =>
-        Guid.Parse(user.FindFirstValue("sub")!);
+        Guid.Parse(user.FindFirstValue(ClaimTypes.NameIdentifier)!);
 
     public static void MapMe(this RouteGroupBuilder api)
     {
@@ -21,7 +21,7 @@ public static class MeEndpoints
             await using var conn = await db.OpenConnectionAsync();
             var displayName = await conn.ExecuteScalarAsync<string?>(
                 "select display_name from users where id = @id", new { id = user.GetUserId() });
-            return Results.Ok(new Me(user.GetUserId(), user.FindFirstValue("email"), displayName));
+            return Results.Ok(new Me(user.GetUserId(), user.FindFirstValue(ClaimTypes.Email), displayName));
         });
 
         me.MapPut("", async (UpdateMeRequest req, NpgsqlDataSource db, ClaimsPrincipal user) =>
@@ -40,7 +40,7 @@ public static class MeEndpoints
                 on conflict (id) do update set display_name = excluded.display_name
                 """,
                 new { id = user.GetUserId(), displayName });
-            return Results.Ok(new Me(user.GetUserId(), user.FindFirstValue("email"), displayName));
+            return Results.Ok(new Me(user.GetUserId(), user.FindFirstValue(ClaimTypes.Email), displayName));
         });
     }
 }

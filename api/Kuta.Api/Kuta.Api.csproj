@@ -8,7 +8,6 @@
 
   <ItemGroup>
     <PackageReference Include="Dapper" Version="2.1.89" />
-    <PackageReference Include="Microsoft.AspNetCore.Authentication.JwtBearer" Version="10.0.13" />
     <PackageReference Include="Npgsql" Version="10.0.3" />
     <PackageReference Include="Npgsql.NetTopologySuite" Version="10.0.3" />
     <PackageReference Include="dbup-postgresql" Version="6.1.5" />

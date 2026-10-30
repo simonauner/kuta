@@ -1,8 +1,12 @@
 using System.Reflection;
 using System.Security.Claims;
+using System.Threading.RateLimiting;
 using Dapper;
 using DbUp;
-using Microsoft.AspNetCore.Authentication.JwtBearer;
+using Microsoft.AspNetCore.Authentication.Cookies;
+using Microsoft.AspNetCore.DataProtection;
+using Microsoft.AspNetCore.DataProtection.KeyManagement;
+using Microsoft.Extensions.Options;
 using Npgsql;
 
 var builder = WebApplication.CreateBuilder(args);
@@ -22,21 +26,52 @@ builder.Services.AddSingleton(dataSource);
 builder.Services.ConfigureHttpJsonOptions(o =>
     o.SerializerOptions.PropertyNamingPolicy = System.Text.Json.JsonNamingPolicy.CamelCase);
 
-var supabaseUrl = builder.Configuration["Supabase:Url"]
-    ?? throw new InvalidOperationException("Supabase:Url saknas");
+// Inloggning via vårt API mot Supabase Auth (BFF, som i Kredovis); sessionen ligger i en krypterad HttpOnly-cookie
+builder.Services.AddHttpContextAccessor();
+builder.Services.AddHttpClient<SupabaseAuthClient>();
+builder.Services.AddSingleton<SharedTokenRefresh>();
 
-// Inloggning sköts av Supabase Auth; API:t validerar dess JWT:er (nycklar hämtas via OIDC-discovery/JWKS)
-builder.Services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
-    .AddJwtBearer(o =>
+// shortcut: nycklarna ligger okrypterade i Postgres; skydda dem med certifikat (som Kredovis) före produktion.
+builder.Services.AddSingleton<IConfigureOptions<KeyManagementOptions>, PostgresKeyManagementSetup>();
+builder.Services.AddDataProtection().SetApplicationName("kuta");
+
+// __Host- kräver Secure, som inte går över http lokalt
+var cookiePrefix = builder.Environment.IsDevelopment() ? "" : "__Host-";
+var cookieSecurePolicy = builder.Environment.IsDevelopment() ? CookieSecurePolicy.SameAsRequest : CookieSecurePolicy.Always;
+builder.Services.AddAuthentication(CookieAuthenticationDefaults.AuthenticationScheme)
+    .AddCookie(o =>
     {
-        o.Authority = $"{supabaseUrl}/auth/v1";
-        o.Audience = "authenticated";
-        o.MapInboundClaims = false;
-        o.RequireHttpsMetadata = !new Uri(supabaseUrl).IsLoopback;
+        o.Cookie.Name = cookiePrefix + "kuta.session";
+        o.Cookie.HttpOnly = true;
+        // Lax så att länken i bekräftelsemejlet öppnar appen inloggad; skrivningar skyddas av antiforgery-token
+        o.Cookie.SameSite = SameSiteMode.Lax;
+        o.Cookie.SecurePolicy = cookieSecurePolicy;
+        o.ExpireTimeSpan = SupabaseCookieSession.IdleTimeout;
+        o.SlidingExpiration = true;
+        o.Events.OnValidatePrincipal = SupabaseCookieSession.ValidatePrincipalAsync;
+        // API: svara 401/403 i stället för att redirecta till en inloggningssida
+        o.Events.OnRedirectToLogin = ctx => { ctx.Response.StatusCode = 401; return Task.CompletedTask; };
+        o.Events.OnRedirectToAccessDenied = ctx => { ctx.Response.StatusCode = 403; return Task.CompletedTask; };
     });
 builder.Services.AddAuthorization();
+builder.Services.AddAntiforgery(o =>
+{
+    o.HeaderName = "X-CSRF-TOKEN";
+    o.Cookie.Name = cookiePrefix + "kuta.antiforgery";
+    o.Cookie.SecurePolicy = cookieSecurePolicy;
+});
+
+// Bromsar lösenordsgissning och massregistrering: 10 auth-anrop per 5 minuter och IP
+builder.Services.AddRateLimiter(o =>
+{
+    o.RejectionStatusCode = StatusCodes.Status429TooManyRequests;
+    o.AddPolicy("auth", ctx => RateLimitPartition.GetFixedWindowLimiter(
+        ctx.Connection.RemoteIpAddress?.ToString() ?? "unknown",
+        _ => new FixedWindowRateLimiterOptions { PermitLimit = 10, Window = TimeSpan.FromMinutes(5) }));
+});
 
 var app = builder.Build();
+app.UseRateLimiter();
 
 // Kör SQL-migreringar (inbäddade i Migrations/) vid start
 var upgrader = DeployChanges.To
@@ -62,6 +97,8 @@ api.MapGet("/health", async (NpgsqlDataSource db) =>
     return Results.Ok(new { status = "ok", postgis });
 });
 
+api.MapAntiforgery();
+api.MapAuth();
 api.MapMe();
 
 // Inloggad användares senaste pass
