@@ -26,8 +26,8 @@ Kuta (kuta.io) är en Strava-liknande löparapp: ladda upp pass från Garmin (FI
   - Lokalt: kommer bekräftelsemejlet i Mailpit (http://127.0.0.1:55324) med Supabases engelska standardmall har auth-containern startat före Kong – kör `docker restart supabase_auth_kuta`.
 - Migreringar körda: 001–003. Ändra aldrig en körd migrering – nya ändringar i nästa nummer.
 - Privat repo: github.com/simonauner/kuta. Node 24 (`.nvmrc`).
-- Driftsättning förberedd men inte gjord: `Dockerfile` (API:t servar den byggda webben från `wwwroot`, samma origin), `fly.toml` (egen app `kuta`, `arn`), steg i README. Utanför Development krävs `DataProtection__Certificate`; lokala värden ligger bara i `appsettings.Development.json`. Pipelinens ordning i `Program.cs` är medveten (headers → statiska filer → routing → auth) – se kommentarerna.
-- Hostat Supabase-projekt: `https://hrkqzqfyisvdyzfxzokf.supabase.co`. Fly-appen `kuta` är skapad men inte driftsatt.
+- Driftsatt på https://kuta.fly.dev (en maskin i `arn`, `fly deploy --ha=false` tills migreringar och token-förnyelse klarar flera maskiner; ingen automatisk deploy vid push): `Dockerfile` (API:t servar den byggda webben från `wwwroot`, samma origin), `fly.toml` (egen app `kuta`, `arn`), steg i README. Utanför Development krävs `DataProtection__Certificate`; lokala värden ligger bara i `appsettings.Development.json`. Pipelinens ordning i `Program.cs` är medveten (headers → statiska filer → routing → auth) – se kommentarerna.
+- Hostat Supabase-projekt: `https://hrkqzqfyisvdyzfxzokf.supabase.co`. Data Protection-nycklarna i drift är verifierat krypterade med certifikatet. Egen SMTP saknas (Scaleway TEM som Kredovis, kräver verifierad domän) – tills dess når bekräftelsemejl bara projektets medlemmar.
 - **Hemligheter bara via 1Password:** `fly.secrets.tpl` (op://-referenser, objektet `fly-kuta` i valvet `Development`) och `scripts/fly-secrets.sh fly.toml --stage`. Aldrig värden i filer, argument eller kommandon; icke-hemliga inställningar i `fly.toml` under `[env]`. Vid uppsättning: EU-region, stäng av Data API i dashboarden (grants är redan återkallade, se nedan), lägg in bekräftelsemallen och minsta lösenordslängd 8 i dashboarden, och sätt via miljövariabler: `ConnectionStrings__Default` (session pooler, port 5432, `Maximum Pool Size` under poolstorleken), `Supabase__Url`, `Supabase__PublishableKey` och `Supabase__SecretKey` (gör att besökarens IP skickas vidare till Supabase). Före produktion: skydda Data Protection-nycklarna med certifikat och konfigurera forwarded headers så att rate limiten ser klientens IP.
 
 ## Designbeslut att hålla fast vid
@@ -49,8 +49,8 @@ Kuta (kuta.io) är en Strava-liknande löparapp: ladda upp pass från Garmin (FI
 - **Där webben hostas** sätts som headers (går inte i meta-taggen): `Content-Security-Policy: frame-ancestors 'none'`, `X-Content-Type-Options: nosniff`, `Referrer-Policy: strict-origin-when-cross-origin` och HSTS. Servera webben och API:t från samma origin.
 
 ## Nästa steg (i ordning)
-1. ~~GitHub-repo~~, ~~bygga och köra API:t~~, ~~auth (API + webb)~~ – klart.
-2. Hostat Supabase-projekt (EU) och deploy av API:t (Fly.io som Kredovis?).
+1. ~~GitHub-repo~~, ~~bygga och köra API:t~~, ~~auth (API + webb)~~, ~~driftsättning (Fly + Supabase)~~ – klart.
+2. Egen SMTP (Scaleway TEM) och egen domän (kuta.io?): verifiera domänen, SMTP i Supabase, Site URL och certifikat hos Fly.
 3. Lösenordsåterställning (Supabase `/recover` + mejlmall som länkar till API:t, som i Kredovis) – före riktiga användare.
 4. FIT-uppladdning: endpoint, lagring i R2, parsning med `Garmin.FIT.Sdk`, skriv `activities` + `activity_streams`.
 5. Rekordmotor (glidande fönster över distans/tid-strömmen), tester med riktiga FIT-filer.
