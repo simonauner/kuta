@@ -5,20 +5,27 @@ api/Kuta.Api/ActivityEndpoints.cs
 web/src/components/layout.tsx
   s_078e5aa442480c::t_ed846792e9fb41 30-31,35
   s_078e5aa442480c::t_3c8b57146de63d 1-2,19,74
+  s_078e5aa442480c::t_084400f2450081 32-34,42-44
+  s_078e5aa442480c::t_0f50ffadd6fdae 12
 web/src/lib/api.ts
   s_078e5aa442480c::t_3c8b57146de63d 6,8,11
+  s_078e5aa442480c::t_084400f2450081 37-41
 web/src/routes/stats.tsx
   s_078e5aa442480c::t_3c8b57146de63d 1,3,6
+  s_078e5aa442480c::t_084400f2450081 7
 api/Kuta.Api/AuthEndpoints.cs
   s_078e5aa442480c::t_9a8cd691861240 5,32,47,56,68,70,78,87,89,103
 README.md
   s_078e5aa442480c::t_ed846792e9fb41 13-14,16,18-20
 web/tests/i18n.test.mjs
   s_078e5aa442480c::t_ed846792e9fb41 1-29,38-53
+  s_078e5aa442480c::t_084400f2450081 30-37
 web/src/components/language-select.tsx
   s_078e5aa442480c::t_3c8b57146de63d 1-13,17,24-27
+  s_078e5aa442480c::t_084400f2450081 14-16,18-23
 web/src/routes/feed.tsx
   s_078e5aa442480c::t_3c8b57146de63d 1,3,6
+  s_078e5aa442480c::t_084400f2450081 7
 api/Kuta.Api.Tests/AuthFailureTests.cs
   s_078e5aa442480c::t_ed846792e9fb41 28-30
 api/Kuta.Api.Tests/LocaleTests.cs
@@ -29,13 +36,16 @@ api/Kuta.Api/Localization/README.md
   s_078e5aa442480c::t_14e11c26d002da 1-17,19-25
 web/src/routes/profile.tsx
   s_078e5aa442480c::t_3c8b57146de63d 2,10,22,30
+  s_078e5aa442480c::t_084400f2450081 34
 api/Kuta.Api/PasswordRecovery.cs
   s_078e5aa442480c::t_9a8cd691861240 47,84,86,109
 web/src/components/heart-rate-consent.tsx
   s_078e5aa442480c::t_3c8b57146de63d 1-2,11,27,43
   s_078e5aa442480c::t_ed846792e9fb41 49
+  s_078e5aa442480c::t_084400f2450081 44
 web/src/lib/language.ts
   s_078e5aa442480c::t_ed846792e9fb41 6-13
+  s_078e5aa442480c::t_084400f2450081 1-5
 web/src/locales/sv.json
   s_078e5aa442480c::t_9a8cd691861240 1-24,29-84,87
 AGENTS.md
@@ -47,15 +57,20 @@ web/src/locales/en.json
 web/src/routes/activities.tsx
   s_078e5aa442480c::t_3c8b57146de63d 1-2,44,88,107,109,116,126
   s_078e5aa442480c::t_ed846792e9fb41 120
+  s_078e5aa442480c::t_0f50ffadd6fdae 125,127
+  s_078e5aa442480c::t_084400f2450081 45-52,92,144-146,148,151
 web/src/routes/auth.tsx
   s_078e5aa442480c::t_3c8b57146de63d 1-3,16,40,52-53,67,84,89,94,134,149,156,174,183,192,200,212,225,228,237
   s_078e5aa442480c::t_ed846792e9fb41 112,233
+  s_078e5aa442480c::t_0f50ffadd6fdae 245
+  s_078e5aa442480c::t_084400f2450081 19-22,75-79,99,117,119,121-122,165-166,168,196,204,248-250
 web/src/components/error-message.tsx
   s_078e5aa442480c::t_3c8b57146de63d 1-8
 web/src/lib/i18n.ts
   s_078e5aa442480c::t_3c8b57146de63d 1-4,6-8,34-37,47-56
   s_078e5aa442480c::t_ed846792e9fb41 5
   s_078e5aa442480c::t_2850b05b65d7b8 14-17,22,26-27,31-33,38-41
+  s_078e5aa442480c::t_084400f2450081 9-13,18-21,23-25,28-30,42-46
 api/Kuta.Api/Kuta.Api.csproj
   s_078e5aa442480c::t_2612a2f187e996 20
 api/Kuta.Api/Localization/sweden.cidr
@@ -68,6 +83,7 @@ web/package-lock.json
   s_078e5aa442480c::t_8179b35c25be09 15,22,6730-6766,8199-8225,9180
 web/src/main.tsx
   s_078e5aa442480c::t_ef16016f1f04cd 6
+  s_078e5aa442480c::t_084400f2450081 13-20
 ---
 {
   "schema_version": "authorship/3.0.0",
