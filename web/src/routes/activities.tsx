@@ -45,6 +45,11 @@ export function ActivitiesPage() {
 
   const [file, setFile] = useState<File | null>(null)
 
+  const remove = useMutation({
+    mutationFn: (id: string) => api.send('DELETE', `/api/activities/${id}`),
+    onSuccess: () => queryClient.invalidateQueries({ queryKey: ['activities'] }),
+  })
+
   const upload = useMutation({
     mutationFn: (file: File) => {
       const form = new FormData()
@@ -109,12 +114,26 @@ export function ActivitiesPage() {
       )}
       <ul className="mt-8 divide-y">
         {activities.data?.map((a) => (
-          <li key={a.id} className="py-4">
-            <p className="font-medium">{a.title ?? dateFormat.format(new Date(a.startedAt))}</p>
-            <p className="mt-1 text-sm text-muted-foreground">
-              {kmFormat.format(a.distanceM / 1000)} km · {formatDuration(a.durationS)} · {formatPace(a.durationS, a.distanceM)}
-              {a.avgHr !== null && ` · ${a.avgHr} bpm`}
-            </p>
+          <li key={a.id} className="flex items-start justify-between gap-4 py-4">
+            <div>
+              <p className="font-medium">{a.title ?? dateFormat.format(new Date(a.startedAt))}</p>
+              <p className="mt-1 text-sm text-muted-foreground">
+                {kmFormat.format(a.distanceM / 1000)} km · {formatDuration(a.durationS)} · {formatPace(a.durationS, a.distanceM)}
+                {a.avgHr !== null && ` · ${a.avgHr} bpm`}
+              </p>
+            </div>
+            <Button
+              variant="ghost"
+              size="sm"
+              className="text-muted-foreground"
+              disabled={remove.isPending}
+              aria-label={`Ta bort passet ${dateFormat.format(new Date(a.startedAt))}`}
+              onClick={() => {
+                if (window.confirm('Ta bort passet? Det går inte att ångra.')) remove.mutate(a.id)
+              }}
+            >
+              Ta bort
+            </Button>
           </li>
         ))}
       </ul>
