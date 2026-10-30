@@ -4,7 +4,7 @@ Kuta (kuta.io) är en Strava-liknande löparapp: ladda upp pass från Garmin (FI
 
 ## Stack (beslutad)
 - **API:** .NET 10, ASP.NET Core minimal API, **Dapper** (inte EF Core), Npgsql, Postgres + PostGIS, NetTopologySuite.
-- **Supabase:** hanterad Postgres (EU-region) och **Supabase Auth**. Inloggningen går via vårt API (BFF, samma mönster som Kredovis): API:t pratar med Supabase Auth och lägger sessionen i en krypterad HttpOnly-cookie, så tokens aldrig når JavaScript. Webben använder varken supabase-js eller Supabases Data API och behöver inga Supabase-nycklar. Lokalt håller sig allt till 553xx: webben 55300 (preview 55301), API:t 55302, Supabase 55320–55329 (se `supabase/config.toml`). Se README för hur man startar.
+- **Supabase:** hanterad Postgres (EU-region) och **Supabase Auth**. Inloggningen går via vårt API (BFF, samma mönster som Kredovis): API:t pratar med Supabase Auth och lägger sessionen i en krypterad HttpOnly-cookie, så tokens aldrig når JavaScript. Webben använder varken supabase-js eller Supabases Data API och behöver inga Supabase-nycklar. Lokalt håller sig allt till 553xx: webben 55300 (preview 55301), API:t 55302, Supabase 55320–55329 (se `supabase/config.toml`). Starta allt med `scripts/run-dev.sh` (se README).
 - **Migreringar:** DbUp med inbäddade SQL-filer i `api/Kuta.Api/Migrations/`.
 - **Web:** React + Vite + TypeScript, TanStack Router (kodbaserad) + Query, Tailwind v4, shadcn/ui (components.json finns, komponenter läggs till med `npx shadcn@latest add ...`), Motion för animationer, vite-plugin-pwa, MapLibre GL.
 - **Filer:** Cloudflare R2 (S3-kompatibelt) för rå-FIT-filer och PMTiles-kartor. `activities.raw_file_key` pekar på objektnyckeln.

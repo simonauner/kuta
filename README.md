@@ -4,13 +4,13 @@ Löparapp med Garmin-import, statistik, rekord och socialt flöde. Se `AGENTS.md
 
 ## Köra lokalt
 
-Tre terminaler, från repots rot. Allt lokalt ligger på portar i 553xx-serien.
+Kräver Docker, Supabase CLI, .NET 10 SDK och nvm (Node-versionen står i `.nvmrc`). Allt startas med:
 
 ```bash
-supabase start                                  # Postgres + PostGIS + Auth + Mailpit
-dotnet run --project api/Kuta.Api               # API på http://localhost:55302 (kör migreringar vid start)
-cd web && nvm use && npm install && npm run dev # webben på http://localhost:55300, /api proxas till API:t
+scripts/run-dev.sh
 ```
+
+Skriptet startar Supabase om det inte redan kör, bygger och startar API:t och kör webben med Vite (hot reload), med loggarna från båda i samma terminal. Ctrl+C stoppar API:t och webben; Supabase fortsätter köra tills `supabase stop`. API:t laddas inte om vid ändringar – starta om skriptet. Allt lokalt ligger på portar i 553xx-serien.
 
 | Vad | Adress |
 |---|---|
@@ -19,6 +19,6 @@ cd web && nvm use && npm install && npm run dev # webben på http://localhost:55
 | Mailpit (bekräftelsemejl) | http://127.0.0.1:55324 |
 | Supabase Studio | http://127.0.0.1:55323 |
 
-Kommer bekräftelsemejlet på engelska med en länk till Supabase i stället för till `localhost:55300/api/auth/confirm` har auth-containern startat före Kong: `docker restart supabase_auth_kuta` och registrera igen.
+Kommer bekräftelsemejlet ändå på engelska med en länk till Supabase har auth-containern startat före Kong (skriptet hanterar det när det själv startar Supabase): `docker restart supabase_auth_kuta` och registrera igen.
 
 Tester (kräver `supabase start`): `dotnet test --project api/Kuta.Api.Tests`.
