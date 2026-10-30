@@ -11,7 +11,8 @@ export function HeartRateConsent({ className }: { className?: string }) {
   const id = useId()
 
   const change = useMutation({
-    mutationFn: (consent: boolean) => api.send<Me>(consent ? 'PUT' : 'DELETE', '/api/me/hr-consent'),
+    mutationFn: (consent: boolean) =>
+      api.send<Me>(consent ? 'PUT' : 'DELETE', '/api/me/hr-consent'),
     onSuccess: async (updated) => {
       queryClient.setQueryData(['me'], updated)
       await queryClient.invalidateQueries({ queryKey: ['activities'] })
@@ -20,7 +21,11 @@ export function HeartRateConsent({ className }: { className?: string }) {
 
   function onChange(e: ChangeEvent<HTMLInputElement>) {
     const consent = e.currentTarget.checked
-    if (!consent && !window.confirm('All puls som redan sparats från dina pass raderas. Fortsätta?')) return
+    if (
+      !consent &&
+      !window.confirm('All puls som redan sparats från dina pass raderas. Fortsätta?')
+    )
+      return
     change.mutate(consent)
   }
 
@@ -38,8 +43,8 @@ export function HeartRateConsent({ className }: { className?: string }) {
         <Label htmlFor={id} className="block font-normal leading-relaxed">
           <span className="font-medium">Spara puls från mina pass.</span>{' '}
           <span className="text-muted-foreground">
-            Puls är hälsodata. Utan ditt samtycke sparar Kuta passen utan puls och behåller inte originalfilen. Stänger
-            du av det raderas all sparad puls.
+            Puls är hälsodata. Utan ditt samtycke sparar Kuta passen utan puls och behåller inte
+            originalfilen. Stänger du av det raderas all sparad puls.
           </span>
         </Label>
       </div>

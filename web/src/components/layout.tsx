@@ -17,7 +17,8 @@ export function Layout() {
   const pathname = useRouterState({ select: (s) => s.location.pathname })
   const me = useQuery(meQuery)
 
-  if (new URLSearchParams(window.location.search).get('reset') === 'password') return <ResetPasswordPage />
+  if (new URLSearchParams(window.location.search).get('reset') === 'password')
+    return <ResetPasswordPage />
   if (new URLSearchParams(window.location.search).get('reset') === 'failed') return <AuthPage />
 
   if (me.isPending) return null

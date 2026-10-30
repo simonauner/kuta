@@ -23,7 +23,10 @@ test('concurrent writes share a token and send JSON with the CSRF header', async
   ])
 
   assert.deepEqual(results, [undefined, undefined])
-  assert.equal(fetch.mock.calls.filter(({ arguments: [path] }) => path === '/api/antiforgery').length, 1)
+  assert.equal(
+    fetch.mock.calls.filter(({ arguments: [path] }) => path === '/api/antiforgery').length,
+    1,
+  )
 })
 
 test('a write can be retried after the token fetch loses its connection', async () => {
@@ -32,9 +35,11 @@ test('a write can be retried after the token fetch loses its connection', async 
   })
   await assert.rejects(api.send('POST', '/api/auth/login'), /offline/)
 
-  fetch.mock.mockImplementation(async (path) => path === '/api/antiforgery'
-    ? Response.json({ token: 'recovered-token' })
-    : new Response(null, { status: 204 }))
+  fetch.mock.mockImplementation(async (path) =>
+    path === '/api/antiforgery'
+      ? Response.json({ token: 'recovered-token' })
+      : new Response(null, { status: 204 }),
+  )
 
   await api.send('POST', '/api/auth/login')
   assert.equal(fetch.mock.callCount(), 3)
@@ -42,14 +47,19 @@ test('a write can be retried after the token fetch loses its connection', async 
 
 test('a failed HTTP token response does not poison later attempts', async () => {
   const fetch = mock.method(globalThis, 'fetch', async () =>
-    Response.json({ error: 'Tillfälligt fel' }, { status: 503 }))
+    Response.json({ error: 'Tillfälligt fel' }, { status: 503 }),
+  )
   await assert.rejects(api.send('POST', '/api/auth/login'), {
-    name: 'Error', status: 503, message: 'Tillfälligt fel',
+    name: 'Error',
+    status: 503,
+    message: 'Tillfälligt fel',
   })
 
-  fetch.mock.mockImplementation(async (path) => path === '/api/antiforgery'
-    ? Response.json({ token: 'recovered-token' })
-    : new Response(null, { status: 204 }))
+  fetch.mock.mockImplementation(async (path) =>
+    path === '/api/antiforgery'
+      ? Response.json({ token: 'recovered-token' })
+      : new Response(null, { status: 204 }),
+  )
 
   await api.send('POST', '/api/auth/login')
   assert.equal(fetch.mock.callCount(), 3)
@@ -79,8 +89,11 @@ test('an unauthorized response discards the previous session token', async () =>
       : new Response(null, { status: 204 })
   })
 
-  await assert.rejects(api.send('POST', '/api/auth/logout'), (error) =>
-    error instanceof ApiError && error.status === 401 && error.message === 'Logga in igen')
+  await assert.rejects(
+    api.send('POST', '/api/auth/logout'),
+    (error) =>
+      error instanceof ApiError && error.status === 401 && error.message === 'Logga in igen',
+  )
   await api.send('POST', '/api/auth/login')
   assert.equal(tokens, 2)
 })
@@ -98,6 +111,11 @@ test('GET reads JSON without requesting a CSRF token', async () => {
 test('a non-JSON error response has a readable fallback message', async () => {
   mock.method(globalThis, 'fetch', async () => new Response('Bad gateway', { status: 502 }))
 
-  await assert.rejects(api.get('/api/me'), (error) =>
-    error instanceof ApiError && error.status === 502 && error.message === 'Något gick fel. Försök igen.')
+  await assert.rejects(
+    api.get('/api/me'),
+    (error) =>
+      error instanceof ApiError &&
+      error.status === 502 &&
+      error.message === 'Något gick fel. Försök igen.',
+  )
 })

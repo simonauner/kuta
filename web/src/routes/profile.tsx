@@ -18,7 +18,12 @@ export function ProfilePage() {
       <p className="mt-1 text-sm text-muted-foreground">{me?.email}</p>
       <p className="mt-6 text-muted-foreground">Dina skor, grupper och inställningar.</p>
       <HeartRateConsent className="mt-6" />
-      <Button variant="outline" className="mt-8" disabled={logout.isPending} onClick={() => logout.mutate()}>
+      <Button
+        variant="outline"
+        className="mt-8"
+        disabled={logout.isPending}
+        onClick={() => logout.mutate()}
+      >
         Logga ut
       </Button>
       {logout.error && (

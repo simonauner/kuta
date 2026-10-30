@@ -47,5 +47,9 @@ export const api = {
     }),
   // Filuppladdning: webbläsaren sätter själv Content-Type med multipart-gränsen
   upload: async <T>(path: string, form: FormData) =>
-    request<T>(path, { method: 'POST', headers: { 'X-CSRF-TOKEN': await getCsrfToken() }, body: form }),
+    request<T>(path, {
+      method: 'POST',
+      headers: { 'X-CSRF-TOKEN': await getCsrfToken() },
+      body: form,
+    }),
 }
