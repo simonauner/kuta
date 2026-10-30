@@ -19,14 +19,36 @@
     "logout": "Logga ut"
   },
   "activities": {
-    "file": "FIT-fil från din klocka",
     "hrSaved": "Pulsdata sparas. Ändra på",
-    "uploading": "Laddar upp …",
-    "upload": "Ladda upp",
     "empty": "Inga pass än.",
     "delete": "Ta bort",
     "deleteLabel": "Ta bort passet {{date}}",
     "confirmDelete": "Ta bort passet? Det går inte att ångra."
+  },
+  "newActivity": {
+    "title": "Skapa ny aktivitet",
+    "file": "FIT-fil från din klocka (valfritt)",
+    "fileHint": "Välj en fil så fylls fälten i, eller fyll i dem själv.",
+    "reading": "Läser filen …",
+    "name": "Titel",
+    "sport": "Sport",
+    "sports": {
+      "running": "Löpning",
+      "cycling": "Cykling",
+      "walking": "Promenad",
+      "hiking": "Vandring",
+      "other": "Annat"
+    },
+    "startedAt": "Datum och tid",
+    "distance": "Distans (km)",
+    "duration": "Tid (h:mm:ss)",
+    "durationHint": "Till exempel 45:00 eller 1:02:30",
+    "elevation": "Höjdmeter",
+    "avgHr": "Snittpuls",
+    "locked": "Mätvärdena kommer från filen.",
+    "lockedFrom": "Mätvärdena kommer från filen ({{device}}).",
+    "save": "Spara",
+    "saving": "Sparar …"
   },
   "activity": {
     "back": "Alla pass",
@@ -128,6 +150,8 @@
     "duplicateActivity": "Det här passet är redan uppladdat.",
     "invalidRecordYear": "Ange ett år mellan 1 och 9998.",
     "invalidFit": "Filen kunde inte läsas som ett pass från en FIT-fil.",
+    "invalidTitle": "Titeln får vara högst 100 tecken.",
+    "invalidActivity": "Kontrollera sport, datum, tid och distans.",
     "passwordTooShort": "Använd minst 8 tecken i lösenordet.",
     "passwordUnchanged": "Välj ett annat lösenord än ditt nuvarande.",
     "recoveryExpired": "Återställningslänken är ogiltig eller har gått ut. Begär en ny länk."
