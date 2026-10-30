@@ -19,6 +19,7 @@
     "logout": "Logga ut"
   },
   "activities": {
+    "week": "v. {{week}}",
     "file": "FIT-fil från din klocka",
     "hrSaved": "Pulsdata sparas. Ändra på",
     "uploading": "Laddar upp …",

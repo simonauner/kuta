@@ -11,6 +11,53 @@ export type Activity = {
   avgHr: number | null
 }
 
+// ISO-veckor räknas från måndag; torsdagen avgör vilket veckoår veckan hör till.
+function isoWeek(date: Date) {
+  const thursday = new Date(Date.UTC(date.getFullYear(), date.getMonth(), date.getDate()))
+  thursday.setUTCDate(thursday.getUTCDate() + 4 - (thursday.getUTCDay() || 7))
+  const yearStart = Date.UTC(thursday.getUTCFullYear(), 0, 1)
+  return Math.ceil(((thursday.getTime() - yearStart) / 86400000 + 1) / 7)
+}
+
+type ActivityPeriod = {
+  year: number | null
+  month: Date | null
+  week: number | null
+  activities: Activity[]
+}
+
+export function groupActivities(activities: Activity[]): ActivityPeriod[] {
+  const sorted = [...activities].sort((a, b) => Date.parse(b.startedAt) - Date.parse(a.startedAt))
+  const years = new Map<number, number>()
+  const months = new Map<string, number>()
+  const dated = sorted.map((activity) => {
+    const date = new Date(activity.startedAt)
+    const year = date.getFullYear()
+    const month = `${year}-${date.getMonth()}`
+    years.set(year, (years.get(year) ?? 0) + 1)
+    months.set(month, (months.get(month) ?? 0) + 1)
+    return { activity, date, year, month, week: isoWeek(date) }
+  })
+  const periods: ActivityPeriod[] = []
+  for (const [index, item] of dated.entries()) {
+    const previous = dated[index - 1]
+    const newYear = item.year !== previous?.year
+    const newMonth = item.month !== previous?.month
+    const showMonth = years.get(item.year)! > 1
+    const showWeek = months.get(item.month)! > 1
+    if (newMonth || (showWeek && item.week !== previous?.week)) {
+      periods.push({
+        year: newYear ? item.year : null,
+        month: showMonth && newMonth ? item.date : null,
+        week: showWeek ? item.week : null,
+        activities: [],
+      })
+    }
+    periods[periods.length - 1].activities.push(item.activity)
+  }
+  return periods
+}
+
 // En array per kanal, index = mätpunkt; null där klockan inte mätte.
 export type ActivityStreams = {
   t: number[]

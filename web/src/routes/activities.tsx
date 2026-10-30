@@ -8,7 +8,13 @@ import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
 import { api } from '@/lib/api'
-import { activityTitle, formatDuration, formatPace, type Activity } from '@/lib/activity'
+import {
+  activityTitle,
+  formatDuration,
+  formatPace,
+  groupActivities,
+  type Activity,
+} from '@/lib/activity'
 import { meQuery } from '@/lib/auth'
 
 const activitiesQuery = {
@@ -22,6 +28,7 @@ export function ActivitiesPage() {
     dateStyle: 'medium',
     timeStyle: 'short',
   })
+  const monthFormat = new Intl.DateTimeFormat(i18n.resolvedLanguage, { month: 'long' })
   const kmFormat = new Intl.NumberFormat(i18n.resolvedLanguage, {
     minimumFractionDigits: 2,
     maximumFractionDigits: 2,
@@ -101,44 +108,61 @@ export function ActivitiesPage() {
       {activities.data?.length === 0 && (
         <p className="mt-8 text-muted-foreground">{t('activities.empty')}</p>
       )}
-      <ul className="mt-8 divide-y">
-        {activities.data?.map((a) => (
-          <li key={a.id} className="flex items-start justify-between gap-4 py-4">
-            <div>
-              <Link
-                to="/app/activities/$activityId"
-                params={{ activityId: a.id }}
-                className="inline-block font-medium underline-offset-2 hover:underline"
-                style={{ viewTransitionName: `activity-title-${a.id}` }}
-              >
-                {activityTitle(a, t)}
-              </Link>
-              <p className="text-xs text-muted-foreground">
-                {dateFormat.format(new Date(a.startedAt))}
-              </p>
-              <p className="mt-1 text-sm text-muted-foreground">
-                {kmFormat.format(a.distanceM / 1000)} km · {formatDuration(a.durationS)} ·{' '}
-                {formatPace(a.durationS, a.distanceM)}
-                {a.avgHr !== null && ` · ${a.avgHr} bpm`}
-              </p>
-            </div>
-            <Button
-              variant="ghost"
-              size="sm"
-              className="text-muted-foreground"
-              disabled={remove.isPending}
-              aria-label={t('activities.deleteLabel', {
-                date: dateFormat.format(new Date(a.startedAt)),
-              })}
-              onClick={() => {
-                if (window.confirm(t('activities.confirmDelete'))) remove.mutate(a.id)
-              }}
-            >
-              {t('activities.delete')}
-            </Button>
-          </li>
+      <div className="mt-8 space-y-6">
+        {groupActivities(activities.data ?? []).map((period) => (
+          <div key={period.activities[0].id}>
+            {period.year !== null && (
+              <h2 className="mb-4 text-xl font-semibold tracking-tight">{period.year}</h2>
+            )}
+            {period.month !== null && (
+              <h3 className="mb-3 text-lg font-medium">{monthFormat.format(period.month)}</h3>
+            )}
+            {period.week !== null && (
+              <h4 className="text-sm font-medium text-muted-foreground">
+                {t('activities.week', { week: period.week })}
+              </h4>
+            )}
+            <ul className="divide-y">
+              {period.activities.map((a) => (
+                <li key={a.id} className="flex items-start justify-between gap-4 py-4">
+                  <div>
+                    <Link
+                      to="/app/activities/$activityId"
+                      params={{ activityId: a.id }}
+                      className="inline-block font-medium underline-offset-2 hover:underline"
+                      style={{ viewTransitionName: `activity-title-${a.id}` }}
+                    >
+                      {activityTitle(a, t)}
+                    </Link>
+                    <p className="text-xs text-muted-foreground">
+                      {dateFormat.format(new Date(a.startedAt))}
+                    </p>
+                    <p className="mt-1 text-sm text-muted-foreground">
+                      {kmFormat.format(a.distanceM / 1000)} km · {formatDuration(a.durationS)} ·{' '}
+                      {formatPace(a.durationS, a.distanceM)}
+                      {a.avgHr !== null && ` · ${a.avgHr} bpm`}
+                    </p>
+                  </div>
+                  <Button
+                    variant="ghost"
+                    size="sm"
+                    className="text-muted-foreground"
+                    disabled={remove.isPending}
+                    aria-label={t('activities.deleteLabel', {
+                      date: dateFormat.format(new Date(a.startedAt)),
+                    })}
+                    onClick={() => {
+                      if (window.confirm(t('activities.confirmDelete'))) remove.mutate(a.id)
+                    }}
+                  >
+                    {t('activities.delete')}
+                  </Button>
+                </li>
+              ))}
+            </ul>
+          </div>
         ))}
-      </ul>
+      </div>
     </section>
   )
 }

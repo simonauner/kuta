@@ -1,6 +1,12 @@
 import assert from 'node:assert/strict'
 import { test } from 'node:test'
-import { activityTitle, formatDuration, formatPace, splits } from '../src/lib/activity.ts'
+import {
+  activityTitle,
+  formatDuration,
+  formatPace,
+  groupActivities,
+  splits,
+} from '../src/lib/activity.ts'
 
 // 2,5 km på 750 s: 3 m/s, en mätpunkt per sekund, höjden stiger 1 m per 100 m, puls 150.
 function run({ seconds = 834, gapAt = null } = {}) {
@@ -69,4 +75,57 @@ test('own title wins, otherwise sport and time of day', () => {
     activityTitle({ title: null, sport: 'running', startedAt: at(23) }, t),
     'running|night',
   )
+})
+
+const activityAt = (date) => ({ id: date, startedAt: `${date}T12:00:00` })
+const periods = (dates) =>
+  groupActivities(dates.map(activityAt)).map((period) => ({
+    year: period.year,
+    month: period.month?.getMonth() ?? null,
+    week: period.week,
+    dates: period.activities.map((a) => a.id),
+  }))
+
+test('empty lists and one activity per year only need year headings', () => {
+  assert.deepEqual(periods([]), [])
+  assert.deepEqual(periods(['2025-12-30', '2026-10-30']), [
+    { year: 2026, month: null, week: null, dates: ['2026-10-30'] },
+    { year: 2025, month: null, week: null, dates: ['2025-12-30'] },
+  ])
+})
+
+test('multiple activities in a year add months; only busy months add weeks', () => {
+  assert.deepEqual(periods(['2026-09-30', '2026-10-23', '2026-10-30', '2026-10-29']), [
+    { year: 2026, month: 9, week: 44, dates: ['2026-10-30', '2026-10-29'] },
+    { year: null, month: null, week: 43, dates: ['2026-10-23'] },
+    { year: null, month: 8, week: null, dates: ['2026-09-30'] },
+  ])
+  assert.deepEqual(periods(['2026-10-30', '2026-09-30']), [
+    { year: 2026, month: 9, week: null, dates: ['2026-10-30'] },
+    { year: null, month: 8, week: null, dates: ['2026-09-30'] },
+  ])
+})
+
+test('ISO weeks start on Monday and may belong to another year', () => {
+  assert.deepEqual(periods(['2021-01-03', '2021-01-04', '2020-12-31', '2020-12-28']), [
+    { year: 2021, month: 0, week: 1, dates: ['2021-01-04'] },
+    { year: null, month: null, week: 53, dates: ['2021-01-03'] },
+    { year: 2020, month: 11, week: 53, dates: ['2020-12-31', '2020-12-28'] },
+  ])
+})
+
+test('month boundaries stay separate even within the same ISO week', () => {
+  assert.deepEqual(periods(['2026-10-01', '2026-09-30', '2026-09-29', '2026-10-02']), [
+    { year: 2026, month: 9, week: 40, dates: ['2026-10-02', '2026-10-01'] },
+    { year: null, month: 8, week: 40, dates: ['2026-09-30', '2026-09-29'] },
+  ])
+})
+
+test('grouping follows the displayed local date and does not mutate the input', () => {
+  const local = new Date(2026, 0, 1, 0, 15)
+  const activities = [activityAt('2025-10-30'), { id: 'local', startedAt: local.toISOString() }]
+  const original = [...activities]
+  const grouped = groupActivities(activities)
+  assert.equal(grouped[0].year, 2026)
+  assert.deepEqual(activities, original)
 })

@@ -19,6 +19,7 @@
     "logout": "Log out"
   },
   "activities": {
+    "week": "Week {{week}}",
     "file": "FIT file from your watch",
     "hrSaved": "Heart rate data is saved. Change this in",
     "uploading": "Uploading …",
