@@ -12,10 +12,17 @@ public record ActivitySummary(
 // Ett pass med tidsserier (en array per kanal, index = mätpunkt; null där klockan inte mätte).
 public record ActivityDetail(
     Guid Id, string Sport, string? Title, System.DateTime StartedAt, int DurationS, int? MovingS, double DistanceM,
-    short? AvgHr, short? MaxHr, float? AvgSpeedMps, float? ElevationGainM, ActivityStreams? Streams);
+    short? AvgHr, short? MaxHr, float? AvgSpeedMps, float? ElevationGainM, string? Device, ActivityStreams? Streams,
+    IEnumerable<ActivityLap> Laps);
 
 public record ActivityStreams(
-    int[] T, float?[]? Dist, short?[]? Hr, float?[]? Speed, float?[]? Alt, double?[]? Lat, double?[]? Lon);
+    int[] T, float?[]? Dist, short?[]? Hr, float?[]? Speed, float?[]? Alt, double?[]? Lat, double?[]? Lon,
+    short?[]? Cadence, short?[]? Temp);
+
+// Varv som klockan registrerade (manuellt eller automatiskt, t.ex. varje km)
+public record ActivityLap(
+    short LapIndex, int StartS, int DurationS, int? MovingS, double DistanceM, short? AvgHr, short? MaxHr,
+    float? AscentM, float? DescentM, short? AvgCadence);
 
 public static class ActivityEndpoints
 {
@@ -50,25 +57,36 @@ public static class ActivityEndpoints
             await using var command = new NpgsqlCommand(
                 """
                 select a.id, a.sport, a.title, a.started_at, a.duration_s, a.moving_s, a.distance_m, a.avg_hr, a.max_hr,
-                       a.avg_speed_mps, a.elevation_gain_m, s.t, s.dist, s.hr, s.speed, s.alt, s.lat, s.lon
+                       a.avg_speed_mps, a.elevation_gain_m, a.device, s.t, s.dist, s.hr, s.speed, s.alt, s.lat, s.lon,
+                       s.cadence, s.temp
                 from activities a left join activity_streams s on s.activity_id = a.id
                 where a.id = @id and a.user_id = @userId
                 """, conn);
             command.Parameters.AddWithValue("id", id);
             command.Parameters.AddWithValue("userId", user.GetUserId());
-            await using var reader = await command.ExecuteReaderAsync(cancellationToken);
-            if (!await reader.ReadAsync(cancellationToken)) return Results.NotFound();
+            ActivityDetail detail;
+            await using (var reader = await command.ExecuteReaderAsync(cancellationToken))
+            {
+                if (!await reader.ReadAsync(cancellationToken)) return Results.NotFound();
 
-            // Läses för hand: Dapper/Npgsql klarar inte null-element i arrayer utan typen float?[] osv.
-            T? Value<T>(int i) => reader.IsDBNull(i) ? default : reader.GetFieldValue<T>(i);
-            var streams = reader.IsDBNull(11) ? null : new ActivityStreams(
-                reader.GetFieldValue<int[]>(11), Value<float?[]>(12), Value<short?[]>(13), Value<float?[]>(14),
-                Value<float?[]>(15), Value<double?[]>(16), Value<double?[]>(17));
-            return Results.Ok(new ActivityDetail(
-                reader.GetGuid(0), reader.GetString(1), Value<string>(2),
-                System.DateTime.SpecifyKind(reader.GetDateTime(3), DateTimeKind.Utc), reader.GetInt32(4),
-                Value<int?>(5), reader.GetDouble(6), Value<short?>(7), Value<short?>(8), Value<float?>(9), Value<float?>(10),
-                streams));
+                // Läses för hand: Dapper/Npgsql klarar inte null-element i arrayer utan typen float?[] osv.
+                T? Value<T>(int i) => reader.IsDBNull(i) ? default : reader.GetFieldValue<T>(i);
+                var streams = reader.IsDBNull(12) ? null : new ActivityStreams(
+                    reader.GetFieldValue<int[]>(12), Value<float?[]>(13), Value<short?[]>(14), Value<float?[]>(15),
+                    Value<float?[]>(16), Value<double?[]>(17), Value<double?[]>(18), Value<short?[]>(19),
+                    Value<short?[]>(20));
+                detail = new ActivityDetail(
+                    reader.GetGuid(0), reader.GetString(1), Value<string>(2),
+                    System.DateTime.SpecifyKind(reader.GetDateTime(3), DateTimeKind.Utc), reader.GetInt32(4),
+                    Value<int?>(5), reader.GetDouble(6), Value<short?>(7), Value<short?>(8), Value<float?>(9),
+                    Value<float?>(10), Value<string>(11), streams, []);
+            }
+            var laps = await conn.QueryAsync<ActivityLap>(
+                """
+                select lap_index, start_s, duration_s, moving_s, distance_m, avg_hr, max_hr, ascent_m, descent_m, avg_cadence
+                from activity_laps where activity_id = @id order by lap_index
+                """, new { id });
+            return Results.Ok(detail with { Laps = laps });
         });
 
         // Uppladdning av en FIT-fil: tolka den, spara råfilen (bara med pulssamtycke) och skriv passet med tidsserier
@@ -110,6 +128,23 @@ public static class ActivityEndpoints
         .DisableAntiforgery();
 
         activities.MapStravaImport();
+
+        activities.MapDelete("", async (NpgsqlDataSource db, RawFileStore store, ClaimsPrincipal user,
+            CancellationToken cancellationToken) =>
+        {
+            await using var conn = await db.OpenConnectionAsync(cancellationToken);
+            await using var tx = await conn.BeginTransactionAsync(cancellationToken);
+            var userId = user.GetUserId();
+            var owned = (await conn.QueryAsync<OwnedActivity>(
+                "select id, raw_file_key from activities where user_id = @userId for update",
+                new { userId }, tx)).ToArray();
+            // Råfiler först; radera bara de pass som valdes, så en samtidig import behåller sin råfil.
+            await store.DeleteAsync(owned.Select(a => a.RawFileKey).OfType<string>(), cancellationToken);
+            await conn.ExecuteAsync("delete from activities where user_id = @userId and id = any(@ids)",
+                new { userId, ids = owned.Select(a => a.Id).ToArray() }, tx);
+            await tx.CommitAsync(cancellationToken);
+            return Results.NoContent();
+        });
 
         // Tar bort ett eget pass med tidsserier (kaskad) och råfil. Någon annans pass ger 404, som ett som inte finns.
         // Råfilen först: misslyckas raderingen ligger passet kvar och kan tas bort igen, i stället för att filen

@@ -10,7 +10,7 @@ Logotypen ”Spåret” finns som fristående SVG i `web/public/brand/` (mörk o
 
 React-appen öppnas på `/app`, med vyerna `/app/activities`, `/app/stats` samt `/app/profile` och `/app/settings`. `web/app.html` har `noindex`. Mejlets bekräftelselänk återvänder till `/app`. Vite bygger båda HTML-filerna, och .NET serverar dem från samma origin. PWA:n startar på `/app` och använder bara appskalet som navigeringsfallback inom `/app`.
 
-Profil visar löparens namn. Kugghjulet öppnar Inställningar på `/app/settings`, med språkval, pulssamtycke, Strava-import, e-postadress och utloggning. Vanlig FIT-uppladdning finns kvar på Pass, med aktuell pulsinställning och länk till Inställningar.
+Profil visar löparens namn. Kugghjulet öppnar Inställningar på `/app/settings`, med språkval, pulssamtycke, Strava-import, e-postadress, utloggning och Danger zone för att radera alla pass. Vanlig FIT-uppladdning finns kvar på Pass, med aktuell pulsinställning och länk till Inställningar.
 
 ## Språk och URL:er
 
@@ -61,7 +61,22 @@ Frontendkontroller med Node-versionen i `.nvmrc`: kör `npm ci` i `web/`, sedan
 `npm run format:check`, `npm run lint`, `npm test` och `npm run build`.
 `npm run format` formaterar webbfilerna med Prettier. API-klientens tester använder
 Nodes inbyggda testverktyg och mockade nätverksanrop; de kräver inte Supabase.
-GitHub Actions kör frontendkontrollerna på berörda pull requests och push till `main`.
+GitHub Actions kör frontendkontrollerna vid ändringar i `web/` och bygger API:t och
+testprojektet vid ändringar i `api/` eller `supabase/`, på pull requests och push till
+`main`. Respektive workflow och verktygskonfiguration (`.nvmrc` respektive
+`global.json`) startar också motsvarande kontroller. `Dockerfile` och `.dockerignore`
+startar båda. Ändringar i enbart `.md`-filer startar inget av dessa workflows, även
+under `web/` eller `api/`. Backendtester mot lokal Supabase körs fortfarande lokalt
+enligt ovan; backend-workflowet kontrollerar enbart att projekten bygger.
+
+API-jobbet i `.github/workflows/api.yml` kör hela `api/Kuta.Api.Tests` vid ändringar
+i API:t, Supabase-konfigurationen, `global.json`, `Dockerfile` eller själva jobbet,
+både på pull requests och push till `main`. Det installerar .NET enligt `global.json`
+och Supabase CLI 2.72.7, startar en tillfällig lokal Supabase med Auth, Mailpit och
+Storage, läser dess lokala nycklar och väntar på auth efter omstart innan testerna
+körs. Testerna körs sekventiellt (`-- --parallel none`) så att testservrarna inte
+försöker migrera den tomma databasen samtidigt. Inga produktionshemligheter
+eller hostade tjänster används. Supabase stoppas även om testerna misslyckas.
 
 Footern visar copyright och webbens byggnummer (`ÅÅÅÅMMDD.ttmmss`, UTC), som sätts
 automatiskt av Vite vid bygget, även i Docker. I utvecklingsläge visas `Version utveckling`.

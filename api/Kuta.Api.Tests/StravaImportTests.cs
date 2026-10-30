@@ -5,6 +5,7 @@ using System.Text;
 using System.Text.Json;
 using Dapper;
 using Microsoft.Extensions.DependencyInjection;
+using Microsoft.AspNetCore.Http;
 using Npgsql;
 using Xunit;
 using static TestSession;
@@ -98,7 +99,7 @@ public class StravaUploadTests(KutaFactory factory) : IClassFixture<KutaFactory>
         await using var conn = await factory.Services.GetRequiredService<NpgsqlDataSource>().OpenConnectionAsync(ct);
         try
         {
-            await SignUpAsync(client, runner, "Testlöparen", ct);
+            await CreateRunner(client, conn, runner, ct);
             var archive = StravaFixture.Archive();
             var response = await Upload(client, archive, ct);
             Assert.Equal(HttpStatusCode.OK, response.StatusCode);
@@ -111,6 +112,12 @@ public class StravaUploadTests(KutaFactory factory) : IClassFixture<KutaFactory>
             Assert.Equal(3, rows.Length);
             var fitId = await conn.ExecuteScalarAsync<Guid>(
                 "select id from activities where user_id=(select id from auth.users where email=@runner) and strava_activity_id='1'", new { runner });
+            var details = await conn.QuerySingleAsync<(string Device, short Cadence, short Temp)>(
+                "select a.device, s.cadence[1], s.temp[1] from activities a join activity_streams s on s.activity_id=a.id where a.id=@fitId", new { fitId });
+            Assert.Equal(("Garmin Fenix 5s", (short)170, (short)18), details);
+            var laps = await conn.QuerySingleAsync<(int Count, int WithHr)>(
+                "select count(*)::int, count(avg_hr)::int from activity_laps where activity_id=@fitId", new { fitId });
+            Assert.Equal((10, 0), laps);
             var efforts = (await client.GetFromJsonAsync<StoredBestEffort[]>($"/api/activities/{fitId}/best-efforts", ct))!;
             Assert.Equal(new[] { 1000, 1609 }, efforts.Select(e => e.DistanceM));
             Assert.Equal(1000d / 3, efforts[0].ElapsedS, precision: 8);
@@ -130,7 +137,7 @@ public class StravaUploadTests(KutaFactory factory) : IClassFixture<KutaFactory>
             Assert.Equal(3, retry.Duplicates);
 
             var otherClient = factory.CreateClient();
-            await SignUpAsync(otherClient, other, "Annan löpare", ct);
+            await CreateRunner(otherClient, conn, other, ct);
             Assert.Empty((await otherClient.GetFromJsonAsync<JsonElement[]>("/api/activities", ct))!);
             foreach (var row in rows)
             {
@@ -163,7 +170,7 @@ public class StravaUploadTests(KutaFactory factory) : IClassFixture<KutaFactory>
         await using var conn = await factory.Services.GetRequiredService<NpgsqlDataSource>().OpenConnectionAsync(ct);
         try
         {
-            await SignUpAsync(client, email, "Testlöparen", ct);
+            await CreateRunner(client, conn, email, ct);
             Assert.Equal(HttpStatusCode.BadRequest, (await Upload(client, "not zip"u8.ToArray(), ct)).StatusCode);
             client.DefaultRequestHeaders.Remove("X-CSRF-TOKEN");
             Assert.Equal(HttpStatusCode.BadRequest, (await Upload(client, StravaFixture.Archive(), ct)).StatusCode);
@@ -171,6 +178,20 @@ public class StravaUploadTests(KutaFactory factory) : IClassFixture<KutaFactory>
                 "select count(*) from activities where user_id=(select id from auth.users where email=@email)", new { email }));
         }
         finally { await conn.ExecuteAsync("delete from auth.users where email=@email", new { email }); }
+    }
+
+    private async Task CreateRunner(HttpClient client, NpgsqlConnection conn, string email, CancellationToken ct)
+    {
+        var id = await conn.ExecuteScalarAsync<Guid>(
+            "insert into auth.users (id,email) values (gen_random_uuid(),@email) returning id", new { email });
+        await conn.ExecuteAsync("insert into users (id,display_name) values (@id,'Synthetic runner')", new { id });
+        using var scope = factory.Services.CreateScope();
+        var context = new DefaultHttpContext { RequestServices = scope.ServiceProvider };
+        await SupabaseCookieSession.SignInAsync(context, new AuthSession(id, email, "synthetic-access", "synthetic-refresh",
+            DateTimeOffset.UtcNow.AddHours(1)), ct);
+        client.DefaultRequestHeaders.Add("Cookie", string.Join("; ",
+            context.Response.Headers.SetCookie.Select(cookie => cookie!.Split(';')[0])));
+        await UseCsrfToken(client, ct);
     }
 
     internal static async Task<HttpResponseMessage> Upload(HttpClient client, byte[] bytes, CancellationToken ct)

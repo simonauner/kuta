@@ -70,6 +70,9 @@ public static class MeEndpoints
             await conn.ExecuteAsync(
                 "update activity_streams s set hr = null from activities a where a.id = s.activity_id and a.user_id = @id",
                 new { id }, tx);
+            await conn.ExecuteAsync(
+                "update activity_laps l set avg_hr = null, max_hr = null from activities a where a.id = l.activity_id and a.user_id = @id",
+                new { id }, tx);
             await tx.CommitAsync(cancellationToken);
             return Results.Ok(await LoadAsync(conn, user));
         });

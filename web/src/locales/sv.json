@@ -47,6 +47,16 @@
     "chartElevation": "Höjd (m)",
     "chartPace": "Tempo (min/km)",
     "chartHr": "Puls (bpm)",
+    "chartCadence": "Kadens",
+    "chartTemp": "Temperatur (°C)",
+    "avgCadence": "Snittkadens",
+    "avgTemp": "Snittemperatur",
+    "cadence": "Kadens",
+    "lap": "Varv",
+    "tab": {
+      "overview": "Översikt",
+      "laps": "Varv"
+    },
     "map": "Karta över rutten",
     "noRoute": "Passet har ingen GPS-rutt.",
     "defaultTitle": "{{sport}} {{timeOfDay}}",
@@ -143,5 +153,30 @@
     "failedImports": "Strava-ID för pass som inte kunde importeras",
     "account": "Konto",
     "logout": "Logga ut"
+  },
+  "dangerZone": {
+    "title": "Danger zone",
+    "description": "Radera alla dina pass och börja om. Ditt konto och dina inställningar finns kvar.",
+    "delete": "Radera alla pass",
+    "confirmTitle": "Vill du verkligen radera alla aktiviteter?",
+    "warning": "Alla dina pass, rekord, pulsdata och originalfiler raderas permanent. Det går inte att ångra.",
+    "confirmLabel": "Skriv {{word}} för att bekräfta.",
+    "cancel": "Avbryt",
+    "deleting": "Raderar …",
+    "success": "Alla dina pass har raderats.",
+    "words": [
+      "FARTLEK",
+      "INTERVALL",
+      "SUB40",
+      "KRAMP",
+      "MJÖLKSYRA",
+      "BACKSPURT",
+      "LÅNGPASS",
+      "TEMPO",
+      "MÅLGÅNG",
+      "SPRINT",
+      "DISTANS",
+      "TRÖSKEL"
+    ]
   }
 }

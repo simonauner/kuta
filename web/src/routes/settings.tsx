@@ -1,6 +1,7 @@
 import { useMutation, useQuery } from '@tanstack/react-query'
 import { Link } from '@tanstack/react-router'
 import { useTranslation } from 'react-i18next'
+import { DeleteAllActivities } from '@/components/delete-all-activities'
 import { ErrorMessage } from '@/components/error-message'
 import { HeartRateConsent } from '@/components/heart-rate-consent'
 import { LanguageSelect } from '@/components/language-select'
@@ -64,6 +65,7 @@ export function SettingsPage() {
           </p>
         )}
       </section>
+      <DeleteAllActivities />
     </section>
   )
 }

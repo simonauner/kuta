@@ -7,6 +7,8 @@ on:
       - '.nvmrc'
       - '.github/workflows/frontend.yml'
       - 'Dockerfile'
+      - '.dockerignore'
+      - '!**/*.md'
   push:
     branches: [main]
     paths:
@@ -14,6 +16,8 @@ on:
       - '.nvmrc'
       - '.github/workflows/frontend.yml'
       - 'Dockerfile'
+      - '.dockerignore'
+      - '!**/*.md'
 
 permissions:
   contents: read
