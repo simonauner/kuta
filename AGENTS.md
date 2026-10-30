@@ -24,6 +24,8 @@ Kuta (kuta.io) är en Strava-liknande löparapp: ladda upp pass från Garmin (FI
 - **Strava som datakälla är uteslutet** (deras API-villkor förbjuder att visa data för andra än användaren).
 - **Integritet/GDPR:** puls är hälsodata → uttryckligt samtycke. Pass privata som standard (`privacy = 'private'`), dolda start-/slutzoner på rutter, export och radering av konto från start. Personuppgiftsansvarig är användarens AB.
 - Segment/topplistor à la Strava: avvakta, inte v1.
+- **Enheter:** SI i databas och API (meter, sekunder, m/s; fältnamn med enhetssuffix som `distanceM`, `durationS`). Metriskt/imperial är ett visningsval per användare och konverteras bara i webben.
+- **Milen är 1609,344 m.** `best_efforts.distance_m = 1609` är bara en etikett; rekordmotorn räknar med exakt längd.
 
 ## Nästa steg (i ordning)
 1. Skapa privat GitHub-repo `kuta`, initiera git, första commit.
