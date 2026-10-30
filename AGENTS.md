@@ -20,6 +20,8 @@ Kuta (kuta.io) är en Strava-liknande löparapp: ladda upp pass från Garmin (FI
   - Sessioner i `user_sessions` (kontrolleras vid varje anrop, utloggning slår igenom direkt). Cookien glider 30 dagar, hård gräns 180 dagar. Access-token förnyas strax före utgång; Supabase tillfrågas om återkallelse högst var 5:e minut.
   - Data Protection-nycklar i `data_protection_keys`. Rate limit 10 auth-anrop/5 min/IP.
   - `users` är en profiltabell med samma id som `auth.users` (FK, kaskadradering). `GET /api/me` ger id, e-post och `displayName` (null tills profilen skapats); `PUT /api/me` skapar/uppdaterar profilen.
+    - Webben: `src/lib/api.ts` (fetch med CSRF-token, `ApiError` från API:ts `{ error }`), `src/lib/auth.ts` (`meQuery`, null = utloggad), `src/routes/auth.tsx` (inloggning/registrering/kolla e-post, namnval första gången). `Layout` visar inloggningen i stället för appen när `me` är null. Fel från API:t har formen `{ "error": "..." }` på svenska och visas som de är.
+  - PWA:ns service worker får aldrig svara på navigeringar till `/api/` (`navigateFallbackDenylist` i `vite.config.ts`) – annars når bekräftelselänken aldrig API:t.
   - Saknas: lösenordsåterställning, MFA, inloggning med Google/Apple, logga ut andra sessioner, städning av gamla sessionsrader, Turnstile.
   - Lokalt: kommer bekräftelsemejlet i Mailpit (http://127.0.0.1:55324) med Supabases engelska standardmall har auth-containern startat före Kong – kör `docker restart supabase_auth_kuta`.
 - Migreringar körda: 001–003. Ändra aldrig en körd migrering – nya ändringar i nästa nummer.
@@ -45,9 +47,9 @@ Kuta (kuta.io) är en Strava-liknande löparapp: ladda upp pass från Garmin (FI
 - **Där webben hostas** sätts som headers (går inte i meta-taggen): `Content-Security-Policy: frame-ancestors 'none'`, `X-Content-Type-Options: nosniff`, `Referrer-Policy: strict-origin-when-cross-origin` och HSTS. Servera webben och API:t från samma origin.
 
 ## Nästa steg (i ordning)
-1. ~~GitHub-repo~~, ~~bygga och köra API:t~~, ~~auth i API:t (Supabase)~~ – klart.
-2. Webb: inloggnings-/registreringssidor mot `/api/auth/*` (med CSRF-token), profilnamn via `PUT /api/me`.
-3. Hostat Supabase-projekt (EU) och deploy av API:t.
+1. ~~GitHub-repo~~, ~~bygga och köra API:t~~, ~~auth (API + webb)~~ – klart.
+2. Hostat Supabase-projekt (EU) och deploy av API:t (Fly.io som Kredovis?).
+3. Lösenordsåterställning (Supabase `/recover` + mejlmall som länkar till API:t, som i Kredovis) – före riktiga användare.
 4. FIT-uppladdning: endpoint, lagring i R2, parsning med `Garmin.FIT.Sdk`, skriv `activities` + `activity_streams`.
 5. Rekordmotor (glidande fönster över distans/tid-strömmen), tester med riktiga FIT-filer.
 6. Webb: uppladdning, passsida med karta + grafer (Recharts, uPlot för långa serier), statistikvyer, skor.
