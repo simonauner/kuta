@@ -1,0 +1,39 @@
+api/Kuta.Api/SupabaseAuthClient.cs
+  s_6fd5f3f6e9c798::t_9b779a60f9f862 1-37,42-144,148-189
+  s_6fd5f3f6e9c798::t_72f65bde211497 38-41,145-147
+api/Kuta.Api/Program.cs
+  s_6fd5f3f6e9c798::t_bd00ff2e8e7bcf 3,6-9,29-32,34-42,44-54,57-71,74,100-101
+api/Kuta.Api/PostgresXmlRepository.cs
+  s_6fd5f3f6e9c798::t_523de3248bea5f 1-29
+api/Kuta.Api/SupabaseCookieSession.cs
+  s_6fd5f3f6e9c798::t_2a63567fdab5df 1-195
+api/Kuta.Api/MeEndpoints.cs
+  s_6fd5f3f6e9c798::t_bd00ff2e8e7bcf 10,12,24,43
+api/Kuta.Api.Tests/AuthTests.cs
+  s_6fd5f3f6e9c798::t_bcda4c6a26331a 4,11-12,15-16,19,23,29-44,49-50,60-63,68-80,84,89,91-93,96,98-112
+  s_6fd5f3f6e9c798::t_b55e4b568e8ba1 64-67
+api/Kuta.Api/Migrations/004_sessions.sql
+  s_6fd5f3f6e9c798::t_f6e2661651be54 1-18
+api/Kuta.Api/Properties/launchSettings.json
+  s_6fd5f3f6e9c798::t_bd00ff2e8e7bcf 1-10
+api/Kuta.Api/appsettings.json
+  s_6fd5f3f6e9c798::t_bd00ff2e8e7bcf 6-7
+api/Kuta.Api/AuthEndpoints.cs
+  s_6fd5f3f6e9c798::t_8e068efc7aeeb7 1-108
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.7.5",
+  "base_commit_sha": "99aa003d8cd47deefbf112256ba1e56497e7ef90",
+  "prompts": {},
+  "sessions": {
+    "s_6fd5f3f6e9c798": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "110cb47e-0b75-4e34-90b9-538aef87a42f",
+        "model": "claude-opus-5-5"
+      },
+      "human_author": "Simon Aunér <simonauner@gmail.com>"
+    }
+  }
+}
