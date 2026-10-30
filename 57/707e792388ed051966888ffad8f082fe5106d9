@@ -1,0 +1,24 @@
+README.md
+  s_e9be55d9b23841::t_d89e3e34abb2ca 36
+api/Kuta.Api/PasswordRecovery.cs
+  s_e9be55d9b23841::t_d89e3e34abb2ca 72-82,89,96-103
+  s_e9be55d9b23841::t_e6a3169a984a77 104-105
+api/Kuta.Api.Tests/PasswordRecoveryTests.cs
+  s_e9be55d9b23841::t_6cb286a06b4e9b 6,8,148-204
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.7.5",
+  "base_commit_sha": "57707e792388ed051966888ffad8f082fe5106d9",
+  "prompts": {},
+  "sessions": {
+    "s_e9be55d9b23841": {
+      "agent_id": {
+        "tool": "codex",
+        "id": "01a18eba-bcb6-72d0-8f6b-f96eb9f15923",
+        "model": "gpt-6.1-sol"
+      },
+      "human_author": "Simon Aunér <simonauner@gmail.com>"
+    }
+  }
+}
