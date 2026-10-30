@@ -1,0 +1,24 @@
+api/Kuta.Api.Tests/AuthTests.cs
+  s_6fd5f3f6e9c798::t_d149d09f8d11aa 7
+  s_6fd5f3f6e9c798::t_b7f238190d5ca1 1-6,8-54
+global.json
+  s_6fd5f3f6e9c798::t_c0f1cddca5dcdd 1-5
+api/Kuta.Api.Tests/Kuta.Api.Tests.csproj
+  s_6fd5f3f6e9c798::t_ca7a0a3b3ded5d 1-20
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.7.5",
+  "base_commit_sha": "c5eac5bb72971bf0c5b84e8bc564c0f5a89b747c",
+  "prompts": {},
+  "sessions": {
+    "s_6fd5f3f6e9c798": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "110cb47e-0b75-4e34-90b9-538aef87a42f",
+        "model": "claude-opus-5-5"
+      },
+      "human_author": "Simon Aunér <simonauner@gmail.com>"
+    }
+  }
+}
