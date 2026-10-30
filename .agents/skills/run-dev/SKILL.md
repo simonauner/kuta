@@ -30,7 +30,7 @@ Kör skriptet i en beständig terminal eller bakgrundssession. Anteckna worktree
 - Kontrollera berörda flöden, direktlänkar, bakåt/framåt, tangentbordsåtkomst samt relevanta laddnings- och feltillstånd. Läs konsol- och nätverksfel. Vid ändrade beroenden eller CSP ska även den byggda webben kontrolleras enligt `AGENTS.md`.
 - För UI-/UX-PR: ta jämförbara före- och efterbilder med samma data, viewport och tema, och inkludera dem tydligt märkta i PR-beskrivningen via länkar eller bilagor som granskare kommer åt. Ta förebilden innan redigering och efterbilden av det verifierade resultatet. Beskriv den specifika begränsningen om någon bild inte kan tas eller bifogas.
 
-`--ports` flyttar inte testernas anslutningar: `dotnet test --project api/Kuta.Api.Tests` använder fortfarande standardinstansen, inklusive Mailpit. En lyckad webbläsarkontroll på den egna portserien innebär inte att integrationstesterna har körts där.
+Testerna följer med till den egna portserien med samma bas: `KUTA_PORTS=BAS dotnet test --project api/Kuta.Api.Tests` (Supabase, Storage och Mailpit från BAS+20–29). Utan `KUTA_PORTS` används standardinstansen. En lyckad webbläsarkontroll på den egna portserien innebär inte att integrationstesterna har körts där.
 
 ## Avsluta
 
