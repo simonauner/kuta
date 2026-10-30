@@ -126,5 +126,30 @@
   "footer": {
     "version": "Version {{version}}",
     "development": "development"
+  },
+  "dangerZone": {
+    "title": "Danger zone",
+    "description": "Delete all your activities and start fresh. Your account and settings will remain.",
+    "delete": "Delete all activities",
+    "confirmTitle": "Delete all your activities?",
+    "warning": "All your activities, records, heart rate data and original files will be permanently deleted. This cannot be undone.",
+    "confirmLabel": "Type {{word}} to confirm.",
+    "cancel": "Cancel",
+    "deleting": "Deleting …",
+    "success": "All your activities have been deleted.",
+    "words": [
+      "FARTLEK",
+      "INTERVAL",
+      "SUB40",
+      "CRAMP",
+      "SPRINT",
+      "HILLRUN",
+      "LONGRUN",
+      "TEMPO",
+      "FINISH",
+      "STRIDE",
+      "DISTANCE",
+      "THRESHOLD"
+    ]
   }
 }
