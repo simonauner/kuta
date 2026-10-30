@@ -3,7 +3,6 @@ import { useTranslation } from 'react-i18next'
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
 import { Link } from '@tanstack/react-router'
 import { useState, type ChangeEvent, type FormEvent } from 'react'
-import { HeartRateConsent } from '@/components/heart-rate-consent'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
@@ -46,7 +45,7 @@ export function ActivitiesPage() {
     onSuccess: () => queryClient.invalidateQueries({ queryKey: ['activities'] }),
   })
 
-  // Att välja en fil laddar inte upp den: användaren ska hinna ta ställning till pulsen först.
+  // Filvalet startar ingen uppladdning.
   function onSubmit(e: FormEvent<HTMLFormElement>) {
     e.preventDefault()
     if (!file) return
@@ -77,17 +76,12 @@ export function ActivitiesPage() {
             upload.reset()
           }}
         />
-        {/* Valet visas bara tills samtycke finns; därefter ändras det på profilsidan */}
-        {me?.hrConsent ? (
-          <p className="mt-2 text-xs text-muted-foreground">
-            {t('activities.hrSaved')}{' '}
-            <Link to="/app/profile" className="underline underline-offset-2">
-              {t('nav.profile')}
-            </Link>
-          </p>
-        ) : (
-          <HeartRateConsent className="mt-4" />
-        )}
+        <p className="mt-2 text-xs text-muted-foreground">
+          {t(me?.hrConsent ? 'activities.hrSaved' : 'activities.hrNotSaved')}{' '}
+          <Link to="/app/settings" className="underline underline-offset-2">
+            {t('settings.title')}
+          </Link>
+        </p>
         <Button type="submit" className="mt-4" disabled={!file || upload.isPending}>
           {upload.isPending ? t('activities.uploading') : t('activities.upload')}
         </Button>

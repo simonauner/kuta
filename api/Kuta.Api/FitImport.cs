@@ -73,7 +73,7 @@ public static class FitImport
         return values.Any(v => v is not null) ? values : null;
     }
 
-    private static LineString? Route(double?[]? lat, double?[]? lon)
+    public static LineString? Route(double?[]? lat, double?[]? lon)
     {
         if (lat is null || lon is null) return null;
         var points = lat.Zip(lon)

@@ -99,53 +99,17 @@ public static class ActivityEndpoints
             try { parsed = FitImport.Parse(bytes); }
             catch (FitException) { parsed = null; }
             if (parsed is null) return Results.BadRequest(new ApiError("Filen kunde inte läsas som ett pass från en FIT-fil.", "invalidFit"));
-            // Utan samtycke sparas varken pulsen eller råfilen (som också innehåller puls); hashen räcker för dubbletter.
-            string? key = null;
-            if (profile.HrConsent)
-            {
-                key = $"fit/{userId}/{Convert.ToHexStringLower(sha256)}.fit";
-                await store.PutAsync(key, bytes, cancellationToken);
-            }
-            else parsed = parsed.WithoutHeartRate();
-
-            await using var tx = await conn.BeginTransactionAsync(cancellationToken);
-            Guid id;
-            try
-            {
-                id = await conn.ExecuteScalarAsync<Guid>(
-                    """
-                    insert into activities (user_id, source, sport, started_at, duration_s, moving_s, distance_m,
-                                            avg_hr, max_hr, avg_speed_mps, elevation_gain_m, route, raw_file_key, raw_file_sha256)
-                    values (@userId, 'fit', @Sport, @StartedAt, @DurationS, @MovingS, @DistanceM,
-                            @AvgHr, @MaxHr, @AvgSpeedMps, @ElevationGainM, @route::geography, @key, @sha256)
-                    returning id
-                    """,
-                    new
-                    {
-                        userId, parsed.Sport, parsed.StartedAt, parsed.DurationS, parsed.MovingS, parsed.DistanceM,
-                        parsed.AvgHr, parsed.MaxHr, parsed.AvgSpeedMps, parsed.ElevationGainM,
-                        route = (object?)parsed.Route ?? DBNull.Value, key, sha256,
-                    }, tx);
-            }
-            catch (PostgresException e) when (e.SqlState == PostgresErrorCodes.UniqueViolation)
-            {
-                // Samma fil uppladdad samtidigt i en annan förfrågan
-                return Results.Conflict(new ApiError("Det här passet är redan uppladdat.", "duplicateActivity"));
-            }
-            await conn.ExecuteAsync(
-                """
-                insert into activity_streams (activity_id, t, dist, hr, speed, alt, lat, lon)
-                values (@id, @T, @Dist, @Hr, @Speed, @Alt, @Lat, @Lon)
-                """,
-                new { id, parsed.T, parsed.Dist, parsed.Hr, parsed.Speed, parsed.Alt, parsed.Lat, parsed.Lon }, tx);
-            await BestEfforts.ReplaceAsync(conn, tx, id, userId, parsed.Sport, parsed.StartedAt, parsed.T, parsed.Dist);
-            await tx.CommitAsync(cancellationToken);
+            var id = await ActivityStorage.SaveAsync(conn, store, userId, parsed, "fit", null, null, bytes, ".fit", cancellationToken);
+            if (id is null) return Results.Conflict(new ApiError("Det här passet är redan uppladdat.", "duplicateActivity"));
+            if (!profile.HrConsent) parsed = parsed.WithoutHeartRate();
 
             return Results.Created($"/api/activities/{id}", new ActivitySummary(
-                id, parsed.Sport, null, parsed.StartedAt, parsed.DurationS, parsed.DistanceM, parsed.AvgHr, null));
+                id.Value, parsed.Sport, null, parsed.StartedAt, parsed.DurationS, parsed.DistanceM, parsed.AvgHr, null));
         })
         // CSRF-token kontrolleras av filtret i AuthEndpoints (X-CSRF-TOKEN), inte av ramverkets formulärkontroll
         .DisableAntiforgery();
+
+        activities.MapStravaImport();
 
         // Tar bort ett eget pass med tidsserier (kaskad) och råfil. Någon annans pass ger 404, som ett som inte finns.
         // Råfilen först: misslyckas raderingen ligger passet kvar och kan tas bort igen, i stället för att filen

@@ -58,11 +58,12 @@ public static class MeEndpoints
         {
             await using var conn = await db.OpenConnectionAsync(cancellationToken);
             var id = user.GetUserId();
+            await using var tx = await conn.BeginTransactionAsync(cancellationToken);
+            await conn.ExecuteAsync("select id from users where id = @id for update", new { id }, tx);
             var keys = await conn.QueryAsync<string>(
-                "select raw_file_key from activities where user_id = @id and raw_file_key is not null", new { id });
+                "select raw_file_key from activities where user_id = @id and raw_file_key is not null", new { id }, tx);
             await store.DeleteAsync(keys, cancellationToken);
 
-            await using var tx = await conn.BeginTransactionAsync(cancellationToken);
             await conn.ExecuteAsync("update users set hr_consent_at = null where id = @id", new { id }, tx);
             await conn.ExecuteAsync(
                 "update activities set avg_hr = null, max_hr = null, raw_file_key = null where user_id = @id", new { id }, tx);

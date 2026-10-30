@@ -8,6 +8,7 @@ import { Layout } from '@/components/layout'
 import { ActivitiesPage } from '@/routes/activities'
 import { FeedPage } from '@/routes/feed'
 import { ProfilePage } from '@/routes/profile'
+import { SettingsPage } from '@/routes/settings'
 import { StatsPage } from '@/routes/stats'
 
 const rootRoute = createRootRoute({ component: Layout })
@@ -39,12 +40,19 @@ const profileRoute = createRoute({
   component: ProfilePage,
 })
 
+const settingsRoute = createRoute({
+  getParentRoute: () => rootRoute,
+  path: '/app/settings',
+  component: SettingsPage,
+})
+
 const routeTree = rootRoute.addChildren([
   feedRoute,
   activitiesRoute,
   activityRoute,
   statsRoute,
   profileRoute,
+  settingsRoute,
 ])
 
 export const router = createRouter({ routeTree, defaultPreload: 'intent' })
