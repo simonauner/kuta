@@ -35,7 +35,7 @@ Tester (kräver `supabase start`): `dotnet test --project api/Kuta.Api.Tests`.
 
 ## Driftsättning (Fly.io)
 
-En egen Fly-app (`kuta`, region `arn`), separat från Kredovis. `Dockerfile` bygger webben och API:t till en image där API:t servar webben, så att de delar origin. Migreringarna körs när appen startar.
+En egen Fly-app (`kuta`, region `arn`). `Dockerfile` bygger webben och API:t till en image där API:t servar webben, så att de delar origin. Migreringarna körs när appen startar.
 
 **Supabase-projektet** (en gång, i dashboarden):
 - EU-region. Stäng av Data API. Minsta lösenordslängd 8.

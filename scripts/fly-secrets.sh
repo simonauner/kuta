@@ -1,5 +1,5 @@
 #!/usr/bin/env bash
-# Importerar en Fly-apps hemligheter från 1Password (portat från Kredovis): mallen bredvid konfigurationen
+# Importerar en Fly-apps hemligheter från 1Password: mallen bredvid konfigurationen
 # (fly.toml -> fly.secrets.tpl) innehåller bara op://-referenser, som `op inject` löser upp.
 #
 #   scripts/fly-secrets.sh FLY_CONFIG [flaggor till fly secrets import, t.ex. --stage]

@@ -7,7 +7,7 @@ using Microsoft.AspNetCore.Authentication;
 using Microsoft.AspNetCore.Authentication.Cookies;
 using Npgsql;
 
-// Portad (slimmad) från Kredovis. Supabase-sessionen ligger i den krypterade HttpOnly-cookien, så
+// Supabase-sessionen ligger i den krypterade HttpOnly-cookien, så
 // refresh-token når aldrig webbläsaren i läsbar form eller JavaScript.
 public static class SupabaseCookieSession
 {
@@ -169,7 +169,7 @@ public static class SupabaseCookieSession
 
 // Anrop som skickas med samma gamla cookie delar ett förnyelseresultat, eftersom Supabase roterar
 // refresh-token och ser återanvändning som möjlig stöld.
-// shortcut: delas bara inom en process; kör API:t på flera instanser, porta Kredovis Postgres-claim i SharedTokenRefresh.
+// shortcut: förnyelser samordnas bara inom en process; använd databassamordning innan API:t körs på flera instanser.
 public sealed class SharedTokenRefresh
 {
     private static readonly TimeSpan ResultLifetime = TimeSpan.FromSeconds(30);
