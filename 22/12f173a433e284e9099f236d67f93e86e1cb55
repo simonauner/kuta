@@ -1,0 +1,95 @@
+api/Kuta.Api/MeEndpoints.cs
+  s_078e5aa442480c::t_9a8cd691861240 30,49
+api/Kuta.Api/ActivityEndpoints.cs
+  s_078e5aa442480c::t_9a8cd691861240 42,44,54,58,63,95
+web/src/components/layout.tsx
+  s_078e5aa442480c::t_ed846792e9fb41 29-32
+  s_078e5aa442480c::t_3c8b57146de63d 1-2,12-15,19,39,68
+web/src/lib/api.ts
+  s_078e5aa442480c::t_3c8b57146de63d 6,8,11,32
+web/src/routes/stats.tsx
+  s_078e5aa442480c::t_3c8b57146de63d 1,3,6,8
+api/Kuta.Api/AuthEndpoints.cs
+  s_078e5aa442480c::t_9a8cd691861240 5,32,47,56,68,70,78,87,89,103
+README.md
+  s_078e5aa442480c::t_1b5477b6371cb7 9
+  s_078e5aa442480c::t_ed846792e9fb41 5-6,8,10-12
+  s_078e5aa442480c::t_659d48febee843 7
+web/package.json
+  s_078e5aa442480c::t_ed846792e9fb41 10-11
+  s_078e5aa442480c::t_9ebcf15b3d0f95 18,25
+web/tests/i18n.test.mjs
+  s_078e5aa442480c::t_ed846792e9fb41 1-51
+web/src/components/language-select.tsx
+  s_078e5aa442480c::t_3c8b57146de63d 1-21
+web/src/routes/feed.tsx
+  s_078e5aa442480c::t_3c8b57146de63d 1,3,6,8
+api/Kuta.Api.Tests/AuthFailureTests.cs
+  s_078e5aa442480c::t_ed846792e9fb41 28-30
+api/Kuta.Api.Tests/LocaleTests.cs
+  s_078e5aa442480c::t_a6e8934172d6dd 3-33
+  s_078e5aa442480c::t_2a155891e81a27 1-2,34-56
+api/Kuta.Api/Localization/README.md
+  s_078e5aa442480c::t_da3b4bb5f3f727 18
+  s_078e5aa442480c::t_14e11c26d002da 1-17,19-25
+web/src/routes/profile.tsx
+  s_078e5aa442480c::t_3c8b57146de63d 1,9,21,24
+web/src/router.tsx
+  s_078e5aa442480c::t_3c8b57146de63d 21,26,31
+api/Kuta.Api/PasswordRecovery.cs
+  s_078e5aa442480c::t_9a8cd691861240 47,84,86,109
+web/src/components/heart-rate-consent.tsx
+  s_078e5aa442480c::t_3c8b57146de63d 1-2,11,26,42,44
+  s_078e5aa442480c::t_ed846792e9fb41 50
+web/src/lib/language.ts
+  s_078e5aa442480c::t_ed846792e9fb41 2-9
+  s_078e5aa442480c::t_ccb4b5006d9b19 1
+web/src/locales/sv.json
+  s_078e5aa442480c::t_9a8cd691861240 1-83
+AGENTS.md
+  s_078e5aa442480c::t_1b5477b6371cb7 76-77,80
+  s_078e5aa442480c::t_ed846792e9fb41 31,78
+  s_078e5aa442480c::t_ce10302090341c 79
+web/src/locales/en.json
+  s_078e5aa442480c::t_9a8cd691861240 1-83
+web/src/routes/activities.tsx
+  s_078e5aa442480c::t_3c8b57146de63d 1-2,41-43,74,77,91-93,100,110
+  s_078e5aa442480c::t_ed846792e9fb41 104
+web/src/routes/auth.tsx
+  s_078e5aa442480c::t_3c8b57146de63d 1-3,16,19,33,45-46,53,59,62,67,72,76,92,100,112,119,127-129,134,140,142,146,149,156,169,172,181,191
+  s_078e5aa442480c::t_ed846792e9fb41 88,144,177
+web/src/components/error-message.tsx
+  s_078e5aa442480c::t_3c8b57146de63d 1-8
+web/src/lib/i18n.ts
+  s_078e5aa442480c::t_3c8b57146de63d 1-4,6-9,23-26,31-41
+  s_078e5aa442480c::t_ed846792e9fb41 5
+  s_078e5aa442480c::t_2850b05b65d7b8 10-22,27-30
+api/Kuta.Api/Kuta.Api.csproj
+  s_078e5aa442480c::t_2612a2f187e996 20
+api/Kuta.Api/Localization/sweden.cidr
+  s_078e5aa442480c::t_c4eb0199e98215 1-2915
+api/Kuta.Api/Program.cs
+  s_078e5aa442480c::t_cdee1b644f0c92 154-160,167
+api/Kuta.Api/SwedishIp.cs
+  s_078e5aa442480c::t_b517f1ac8f724b 1-21
+web/package-lock.json
+  s_078e5aa442480c::t_8179b35c25be09 15,22,6729-6765,8182-8208,9163
+web/src/main.tsx
+  s_078e5aa442480c::t_ef16016f1f04cd 6,13,19
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.7.5",
+  "base_commit_sha": "2212f173a433e284e9099f236d67f93e86e1cb55",
+  "prompts": {},
+  "sessions": {
+    "s_078e5aa442480c": {
+      "agent_id": {
+        "tool": "codex",
+        "id": "01a18ed1-0631-7371-b0e6-de6159d924f1",
+        "model": "gpt-6.1-sol"
+      },
+      "human_author": "Simon Aunér <simonauner@gmail.com>"
+    }
+  }
+}
