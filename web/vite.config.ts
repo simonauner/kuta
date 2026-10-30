@@ -4,10 +4,36 @@ import path from 'node:path'
 import { defineConfig } from 'vite'
 import { VitePWA } from 'vite-plugin-pwa'
 
+// Strikt CSP i den byggda appen (inte i dev, där Vite kör inline-skript för HMR).
+// Lägg till origins här när appen börjar hämta från andra, t.ex. kartor från R2.
+// frame-ancestors fungerar inte i en meta-tagg och sätts som header där webben hostas.
+const contentSecurityPolicy = [
+  "default-src 'self'",
+  "script-src 'self'",
+  "style-src 'self'",
+  "img-src 'self' data: blob:",
+  "connect-src 'self'",
+  "worker-src 'self' blob:",
+  "object-src 'none'",
+  "base-uri 'none'",
+  "form-action 'self'",
+].join('; ')
+
 // https://vite.dev/config/
 export default defineConfig({
   plugins: [
     react(),
+    {
+      name: 'content-security-policy',
+      apply: 'build',
+      transformIndexHtml: () => [
+        {
+          tag: 'meta',
+          attrs: { 'http-equiv': 'Content-Security-Policy', content: contentSecurityPolicy },
+          injectTo: 'head-prepend',
+        },
+      ],
+    },
     tailwindcss(),
     VitePWA({
       registerType: 'autoUpdate',
