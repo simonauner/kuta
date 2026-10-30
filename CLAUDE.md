@@ -12,7 +12,8 @@ Kuta (kuta.io) är en Strava-liknande löparapp: ladda upp pass från Garmin (FI
 
 ## Status
 - `web/`: bygger (`npm run build` OK). Skal med routes Flöde/Pass/Statistik/Profil, bottennavigering, sidövergångar, PWA-manifest. PNG-ikoner (192/512/maskable, apple-touch-icon) saknas.
-- `api/`: bygger och körs; `/api/health` svarar med PostGIS-version. Paketversioner pinnade. Namnmatchning snake_case→PascalCase är satt via `DefaultTypeMap.MatchNamesWithUnderscores`.
+- `api/`: bygger och körs; `/api/health` svarar med PostGIS-version. Paketversioner pinnade.
+- Auth: cookie-inloggning med e-post/lösenord (`/api/auth/register|login|logout`, `/api/me`), hashning via Identitys `PasswordHasher` men utan EF-baserad Identity. Rate limit på auth-anropen. Saknas: e-postverifiering, lösenordsåterställning, utloggning av andra sessioner vid lösenordsbyte, passkeys. Namnmatchning snake_case→PascalCase är satt via `DefaultTypeMap.MatchNamesWithUnderscores`.
 - `001_init.sql` granskad och körd. Ändra den inte – nya schemaändringar läggs i `002_...sql`.
 - Privat repo: github.com/simonauner/kuta. Node 24 (`.nvmrc`); Postgres-imagen är `imresamu/postgis` (arm64).
 
@@ -27,7 +28,7 @@ Kuta (kuta.io) är en Strava-liknande löparapp: ladda upp pass från Garmin (FI
 ## Nästa steg (i ordning)
 1. Skapa privat GitHub-repo `kuta`, initiera git, första commit.
 2. `docker compose up -d`, `dotnet restore && dotnet build`, `dotnet run --project api/Kuta.Api`; verifiera `/api/health` (ska visa PostGIS-version) och att migreringen går igenom. Fixa det som inte kompilerar.
-3. Auth (börja enkelt, t.ex. ASP.NET Core Identity eller passkeys) och ersätt `userId`-parametern i `/api/activities`.
+3. ~~Auth~~ (klart, se Status). Webbens inloggningssida återstår.
 4. FIT-uppladdning: endpoint, lagring i R2, parsning med `Garmin.FIT.Sdk`, skriv `activities` + `activity_streams`.
 5. Rekordmotor (glidande fönster över distans/tid-strömmen), tester med riktiga FIT-filer.
 6. Webb: uppladdning, passsida med karta + grafer (Recharts, uPlot för långa serier), statistikvyer, skor.
@@ -35,4 +36,4 @@ Kuta (kuta.io) är en Strava-liknande löparapp: ladda upp pass från Garmin (FI
 
 ## Konventioner
 - Svenska i UI-texter, engelska i kod och commit-meddelanden.
-- Små, fokuserade commits. Kör `npm run build` i `web/` och `dotnet build` innan commit.
+- Små, fokuserade commits. Kör `npm run build` i `web/` och `dotnet test --project api/Kuta.Api.Tests` (kräver att databasen är igång) innan commit.
