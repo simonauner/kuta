@@ -1,0 +1,21 @@
+api/Kuta.Api.Tests/CanonicalHostTests.cs
+  s_6fd5f3f6e9c798::t_844e0e68c42f5f 1-28
+api/Kuta.Api/Program.cs
+  s_6fd5f3f6e9c798::t_844e0e68c42f5f 100-112
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.7.5",
+  "base_commit_sha": "54e3d6fbcfe1b1df1a805734b37aff600a6a9812",
+  "prompts": {},
+  "sessions": {
+    "s_6fd5f3f6e9c798": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "110cb47e-0b75-4e34-90b9-538aef87a42f",
+        "model": "claude-opus-5-5"
+      },
+      "human_author": "Simon Aunér <simonauner@gmail.com>"
+    }
+  }
+}
