@@ -28,10 +28,7 @@ public static class MeEndpoints
         {
             var displayName = req.DisplayName?.Trim();
             if (displayName is not { Length: > 0 and <= 100 })
-                return Results.ValidationProblem(new Dictionary<string, string[]>
-                {
-                    ["displayName"] = ["Ange ett namn (högst 100 tecken)."],
-                });
+                return Results.BadRequest(new ApiError("Ange ett namn (högst 100 tecken)."));
 
             await using var conn = await db.OpenConnectionAsync();
             await conn.ExecuteAsync(
