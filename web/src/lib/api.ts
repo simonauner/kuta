@@ -17,7 +17,12 @@ export function resetCsrfToken() {
 }
 
 function getCsrfToken() {
-  csrfToken ??= request<{ token: string }>('/api/antiforgery').then((r) => r.token)
+  csrfToken ??= request<{ token: string }>('/api/antiforgery')
+    .then((r) => r.token)
+    .catch((error) => {
+      resetCsrfToken()
+      throw error
+    })
   return csrfToken
 }
 
