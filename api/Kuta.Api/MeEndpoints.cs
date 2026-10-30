@@ -3,7 +3,8 @@ using Dapper;
 using Npgsql;
 
 public record UpdateMeRequest(string? DisplayName);
-public record Me(Guid Id, string? Email, string? DisplayName);
+public record Me(Guid Id, string? Email, string? DisplayName, bool HrConsent);
+public record Profile(string DisplayName, bool HrConsent);
 
 public static class MeEndpoints
 {
@@ -19,9 +20,7 @@ public static class MeEndpoints
         me.MapGet("", async (NpgsqlDataSource db, ClaimsPrincipal user) =>
         {
             await using var conn = await db.OpenConnectionAsync();
-            var displayName = await conn.ExecuteScalarAsync<string?>(
-                "select display_name from users where id = @id", new { id = user.GetUserId() });
-            return Results.Ok(new Me(user.GetUserId(), user.FindFirstValue(ClaimTypes.Email), displayName));
+            return Results.Ok(await LoadAsync(conn, user));
         });
 
         me.MapPut("", async (UpdateMeRequest req, NpgsqlDataSource db, ClaimsPrincipal user) =>
@@ -37,7 +36,51 @@ public static class MeEndpoints
                 on conflict (id) do update set display_name = excluded.display_name
                 """,
                 new { id = user.GetUserId(), displayName });
-            return Results.Ok(new Me(user.GetUserId(), user.FindFirstValue(ClaimTypes.Email), displayName));
+            return Results.Ok(await LoadAsync(conn, user));
         });
+
+        // Uttryckligt samtycke till att puls sparas (hälsodata). Första tidpunkten behålls.
+        me.MapPut("/hr-consent", async (NpgsqlDataSource db, ClaimsPrincipal user) =>
+        {
+            await using var conn = await db.OpenConnectionAsync();
+            var updated = await conn.ExecuteAsync(
+                "update users set hr_consent_at = coalesce(hr_consent_at, now()) where id = @id", new { id = user.GetUserId() });
+            return updated == 0
+                ? Results.Conflict(new ApiError("Välj ett namn först."))
+                : Results.Ok(await LoadAsync(conn, user));
+        });
+
+        // Återkallat samtycke: all sparad puls raderas, inte bara framtida – även råfilerna, som innehåller puls.
+        // Filerna först: misslyckas det finns pulsen kvar i databasen tills användaren försöker igen, i stället för
+        // att ligga kvar i lagringen utan att något pekar på den.
+        me.MapDelete("/hr-consent", async (NpgsqlDataSource db, RawFileStore store, ClaimsPrincipal user,
+            CancellationToken cancellationToken) =>
+        {
+            await using var conn = await db.OpenConnectionAsync(cancellationToken);
+            var id = user.GetUserId();
+            var keys = await conn.QueryAsync<string>(
+                "select raw_file_key from activities where user_id = @id and raw_file_key is not null", new { id });
+            await store.DeleteAsync(keys, cancellationToken);
+
+            await using var tx = await conn.BeginTransactionAsync(cancellationToken);
+            await conn.ExecuteAsync("update users set hr_consent_at = null where id = @id", new { id }, tx);
+            await conn.ExecuteAsync(
+                "update activities set avg_hr = null, max_hr = null, raw_file_key = null where user_id = @id", new { id }, tx);
+            await conn.ExecuteAsync(
+                "update activity_streams s set hr = null from activities a where a.id = s.activity_id and a.user_id = @id",
+                new { id }, tx);
+            await tx.CommitAsync(cancellationToken);
+            return Results.Ok(await LoadAsync(conn, user));
+        });
+    }
+
+    public static async Task<Profile?> LoadProfileAsync(NpgsqlConnection conn, Guid id) =>
+        await conn.QuerySingleOrDefaultAsync<Profile>(
+            "select display_name, hr_consent_at is not null as hr_consent from users where id = @id", new { id });
+
+    private static async Task<Me> LoadAsync(NpgsqlConnection conn, ClaimsPrincipal user)
+    {
+        var profile = await LoadProfileAsync(conn, user.GetUserId());
+        return new Me(user.GetUserId(), user.FindFirstValue(ClaimTypes.Email), profile?.DisplayName, profile?.HrConsent ?? false);
     }
 }

@@ -33,6 +33,7 @@ builder.Services.ConfigureHttpJsonOptions(o =>
 builder.Services.AddHttpContextAccessor();
 builder.Services.AddHttpClient<SupabaseAuthClient>();
 builder.Services.AddSingleton<SharedTokenRefresh>();
+builder.Services.AddSingleton<RawFileStore>();
 
 // Nycklarna sparas i Postgres och krypteras med ett certifikat utanför Development (DataProtection__Certificate)
 builder.Services.AddSingleton<IConfigureOptions<KeyManagementOptions>, PostgresKeyManagementSetup>();
@@ -154,21 +155,7 @@ api.MapAntiforgery();
 api.MapAuth();
 api.MapMe();
 
-// Inloggad användares senaste pass
-api.MapGet("/activities", async (NpgsqlDataSource db, ClaimsPrincipal user) =>
-{
-    await using var conn = await db.OpenConnectionAsync();
-    var rows = await conn.QueryAsync<ActivitySummary>(
-        """
-        select id, sport, title, started_at, duration_s, distance_m, avg_hr, shoe_id
-        from activities
-        where user_id = @userId
-        order by started_at desc
-        limit 50
-        """,
-        new { userId = user.GetUserId() });
-    return Results.Ok(rows);
-}).RequireAuthorization();
+api.MapActivities();
 
 // Appens egna sökvägar (/pass, /profil …) ger index.html; okända /api-sökvägar ska ge 404, inte appen.
 app.MapFallbackToFile("{*path:regex(^(?!api/).*$)}", "index.html", staticFiles);
@@ -178,8 +165,3 @@ return 0;
 
 // Synlig för WebApplicationFactory i testerna
 public partial class Program;
-
-// Typade records, inte dynamic: Dapper-rader serialiseras som dictionary med snake_case-nycklar.
-public record ActivitySummary(
-    Guid Id, string Sport, string? Title, DateTime StartedAt,
-    int DurationS, double DistanceM, short? AvgHr, Guid? ShoeId);
