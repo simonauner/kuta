@@ -1,9 +1,8 @@
 using System.Reflection;
 using System.Security.Claims;
-using System.Threading.RateLimiting;
 using Dapper;
 using DbUp;
-using Microsoft.AspNetCore.Authentication.Cookies;
+using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Npgsql;
 
 var builder = WebApplication.CreateBuilder(args);
@@ -23,29 +22,21 @@ builder.Services.AddSingleton(dataSource);
 builder.Services.ConfigureHttpJsonOptions(o =>
     o.SerializerOptions.PropertyNamingPolicy = System.Text.Json.JsonNamingPolicy.CamelCase);
 
-// shortcut: Data Protection-nycklarna (som krypterar cookien) ligger i ~/.aspnet och försvinner med containern; persistera dem (t.ex. i Postgres) före första deploy.
-builder.Services.AddAuthentication(CookieAuthenticationDefaults.AuthenticationScheme)
-    .AddCookie(o =>
+var supabaseUrl = builder.Configuration["Supabase:Url"]
+    ?? throw new InvalidOperationException("Supabase:Url saknas");
+
+// Inloggning sköts av Supabase Auth; API:t validerar dess JWT:er (nycklar hämtas via OIDC-discovery/JWKS)
+builder.Services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
+    .AddJwtBearer(o =>
     {
-        o.Cookie.Name = "kuta";
-        o.ExpireTimeSpan = TimeSpan.FromDays(30);
-        // API: svara 401/403 i stället för att redirecta till en inloggningssida
-        o.Events.OnRedirectToLogin = ctx => { ctx.Response.StatusCode = 401; return Task.CompletedTask; };
-        o.Events.OnRedirectToAccessDenied = ctx => { ctx.Response.StatusCode = 403; return Task.CompletedTask; };
+        o.Authority = $"{supabaseUrl}/auth/v1";
+        o.Audience = "authenticated";
+        o.MapInboundClaims = false;
+        o.RequireHttpsMetadata = !new Uri(supabaseUrl).IsLoopback;
     });
 builder.Services.AddAuthorization();
 
-// Bromsar lösenordsgissning: 10 auth-anrop per minut och IP
-builder.Services.AddRateLimiter(o =>
-{
-    o.RejectionStatusCode = StatusCodes.Status429TooManyRequests;
-    o.AddPolicy("auth", ctx => RateLimitPartition.GetFixedWindowLimiter(
-        ctx.Connection.RemoteIpAddress?.ToString() ?? "unknown",
-        _ => new FixedWindowRateLimiterOptions { PermitLimit = 10, Window = TimeSpan.FromMinutes(1) }));
-});
-
 var app = builder.Build();
-app.UseRateLimiter();
 
 // Kör SQL-migreringar (inbäddade i Migrations/) vid start
 var upgrader = DeployChanges.To
@@ -71,7 +62,7 @@ api.MapGet("/health", async (NpgsqlDataSource db) =>
     return Results.Ok(new { status = "ok", postgis });
 });
 
-api.MapAuth();
+api.MapMe();
 
 // Inloggad användares senaste pass
 api.MapGet("/activities", async (NpgsqlDataSource db, ClaimsPrincipal user) =>
