@@ -1,0 +1,66 @@
+web/src/components/language-select.tsx
+  s_acd06763c92952::t_3e6662b81a1493 9-11,21,24
+.github/workflows/frontend.yml
+  s_acd06763c92952::t_3e6662b81a1493 10-11,19-20
+web/src/components/delete-all-activities.tsx
+  s_acd06763c92952::t_3e6662b81a1493 1-115
+api/Kuta.Api/Program.cs
+  s_acd06763c92952::t_3e6662b81a1493 138-151
+api/Kuta.Api.Tests/StravaImportTests.cs
+  s_acd06763c92952::t_6b3b0b093ee55f 8,102,115-120,140,173,183-194
+  s_acd06763c92952::t_89ec9576ffcc48 195-196
+.github/workflows/api.yml
+  s_acd06763c92952::t_3e6662b81a1493 1-57
+.github/workflows/backend.yml
+  s_acd06763c92952::t_3e6662b81a1493 1-36
+api/Kuta.Api.Tests/FitUploadTests.cs
+  s_acd06763c92952::t_3e6662b81a1493 42-52,66-67,76-77,119-123,177-178,193-194,196-212
+web/src/lib/activity.ts
+  s_acd06763c92952::t_3e6662b81a1493 23-39,47,49-55
+api/Kuta.Api/MeEndpoints.cs
+  s_acd06763c92952::t_3e6662b81a1493 73-75
+web/src/locales/sv.json
+  s_acd06763c92952::t_3e6662b81a1493 50-59,156-180
+web/src/routes/activity.tsx
+  s_acd06763c92952::t_3e6662b81a1493 3,11,40,71-74,102-105,114-115,123,138-151,155-189,191-240
+README.md
+  s_acd06763c92952::t_3e6662b81a1493 64-79
+  s_acd06763c92952::t_cccc31398ff4f6 13
+AGENTS.md
+  s_acd06763c92952::t_3e6662b81a1493 8,13-21,56-58
+  s_acd06763c92952::t_0568eac449dd2a 32,49,59
+api/Kuta.Api/ActivityEndpoints.cs
+  s_acd06763c92952::t_3e6662b81a1493 15-16,19-25,60-61,67-89,132-147
+  s_acd06763c92952::t_c5cb96bed30a49 148
+api/Kuta.Api.Tests/DeleteAllActivitiesTests.cs
+  s_acd06763c92952::t_3e6662b81a1493 1-94
+api/Kuta.Api/FitImport.cs
+  s_acd06763c92952::t_3e6662b81a1493 7,11-12,14-18,21-24,43-45,50-52,64-69,82-83,89-118,121-127
+  s_acd06763c92952::t_94231fe9326dea 128
+api/Kuta.Api/Migrations/007_fit_details.sql
+  s_acd06763c92952::t_3e6662b81a1493 1-22
+web/src/locales/en.json
+  s_acd06763c92952::t_3e6662b81a1493 50-59,156-180
+api/Kuta.Api/ActivityStorage.cs
+  s_acd06763c92952::t_64a42efff46a02 21,23,30,35-49
+api/Kuta.Api/StravaImportEndpoint.cs
+  s_acd06763c92952::t_b4a20600aaaf91 87,91-95
+web/src/routes/settings.tsx
+  s_acd06763c92952::t_a9e70a900f42e4 4,68
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.7.5",
+  "base_commit_sha": "0e51f06f05144b2dd746185796ba36c81e1df86c",
+  "prompts": {},
+  "sessions": {
+    "s_acd06763c92952": {
+      "agent_id": {
+        "tool": "codex",
+        "id": "01a18efb-8bf3-72a0-93fc-3e606809cffe",
+        "model": "gpt-6.1-sol"
+      },
+      "human_author": "Simon Aunér <simonauner@gmail.com>"
+    }
+  }
+}
