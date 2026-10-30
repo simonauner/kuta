@@ -1,0 +1,60 @@
+web/index.html
+  s_6fd5f3f6e9c798::t_6c8e150a8be683 6
+web/tests/api.test.mjs
+  s_6fd5f3f6e9c798::t_6c8e150a8be683 1-121
+web/src/components/layout.tsx
+  s_6fd5f3f6e9c798::t_6c8e150a8be683 20-21
+.github/workflows/frontend.yml
+  s_6fd5f3f6e9c798::t_6c8e150a8be683 1-39
+web/src/routes/stats.tsx
+  s_6fd5f3f6e9c798::t_6c8e150a8be683 5
+web/package.json
+  s_6fd5f3f6e9c798::t_6c8e150a8be683 10-12,35
+web/src/components/ui/label.tsx
+  s_6fd5f3f6e9c798::t_6c8e150a8be683 1-3,5,10-11
+web/src/routes/auth.tsx
+  s_6fd5f3f6e9c798::t_6c8e150a8be683 23-26,46-58,65-69,85-97,104-110,114-121,129-132,150-160,164-170,173-180,183-187,192-194
+web/src/components/heart-rate-consent.tsx
+  s_6fd5f3f6e9c798::t_6c8e150a8be683 14-15,24-28,46-47
+README.md
+  s_6fd5f3f6e9c798::t_6c8e150a8be683 42-47
+web/tsconfig.json
+  s_6fd5f3f6e9c798::t_6c8e150a8be683 5
+web/src/routes/feed.tsx
+  s_6fd5f3f6e9c798::t_6c8e150a8be683 5
+web/src/components/ui/button.tsx
+  s_6fd5f3f6e9c798::t_6c8e150a8be683 1-4,11,13,15-18,21,23-28,32-33,35,40-41,44,48,61
+web/src/lib/api.ts
+  s_6fd5f3f6e9c798::t_6c8e150a8be683 20-25,50-54
+web/src/routes/activities.tsx
+  s_6fd5f3f6e9c798::t_c5afaf358a1e2c 127-128
+  s_6fd5f3f6e9c798::t_6c8e150a8be683 22-25,28-31,86-88,120
+web/src/router.tsx
+  s_6fd5f3f6e9c798::t_6c8e150a8be683 1,31
+web/src/components/ui/input.tsx
+  s_6fd5f3f6e9c798::t_6c8e150a8be683 1-2,4,10-13
+web/.prettierrc.json
+  s_6fd5f3f6e9c798::t_6c8e150a8be683 1-5
+web/src/routes/profile.tsx
+  s_6fd5f3f6e9c798::t_6c8e150a8be683 21-26,29-33
+web/.prettierignore
+  s_6fd5f3f6e9c798::t_6c8e150a8be683 1-2
+web/package-lock.json
+  s_6fd5f3f6e9c798::t_edd5325e15f296 30,8042-8057
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.7.5",
+  "base_commit_sha": "2c25d518d3f18b676747fc0b874a72d197f9ab1c",
+  "prompts": {},
+  "sessions": {
+    "s_6fd5f3f6e9c798": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "110cb47e-0b75-4e34-90b9-538aef87a42f",
+        "model": "claude-opus-5-5"
+      },
+      "human_author": "Simon Aunér <simonauner@gmail.com>"
+    }
+  }
+}
