@@ -71,6 +71,21 @@ builder.Services.AddRateLimiter(o =>
 });
 
 var app = builder.Build();
+
+// API:t svarar bara med JSON och redirects: inget får köras, laddas eller ramas in från svaren.
+// Webbens CSP sätts vid bygget (web/vite.config.ts); frame-ancestors och HSTS sätts där webben hostas.
+app.Use((context, next) =>
+{
+    var headers = context.Response.Headers;
+    headers.ContentSecurityPolicy = "default-src 'none'; frame-ancestors 'none'";
+    headers.XContentTypeOptions = "nosniff";
+    headers.XFrameOptions = "DENY";
+    headers["Referrer-Policy"] = "no-referrer";
+    return next(context);
+});
+// Uttryckligen efter headers: annars lägger WebApplication auth först och 401/403 får inga headers
+app.UseAuthentication();
+app.UseAuthorization();
 app.UseRateLimiter();
 
 // Kör SQL-migreringar (inbäddade i Migrations/) vid start
