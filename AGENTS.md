@@ -4,6 +4,7 @@ Kuta (kuta.io) är en Strava-liknande löparapp: ladda upp pass från Garmin (FI
 
 ## Stack (beslutad)
 - **API:** .NET 10, ASP.NET Core minimal API, **Dapper** (inte EF Core), Npgsql, Postgres + PostGIS, NetTopologySuite.
+- **Supabase:** hanterad Postgres (EU-region) och **Supabase Auth**. Webben loggar in med supabase-js och skickar JWT:n som Bearer till vårt API, som validerar den (`AddJwtBearer`, JWKS). All data går via vårt API – webben använder inte Supabases Data API. Lokalt: `supabase start` (portar 553xx, se `supabase/config.toml`).
 - **Migreringar:** DbUp med inbäddade SQL-filer i `api/Kuta.Api/Migrations/`.
 - **Web:** React + Vite + TypeScript, TanStack Router (kodbaserad) + Query, Tailwind v4, shadcn/ui (components.json finns, komponenter läggs till med `npx shadcn@latest add ...`), Motion för animationer, vite-plugin-pwa, MapLibre GL.
 - **Filer:** Cloudflare R2 (S3-kompatibelt) för rå-FIT-filer och PMTiles-kartor. `activities.raw_file_key` pekar på objektnyckeln.
@@ -12,10 +13,11 @@ Kuta (kuta.io) är en Strava-liknande löparapp: ladda upp pass från Garmin (FI
 
 ## Status
 - `web/`: bygger (`npm run build` OK). Skal med routes Flöde/Pass/Statistik/Profil, bottennavigering, sidövergångar, PWA-manifest. PNG-ikoner (192/512/maskable, apple-touch-icon) saknas.
-- `api/`: bygger och körs; `/api/health` svarar med PostGIS-version. Paketversioner pinnade.
-- Auth: cookie-inloggning med e-post/lösenord (`/api/auth/register|login|logout`, `/api/me`), hashning via Identitys `PasswordHasher` men utan EF-baserad Identity. Rate limit på auth-anropen. Saknas: e-postverifiering, lösenordsåterställning, utloggning av andra sessioner vid lösenordsbyte, passkeys. Namnmatchning snake_case→PascalCase är satt via `DefaultTypeMap.MatchNamesWithUnderscores`.
-- `001_init.sql` granskad och körd. Ändra den inte – nya schemaändringar läggs i `002_...sql`.
-- Privat repo: github.com/simonauner/kuta. Node 24 (`.nvmrc`); Postgres-imagen är `imresamu/postgis` (arm64).
+- `api/`: bygger och körs mot lokal Supabase; `/api/health` svarar med PostGIS-version. Paketversioner pinnade. Namnmatchning snake_case→PascalCase är satt via `DefaultTypeMap.MatchNamesWithUnderscores`.
+- Auth: Supabase Auth. `users` är en profiltabell med samma id som `auth.users` (FK, kaskadradering). `GET /api/me` ger id, e-post (från JWT:n) och `displayName` (null tills profilen skapats); `PUT /api/me` skapar/uppdaterar profilen. Webbens inloggning saknas.
+- Migreringar körda: 001–003. Ändra aldrig en körd migrering – nya ändringar i nästa nummer.
+- Privat repo: github.com/simonauner/kuta. Node 24 (`.nvmrc`).
+- Inget hostat Supabase-projekt än. Vid uppsättning: EU-region, stäng av Data API i dashboarden (grants är redan återkallade, se nedan), sätt `ConnectionStrings:Default` och `Supabase:Url` via miljövariabler.
 
 ## Designbeslut att hålla fast vid
 - **Tidsserier som arrayer** i `activity_streams` (en rad per pass), inte en rad per sekund.
@@ -25,12 +27,13 @@ Kuta (kuta.io) är en Strava-liknande löparapp: ladda upp pass från Garmin (FI
 - **Integritet/GDPR:** puls är hälsodata → uttryckligt samtycke. Pass privata som standard (`privacy = 'private'`), dolda start-/slutzoner på rutter, export och radering av konto från start. Personuppgiftsansvarig är användarens AB.
 - Segment/topplistor à la Strava: avvakta, inte v1.
 - **Enheter:** SI i databas och API (meter, sekunder, m/s; fältnamn med enhetssuffix som `distanceM`, `durationS`). Metriskt/imperial är ett visningsval per användare och konverteras bara i webben.
+- **Data API är stängt:** migrering 003 återkallar `anon`/`authenticated` från allt i `public`, även framtida tabeller (default privileges). Lägg inte tillbaka grants; behövs direktåtkomst från webben senare, gör det medvetet med RLS-policies.
 - **Milen är 1609,344 m.** `best_efforts.distance_m = 1609` är bara en etikett; rekordmotorn räknar med exakt längd.
 
 ## Nästa steg (i ordning)
-1. Skapa privat GitHub-repo `kuta`, initiera git, första commit.
-2. `docker compose up -d`, `dotnet restore && dotnet build`, `dotnet run --project api/Kuta.Api`; verifiera `/api/health` (ska visa PostGIS-version) och att migreringen går igenom. Fixa det som inte kompilerar.
-3. ~~Auth~~ (klart, se Status). Webbens inloggningssida återstår.
+1. ~~GitHub-repo~~, ~~bygga och köra API:t~~, ~~auth i API:t (Supabase)~~ – klart.
+2. Webb: inloggning med supabase-js (och profilnamn via `PUT /api/me`), skicka JWT till API:t.
+3. Hostat Supabase-projekt (EU) och deploy av API:t.
 4. FIT-uppladdning: endpoint, lagring i R2, parsning med `Garmin.FIT.Sdk`, skriv `activities` + `activity_streams`.
 5. Rekordmotor (glidande fönster över distans/tid-strömmen), tester med riktiga FIT-filer.
 6. Webb: uppladdning, passsida med karta + grafer (Recharts, uPlot för långa serier), statistikvyer, skor.
@@ -39,4 +42,4 @@ Kuta (kuta.io) är en Strava-liknande löparapp: ladda upp pass från Garmin (FI
 ## Konventioner
 - Svenska i UI-texter, engelska i kod och commit-meddelanden.
 - JSON i API:t är lowerCamelCase. Returnera typade records från Dapper, aldrig `dynamic`-rader (de serialiseras med snake_case-kolumnnamn som nycklar).
-- Små, fokuserade commits. Kör `npm run build` i `web/` och `dotnet test --project api/Kuta.Api.Tests` (kräver att databasen är igång) innan commit.
+- Små, fokuserade commits. Kör `npm run build` i `web/` och `dotnet test --project api/Kuta.Api.Tests` (kräver `supabase start`) innan commit.
