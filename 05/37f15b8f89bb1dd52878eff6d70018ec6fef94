@@ -1,0 +1,33 @@
+scripts/fly-secrets.sh
+  s_fbb711a8b750b1::t_6db575ed05f11d 2
+api/Kuta.Api/SupabaseCookieSession.cs
+  s_fbb711a8b750b1::t_6db575ed05f11d 10,172
+fly.toml
+  s_fbb711a8b750b1::t_6db575ed05f11d 1
+api/Kuta.Api/Program.cs
+  s_fbb711a8b750b1::t_6db575ed05f11d 32
+api/Kuta.Api/SupabaseAuthClient.cs
+  s_fbb711a8b750b1::t_6db575ed05f11d 7
+README.md
+  s_fbb711a8b750b1::t_6db575ed05f11d 38
+api/Kuta.Api/DataProtectionCertificates.cs
+  s_fbb711a8b750b1::t_6db575ed05f11d 4
+AGENTS.md
+  s_fbb711a8b750b1::t_6db575ed05f11d 15,25,38,62
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.7.5",
+  "base_commit_sha": "0537f15b8f89bb1dd52878eff6d70018ec6fef94",
+  "prompts": {},
+  "sessions": {
+    "s_fbb711a8b750b1": {
+      "agent_id": {
+        "tool": "codex",
+        "id": "01a18e6b-b398-7d43-a953-5cb91b5bd90c",
+        "model": "gpt-6.1-sol"
+      },
+      "human_author": "Simon Aunér <simonauner@gmail.com>"
+    }
+  }
+}
