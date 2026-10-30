@@ -1,0 +1,19 @@
+api/Kuta.Api/AuthEndpoints.cs
+  s_6fd5f3f6e9c798::t_b8d57c533ee1c4 14,16
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.7.5",
+  "base_commit_sha": "ed320cd6f8248ad1a6687f886b85a152446f1f53",
+  "prompts": {},
+  "sessions": {
+    "s_6fd5f3f6e9c798": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "110cb47e-0b75-4e34-90b9-538aef87a42f",
+        "model": "claude-opus-5-5"
+      },
+      "human_author": "Simon Aunér <simonauner@gmail.com>"
+    }
+  }
+}
