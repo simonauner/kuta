@@ -3,4 +3,6 @@
 # per hemlighet, med hemlighetens namn. Det som inte är hemligt ligger i fly.toml under [env].
 ConnectionStrings__Default=op://Development/fly-kuta/ConnectionStrings__Default
 Supabase__SecretKey=op://Development/fly-kuta/Supabase__SecretKey
+Storage__AccessKeyId=op://Development/fly-kuta/Storage__AccessKeyId
+Storage__SecretAccessKey=op://Development/fly-kuta/Storage__SecretAccessKey
 DataProtection__Certificate=op://Development/fly-kuta/DataProtection__Certificate

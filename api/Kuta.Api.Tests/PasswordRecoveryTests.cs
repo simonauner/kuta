@@ -17,7 +17,7 @@ public class PasswordRecoveryTests
     public async Task Recovery_is_scoped_single_use_and_revokes_existing_sessions()
     {
         var ct = TestContext.Current.CancellationToken;
-        await using var factory = new WebApplicationFactory<Program>();
+        await using var factory = new KutaFactory();
         var client = Client(factory);
         var email = $"recovery-{Guid.NewGuid():N}@example.com";
         await using var conn = await factory.Services.GetRequiredService<NpgsqlDataSource>().OpenConnectionAsync(ct);
@@ -81,7 +81,7 @@ public class PasswordRecoveryTests
     public async Task Expired_recovery_and_normal_login_cannot_reset_password()
     {
         var ct = TestContext.Current.CancellationToken;
-        await using var factory = new WebApplicationFactory<Program>();
+        await using var factory = new KutaFactory();
         var client = Client(factory);
         var email = $"expired-recovery-{Guid.NewGuid():N}@example.com";
         await using var conn = await factory.Services.GetRequiredService<NpgsqlDataSource>().OpenConnectionAsync(ct);
@@ -120,7 +120,7 @@ public class PasswordRecoveryTests
     public async Task Recovery_requires_csrf_and_a_valid_link_and_hides_unknown_accounts()
     {
         var ct = TestContext.Current.CancellationToken;
-        await using var factory = new WebApplicationFactory<Program>();
+        await using var factory = new KutaFactory();
         var client = Client(factory);
         Assert.Equal(HttpStatusCode.BadRequest,
             (await client.PostAsJsonAsync("/api/auth/recover", new { email = "nobody@example.com" }, ct)).StatusCode);
@@ -155,7 +155,7 @@ public class PasswordRecoveryTests
 
     static async Task<string> EmailToken(string email, string type, CancellationToken ct)
     {
-        using var mailpit = new HttpClient { BaseAddress = new Uri("http://127.0.0.1:55324") };
+        using var mailpit = new HttpClient { BaseAddress = new Uri(KutaFactory.MailpitUrl) };
         for (var attempt = 0; attempt < 40; attempt++)
         {
             var search = await mailpit.GetFromJsonAsync<JsonElement>($"/api/v1/search?query=to:{email}", ct);

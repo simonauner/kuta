@@ -1,19 +1,17 @@
 using System.Net;
 using System.Net.Http.Json;
 using System.Text.Json;
-using System.Text.RegularExpressions;
 using Dapper;
 using Microsoft.AspNetCore.Mvc.Testing;
 using Microsoft.Extensions.DependencyInjection;
 using Npgsql;
 using Xunit;
+using static TestSession;
 
-// Kräver lokal Supabase (`supabase start`): kontot skapas på riktigt i Supabase Auth och
+// Kräver lokal Supabase (se KutaFactory): kontot skapas på riktigt i Supabase Auth och
 // bekräftelsemejlet läses från Mailpit.
-public class AuthTests(WebApplicationFactory<Program> factory) : IClassFixture<WebApplicationFactory<Program>>
+public class AuthTests(KutaFactory factory) : IClassFixture<KutaFactory>
 {
-    const string MailpitUrl = "http://127.0.0.1:55324";
-    const string Password = "hemligt-lösen";
 
     [Fact]
     public async Task Signup_confirm_logout_and_login()
@@ -84,31 +82,5 @@ public class AuthTests(WebApplicationFactory<Program> factory) : IClassFixture<W
             // Kaskaderar till users, user_sessions och activities
             await conn.ExecuteAsync("delete from auth.users where email = @email", new { email });
         }
-    }
-
-    static async Task UseCsrfToken(HttpClient client, CancellationToken ct)
-    {
-        var token = await client.GetFromJsonAsync<JsonElement>("/api/antiforgery", ct);
-        client.DefaultRequestHeaders.Remove("X-CSRF-TOKEN");
-        client.DefaultRequestHeaders.Add("X-CSRF-TOKEN", token.GetProperty("token").GetString());
-    }
-
-    static async Task<string> ConfirmationTokenHash(string email, CancellationToken ct)
-    {
-        using var mailpit = new HttpClient { BaseAddress = new Uri(MailpitUrl) };
-        for (var attempt = 0; attempt < 20; attempt++)
-        {
-            var search = await mailpit.GetFromJsonAsync<JsonElement>($"/api/v1/search?query=to:{email}", ct);
-            if (search.GetProperty("messages").EnumerateArray().FirstOrDefault() is { ValueKind: JsonValueKind.Object } message)
-            {
-                var full = await mailpit.GetFromJsonAsync<JsonElement>($"/api/v1/message/{message.GetProperty("ID").GetString()}", ct);
-                var match = Regex.Match(full.GetProperty("HTML").GetString()!, "token_hash=([0-9a-f]+)");
-                Assert.True(match.Success,
-                    "Mejlet saknar vår länk. Supabase har laddat standardmallen; kör `docker restart supabase_auth_kuta`.");
-                return match.Groups[1].Value;
-            }
-            await Task.Delay(250, ct);
-        }
-        throw new TimeoutException($"Inget bekräftelsemejl till {email} i Mailpit.");
     }
 }

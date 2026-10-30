@@ -1,7 +1,7 @@
 using Microsoft.AspNetCore.Mvc.Testing;
 using Xunit;
 
-public class SecurityHeadersTests(WebApplicationFactory<Program> factory) : IClassFixture<WebApplicationFactory<Program>>
+public class SecurityHeadersTests(KutaFactory factory) : IClassFixture<KutaFactory>
 {
     [Theory]
     [InlineData("/api/health")]

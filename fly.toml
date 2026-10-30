@@ -17,6 +17,10 @@ swap_size_mb = 512
   Supabase__Url = 'https://hrkqzqfyisvdyzfxzokf.supabase.co'
   # Publik nyckel, inte hemlig.
   Supabase__PublishableKey = 'sb_publishable_Df2B4jm1aXH1_uOy52EsXg_BmM8THXV'
+  # Råa FIT-filer i Supabase Storage via S3 (privat bucket); nyckeln ligger i 1Password (fly.secrets.tpl).
+  Storage__ServiceUrl = 'https://hrkqzqfyisvdyzfxzokf.storage.supabase.co/storage/v1/s3'
+  Storage__Region = 'eu-north-1'
+  Storage__Bucket = 'fit-files'
 
 [http_service]
   internal_port = 8080

@@ -40,4 +40,7 @@ export const api = {
       headers: { 'Content-Type': 'application/json', 'X-CSRF-TOKEN': await getCsrfToken() },
       body: body === undefined ? undefined : JSON.stringify(body),
     }),
+  // Filuppladdning: webbläsaren sätter själv Content-Type med multipart-gränsen
+  upload: async <T>(path: string, form: FormData) =>
+    request<T>(path, { method: 'POST', headers: { 'X-CSRF-TOKEN': await getCsrfToken() }, body: form }),
 }

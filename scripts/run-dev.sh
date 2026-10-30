@@ -70,7 +70,8 @@ trap 'exit 130' INT TERM
 (cd api/Kuta.Api && export ASPNETCORE_ENVIRONMENT=Development \
   Urls="http://localhost:$((base + 2))" \
   ConnectionStrings__Default="Host=127.0.0.1;Port=$((base + 22));Database=postgres;Username=postgres;Password=postgres" \
-  Supabase__Url="http://127.0.0.1:$((base + 21))" &&
+  Supabase__Url="http://127.0.0.1:$((base + 21))" \
+  Storage__ServiceUrl="http://127.0.0.1:$((base + 21))/storage/v1/s3" &&
   exec dotnet "$build/bin/Kuta.Api/debug/Kuta.Api.dll") > >(prefix api) 2>&1 &
 pids+=($!)
 (cd web && use_node && export KUTA_WEB_PORT="$base" KUTA_API_PORT="$((base + 2))" && exec ./node_modules/.bin/vite) \

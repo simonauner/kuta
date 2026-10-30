@@ -6,7 +6,7 @@ Kuta är en Strava-liknande löparapp: ladda upp pass från Garmin (FIT) eller l
 - Håll bestående projektregler i `AGENTS.md`, körinstruktioner i `README.md` och återanvändbara agentprocedurer i `.agents/skills/`. Uppdatera berörd dokumentation när ett arbetssätt eller beslut ändras; undvik ändringsloggar och dubblerade instruktioner.
 - Använd [run-dev](.agents/skills/run-dev/SKILL.md) för att starta appen och verifiera flöden lokalt. Använd syntetiska konton och data. Andra worktrees delar maskin och Docker: välj en egen ledig portserie för en ny miljö, stoppa bara egna processer med deras PID och rör inte andras containrar, volymer eller git stash.
 - Verifiera ändrat beteende på lägsta nivå som visar regeln: beräkningstester för rekordmotorn, databas-/integrationstester för lagring och åtkomst, och webbläsarkontroll för ändrade flöden. Kontrollera att privata pass inte kan läsas eller ändras av en annan användare när åtkomstlogik ändras.
-- Före commit av applikationskod: kör `npm run build` i `web/` med Node-versionen i `.nvmrc` och `dotnet test --project api/Kuta.Api.Tests` mot lokal Supabase. Testerna använder standardinstansen även om appen startats med `--ports`; ändra eller återställ inte en lånad miljö för att köra dem. Redovisa om de inte kunnat köras. För enbart dokumentation eller instruktioner räcker granskning av diff, lokala länkar och beskrivna kommandon mot implementationen.
+- Före commit av applikationskod: kör `npm run build` i `web/` med Node-versionen i `.nvmrc` och `dotnet test --project api/Kuta.Api.Tests` mot lokal Supabase. Testerna använder standardinstansen, eller den egna instansen med `KUTA_PORTS=BAS` (samma BAS som `run-dev.sh --ports`); kör mot en egen instans i stället för att ändra eller återställa en lånad miljö. Redovisa om de inte kunnat köras. För enbart dokumentation eller instruktioner räcker granskning av diff, lokala länkar och beskrivna kommandon mot implementationen.
 - Redovisa vad som verifierats, resultatet och miljön/versionen som kontrollerats. En pågående kontroll är inte godkänd. Återanvänd tidigare resultat bara om relevanta kod-, test- och konfigurationsunderlag är oförändrade.
 - Ändra inte hostad databas, hemligheter eller driftsättning om uppgiften inte omfattar just den åtgärden. Verifiering sker lokalt; en instruktion om att testa innebär inte en instruktion om att deploya.
 
@@ -33,6 +33,12 @@ Kuta är en Strava-liknande löparapp: ladda upp pass från Garmin (FIT) eller l
   - Lösenordsåterställning: `POST /api/auth/recover`, mejllänk till `GET /api/auth/reset-password?token_hash=`, sedan `POST /api/auth/reset-password`. Separat krypterad HttpOnly-cookie (högst 15 minuter), engångsanvändning via `user_sessions`; ger ingen appåtkomst. Lyckat byte avslutar kontots Kuta-sessioner. Mall och driftinställning finns i README.
   - Saknas: MFA, inloggning med Google/Apple, logga ut andra sessioner, städning av gamla sessionsrader, Turnstile.
   - Lokalt: kommer bekräftelsemejlet i Mailpit (http://127.0.0.1:55324) med Supabases engelska standardmall har auth-containern startat före Kong – kör `docker restart supabase_auth_kuta`.
+- FIT-uppladdning (`ActivityEndpoints`, `FitImport`, `RawFileStore`):
+  - `POST /api/activities` (multipart, fältet `file`, högst 20 MB) tolkar filen med `Garmin.FIT.Sdk` (första sessionen + records) och skriver `activities` + `activity_streams` i en transaktion; rutten förenklas med Douglas-Peucker (~5 m). Samma fil igen ger 409 (`raw_file_sha256` unik per användare).
+  - **Pulssamtycke:** `PUT`/`DELETE /api/me/hr-consent`, `users.hr_consent_at`, `hrConsent` i `/api/me`. Utan samtycke sparas varken puls eller råfil (råfilen innehåller puls). Återkallat samtycke raderar all sparad puls och alla råfiler. Ett pass uppladdat utan samtycke får puls bara om det laddas upp igen (hashen gör det till en dubblett – ta bort passet först när borttagning finns).
+  - Råfiler via S3-protokollet (`Storage__ServiceUrl/Region/Bucket/AccessKeyId/SecretAccessKey`): lokalt Supabase Storage (bucket `fit-files` i `supabase/config.toml`), i drift R2 eller Supabase Storage.
+  - Webben: passsidan (`routes/activities.tsx`) har uppladdning, pulssamtycke och passlista (km, tid, tempo).
+  - Saknas: passsida med karta/grafer, bästa insatser (rekordmotorn), radering av pass och av råfiler vid kontoradering, multisport (flera sessioner), GPX.
 - Ändra aldrig en körd migrering – nya ändringar i nästa nummer. Migreringsfilerna finns i `api/Kuta.Api/Migrations/`.
 - Privat repo: github.com/simonauner/kuta. Node 24 (`.nvmrc`).
 - Driftsatt på https://kuta.fly.dev (en maskin i `arn`, `fly deploy --ha=false` tills migreringar och token-förnyelse klarar flera maskiner; ingen automatisk deploy vid push): `Dockerfile` (API:t servar den byggda webben från `wwwroot`, samma origin), `fly.toml` (egen app `kuta`, `arn`), steg i README. Utanför Development krävs `DataProtection__Certificate`; lokala värden ligger bara i `appsettings.Development.json`. Pipelinens ordning i `Program.cs` är medveten (headers → statiska filer → routing → auth) – se kommentarerna.
@@ -61,7 +67,7 @@ Kuta är en Strava-liknande löparapp: ladda upp pass från Garmin (FIT) eller l
 1. ~~GitHub-repo~~, ~~bygga och köra API:t~~, ~~auth (API + webb)~~, ~~driftsättning (Fly + Supabase)~~ – klart.
 2. Egen SMTP (Scaleway TEM) och egen domän **kutaapp.com** (kuta.io/.se/.com är tagna): verifiera domänen, SMTP i Supabase, Site URL och certifikat hos Fly.
 3. ~~Lösenordsåterställning (Supabase `/recover` + mejlmall som länkar till API:t)~~ – implementerad; återställningsmallen måste konfigureras i hostad Supabase före användning i drift.
-4. FIT-uppladdning: endpoint, lagring i R2, parsning med `Garmin.FIT.Sdk`, skriv `activities` + `activity_streams`.
+4. ~~FIT-uppladdning~~ (se Status). Före deploy: lagring i drift (R2 eller Supabase Storage) och `Storage__*`.
 5. Rekordmotor (glidande fönster över distans/tid-strömmen), tester med riktiga FIT-filer.
 6. Webb: uppladdning, passsida med karta + grafer (Recharts, uPlot för långa serier), statistikvyer, skor.
 7. Därefter: följare, flöde, grupper; e-post och push.

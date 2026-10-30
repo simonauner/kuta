@@ -3,7 +3,7 @@ using Microsoft.AspNetCore.Hosting;
 using Microsoft.AspNetCore.Mvc.Testing;
 using Xunit;
 
-public class CanonicalHostTests(WebApplicationFactory<Program> factory) : IClassFixture<WebApplicationFactory<Program>>
+public class CanonicalHostTests(KutaFactory factory) : IClassFixture<KutaFactory>
 {
     [Theory]
     [InlineData("kuta.fly.dev", "/profil?x=1", "https://kutaapp.com/profil?x=1")]
