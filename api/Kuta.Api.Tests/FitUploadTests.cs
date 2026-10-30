@@ -78,6 +78,44 @@ public class FitUploadTests(KutaFactory factory) : IClassFixture<KutaFactory>
         }
     }
 
+    [Fact]
+    public async Task Delete_removes_own_activity_and_raw_file_but_not_someone_elses()
+    {
+        var ct = TestContext.Current.CancellationToken;
+        var runner = $"del-a-{Guid.NewGuid():N}@example.com";
+        var other = $"del-b-{Guid.NewGuid():N}@example.com";
+        var client = factory.CreateClient();
+        var otherClient = factory.CreateClient();
+        await using var conn = await factory.Services.GetRequiredService<NpgsqlDataSource>().OpenConnectionAsync(ct);
+        try
+        {
+            await SignUpAsync(client, runner, "Löparen", ct);
+            await client.PutAsync("/api/me/hr-consent", null, ct);
+            var fit = FitFile.Run(new System.DateTime(2026, 9, 1, 7, 0, 0, DateTimeKind.Utc), seconds: 120);
+            var id = (await (await Upload(client, fit, ct)).Content.ReadFromJsonAsync<JsonElement>(ct)).GetProperty("id").GetGuid();
+            Assert.Equal(1, await StoredFiles(conn, runner));
+
+            // Någon annan kan inte ta bort passet, och får inte veta att det finns
+            await SignUpAsync(otherClient, other, "Någon annan", ct);
+            Assert.Equal(HttpStatusCode.NotFound, (await otherClient.DeleteAsync($"/api/activities/{id}", ct)).StatusCode);
+            Assert.Equal(1, await conn.ExecuteScalarAsync<int>("select count(*) from activities where id = @id", new { id }));
+
+            Assert.Equal(HttpStatusCode.NoContent, (await client.DeleteAsync($"/api/activities/{id}", ct)).StatusCode);
+            Assert.Equal(0, await conn.ExecuteScalarAsync<int>(
+                "select (select count(*) from activities where id = @id) + (select count(*) from activity_streams where activity_id = @id)",
+                new { id }));
+            Assert.Equal(0, await StoredFiles(conn, runner));
+            Assert.Equal(HttpStatusCode.NotFound, (await client.DeleteAsync($"/api/activities/{id}", ct)).StatusCode);
+
+            // Samma fil går att ladda upp igen efter borttagning (t.ex. för att få med puls)
+            Assert.Equal(HttpStatusCode.Created, (await Upload(client, fit, ct)).StatusCode);
+        }
+        finally
+        {
+            await conn.ExecuteAsync("delete from auth.users where email in (@runner, @other)", new { runner, other });
+        }
+    }
+
     // Råfiler i den lokala Supabase Storage (fit/<användar-id>/…)
     static Task<int> StoredFiles(NpgsqlConnection conn, string email) => conn.ExecuteScalarAsync<int>(
         """

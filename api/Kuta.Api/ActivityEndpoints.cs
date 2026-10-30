@@ -107,5 +107,24 @@ public static class ActivityEndpoints
         })
         // CSRF-token kontrolleras av filtret i AuthEndpoints (X-CSRF-TOKEN), inte av ramverkets formulärkontroll
         .DisableAntiforgery();
+
+        // Tar bort ett eget pass med tidsserier (kaskad) och råfil. Någon annans pass ger 404, som ett som inte finns.
+        // Råfilen först: misslyckas raderingen ligger passet kvar och kan tas bort igen, i stället för att filen
+        // (som innehåller puls) blir kvar utan något som pekar på den.
+        activities.MapDelete("/{id:guid}", async (Guid id, NpgsqlDataSource db, RawFileStore store, ClaimsPrincipal user,
+            CancellationToken cancellationToken) =>
+        {
+            await using var conn = await db.OpenConnectionAsync(cancellationToken);
+            var userId = user.GetUserId();
+            var activity = await conn.QuerySingleOrDefaultAsync<OwnedActivity>(
+                "select id, raw_file_key from activities where id = @id and user_id = @userId", new { id, userId });
+            if (activity is null) return Results.NotFound();
+
+            if (activity.RawFileKey is { } key) await store.DeleteAsync([key], cancellationToken);
+            await conn.ExecuteAsync("delete from activities where id = @id and user_id = @userId", new { id, userId });
+            return Results.NoContent();
+        });
     }
+
+    private record OwnedActivity(Guid Id, string? RawFileKey);
 }
