@@ -10,3 +10,7 @@ obj/
 
 # Lokala instanser från scripts/run-dev.sh --ports
 .context/
+
+# Certifikat och nycklar (t.ex. kuta-dataprotection.pfx) – sparas i 1Password, aldrig i repot
+*.pfx
+*.pem
