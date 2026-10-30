@@ -9,6 +9,14 @@ public record ActivitySummary(
     Guid Id, string Sport, string? Title, System.DateTime StartedAt,
     int DurationS, double DistanceM, short? AvgHr, Guid? ShoeId);
 
+// Ett pass med tidsserier (en array per kanal, index = mätpunkt; null där klockan inte mätte).
+public record ActivityDetail(
+    Guid Id, string Sport, string? Title, System.DateTime StartedAt, int DurationS, int? MovingS, double DistanceM,
+    short? AvgHr, short? MaxHr, float? AvgSpeedMps, float? ElevationGainM, ActivityStreams? Streams);
+
+public record ActivityStreams(
+    int[] T, float?[]? Dist, short?[]? Hr, float?[]? Speed, float?[]? Alt, double?[]? Lat, double?[]? Lon);
+
 public static class ActivityEndpoints
 {
     private const int MaxFitFileBytes = 20 * 1024 * 1024;
@@ -31,6 +39,36 @@ public static class ActivityEndpoints
                 """,
                 new { userId = user.GetUserId() });
             return Results.Ok(rows);
+        });
+
+        // Ett eget pass med tidsserier för passsidan. Någon annans pass ger 404, som ett som inte finns.
+        // shortcut: skickar alla mätpunkter (ett sexttimmarspass ≈ 1–2 MB JSON); glesa ut eller komprimera när det märks.
+        activities.MapGet("/{id:guid}", async (Guid id, NpgsqlDataSource db, ClaimsPrincipal user,
+            CancellationToken cancellationToken) =>
+        {
+            await using var conn = await db.OpenConnectionAsync(cancellationToken);
+            await using var command = new NpgsqlCommand(
+                """
+                select a.id, a.sport, a.title, a.started_at, a.duration_s, a.moving_s, a.distance_m, a.avg_hr, a.max_hr,
+                       a.avg_speed_mps, a.elevation_gain_m, s.t, s.dist, s.hr, s.speed, s.alt, s.lat, s.lon
+                from activities a left join activity_streams s on s.activity_id = a.id
+                where a.id = @id and a.user_id = @userId
+                """, conn);
+            command.Parameters.AddWithValue("id", id);
+            command.Parameters.AddWithValue("userId", user.GetUserId());
+            await using var reader = await command.ExecuteReaderAsync(cancellationToken);
+            if (!await reader.ReadAsync(cancellationToken)) return Results.NotFound();
+
+            // Läses för hand: Dapper/Npgsql klarar inte null-element i arrayer utan typen float?[] osv.
+            T? Value<T>(int i) => reader.IsDBNull(i) ? default : reader.GetFieldValue<T>(i);
+            var streams = reader.IsDBNull(11) ? null : new ActivityStreams(
+                reader.GetFieldValue<int[]>(11), Value<float?[]>(12), Value<short?[]>(13), Value<float?[]>(14),
+                Value<float?[]>(15), Value<double?[]>(16), Value<double?[]>(17));
+            return Results.Ok(new ActivityDetail(
+                reader.GetGuid(0), reader.GetString(1), Value<string>(2),
+                System.DateTime.SpecifyKind(reader.GetDateTime(3), DateTimeKind.Utc), reader.GetInt32(4),
+                Value<int?>(5), reader.GetDouble(6), Value<short?>(7), Value<short?>(8), Value<float?>(9), Value<float?>(10),
+                streams));
         });
 
         // Uppladdning av en FIT-fil: tolka den, spara råfilen (bara med pulssamtycke) och skriv passet med tidsserier
