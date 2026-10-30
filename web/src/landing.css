@@ -99,7 +99,7 @@ figure {
 }
 .hero-photo {
   object-fit: cover;
-  object-position: 60% 50%;
+  object-position: 50% 50%;
   z-index: -2;
 }
 .hero-shade {
@@ -234,14 +234,6 @@ h1 em {
   font-size: 10px;
   margin-top: 5px;
   color: #68715f;
-}
-.photo-note {
-  position: absolute;
-  bottom: 16px;
-  right: 22px;
-  font-size: 9px;
-  color: #fff;
-  text-shadow: 0 1px 5px #000;
 }
 .hero-coordinate {
   position: absolute;
@@ -677,7 +669,7 @@ h3 {
     border-radius: 18px;
   }
   .hero-photo {
-    object-position: 85% 50%;
+    object-position: 60% 50%;
   }
   .hero-shade {
     background: linear-gradient(
@@ -716,10 +708,6 @@ h3 {
     bottom: 23px;
     left: 24px;
     font-size: 8px;
-  }
-  .photo-note {
-    font-size: 7px;
-    bottom: 10px;
   }
   .features {
     padding-block: 55px 40px;
