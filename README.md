@@ -4,7 +4,7 @@ Löparapp med Garmin-import, statistik, rekord och socialt flöde. Se `AGENTS.md
 
 ## Köra lokalt
 
-Kräver Docker, Supabase CLI, .NET 10 SDK och nvm (Node-versionen står i `.nvmrc`). Allt startas med:
+Kräver Docker, Supabase CLI, .NET SDK och nvm (Node-versionen står i `.nvmrc`). `global.json` väljer .NET SDK 10.0.402 eller senare stabil patch i 10.0.4xx-serien, både lokalt och i Dockerbygget. Allt startas med:
 
 ```bash
 scripts/run-dev.sh
