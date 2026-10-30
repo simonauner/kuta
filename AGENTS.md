@@ -37,6 +37,13 @@ Kuta (kuta.io) är en Strava-liknande löparapp: ladda upp pass från Garmin (FI
 - **Data API är stängt:** migrering 003 återkallar `anon`/`authenticated` från allt i `public`, även framtida tabeller (default privileges). Lägg inte tillbaka grants; behövs direktåtkomst från webben senare, gör det medvetet med RLS-policies.
 - **Milen är 1609,344 m.** `best_efforts.distance_m = 1609` är bara en etikett; rekordmotorn räknar med exakt längd.
 
+## Säkerhet (XSS/CSRF)
+- **CSRF:** sessionscookien är `SameSite=Lax` och alla skrivande `/api`-anrop kräver `X-CSRF-TOKEN`. GET-anrop får aldrig ändra data (undantaget är `/api/auth/confirm`, mejllänken). Öppna inte CORS.
+- **XSS:** tokens ligger i HttpOnly-cookien och går inte att stjäla, men ett injicerat skript kan ändå anropa API:t som användaren. Förhindra XSS: rendera användardata som text i React, aldrig `dangerouslySetInnerHTML` med användardata, inga `javascript:`-länkar från användardata.
+- **CSP för webben** injiceras vid bygget i `web/vite.config.ts` (`script-src 'self'`, inga inline-skript eller `<style>`-taggar). Lägg till origins där när appen hämtar från nya ställen (t.ex. R2 för kartor) i stället för att lätta på reglerna. Kolla konsolen efter CSP-fel med `npm run build && npx vite preview` när beroenden läggs till – bibliotek som injicerar `<style>` behöver hanteras.
+- **API-svar** har `default-src 'none'; frame-ancestors 'none'`, `nosniff` och `X-Frame-Options: DENY` (middleware i `Program.cs`, test i `SecurityHeadersTests`).
+- **Där webben hostas** sätts som headers (går inte i meta-taggen): `Content-Security-Policy: frame-ancestors 'none'`, `X-Content-Type-Options: nosniff`, `Referrer-Policy: strict-origin-when-cross-origin` och HSTS. Servera webben och API:t från samma origin.
+
 ## Nästa steg (i ordning)
 1. ~~GitHub-repo~~, ~~bygga och köra API:t~~, ~~auth i API:t (Supabase)~~ – klart.
 2. Webb: inloggnings-/registreringssidor mot `/api/auth/*` (med CSRF-token), profilnamn via `PUT /api/me`.
