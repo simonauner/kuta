@@ -36,4 +36,5 @@ Kuta (kuta.io) är en Strava-liknande löparapp: ladda upp pass från Garmin (FI
 
 ## Konventioner
 - Svenska i UI-texter, engelska i kod och commit-meddelanden.
+- JSON i API:t är lowerCamelCase. Returnera typade records från Dapper, aldrig `dynamic`-rader (de serialiseras med snake_case-kolumnnamn som nycklar).
 - Små, fokuserade commits. Kör `npm run build` i `web/` och `dotnet test --project api/Kuta.Api.Tests` (kräver att databasen är igång) innan commit.
