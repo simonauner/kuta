@@ -1,0 +1,23 @@
+.github/workflows/frontend.yml
+  s_ca80d0ae35ffd9::t_d160601b31c529 10-11,19-20
+README.md
+  s_ca80d0ae35ffd9::t_d160601b31c529 62-68
+.github/workflows/backend.yml
+  s_ca80d0ae35ffd9::t_d160601b31c529 1-36
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.7.5",
+  "base_commit_sha": "732c3b04f588006c772fc65557107a932a1bff1c",
+  "prompts": {},
+  "sessions": {
+    "s_ca80d0ae35ffd9": {
+      "agent_id": {
+        "tool": "codex",
+        "id": "01a18f12-1c99-71d2-9342-610ec77046d2",
+        "model": "gpt-6.1-sol"
+      },
+      "human_author": "Simon Aunér <simonauner@gmail.com>"
+    }
+  }
+}
