@@ -157,8 +157,11 @@ api.MapMe();
 
 api.MapActivities();
 
-// Appens egna sökvägar (/pass, /profil …) ger index.html; okända /api-sökvägar ska ge 404, inte appen.
-app.MapFallbackToFile("{*path:regex(^(?!api/).*$)}", "index.html", staticFiles);
+// Behåll gamla bokmärken. Startsidan är statisk; bara appens kända sökvägar får React-skalet.
+foreach (var path in new[] { "/pass", "/statistik", "/profil" })
+    app.MapGet(path, (HttpContext context) => Results.Redirect($"/app{context.Request.Path}{context.Request.QueryString}", permanent: true));
+foreach (var path in new[] { "/app", "/app/pass", "/app/statistik", "/app/profil" })
+    app.MapFallbackToFile(path, "app.html", staticFiles);
 
 app.Run();
 return 0;

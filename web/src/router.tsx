@@ -9,22 +9,22 @@ const rootRoute = createRootRoute({ component: Layout })
 
 const feedRoute = createRoute({
   getParentRoute: () => rootRoute,
-  path: '/',
+  path: '/app',
   component: FeedPage,
 })
 const activitiesRoute = createRoute({
   getParentRoute: () => rootRoute,
-  path: '/pass',
+  path: '/app/pass',
   component: ActivitiesPage,
 })
 const statsRoute = createRoute({
   getParentRoute: () => rootRoute,
-  path: '/statistik',
+  path: '/app/statistik',
   component: StatsPage,
 })
 const profileRoute = createRoute({
   getParentRoute: () => rootRoute,
-  path: '/profil',
+  path: '/app/profil',
   component: ProfilePage,
 })
 

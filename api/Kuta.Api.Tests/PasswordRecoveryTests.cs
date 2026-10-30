@@ -30,7 +30,7 @@ public class PasswordRecoveryTests
                 (await client.PostAsJsonAsync("/api/auth/signup", new { email, password = Password }, ct)).StatusCode);
             var signupHash = await EmailToken(email, "confirm", ct);
             var confirm = await client.GetAsync($"/api/auth/confirm?token_hash={signupHash}", ct);
-            Assert.Equal("/", confirm.Headers.Location?.ToString());
+            Assert.Equal("/app", confirm.Headers.Location?.ToString());
             var originalCookies = confirm.Headers.GetValues("Set-Cookie").Select(c => c.Split(';')[0]);
             var originalSession = Client(factory, cookies: false);
             originalSession.DefaultRequestHeaders.Add("Cookie", string.Join("; ", originalCookies));
@@ -43,7 +43,7 @@ public class PasswordRecoveryTests
                 (await recovery.PostAsJsonAsync("/api/auth/recover", new { email }, ct)).StatusCode);
             var hash = await EmailToken(email, "recovery", ct);
             var link = await recovery.GetAsync($"/api/auth/reset-password?token_hash={hash}", ct);
-            Assert.Equal("/?reset=password", link.Headers.Location?.ToString());
+            Assert.Equal("/app?reset=password", link.Headers.Location?.ToString());
             Assert.Equal("no-store", link.Headers.CacheControl?.ToString());
             var cookie = Assert.Single(link.Headers.GetValues("Set-Cookie"), c => c.StartsWith("kuta.recovery="));
             Assert.Contains("httponly", cookie.ToLowerInvariant());
@@ -66,7 +66,7 @@ public class PasswordRecoveryTests
             Assert.Equal(HttpStatusCode.Unauthorized, (await originalSession.GetAsync("/api/me", ct)).StatusCode);
             Assert.Equal(HttpStatusCode.Unauthorized,
                 (await replay.PostAsJsonAsync("/api/auth/reset-password", new { password = "another-password-94" }, ct)).StatusCode);
-            Assert.Equal("/?reset=failed",
+            Assert.Equal("/app?reset=failed",
                 (await recovery.GetAsync($"/api/auth/reset-password?token_hash={hash}", ct)).Headers.Location?.ToString());
             Assert.Equal(HttpStatusCode.Unauthorized,
                 (await recovery.PostAsJsonAsync("/api/auth/login", new { email, password = Password }, ct)).StatusCode);
@@ -93,7 +93,7 @@ public class PasswordRecoveryTests
             Assert.Equal(HttpStatusCode.Accepted,
                 (await client.PostAsJsonAsync("/api/auth/signup", new { email, password = Password }, ct)).StatusCode);
             var signupHash = await EmailToken(email, "confirm", ct);
-            Assert.Equal("/", (await client.GetAsync($"/api/auth/confirm?token_hash={signupHash}", ct)).Headers.Location?.ToString());
+            Assert.Equal("/app", (await client.GetAsync($"/api/auth/confirm?token_hash={signupHash}", ct)).Headers.Location?.ToString());
             await Csrf(client, ct);
             Assert.Equal(HttpStatusCode.Unauthorized,
                 (await client.PostAsJsonAsync("/api/auth/reset-password", new { password = NewPassword }, ct)).StatusCode);
@@ -103,7 +103,7 @@ public class PasswordRecoveryTests
             Assert.Equal(HttpStatusCode.Accepted,
                 (await recovery.PostAsJsonAsync("/api/auth/recover", new { email }, ct)).StatusCode);
             var hash = await EmailToken(email, "recovery", ct);
-            Assert.Equal("/?reset=password",
+            Assert.Equal("/app?reset=password",
                 (await recovery.GetAsync($"/api/auth/reset-password?token_hash={hash}", ct)).Headers.Location?.ToString());
             await conn.ExecuteAsync("""
                 update user_sessions set expires_at = now() - interval '1 second'
@@ -141,8 +141,8 @@ public class PasswordRecoveryTests
         client.DefaultRequestHeaders.Add("Cookie", "kuta.recovery=tampered");
         Assert.Equal(HttpStatusCode.Unauthorized,
             (await client.PostAsJsonAsync("/api/auth/reset-password", new { password = NewPassword }, ct)).StatusCode);
-        Assert.Equal("/?reset=failed", (await client.GetAsync("/api/auth/reset-password", ct)).Headers.Location?.ToString());
-        Assert.Equal("/?reset=failed", (await client.GetAsync("/api/auth/reset-password?token_hash=invalid", ct)).Headers.Location?.ToString());
+        Assert.Equal("/app?reset=failed", (await client.GetAsync("/api/auth/reset-password", ct)).Headers.Location?.ToString());
+        Assert.Equal("/app?reset=failed", (await client.GetAsync("/api/auth/reset-password?token_hash=invalid", ct)).Headers.Location?.ToString());
     }
 
     [Theory]

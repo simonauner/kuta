@@ -100,7 +100,7 @@ export function ActivitiesPage() {
         {me?.hrConsent ? (
           <p className="mt-2 text-xs text-muted-foreground">
             Pulsdata sparas. Ändra på{' '}
-            <Link to="/profil" className="underline underline-offset-2">
+            <Link to="/app/profil" className="underline underline-offset-2">
               Profil
             </Link>
           </p>

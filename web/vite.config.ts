@@ -1,7 +1,7 @@
 import tailwindcss from '@tailwindcss/vite'
 import react from '@vitejs/plugin-react'
 import path from 'node:path'
-import { defineConfig } from 'vite'
+import { defineConfig, type PreviewServer, type ViteDevServer } from 'vite'
 import { VitePWA } from 'vite-plugin-pwa'
 
 // Strikt CSP i den byggda appen (inte i dev, där Vite kör inline-skript för HMR).
@@ -22,10 +22,38 @@ const contentSecurityPolicy = [
 const webPort = Number(process.env.KUTA_WEB_PORT ?? 55300)
 const apiPort = Number(process.env.KUTA_API_PORT ?? 55302)
 
+// Samma dokumentvägar i Vites utvecklingsserver och förhandsvisning som i .NET.
+function configureHtmlRoutes(server: ViteDevServer | PreviewServer) {
+  server.middlewares.use((req, res, next) => {
+    const url = new URL(req.url ?? '/', 'http://localhost')
+    if (['/pass', '/statistik', '/profil'].includes(url.pathname)) {
+      res.writeHead(301, { Location: `/app${url.pathname}${url.search}` })
+      res.end()
+      return
+    }
+    if (url.pathname === '/app' || url.pathname.startsWith('/app/'))
+      req.url = `/app.html${url.search}`
+    next()
+  })
+}
+
 // https://vite.dev/config/
 export default defineConfig({
+  build: {
+    rolldownOptions: {
+      input: {
+        landing: path.resolve(import.meta.dirname, 'index.html'),
+        app: path.resolve(import.meta.dirname, 'app.html'),
+      },
+    },
+  },
   plugins: [
     react(),
+    {
+      name: 'app-html-routes',
+      configureServer: configureHtmlRoutes,
+      configurePreviewServer: configureHtmlRoutes,
+    },
     {
       name: 'content-security-policy',
       apply: 'build',
@@ -40,21 +68,39 @@ export default defineConfig({
     tailwindcss(),
     VitePWA({
       registerType: 'autoUpdate',
-      // Navigeringar till API:t (t.ex. bekräftelselänken i mejlet) måste nå servern, inte appens index.html
-      workbox: { navigateFallbackDenylist: [/^\/api\//] },
-      includeAssets: ['favicon.svg'],
+      // Bara appens navigeringar får appskalet; startsidan och API:t ska nå servern.
+      workbox: {
+        navigateFallback: '/app.html',
+        navigateFallbackAllowlist: [/^\/app(?:\/(?:pass|statistik|profil))?\/?(?:\?|$)/],
+      },
+      includeAssets: [
+        'favicon.svg',
+        'favicon-32.png',
+        'apple-touch-icon.png',
+        'icons/*.png',
+        'brand/*.svg',
+      ],
       manifest: {
         name: 'Kuta',
         short_name: 'Kuta',
         description: 'Logga, analysera och dela dina löppass.',
         lang: 'sv',
-        start_url: '/',
+        // Behåll identiteten för redan installerade PWA:er när startadressen flyttas.
+        id: '/',
+        start_url: '/app',
         display: 'standalone',
         background_color: '#0b0b0f',
         theme_color: '#0b0b0f',
         icons: [
           { src: 'favicon.svg', sizes: 'any', type: 'image/svg+xml', purpose: 'any' },
-          // TODO: lägg till PNG-ikoner (192, 512, maskable) och apple-touch-icon för iOS.
+          { src: '/icons/icon-192.png', sizes: '192x192', type: 'image/png', purpose: 'any' },
+          { src: '/icons/icon-512.png', sizes: '512x512', type: 'image/png', purpose: 'any' },
+          {
+            src: '/icons/icon-maskable-512.png',
+            sizes: '512x512',
+            type: 'image/png',
+            purpose: 'maskable',
+          },
         ],
       },
     }),

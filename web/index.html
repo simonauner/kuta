@@ -2,16 +2,270 @@
 <html lang="sv">
   <head>
     <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <meta name="theme-color" content="#fbf8f0" />
+    <title>Kuta – dina löppass, din statistik, din analys</title>
+    <meta
+      name="description"
+      content="Din löpning, dina pass, din statistik och din analys. Kuta är en löparapp under utveckling för att samla dina löppass och hjälpa dig förstå din träning."
+    />
+    <link rel="canonical" href="https://kutaapp.com/" />
+    <meta property="og:type" content="website" />
+    <meta property="og:locale" content="sv_SE" />
+    <meta property="og:site_name" content="Kuta" />
+    <meta property="og:title" content="Kuta – dina löppass, din statistik, din analys" />
+    <meta
+      property="og:description"
+      content="Din löpning. Dina pass. Din statistik. Din analys. Vi bygger Kuta för att ge dig överblick över din träning."
+    />
+    <meta property="og:url" content="https://kutaapp.com/" />
+    <meta property="og:image" content="https://kutaapp.com/images/running-forest.jpg" />
+    <meta property="og:image:alt" content="Två löpare på en skogsstig i morgonljus" />
+    <meta name="twitter:card" content="summary_large_image" />
     <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
-    <meta name="theme-color" media="(prefers-color-scheme: light)" content="#fcfcfc" />
-    <meta name="theme-color" media="(prefers-color-scheme: dark)" content="#0b0b0f" />
-    <meta name="apple-mobile-web-app-capable" content="yes" />
-    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
-    <title>Kuta</title>
+    <link rel="icon" type="image/png" sizes="32x32" href="/favicon-32.png" />
+    <link rel="apple-touch-icon" sizes="180x180" href="/apple-touch-icon.png" />
+    <meta name="apple-mobile-web-app-title" content="Kuta" />
+    <link rel="stylesheet" href="/src/landing.css" />
   </head>
   <body>
-    <div id="root"></div>
-    <script type="module" src="/src/main.tsx"></script>
+    <a class="skip-link" href="#innehall">Hoppa till innehållet</a>
+    <header class="site-header wrap">
+      <a class="wordmark" href="/" aria-label="Kuta – startsida"
+        ><img src="/brand/logo.svg" alt="" width="152" height="51"
+      /></a>
+      <nav aria-label="Huvudnavigation">
+        <a class="about-link" href="#pa-vag">Det här bygger vi</a>
+        <a class="data-link" href="#dina-data">Data i Sverige <span aria-hidden="true">↗</span></a>
+        <a class="login-link" href="/app">Logga in <span aria-hidden="true">↗</span></a>
+      </nav>
+    </header>
+    <main id="innehall">
+      <section class="hero" aria-labelledby="hero-title">
+        <img
+          class="hero-photo"
+          src="/images/running-forest.jpg"
+          alt="Två löpare på en solbelyst stig genom skogen"
+          width="1536"
+          height="1024"
+          fetchpriority="high"
+        />
+        <div class="hero-shade"></div>
+        <div class="hero-content">
+          <h1 id="hero-title">Din löpning.<br />Dina pass.<br /><em>Din grej.</em></h1>
+          <p class="intro">
+            Vi bygger platsen för dina pass, din statistik och din analys. Från första kilometern
+            till nästa personbästa.
+          </p>
+          <div class="hero-actions">
+            <a class="button" href="#pa-vag">Upptäck Kuta <span aria-hidden="true">↓</span></a>
+          </div>
+        </div>
+        <div class="hero-activity" aria-label="Designskiss av ett löppass med exempeldata">
+          <div class="activity-heading">
+            <span class="activity-icon" aria-hidden="true">↗</span>
+            <div>
+              <span class="mock-label">DESIGNSKISS</span>
+              <p>Den där morgonrundan.</p>
+            </div>
+            <span class="activity-check" aria-hidden="true">✓</span>
+          </div>
+          <div class="activity-metrics">
+            <p>
+              <strong>8,24 <small>km</small></strong
+              ><span>Distans</span>
+            </p>
+            <p>
+              <strong>5:36 <small>/km</small></strong
+              ><span>Snittfart</span>
+            </p>
+            <p><strong>46:12</strong><span>Tid</span></p>
+          </div>
+        </div>
+        <p class="photo-note">AI-genererad illustration</p>
+        <span class="hero-coordinate" aria-hidden="true">UT OCH KUTA ↗</span>
+      </section>
+      <section class="features wrap" id="pa-vag" aria-labelledby="features-title">
+        <div class="section-heading">
+          <div>
+            <p class="eyebrow">MINDRE SIFFERSOPPA. MER AHA.</p>
+            <h2 id="features-title">Dina pass.<br />Hela bilden.</h2>
+          </div>
+          <p>
+            Vad säger egentligen alla kilometer? Vi bygger verktygen som hjälper dig se din löpning,
+            förstå din utveckling och hitta nästa mål.
+          </p>
+        </div>
+        <article class="feature feature-run" aria-labelledby="passes-title">
+          <div class="feature-copy">
+            <p class="feature-index">01 / DINA PASS <span>Planerat</span></p>
+            <h3 id="passes-title">Dina pass.</h3>
+            <p>
+              Importera FIT-filer från Garmin eller logga manuellt och samla dina distanser, tider
+              och rutter på ett ställe.
+            </p>
+            <p class="feature-tag">Varje pass har sin plats. <span aria-hidden="true">↗</span></p>
+          </div>
+          <div
+            class="route-demo"
+            role="img"
+            aria-label="Designskiss med exempeldata: en löprunda på 8,24 kilometer, 46 minuter och 12 sekunder"
+          >
+            <div class="map-paper">
+              <svg viewBox="0 0 520 390" aria-hidden="true">
+                <defs>
+                  <pattern
+                    id="map-grid"
+                    width="55"
+                    height="55"
+                    patternTransform="rotate(-18)"
+                    patternUnits="userSpaceOnUse"
+                  >
+                    <path d="M0 0H55V55" fill="none" stroke="#c6cfb6" stroke-width="1" />
+                  </pattern>
+                </defs>
+                <rect width="520" height="390" fill="#e4e9d8" />
+                <path d="M-40 330Q100 50 270 120T560 20V-30H-40Z" fill="#ccd9bf" />
+                <path
+                  d="M-20 300Q80 210 210 300T550 250"
+                  fill="none"
+                  stroke="#b3caca"
+                  stroke-width="30"
+                />
+                <rect width="520" height="390" fill="url(#map-grid)" />
+                <path
+                  d="M-20 100L540 300M40-10L400 410M-20 240L540 100"
+                  stroke="#fbfaf2"
+                  stroke-width="12"
+                  fill="none"
+                />
+                <path
+                  d="M145 270C100 227 105 151 165 141S222 187 258 167 218 69 294 62 403 118 377 180 292 208 312 260 207 330 145 270Z"
+                  fill="none"
+                  stroke="#fffaf1"
+                  stroke-width="12"
+                />
+                <path
+                  class="route-line"
+                  d="M145 270C100 227 105 151 165 141S222 187 258 167 218 69 294 62 403 118 377 180 292 208 312 260 207 330 145 270Z"
+                  fill="none"
+                  stroke="#dd4c26"
+                  stroke-width="6"
+                  stroke-linecap="round"
+                />
+                <circle
+                  cx="145"
+                  cy="270"
+                  r="9"
+                  fill="#fffaf1"
+                  stroke="#dd4c26"
+                  stroke-width="5"
+                /></svg
+              ><span class="map-pin">Din favoritrunda <span aria-hidden="true">♥</span></span
+              ><span class="mock-label map-label">DESIGNSKISS · EXEMPELDATA</span>
+            </div>
+            <div class="run-ticket">
+              <div>
+                <span class="ticket-date">SÖNDAGSRUNDAN</span
+                ><strong>Lite längre. Lite gladare.</strong>
+              </div>
+              <span class="ticket-distance">8,24 <small>km</small></span>
+            </div>
+          </div>
+        </article>
+        <div class="feature-pair">
+          <article class="feature feature-stats" aria-labelledby="stats-title">
+            <div class="feature-copy">
+              <p class="feature-index">02 / DIN STATISTIK <span>Planerat</span></p>
+              <h3 id="stats-title">Du kommer<br />någonstans.</h3>
+              <p>
+                Följ din distans, fart och puls över tid. Se träningsveckorna ta form och upptäck
+                utvecklingen som inte alltid känns i benen.
+              </p>
+            </div>
+            <figure class="week-chart">
+              <div class="chart-heading">
+                <div>
+                  <span>DIN SENASTE VECKA</span><strong>38,5 <small>km</small></strong>
+                </div>
+                <span class="chart-arrow" aria-hidden="true">↗</span>
+              </div>
+              <svg viewBox="0 0 400 170" role="img" aria-labelledby="chart-title">
+                <title id="chart-title">
+                  Exempeldata: veckodistans 28,4, 34,2, 30,6 och 38,5 kilometer
+                </title>
+                <path d="M0 130H400M0 80H400M0 30H400" stroke="#d2d9c7" stroke-dasharray="3 5" />
+                <rect x="20" y="53" width="62" height="97" rx="6" fill="#a8b693" />
+                <rect x="119" y="33" width="62" height="117" rx="6" fill="#a8b693" />
+                <rect x="218" y="45" width="62" height="105" rx="6" fill="#a8b693" />
+                <rect x="317" y="18" width="62" height="132" rx="6" fill="#d84a23" />
+                <g fill="#58604e" font-family="Arial, sans-serif" font-size="11">
+                  <text x="36" y="168">V. 21</text>
+                  <text x="135" y="168">V. 22</text>
+                  <text x="234" y="168">V. 23</text>
+                  <text x="333" y="168">V. 24</text>
+                </g>
+              </svg>
+              <figcaption>Designskiss med exempeldata</figcaption>
+            </figure>
+          </article>
+          <article class="feature feature-analysis" aria-labelledby="analysis-title">
+            <div class="feature-copy">
+              <p class="feature-index">03 / DIN ANALYS <span>Planerat</span></p>
+              <h3 id="analysis-title">Den enda du<br />behöver slå är du.</h3>
+              <p>
+                Jämför dina prestationer över tid. Hitta din snabbaste kilometer, ditt bästa 5 km
+                och årets snabbaste mil, beräknat från dina pass.
+              </p>
+            </div>
+            <div
+              class="record-demo"
+              aria-label="Designskiss med exempeldata: årsbästa på 5 kilometer, 24 minuter och 18 sekunder"
+            >
+              <div class="record-medal" aria-hidden="true">✳</div>
+              <p>DITT ÅRSBÄSTA · 5 KM</p>
+              <strong>24:18<span aria-hidden="true">↗</span></strong
+              ><span class="record-caption">Samma du. Lite snabbare.</span
+              ><span class="mock-label">DESIGNSKISS · EXEMPELDATA</span>
+            </div>
+          </article>
+        </div>
+      </section>
+      <section class="principles" id="dina-data" aria-labelledby="principles-title">
+        <div class="principles-inner wrap">
+          <div class="sweden-stamp" aria-hidden="true">
+            <span>59° N / 18° E</span><strong>SE<span>✳</span></strong
+            ><span>STOCKHOLM, SVERIGE</span>
+          </div>
+          <div class="principles-copy">
+            <p class="eyebrow">HEMMA BRA.</p>
+            <h2 id="principles-title">Din löpning är din.<br />Det är din data också.</h2>
+            <p>
+              Dina träningsdata lagras i Sverige. Dina pass ska vara privata som standard. Du väljer
+              själv vad du delar och med vem.
+            </p>
+            <span class="sweden-label"><span aria-hidden="true">●</span> Data i Sverige</span>
+          </div>
+        </div>
+      </section>
+      <section class="join wrap" aria-labelledby="join-title">
+        <div>
+          <p class="eyebrow">VI ÄR BARA I STARTEN.</p>
+          <h2 id="join-title">Häng med<br />från <em>första steget.</em></h2>
+          <p>
+            Konto och inloggning finns. Löpverktygen är på väg.<br />Skapa ett konto och var med
+            från början.
+          </p>
+        </div>
+        <a class="button" href="/app#skapa-konto">Skapa konto <span aria-hidden="true">↗</span></a>
+      </section>
+    </main>
+    <footer class="site-footer wrap">
+      <a class="wordmark" href="/" aria-label="Kuta – startsida"
+        ><img src="/brand/logo.svg" alt="" width="152" height="51"
+      /></a>
+      <p>Ett hittepå från <a href="https://hackskaduha.se">Hack ska du ha AB</a></p>
+      <a href="/app">Öppna appen <span aria-hidden="true">↗</span></a>
+    </footer>
   </body>
 </html>

@@ -7,10 +7,10 @@ import { cn } from '@/lib/utils'
 import { AuthPage, ChooseNamePage, ResetPasswordPage } from '@/routes/auth'
 
 const tabs = [
-  { to: '/', label: 'Flöde', icon: Home },
-  { to: '/pass', label: 'Pass', icon: Activity },
-  { to: '/statistik', label: 'Statistik', icon: BarChart3 },
-  { to: '/profil', label: 'Profil', icon: User },
+  { to: '/app', label: 'Flöde', icon: Home },
+  { to: '/app/pass', label: 'Pass', icon: Activity },
+  { to: '/app/statistik', label: 'Statistik', icon: BarChart3 },
+  { to: '/app/profil', label: 'Profil', icon: User },
 ] as const
 
 export function Layout() {
@@ -50,7 +50,8 @@ export function Layout() {
       >
         <ul className="mx-auto flex max-w-2xl justify-around">
           {tabs.map(({ to, label, icon: Icon }) => {
-            const active = to === '/' ? pathname === '/' : pathname.startsWith(to)
+            const active =
+              to === '/app' ? pathname === '/app' || pathname === '/app/' : pathname.startsWith(to)
             return (
               <li key={to}>
                 <Link

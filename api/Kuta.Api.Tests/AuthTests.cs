@@ -37,7 +37,7 @@ public class AuthTests(KutaFactory factory) : IClassFixture<KutaFactory>
             var tokenHash = await ConfirmationTokenHash(email, ct);
             var confirm = await client.GetAsync($"/api/auth/confirm?token_hash={tokenHash}", ct);
             Assert.Equal(HttpStatusCode.Redirect, confirm.StatusCode);
-            Assert.Equal("/", confirm.Headers.Location?.ToString());
+            Assert.Equal("/app", confirm.Headers.Location?.ToString());
             var sessionCookies = confirm.Headers.GetValues("Set-Cookie").Select(c => c.Split(';')[0]).ToList();
 
             var me = await client.GetFromJsonAsync<JsonElement>("/api/me", ct);
@@ -57,7 +57,7 @@ public class AuthTests(KutaFactory factory) : IClassFixture<KutaFactory>
             Assert.Contains("\"distanceM\":5000", activities);
 
             var reused = await client.GetAsync($"/api/auth/confirm?token_hash={tokenHash}", ct);
-            Assert.Equal("/?confirm=failed", reused.Headers.Location?.ToString());
+            Assert.Equal("/app?confirm=failed", reused.Headers.Location?.ToString());
 
             var replay = factory.CreateClient(new WebApplicationFactoryClientOptions { HandleCookies = false });
             replay.DefaultRequestHeaders.Add("Cookie", string.Join("; ", sessionCookies));
