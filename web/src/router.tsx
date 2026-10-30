@@ -1,4 +1,9 @@
-import { createRootRoute, createRoute, createRouter } from '@tanstack/react-router'
+import {
+  createRootRoute,
+  createRoute,
+  createRouter,
+  lazyRouteComponent,
+} from '@tanstack/react-router'
 import { Layout } from '@/components/layout'
 import { ActivitiesPage } from '@/routes/activities'
 import { FeedPage } from '@/routes/feed'
@@ -17,6 +22,12 @@ const activitiesRoute = createRoute({
   path: '/app/activities',
   component: ActivitiesPage,
 })
+// Passsidan laddas först när den öppnas: kartan (MapLibre) och diagrammen är tunga
+const activityRoute = createRoute({
+  getParentRoute: () => rootRoute,
+  path: '/app/activities/$activityId',
+  component: lazyRouteComponent(() => import('@/routes/activity'), 'ActivityPage'),
+})
 const statsRoute = createRoute({
   getParentRoute: () => rootRoute,
   path: '/app/stats',
@@ -28,7 +39,13 @@ const profileRoute = createRoute({
   component: ProfilePage,
 })
 
-const routeTree = rootRoute.addChildren([feedRoute, activitiesRoute, statsRoute, profileRoute])
+const routeTree = rootRoute.addChildren([
+  feedRoute,
+  activitiesRoute,
+  activityRoute,
+  statsRoute,
+  profileRoute,
+])
 
 export const router = createRouter({ routeTree, defaultPreload: 'intent' })
 

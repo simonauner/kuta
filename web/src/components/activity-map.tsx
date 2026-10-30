@@ -1,0 +1,63 @@
+import { LngLatBounds, Map, NavigationControl, setWorkerUrl } from 'maplibre-gl'
+import 'maplibre-gl/dist/maplibre-gl.css'
+import workerUrl from 'maplibre-gl/dist/maplibre-gl-worker.mjs?url'
+import { useEffect, useRef } from 'react'
+
+// Kartbilder från OpenFreeMap (OpenStreetMap-data, ingen nyckel). Leverantören ser vilka kartbitar som hämtas,
+// alltså ungefär var passet gick. shortcut: byt till egen PMTiles-fil (AGENTS.md) när det ska stanna hos Kuta.
+// Origins för stil, kartbitar, typsnitt och ikoner finns i CSP:n i vite.config.ts.
+const mapStyle = 'https://tiles.openfreemap.org/styles/liberty'
+
+// MapLibre v6 hittar inte sin worker när Vite paketerar om biblioteket; peka ut filen (från vår egen origin).
+setWorkerUrl(workerUrl)
+
+export function ActivityMap({
+  coordinates,
+  label,
+}: {
+  coordinates: [number, number][]
+  label: string
+}) {
+  const container = useRef<HTMLDivElement>(null)
+
+  useEffect(() => {
+    if (!container.current || coordinates.length < 2) return
+    const bounds = coordinates.reduce(
+      (b, c) => b.extend(c),
+      new LngLatBounds(coordinates[0], coordinates[0]),
+    )
+    const map = new Map({
+      container: container.current,
+      style: mapStyle,
+      bounds,
+      fitBoundsOptions: { padding: 32 },
+      attributionControl: { compact: true },
+      // Scroll och ett finger flyttar sidan, inte kartan; zooma med Ctrl/Cmd + scroll eller två fingrar
+      cooperativeGestures: true,
+    })
+    map.addControl(new NavigationControl({ showCompass: false }))
+    map.on('load', () => {
+      map.addSource('route', {
+        type: 'geojson',
+        data: { type: 'Feature', properties: {}, geometry: { type: 'LineString', coordinates } },
+      })
+      map.addLayer({
+        id: 'route',
+        type: 'line',
+        source: 'route',
+        layout: { 'line-join': 'round', 'line-cap': 'round' },
+        paint: { 'line-color': '#e8590c', 'line-width': 4 },
+      })
+    })
+    return () => map.remove()
+  }, [coordinates])
+
+  return (
+    <div
+      ref={container}
+      role="img"
+      aria-label={label}
+      className="h-72 w-full overflow-hidden rounded-lg border sm:h-96"
+    />
+  )
+}
