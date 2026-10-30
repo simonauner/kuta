@@ -3,7 +3,9 @@ using System.Net.Http.Json;
 using System.Text.Json;
 using System.Text.RegularExpressions;
 using Dapper;
+using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc.Testing;
+using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Npgsql;
 using Xunit;
@@ -141,6 +143,63 @@ public class PasswordRecoveryTests
             (await client.PostAsJsonAsync("/api/auth/reset-password", new { password = NewPassword }, ct)).StatusCode);
         Assert.Equal("/?reset=failed", (await client.GetAsync("/api/auth/reset-password", ct)).Headers.Location?.ToString());
         Assert.Equal("/?reset=failed", (await client.GetAsync("/api/auth/reset-password?token_hash=invalid", ct)).Headers.Location?.ToString());
+    }
+
+    [Theory]
+    [InlineData(false)]
+    [InlineData(true)]
+    public async Task Cancelled_reset_revokes_sessions_even_when_provider_result_is_unknown(bool loseResponse)
+    {
+        var ct = TestContext.Current.CancellationToken;
+        await using var factory = new WebApplicationFactory<Program>();
+        using var scope = factory.Services.CreateScope();
+        var db = scope.ServiceProvider.GetRequiredService<NpgsqlDataSource>();
+        await using var conn = await db.OpenConnectionAsync(ct);
+        var userId = Guid.NewGuid();
+        await conn.ExecuteAsync("insert into auth.users (id, email) values (@userId, @email)",
+            new { userId, email = $"cancelled-reset-{userId:N}@example.com" });
+        try
+        {
+            await conn.ExecuteAsync("insert into user_sessions (user_id, expires_at) values (@userId, now() + interval '1 day')",
+                new { userId });
+            var start = new DefaultHttpContext { RequestServices = scope.ServiceProvider };
+            await PasswordRecovery.StartAsync(start,
+                new AuthSession(userId, "synthetic@example.com", "access", "refresh", DateTimeOffset.UtcNow.AddHours(1)), ct);
+            using var aborted = new CancellationTokenSource();
+            var http = new DefaultHttpContext { RequestServices = scope.ServiceProvider, RequestAborted = aborted.Token };
+            http.Request.Headers.Cookie = start.Response.Headers.SetCookie.ToString().Split(';')[0];
+            using var handler = new CancelAfterPasswordChange(aborted, loseResponse);
+            using var transport = new HttpClient(handler);
+            var supabase = new SupabaseAuthClient(transport,
+                scope.ServiceProvider.GetRequiredService<IConfiguration>(), new HttpContextAccessor());
+
+            var error = await Record.ExceptionAsync(() => PasswordRecovery.ResetAsync(NewPassword, http, supabase, db, aborted.Token));
+
+            Assert.True(handler.PasswordChanged);
+            Assert.True(error is null or OperationCanceledException, error?.ToString());
+            Assert.Equal(0, await conn.ExecuteScalarAsync<int>(
+                "select count(*) from user_sessions where user_id = @userId and ended_at is null", new { userId }));
+        }
+        finally
+        {
+            await conn.ExecuteAsync("delete from auth.users where id = @userId", new { userId });
+        }
+    }
+
+    sealed class CancelAfterPasswordChange(CancellationTokenSource aborted, bool loseResponse) : HttpMessageHandler
+    {
+        public bool PasswordChanged { get; private set; }
+
+        protected override Task<HttpResponseMessage> SendAsync(HttpRequestMessage request, CancellationToken ct)
+        {
+            if (request.Method == HttpMethod.Put)
+            {
+                PasswordChanged = true;
+                aborted.Cancel();
+                if (loseResponse) throw new TaskCanceledException("Provider changed the password, but its response was lost.");
+            }
+            return Task.FromResult(new HttpResponseMessage(HttpStatusCode.OK));
+        }
     }
 
     static HttpClient Client(WebApplicationFactory<Program> factory, bool cookies = true) =>
