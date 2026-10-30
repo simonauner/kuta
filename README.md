@@ -42,6 +42,7 @@ Tester (kräver `supabase start`, med Storage påslaget): `dotnet test --project
 Frontendkontroller med Node-versionen i `.nvmrc`: kör `npm ci` i `web/`, sedan
 `npm test`, `npm run lint` och `npm run build`. API-klientens tester använder
 Nodes inbyggda testverktyg och mockade nätverksanrop; de kräver inte Supabase.
+GitHub Actions kör frontendkontrollerna på berörda pull requests och push till `main`.
 
 ## Driftsättning (Fly.io)
 
