@@ -1,6 +1,7 @@
 using System.Security.Claims;
 using System.Security.Cryptography;
 using Dapper;
+using Microsoft.AspNetCore.Mvc;
 using Dynastream.Fit;
 using Npgsql;
 
@@ -14,6 +15,11 @@ public record ActivityDetail(
     Guid Id, string Sport, string? Title, System.DateTime StartedAt, int DurationS, int? MovingS, double DistanceM,
     short? AvgHr, short? MaxHr, float? AvgSpeedMps, float? ElevationGainM, string? Device, ActivityStreams? Streams,
     IEnumerable<ActivityLap> Laps);
+
+// Det som formuläret förifylls med från en FIT-fil
+public record ActivityPreview(
+    string Sport, System.DateTime StartedAt, int DurationS, int? MovingS, double DistanceM, short? AvgHr, short? MaxHr,
+    float? ElevationGainM, string? Device);
 
 public record ActivityStreams(
     int[] T, float?[]? Dist, short?[]? Hr, float?[]? Speed, float?[]? Alt, double?[]? Lat, double?[]? Lon,
@@ -89,42 +95,72 @@ public static class ActivityEndpoints
             return Results.Ok(detail with { Laps = laps });
         });
 
-        // Uppladdning av en FIT-fil: tolka den, spara råfilen (bara med pulssamtycke) och skriv passet med tidsserier
-        // i en transaktion. Samma fil igen ger 409 (raw_file_sha256 är unik per användare).
-        activities.MapPost("", async (IFormFile? file, NpgsqlDataSource db, RawFileStore store, ClaimsPrincipal user,
+        // Förhandsvisning för formuläret "Skapa ny aktivitet": tolkar filen utan att spara något.
+        // Pulsen följer samtycket även här, så att formuläret visar det som faktiskt kommer att sparas.
+        activities.MapPost("/preview", async (IFormFile? file, NpgsqlDataSource db, ClaimsPrincipal user,
             CancellationToken cancellationToken) =>
         {
-            if (file is null || file.Length == 0)
-                return Results.BadRequest(new ApiError("Välj en FIT-fil att ladda upp.", "fileRequired"));
-            if (file.Length > MaxFitFileBytes)
-                return Results.BadRequest(new ApiError("Filen är för stor (högst 20 MB).", "fileTooLarge"));
-
-            using var buffer = new MemoryStream();
-            await file.CopyToAsync(buffer, cancellationToken);
-            var bytes = buffer.ToArray();
-            var sha256 = SHA256.HashData(bytes);
-            var userId = user.GetUserId();
-
             await using var conn = await db.OpenConnectionAsync(cancellationToken);
+            var (fit, error) = await ReadFitAsync(file, conn, user.GetUserId(), cancellationToken);
+            if (fit is null) return error!;
+            var p = fit.Parsed;
+            return Results.Ok(new ActivityPreview(
+                p.Sport, p.StartedAt, p.DurationS, p.MovingS, p.DistanceM, p.AvgHr, p.MaxHr, p.ElevationGainM, p.Device));
+        })
+        .DisableAntiforgery();
+
+        // Manuellt pass utan fil: bara sammanfattning, inga tidsserier eller rekord
+        activities.MapPost("/manual", async (ManualActivityRequest req, NpgsqlDataSource db, ClaimsPrincipal user) =>
+        {
+            if (ActivityInput.Validate(req, DateTimeOffset.UtcNow) is { } invalid) return Results.BadRequest(invalid);
+            var userId = user.GetUserId();
+            await using var conn = await db.OpenConnectionAsync();
             var profile = await MeEndpoints.LoadProfileAsync(conn, userId);
             if (profile is null) return Results.Conflict(new ApiError("Välj ett namn först.", "nameRequired"));
-            if (await conn.ExecuteScalarAsync<bool>(
-                    "select exists (select 1 from activities where user_id = @userId and raw_file_sha256 = @sha256)",
-                    new { userId, sha256 }))
-                return Results.Conflict(new ApiError("Det här passet är redan uppladdat.", "duplicateActivity"));
 
-            ParsedActivity? parsed;
-            try { parsed = FitImport.Parse(bytes); }
-            catch (FitException) { parsed = null; }
-            if (parsed is null) return Results.BadRequest(new ApiError("Filen kunde inte läsas som ett pass från en FIT-fil.", "invalidFit"));
+            var title = ActivityInput.NormalizeTitle(req.Title);
+            var startedAt = req.StartedAt!.Value.UtcDateTime;
+            var avgHr = profile.HrConsent ? req.AvgHr : null; // puls bara med samtycke, som vid filuppladdning
+            var id = await conn.ExecuteScalarAsync<Guid>(
+                """
+                insert into activities (user_id, source, sport, title, started_at, duration_s, distance_m, avg_hr,
+                                        avg_speed_mps, elevation_gain_m)
+                values (@userId, 'manual', @Sport, @title, @startedAt, @DurationS, @DistanceM, @avgHr,
+                        @avgSpeedMps, @ElevationGainM)
+                returning id
+                """,
+                new
+                {
+                    userId, req.Sport, title, startedAt, req.DurationS, req.DistanceM, avgHr,
+                    avgSpeedMps = (float)(req.DistanceM!.Value / req.DurationS!.Value), req.ElevationGainM,
+                });
+            return Results.Created($"/api/activities/{id}", new ActivitySummary(
+                id, req.Sport!, title, startedAt, req.DurationS.Value, req.DistanceM.Value, avgHr, null));
+        });
+
+        // Uppladdning av en FIT-fil: tolka den, spara råfilen (bara med pulssamtycke) och skriv passet med tidsserier
+        // i en transaktion. Samma fil igen ger 409 (raw_file_sha256 är unik per användare).
+        // Titel och sport kan ändras i formuläret; mätvärdena kommer alltid från filen.
+        activities.MapPost("", async (IFormFile? file, [FromForm] string? title, [FromForm] string? sport,
+            NpgsqlDataSource db, RawFileStore store, ClaimsPrincipal user, CancellationToken cancellationToken) =>
+        {
+            if ((ActivityInput.ValidateTitle(title) ?? ActivityInput.ValidateSport(sport)) is { } invalid)
+                return Results.BadRequest(invalid);
+            var userId = user.GetUserId();
+            await using var conn = await db.OpenConnectionAsync(cancellationToken);
+            var (fit, error) = await ReadFitAsync(file, conn, userId, cancellationToken);
+            if (fit is null) return error!;
+            var (bytes, sha256, parsed, hrConsent) = fit;
+            if (sport is not null) parsed = parsed with { Sport = sport };
+            title = ActivityInput.NormalizeTitle(title);
+
             // Utan samtycke sparas varken pulsen eller råfilen (som också innehåller puls); hashen räcker för dubbletter.
             string? key = null;
-            if (profile.HrConsent)
+            if (hrConsent)
             {
                 key = $"fit/{userId}/{Convert.ToHexStringLower(sha256)}.fit";
                 await store.PutAsync(key, bytes, cancellationToken);
             }
-            else parsed = parsed.WithoutHeartRate();
 
             await using var tx = await conn.BeginTransactionAsync(cancellationToken);
             Guid id;
@@ -132,16 +168,16 @@ public static class ActivityEndpoints
             {
                 id = await conn.ExecuteScalarAsync<Guid>(
                     """
-                    insert into activities (user_id, source, sport, started_at, duration_s, moving_s, distance_m,
+                    insert into activities (user_id, source, sport, title, started_at, duration_s, moving_s, distance_m,
                                             avg_hr, max_hr, avg_speed_mps, elevation_gain_m, route, device,
                                             raw_file_key, raw_file_sha256)
-                    values (@userId, 'fit', @Sport, @StartedAt, @DurationS, @MovingS, @DistanceM,
+                    values (@userId, 'fit', @Sport, @title, @StartedAt, @DurationS, @MovingS, @DistanceM,
                             @AvgHr, @MaxHr, @AvgSpeedMps, @ElevationGainM, @route::geography, @Device, @key, @sha256)
                     returning id
                     """,
                     new
                     {
-                        userId, parsed.Sport, parsed.StartedAt, parsed.DurationS, parsed.MovingS, parsed.DistanceM,
+                        userId, parsed.Sport, title, parsed.StartedAt, parsed.DurationS, parsed.MovingS, parsed.DistanceM,
                         parsed.AvgHr, parsed.MaxHr, parsed.AvgSpeedMps, parsed.ElevationGainM,
                         route = (object?)parsed.Route ?? DBNull.Value, parsed.Device, key, sha256,
                     }, tx);
@@ -177,7 +213,7 @@ public static class ActivityEndpoints
             await tx.CommitAsync(cancellationToken);
 
             return Results.Created($"/api/activities/{id}", new ActivitySummary(
-                id, parsed.Sport, null, parsed.StartedAt, parsed.DurationS, parsed.DistanceM, parsed.AvgHr, null));
+                id, parsed.Sport, title, parsed.StartedAt, parsed.DurationS, parsed.DistanceM, parsed.AvgHr, null));
         })
         // CSRF-token kontrolleras av filtret i AuthEndpoints (X-CSRF-TOKEN), inte av ramverkets formulärkontroll
         .DisableAntiforgery();
@@ -218,4 +254,35 @@ public static class ActivityEndpoints
     }
 
     private record OwnedActivity(Guid Id, string? RawFileKey);
+
+    // En tolkad FIT-fil; utan pulssamtycke är pulsen redan borttagen
+    private record FitUpload(byte[] Bytes, byte[] Sha256, ParsedActivity Parsed, bool HrConsent);
+
+    private static async Task<(FitUpload? Fit, IResult? Error)> ReadFitAsync(IFormFile? file, NpgsqlConnection conn,
+        Guid userId, CancellationToken cancellationToken)
+    {
+        if (file is null || file.Length == 0)
+            return (null, Results.BadRequest(new ApiError("Välj en FIT-fil att ladda upp.", "fileRequired")));
+        if (file.Length > MaxFitFileBytes)
+            return (null, Results.BadRequest(new ApiError("Filen är för stor (högst 20 MB).", "fileTooLarge")));
+
+        using var buffer = new MemoryStream();
+        await file.CopyToAsync(buffer, cancellationToken);
+        var bytes = buffer.ToArray();
+        var sha256 = SHA256.HashData(bytes);
+
+        var profile = await MeEndpoints.LoadProfileAsync(conn, userId);
+        if (profile is null) return (null, Results.Conflict(new ApiError("Välj ett namn först.", "nameRequired")));
+        if (await conn.ExecuteScalarAsync<bool>(
+                "select exists (select 1 from activities where user_id = @userId and raw_file_sha256 = @sha256)",
+                new { userId, sha256 }))
+            return (null, Results.Conflict(new ApiError("Det här passet är redan uppladdat.", "duplicateActivity")));
+
+        ParsedActivity? parsed;
+        try { parsed = FitImport.Parse(bytes); }
+        catch (FitException) { parsed = null; }
+        if (parsed is null)
+            return (null, Results.BadRequest(new ApiError("Filen kunde inte läsas som ett pass från en FIT-fil.", "invalidFit")));
+        return (new FitUpload(bytes, sha256, profile.HrConsent ? parsed : parsed.WithoutHeartRate(), profile.HrConsent), null);
+    }
 }
