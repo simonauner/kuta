@@ -1,0 +1,36 @@
+# Fly.io-appen för Kuta, separat från Kredovis. Hemligheterna sätts med `fly secrets set` (se README, Driftsättning).
+app = 'kuta'
+primary_region = 'arn'
+# Utan swap dödar kärnan processen när den passerar maskinens minne.
+swap_size_mb = 512
+
+[build]
+  dockerfile = 'Dockerfile'
+
+[env]
+  ASPNETCORE_ENVIRONMENT = 'Production'
+  # Klientens IP från Flys proxy för rate limiten, och https från X-Forwarded-Proto.
+  ASPNETCORE_FORWARDEDHEADERS_ENABLED = 'true'
+  ForwardedHeaders__ForwardedForHeaderName = 'Fly-Client-IP'
+  # Fylls i när Supabase-projektet finns. Den publika nyckeln är inte hemlig.
+  # Supabase__Url = 'https://<projekt-ref>.supabase.co'
+  # Supabase__PublishableKey = 'sb_publishable_...'
+
+[http_service]
+  internal_port = 8080
+  force_https = true
+  # Stannar när ingen använder appen (billigast före lansering); första anropet väcker den.
+  auto_stop_machines = 'stop'
+  auto_start_machines = true
+  min_machines_running = 0
+
+  [[http_service.checks]]
+    grace_period = '30s'
+    interval = '30s'
+    method = 'GET'
+    path = '/api/health'
+    timeout = '5s'
+
+[[vm]]
+  size = 'shared-cpu-1x'
+  memory = '512mb'
