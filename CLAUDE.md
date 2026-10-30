@@ -12,9 +12,9 @@ Kuta (kuta.io) är en Strava-liknande löparapp: ladda upp pass från Garmin (FI
 
 ## Status
 - `web/`: bygger (`npm run build` OK). Skal med routes Flöde/Pass/Statistik/Profil, bottennavigering, sidövergångar, PWA-manifest. PNG-ikoner (192/512/maskable, apple-touch-icon) saknas.
-- `api/`: **skrivet men aldrig kompilerat eller körts** (skapades i en miljö utan .NET SDK). Kompilerar; paketversioner pinnade. Namnmatchning snake_case→PascalCase är satt via `DefaultTypeMap.MatchNamesWithUnderscores`.
-- `001_init.sql` är inte körd. Granska schemat innan första körning.
-- Inget GitHub-repo skapat än.
+- `api/`: bygger och körs; `/api/health` svarar med PostGIS-version. Paketversioner pinnade. Namnmatchning snake_case→PascalCase är satt via `DefaultTypeMap.MatchNamesWithUnderscores`.
+- `001_init.sql` granskad och körd. Ändra den inte – nya schemaändringar läggs i `002_...sql`.
+- Privat repo: github.com/simonauner/kuta. Node 24 (`.nvmrc`); Postgres-imagen är `imresamu/postgis` (arm64).
 
 ## Designbeslut att hålla fast vid
 - **Tidsserier som arrayer** i `activity_streams` (en rad per pass), inte en rad per sekund.
