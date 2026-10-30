@@ -44,7 +44,7 @@ public static class PasswordRecovery
         NpgsqlDataSource db, CancellationToken ct)
     {
         if (string.IsNullOrEmpty(password) || password.Length < 8)
-            return Results.BadRequest(new ApiError("Använd minst 8 tecken i lösenordet."));
+            return Results.BadRequest(new ApiError("Använd minst 8 tecken i lösenordet.", "passwordTooShort"));
 
         Ticket? ticket = null;
         if (http.Request.Cookies.TryGetValue(CookieName(http), out var value))
@@ -81,9 +81,9 @@ public static class PasswordRecovery
             throw;
         }
         if (result == PasswordResetResult.WeakPassword)
-            return Results.BadRequest(new ApiError("Lösenordet är för svagt. Använd minst 8 tecken."));
+            return Results.BadRequest(new ApiError("Lösenordet är för svagt. Använd minst 8 tecken.", "weakPassword"));
         if (result == PasswordResetResult.SamePassword)
-            return Results.BadRequest(new ApiError("Välj ett annat lösenord än ditt nuvarande."));
+            return Results.BadRequest(new ApiError("Välj ett annat lösenord än ditt nuvarande.", "passwordUnchanged"));
         if (result != PasswordResetResult.Updated) return InvalidLink(http);
 
         await EndSessionsAsync(conn, transaction, ticket.UserId);
@@ -106,6 +106,6 @@ public static class PasswordRecovery
     private static IResult InvalidLink(HttpContext http)
     {
         http.Response.Cookies.Delete(CookieName(http), Cookie(http));
-        return Results.Json(new ApiError("Återställningslänken är ogiltig eller har gått ut. Begär en ny länk."), statusCode: 401);
+        return Results.Json(new ApiError("Återställningslänken är ogiltig eller har gått ut. Begär en ny länk.", "recoveryExpired"), statusCode: 401);
     }
 }

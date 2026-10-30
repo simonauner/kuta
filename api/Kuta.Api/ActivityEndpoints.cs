@@ -39,9 +39,9 @@ public static class ActivityEndpoints
             CancellationToken cancellationToken) =>
         {
             if (file is null || file.Length == 0)
-                return Results.BadRequest(new ApiError("Välj en FIT-fil att ladda upp."));
+                return Results.BadRequest(new ApiError("Välj en FIT-fil att ladda upp.", "fileRequired"));
             if (file.Length > MaxFitFileBytes)
-                return Results.BadRequest(new ApiError("Filen är för stor (högst 20 MB)."));
+                return Results.BadRequest(new ApiError("Filen är för stor (högst 20 MB).", "fileTooLarge"));
 
             using var buffer = new MemoryStream();
             await file.CopyToAsync(buffer, cancellationToken);
@@ -51,16 +51,16 @@ public static class ActivityEndpoints
 
             await using var conn = await db.OpenConnectionAsync(cancellationToken);
             var profile = await MeEndpoints.LoadProfileAsync(conn, userId);
-            if (profile is null) return Results.Conflict(new ApiError("Välj ett namn först."));
+            if (profile is null) return Results.Conflict(new ApiError("Välj ett namn först.", "nameRequired"));
             if (await conn.ExecuteScalarAsync<bool>(
                     "select exists (select 1 from activities where user_id = @userId and raw_file_sha256 = @sha256)",
                     new { userId, sha256 }))
-                return Results.Conflict(new ApiError("Det här passet är redan uppladdat."));
+                return Results.Conflict(new ApiError("Det här passet är redan uppladdat.", "duplicateActivity"));
 
             ParsedActivity? parsed;
             try { parsed = FitImport.Parse(bytes); }
             catch (FitException) { parsed = null; }
-            if (parsed is null) return Results.BadRequest(new ApiError("Filen kunde inte läsas som ett pass från en FIT-fil."));
+            if (parsed is null) return Results.BadRequest(new ApiError("Filen kunde inte läsas som ett pass från en FIT-fil.", "invalidFit"));
             // Utan samtycke sparas varken pulsen eller råfilen (som också innehåller puls); hashen räcker för dubbletter.
             string? key = null;
             if (profile.HrConsent)
@@ -92,7 +92,7 @@ public static class ActivityEndpoints
             catch (PostgresException e) when (e.SqlState == PostgresErrorCodes.UniqueViolation)
             {
                 // Samma fil uppladdad samtidigt i en annan förfrågan
-                return Results.Conflict(new ApiError("Det här passet är redan uppladdat."));
+                return Results.Conflict(new ApiError("Det här passet är redan uppladdat.", "duplicateActivity"));
             }
             await conn.ExecuteAsync(
                 """

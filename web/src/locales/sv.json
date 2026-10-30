@@ -1,0 +1,87 @@
+{
+  "nav": {
+    "feed": "Flöde",
+    "activities": "Pass",
+    "stats": "Statistik",
+    "profile": "Profil"
+  },
+  "language": "Språk",
+  "connectionError": "Kunde inte nå Kuta. Kontrollera anslutningen och ladda om sidan.",
+  "feed": {
+    "description": "Här dyker pass från dig och de du följer upp."
+  },
+  "stats": {
+    "description": "Distans, fart, puls och personbästa över tid."
+  },
+  "profile": {
+    "description": "Dina skor, grupper och inställningar.",
+    "logout": "Logga ut"
+  },
+  "activities": {
+    "file": "FIT-fil från din klocka",
+    "hrSaved": "Pulsdata sparas. Ändra på",
+    "uploading": "Laddar upp …",
+    "upload": "Ladda upp",
+    "empty": "Inga pass än.",
+    "delete": "Ta bort",
+    "deleteLabel": "Ta bort passet {{date}}",
+    "confirmDelete": "Ta bort passet? Det går inte att ångra."
+  },
+  "consent": {
+    "title": "Spara puls från mina pass.",
+    "description": "Puls är hälsodata. Utan ditt samtycke sparar Kuta passen utan puls och behåller inte originalfilen. Stänger du av det raderas all sparad puls.",
+    "revoke": "All puls som redan sparats från dina pass raderas. Fortsätta?"
+  },
+  "auth": {
+    "checkEmail": "Kolla din e-post",
+    "back": "Tillbaka till inloggningen",
+    "login": "Logga in",
+    "signup": "Skapa konto",
+    "recover": "Återställ lösenord",
+    "resetFailed": "Återställningslänken är ogiltig eller redan använd. Begär en ny länk.",
+    "confirmFailed": "Bekräftelselänken är ogiltig eller redan använd. Logga in eller skapa kontot igen.",
+    "email": "E-post",
+    "password": "Lösenord",
+    "wait": "Vänta…",
+    "sendRecovery": "Skicka återställningslänk",
+    "forgot": "Glömt lösenord?",
+    "noAccount": "Inget konto? Skapa ett",
+    "passwordChanged": "Lösenordet är ändrat",
+    "signInAgain": "Logga in med ditt nya lösenord. Dina tidigare sessioner har avslutats.",
+    "toLogin": "Till inloggningen",
+    "choosePassword": "Välj nytt lösenord",
+    "newPassword": "Nytt lösenord",
+    "minPassword": "Använd minst 8 tecken.",
+    "saving": "Sparar…",
+    "savePassword": "Spara nytt lösenord",
+    "newLink": "Begär en ny återställningslänk",
+    "welcome": "Välkommen till Kuta",
+    "name": "Vad vill du kallas?",
+    "continue": "Fortsätt",
+    "confirmSent": "Kolla din e-post och klicka på länken för att aktivera kontot.",
+    "recoverySent": "Om adressen har ett konto får du ett mejl med en länk för att återställa lösenordet."
+  },
+  "errors": {
+    "generic": "Något gick fel. Försök igen.",
+    "network": "Kunde inte nå Kuta. Kontrollera anslutningen och försök igen.",
+    "rateLimited": "För många försök. Försök igen om en stund.",
+    "csrfFailed": "Säkerhetskontrollen misslyckades. Ladda om sidan.",
+    "authUnavailable": "Inloggningen är tillfälligt otillgänglig. Försök igen om en stund.",
+    "credentialsRequired": "Ange e-post och lösenord.",
+    "weakPassword": "Lösenordet är för svagt. Använd minst 8 tecken.",
+    "signupFailed": "Kunde inte skapa kontot. Kontrollera e-postadressen.",
+    "emailNotConfirmed": "Bekräfta din e-postadress först – kolla din inkorg.",
+    "invalidCredentials": "Fel e-post eller lösenord.",
+    "invalidEmail": "Ange en giltig e-postadress.",
+    "invalidName": "Ange ett namn (högst 100 tecken).",
+    "nameRequired": "Välj ett namn först.",
+    "fileRequired": "Välj en FIT-fil att ladda upp.",
+    "fileTooLarge": "Filen är för stor (högst 20 MB).",
+    "duplicateActivity": "Det här passet är redan uppladdat.",
+    "invalidFit": "Filen kunde inte läsas som ett pass från en FIT-fil.",
+    "passwordTooShort": "Använd minst 8 tecken i lösenordet.",
+    "passwordUnchanged": "Välj ett annat lösenord än ditt nuvarande.",
+    "recoveryExpired": "Återställningslänken är ogiltig eller har gått ut. Begär en ny länk."
+  },
+  "home": "Kuta – startsida"
+}

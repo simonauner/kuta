@@ -28,7 +28,7 @@ Kuta är en Strava-liknande löparapp: ladda upp pass från Garmin (FIT) eller l
   - Sessioner i `user_sessions` (kontrolleras vid varje anrop, utloggning slår igenom direkt). Cookien glider 30 dagar, hård gräns 180 dagar. Access-token förnyas strax före utgång; Supabase tillfrågas om återkallelse högst var 5:e minut.
   - Data Protection-nycklar i `data_protection_keys`. Rate limit 10 auth-anrop/5 min/IP.
   - `users` är en profiltabell med samma id som `auth.users` (FK, kaskadradering). `GET /api/me` ger id, e-post och `displayName` (null tills profilen skapats); `PUT /api/me` skapar/uppdaterar profilen.
-    - Webben: `src/lib/api.ts` (fetch med CSRF-token, `ApiError` från API:ts `{ error }`), `src/lib/auth.ts` (`meQuery`, null = utloggad), `src/routes/auth.tsx` (inloggning/registrering/kolla e-post, namnval första gången). `Layout` visar inloggningen i stället för appen när `me` är null. Fel från API:t har formen `{ "error": "..." }` på svenska och visas som de är.
+    - Webben: `src/lib/api.ts` (fetch med CSRF-token, `ApiError` från API:ts `{ error }`), `src/lib/auth.ts` (`meQuery`, null = utloggad), `src/routes/auth.tsx` (inloggning/registrering/kolla e-post, namnval första gången). `Layout` visar inloggningen i stället för appen när `me` är null. Fel från API:t har formen `{ "error": "...", "code": "..." }`; webben översätter koden till valt språk.
   - PWA:ns navigeringsfallback får bara svara på appens sökvägar under `/app` (`navigateFallbackAllowlist` i `vite.config.ts`), aldrig på startsidan eller `/api/` – annars når bekräftelselänken aldrig API:t.
   - Lösenordsåterställning: `POST /api/auth/recover`, mejllänk till `GET /api/auth/reset-password?token_hash=`, sedan `POST /api/auth/reset-password`. Separat krypterad HttpOnly-cookie (högst 15 minuter), engångsanvändning via `user_sessions`; ger ingen appåtkomst. Lyckat byte avslutar kontots Kuta-sessioner. Mall och driftinställning finns i README.
   - Saknas: MFA, inloggning med Google/Apple, logga ut andra sessioner, städning av gamla sessionsrader, Turnstile.
@@ -74,6 +74,10 @@ Kuta är en Strava-liknande löparapp: ladda upp pass från Garmin (FIT) eller l
 7. Därefter: följare, flöde, grupper; e-post och push.
 
 ## Konventioner
-- Svenska i UI-texter, engelska i kod och commit-meddelanden.
+- Appen har ännu inga användare och behöver inte vara bakåtkompatibel. Lägg inte till omdirigeringar, äldre API-format eller annan kompatibilitetskod för tidigare beteenden. Ompröva regeln när appen får användare.
+- Engelska URL:er (`/app`, `/app/activities`, `/app/stats`, `/app/profile`), oberoende av valt språk.
+- UI stödjer svenska och engelska med `react-i18next`. Lägg nya texter i båda `web/src/locales/{sv,en}.json` och använd typade `t()`-nycklar. Datum och tal formateras med valt språk via `Intl`; användardata översätts inte. Engelska i kod och commit-meddelanden.
+- Språkprioritet: uttryckligt sparat val → svenskt IP → webbläsarens språk → engelska. IP är en ungefärlig signal från lokalt inbäddade IPv4-/IPv6-nät, aldrig ett åtkomstbeslut. Spara bara uttryckliga språkval.
+- API-fel har svensk `error` och en stabil `code`; webben översätter koden vid rendering. Nya felkoder ska ha texter på båda språken. Mejlmallarna är tills vidare svenska.
 - JSON i API:t är lowerCamelCase. Returnera typade records från Dapper, aldrig `dynamic`-rader (de serialiseras med snake_case-kolumnnamn som nycklar).
 - Små, fokuserade commits. Följ verifieringen under Arbetsflöde innan commit.

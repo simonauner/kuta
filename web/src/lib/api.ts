@@ -3,10 +3,12 @@
 
 export class ApiError extends Error {
   status: number
+  code: string
 
-  constructor(status: number, message: string) {
+  constructor(status: number, message: string, code = 'generic') {
     super(message)
     this.status = status
+    this.code = code
   }
 }
 
@@ -32,7 +34,11 @@ async function request<T>(path: string, init?: RequestInit): Promise<T> {
     // Sessionen har gått ut: token hör till den gamla användaren
     if (res.status === 401) resetCsrfToken()
     const body = await res.json().catch(() => null)
-    throw new ApiError(res.status, body?.error ?? 'Något gick fel. Försök igen.')
+    throw new ApiError(
+      res.status,
+      body?.error ?? 'Något gick fel. Försök igen.',
+      body?.code ?? (res.status === 429 ? 'rateLimited' : 'generic'),
+    )
   }
   return res.status === 204 ? (undefined as T) : res.json()
 }

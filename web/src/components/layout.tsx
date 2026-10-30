@@ -1,3 +1,5 @@
+import { LanguageSelect } from '@/components/language-select'
+import { useTranslation } from 'react-i18next'
 import { useQuery } from '@tanstack/react-query'
 import { Link, Outlet, useRouterState } from '@tanstack/react-router'
 import { Activity, BarChart3, Home, User } from 'lucide-react'
@@ -7,13 +9,14 @@ import { cn } from '@/lib/utils'
 import { AuthPage, ChooseNamePage, ResetPasswordPage } from '@/routes/auth'
 
 const tabs = [
-  { to: '/app', label: 'Flöde', icon: Home },
-  { to: '/app/pass', label: 'Pass', icon: Activity },
-  { to: '/app/statistik', label: 'Statistik', icon: BarChart3 },
-  { to: '/app/profil', label: 'Profil', icon: User },
+  { to: '/app', label: 'nav.feed', icon: Home },
+  { to: '/app/activities', label: 'nav.activities', icon: Activity },
+  { to: '/app/stats', label: 'nav.stats', icon: BarChart3 },
+  { to: '/app/profile', label: 'nav.profile', icon: User },
 ] as const
 
 export function Layout() {
+  const { t } = useTranslation()
   const pathname = useRouterState({ select: (s) => s.location.pathname })
   const me = useQuery(meQuery)
 
@@ -24,15 +27,21 @@ export function Layout() {
   if (me.isPending) return null
   if (me.isError)
     return (
-      <p role="alert" className="p-6 text-muted-foreground">
-        Kunde inte nå Kuta. Kontrollera anslutningen och ladda om sidan.
-      </p>
+      <div className="mx-auto max-w-2xl p-6">
+        <LanguageSelect />
+        <p role="alert" className="mt-4 text-muted-foreground">
+          {t('connectionError')}
+        </p>
+      </div>
     )
   if (!me.data) return <AuthPage />
   if (me.data.displayName === null) return <ChooseNamePage />
 
   return (
     <div className="mx-auto flex min-h-dvh max-w-2xl flex-col">
+      <header className="px-4 pt-4">
+        <LanguageSelect />
+      </header>
       <main className="flex-1 px-4 pb-28 pt-6">
         <motion.div
           key={pathname}
@@ -62,7 +71,7 @@ export function Layout() {
                   )}
                 >
                   <Icon className="size-5" />
-                  {label}
+                  {t(label)}
                 </Link>
               </li>
             )

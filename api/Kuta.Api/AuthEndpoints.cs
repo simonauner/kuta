@@ -2,7 +2,7 @@ using Microsoft.AspNetCore.Antiforgery;
 using Microsoft.AspNetCore.Mvc;
 
 public record Credentials(string? Email, string? Password);
-public record ApiError(string Error);
+public record ApiError(string Error, string? Code = null);
 public record ApiMessage(string Message);
 public record AntiforgeryToken(string Token);
 public record RecoveryRequest(string? Email);
@@ -29,7 +29,7 @@ public static class AuthEndpoints
             }
             catch (AntiforgeryValidationException)
             {
-                return Results.Json(new ApiError("Säkerhetskontrollen misslyckades. Ladda om sidan."), statusCode: 400);
+                return Results.Json(new ApiError("Säkerhetskontrollen misslyckades. Ladda om sidan.", "csrfFailed"), statusCode: 400);
             }
             return await next(context);
         });
@@ -44,7 +44,7 @@ public static class AuthEndpoints
             catch (Exception exception) when (exception is HttpRequestException ||
                 exception is OperationCanceledException && !context.HttpContext.RequestAborted.IsCancellationRequested)
             {
-                return Results.Json(new ApiError("Inloggningen är tillfälligt otillgänglig. Försök igen om en stund."),
+                return Results.Json(new ApiError("Inloggningen är tillfälligt otillgänglig. Försök igen om en stund.", "authUnavailable"),
                     statusCode: 503);
             }
         });
@@ -53,7 +53,7 @@ public static class AuthEndpoints
             CancellationToken cancellationToken) =>
         {
             if (string.IsNullOrWhiteSpace(req.Email) || string.IsNullOrEmpty(req.Password))
-                return Results.BadRequest(new ApiError("Ange e-post och lösenord."));
+                return Results.BadRequest(new ApiError("Ange e-post och lösenord.", "credentialsRequired"));
 
             var (result, session) = await supabase.SignUpAsync(req.Email.Trim(), req.Password, cancellationToken);
             switch (result)
@@ -65,9 +65,9 @@ public static class AuthEndpoints
                     return Results.Accepted(null,
                         new ApiMessage("Kolla din e-post och klicka på länken för att aktivera kontot."));
                 case SignUpResult.WeakPassword:
-                    return Results.BadRequest(new ApiError("Lösenordet är för svagt. Använd minst 8 tecken."));
+                    return Results.BadRequest(new ApiError("Lösenordet är för svagt. Använd minst 8 tecken.", "weakPassword"));
                 default:
-                    return Results.BadRequest(new ApiError("Kunde inte skapa kontot. Kontrollera e-postadressen."));
+                    return Results.BadRequest(new ApiError("Kunde inte skapa kontot. Kontrollera e-postadressen.", "signupFailed"));
             }
         });
 
@@ -75,7 +75,7 @@ public static class AuthEndpoints
             CancellationToken cancellationToken) =>
         {
             if (string.IsNullOrWhiteSpace(req.Email) || string.IsNullOrEmpty(req.Password))
-                return Results.BadRequest(new ApiError("Ange e-post och lösenord."));
+                return Results.BadRequest(new ApiError("Ange e-post och lösenord.", "credentialsRequired"));
 
             var (result, session) = await supabase.SignInAsync(req.Email.Trim(), req.Password, cancellationToken);
             switch (result)
@@ -84,9 +84,9 @@ public static class AuthEndpoints
                     await SupabaseCookieSession.SignInAsync(http, session!, cancellationToken);
                     return Results.NoContent();
                 case SignInResult.EmailNotConfirmed:
-                    return Results.Json(new ApiError("Bekräfta din e-postadress först – kolla din inkorg."), statusCode: 403);
+                    return Results.Json(new ApiError("Bekräfta din e-postadress först – kolla din inkorg.", "emailNotConfirmed"), statusCode: 403);
                 default:
-                    return Results.Json(new ApiError("Fel e-post eller lösenord."), statusCode: 401);
+                    return Results.Json(new ApiError("Fel e-post eller lösenord.", "invalidCredentials"), statusCode: 401);
             }
         });
 
@@ -100,7 +100,7 @@ public static class AuthEndpoints
         {
             if (string.IsNullOrWhiteSpace(req.Email) || !System.Net.Mail.MailAddress.TryCreate(req.Email.Trim(), out var address)
                 || address.Address != req.Email.Trim())
-                return Results.BadRequest(new ApiError("Ange en giltig e-postadress."));
+                return Results.BadRequest(new ApiError("Ange en giltig e-postadress.", "invalidEmail"));
             await supabase.RecoverAsync(address.Address, ct);
             return Results.Accepted(null, new ApiMessage("Om adressen har ett konto får du ett mejl med en länk för att återställa lösenordet."));
         });

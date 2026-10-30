@@ -1,0 +1,87 @@
+{
+  "nav": {
+    "feed": "Feed",
+    "activities": "Activities",
+    "stats": "Statistics",
+    "profile": "Profile"
+  },
+  "language": "Language",
+  "connectionError": "Could not reach Kuta. Check your connection and reload the page.",
+  "feed": {
+    "description": "Activities from you and the people you follow will appear here."
+  },
+  "stats": {
+    "description": "Distance, pace, heart rate and personal bests over time."
+  },
+  "profile": {
+    "description": "Your shoes, groups and settings.",
+    "logout": "Log out"
+  },
+  "activities": {
+    "file": "FIT file from your watch",
+    "hrSaved": "Heart rate data is saved. Change this in",
+    "uploading": "Uploading …",
+    "upload": "Upload",
+    "empty": "No activities yet.",
+    "delete": "Delete",
+    "deleteLabel": "Delete activity {{date}}",
+    "confirmDelete": "Delete this activity? This cannot be undone."
+  },
+  "consent": {
+    "title": "Save heart rate from my activities.",
+    "description": "Heart rate is health data. Without your consent, Kuta saves activities without heart rate and does not keep the original file. Turning this off deletes all saved heart rate data.",
+    "revoke": "All heart rate data already saved from your activities will be deleted. Continue?"
+  },
+  "auth": {
+    "checkEmail": "Check your email",
+    "back": "Back to login",
+    "login": "Log in",
+    "signup": "Create account",
+    "recover": "Reset password",
+    "resetFailed": "The reset link is invalid or has already been used. Request a new link.",
+    "confirmFailed": "The confirmation link is invalid or has already been used. Log in or sign up again.",
+    "email": "Email",
+    "password": "Password",
+    "wait": "Please wait…",
+    "sendRecovery": "Send reset link",
+    "forgot": "Forgot password?",
+    "noAccount": "No account? Create one",
+    "passwordChanged": "Password changed",
+    "signInAgain": "Log in with your new password. Your previous sessions have ended.",
+    "toLogin": "Go to login",
+    "choosePassword": "Choose a new password",
+    "newPassword": "New password",
+    "minPassword": "Use at least 8 characters.",
+    "saving": "Saving…",
+    "savePassword": "Save new password",
+    "newLink": "Request a new reset link",
+    "welcome": "Welcome to Kuta",
+    "name": "What would you like to be called?",
+    "continue": "Continue",
+    "confirmSent": "Check your email and click the link to activate your account.",
+    "recoverySent": "If this address has an account, you will receive an email with a link to reset your password."
+  },
+  "errors": {
+    "generic": "Something went wrong. Please try again.",
+    "network": "Could not reach Kuta. Check your connection and try again.",
+    "rateLimited": "Too many attempts. Please try again later.",
+    "csrfFailed": "Security check failed. Reload the page.",
+    "authUnavailable": "Login is temporarily unavailable. Please try again later.",
+    "credentialsRequired": "Enter your email and password.",
+    "weakPassword": "The password is too weak. Use at least 8 characters.",
+    "signupFailed": "Could not create the account. Check your email address.",
+    "emailNotConfirmed": "Confirm your email address first — check your inbox.",
+    "invalidCredentials": "Incorrect email or password.",
+    "invalidEmail": "Enter a valid email address.",
+    "invalidName": "Enter a name (up to 100 characters).",
+    "nameRequired": "Choose a name first.",
+    "fileRequired": "Choose a FIT file to upload.",
+    "fileTooLarge": "The file is too large (20 MB maximum).",
+    "duplicateActivity": "This activity has already been uploaded.",
+    "invalidFit": "The file could not be read as an activity from a FIT file.",
+    "passwordTooShort": "Use at least 8 characters in your password.",
+    "passwordUnchanged": "Choose a different password from your current one.",
+    "recoveryExpired": "The reset link is invalid or has expired. Request a new link."
+  },
+  "home": "Kuta – home"
+}
