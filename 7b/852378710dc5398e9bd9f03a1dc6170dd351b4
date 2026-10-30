@@ -1,0 +1,33 @@
+web/src/main.tsx
+  s_e3c087b455dd6d::t_1a1ab4ef3792f6 1,7
+web/src/lib/query-client.ts
+  s_e3c087b455dd6d::t_1a1ab4ef3792f6 1-5
+web/src/routes/activities.tsx
+  s_e3c087b455dd6d::t_1a1ab4ef3792f6 111-112
+web/src/router.tsx
+  s_e3c087b455dd6d::t_1a1ab4ef3792f6 12-13,31-32,54-68
+web/src/components/layout.tsx
+  s_e3c087b455dd6d::t_1a1ab4ef3792f6 91
+web/src/index.css
+  s_e3c087b455dd6d::t_1a1ab4ef3792f6 5-12
+web/src/routes/activity.tsx
+  s_e3c087b455dd6d::t_1a1ab4ef3792f6 8-9,41,118-122
+web/src/lib/activity-query.ts
+  s_e3c087b455dd6d::t_1a1ab4ef3792f6 1-10
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.7.5",
+  "base_commit_sha": "7b852378710dc5398e9bd9f03a1dc6170dd351b4",
+  "prompts": {},
+  "sessions": {
+    "s_e3c087b455dd6d": {
+      "agent_id": {
+        "tool": "codex",
+        "id": "01a18f26-32ac-7a62-bad4-6e56fd10d259",
+        "model": "gpt-6.1-sol"
+      },
+      "human_author": "Simon Aunér <simonauner@gmail.com>"
+    }
+  }
+}
