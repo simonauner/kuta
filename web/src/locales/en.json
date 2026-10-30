@@ -28,6 +28,43 @@
     "deleteLabel": "Delete activity {{date}}",
     "confirmDelete": "Delete this activity? This cannot be undone."
   },
+  "activity": {
+    "back": "All activities",
+    "notFound": "The activity doesn't exist.",
+    "distance": "Distance",
+    "time": "Time",
+    "pace": "Pace",
+    "elevation": "Elevation gain",
+    "movingTime": "Moving time",
+    "avgHr": "Avg heart rate",
+    "maxHr": "Max heart rate",
+    "splits": "Splits",
+    "splitKm": "Km",
+    "splitPace": "Pace",
+    "splitElevation": "Elev",
+    "splitHr": "HR",
+    "charts": "Charts",
+    "chartElevation": "Elevation (m)",
+    "chartPace": "Pace (min/km)",
+    "chartHr": "Heart rate (bpm)",
+    "map": "Route map",
+    "noRoute": "This activity has no GPS route.",
+    "defaultTitle": "{{timeOfDay}} {{sport}}",
+    "sport": {
+      "running": "run",
+      "cycling": "ride",
+      "walking": "walk",
+      "hiking": "hike",
+      "other": "activity"
+    },
+    "timeOfDay": {
+      "night": "Night",
+      "morning": "Morning",
+      "forenoon": "Late morning",
+      "afternoon": "Afternoon",
+      "evening": "Evening"
+    }
+  },
   "consent": {
     "title": "Save heart rate from my activities.",
     "description": "Heart rate is health data. Without your consent, Kuta saves activities without heart rate and does not keep the original file. Turning this off deletes all saved heart rate data.",
