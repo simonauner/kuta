@@ -20,7 +20,10 @@ export function AuthPage() {
   const submit = useMutation({
     mutationFn: async (form: FormData) => {
       const credentials = { email: form.get('email'), password: form.get('password') }
-      if (mode === 'recover') return api.send<{ message: string }>('POST', '/api/auth/recover', { email: credentials.email })
+      if (mode === 'recover')
+        return api.send<{ message: string }>('POST', '/api/auth/recover', {
+          email: credentials.email,
+        })
       if (mode === 'login') return api.send('POST', '/api/auth/login', credentials)
       return api.send<{ message: string } | undefined>('POST', '/api/auth/signup', credentials)
     },
@@ -40,19 +43,30 @@ export function AuthPage() {
     return (
       <AuthShell title="Kolla din e-post">
         <p className="text-muted-foreground">{checkEmail}</p>
-        <Button variant="outline" className="mt-6 w-full" onClick={() => {
-          if (resetFailed) { window.location.assign('/'); return }
-          setCheckEmail(null)
-          setMode('login')
-          submit.reset()
-        }}>
+        <Button
+          variant="outline"
+          className="mt-6 w-full"
+          onClick={() => {
+            if (resetFailed) {
+              window.location.assign('/')
+              return
+            }
+            setCheckEmail(null)
+            setMode('login')
+            submit.reset()
+          }}
+        >
           Tillbaka till inloggningen
         </Button>
       </AuthShell>
     )
 
   return (
-    <AuthShell title={mode === 'login' ? 'Logga in' : mode === 'signup' ? 'Skapa konto' : 'Återställ lösenord'}>
+    <AuthShell
+      title={
+        mode === 'login' ? 'Logga in' : mode === 'signup' ? 'Skapa konto' : 'Återställ lösenord'
+      }
+    >
       {resetFailed && mode === 'recover' && (
         <p role="alert" className="mb-4 text-sm text-destructive">
           Återställningslänken är ogiltig eller redan använd. Begär en ny länk.
@@ -68,31 +82,43 @@ export function AuthPage() {
           <Label htmlFor="email">E-post</Label>
           <Input id="email" name="email" type="email" autoComplete="email" required />
         </div>
-        {mode !== 'recover' && <div className="space-y-2">
-          <Label htmlFor="password">Lösenord</Label>
-          <Input
-            id="password"
-            name="password"
-            type="password"
-            autoComplete={mode === 'login' ? 'current-password' : 'new-password'}
-            minLength={mode === 'signup' ? 8 : undefined}
-            required
-          />
-        </div>}
+        {mode !== 'recover' && (
+          <div className="space-y-2">
+            <Label htmlFor="password">Lösenord</Label>
+            <Input
+              id="password"
+              name="password"
+              type="password"
+              autoComplete={mode === 'login' ? 'current-password' : 'new-password'}
+              minLength={mode === 'signup' ? 8 : undefined}
+              required
+            />
+          </div>
+        )}
         {submit.error && (
           <p role="alert" className="text-sm text-destructive">
             {submit.error.message}
           </p>
         )}
         <Button type="submit" className="w-full" disabled={submit.isPending}>
-          {submit.isPending ? 'Vänta…' : mode === 'login' ? 'Logga in' : mode === 'signup' ? 'Skapa konto' : 'Skicka återställningslänk'}
+          {submit.isPending
+            ? 'Vänta…'
+            : mode === 'login'
+              ? 'Logga in'
+              : mode === 'signup'
+                ? 'Skapa konto'
+                : 'Skicka återställningslänk'}
         </Button>
       </form>
       {mode === 'login' && (
-        <Button variant="link" className="mt-2 w-full" onClick={() => {
-          setMode('recover')
-          submit.reset()
-        }}>
+        <Button
+          variant="link"
+          className="mt-2 w-full"
+          onClick={() => {
+            setMode('recover')
+            submit.reset()
+          }}
+        >
           Glömt lösenord?
         </Button>
       )}
@@ -100,7 +126,10 @@ export function AuthPage() {
         variant="link"
         className="mt-4 w-full"
         onClick={() => {
-          if (resetFailed) { window.location.assign('/'); return }
+          if (resetFailed) {
+            window.location.assign('/')
+            return
+          }
           setMode(mode === 'login' ? 'signup' : 'login')
           submit.reset()
         }}
@@ -118,30 +147,51 @@ export function ResetPasswordPage() {
     onSuccess: () => sessionChanged(),
   })
 
-  if (save.isSuccess) return (
-    <AuthShell title="Lösenordet är ändrat">
-      <p className="text-muted-foreground">Logga in med ditt nya lösenord. Dina tidigare sessioner har avslutats.</p>
-      <Button asChild className="mt-6 w-full"><a href="/">Till inloggningen</a></Button>
-    </AuthShell>
-  )
+  if (save.isSuccess)
+    return (
+      <AuthShell title="Lösenordet är ändrat">
+        <p className="text-muted-foreground">
+          Logga in med ditt nya lösenord. Dina tidigare sessioner har avslutats.
+        </p>
+        <Button asChild className="mt-6 w-full">
+          <a href="/">Till inloggningen</a>
+        </Button>
+      </AuthShell>
+    )
 
   return (
     <AuthShell title="Välj nytt lösenord">
-      <form className="space-y-4" onSubmit={(e) => {
-        e.preventDefault()
-        save.mutate(String(new FormData(e.currentTarget).get('password')))
-      }}>
+      <form
+        className="space-y-4"
+        onSubmit={(e) => {
+          e.preventDefault()
+          save.mutate(String(new FormData(e.currentTarget).get('password')))
+        }}
+      >
         <div className="space-y-2">
           <Label htmlFor="new-password">Nytt lösenord</Label>
-          <Input id="new-password" name="password" type="password" autoComplete="new-password" minLength={8} required />
+          <Input
+            id="new-password"
+            name="password"
+            type="password"
+            autoComplete="new-password"
+            minLength={8}
+            required
+          />
           <p className="text-sm text-muted-foreground">Använd minst 8 tecken.</p>
         </div>
-        {save.error && <p role="alert" className="text-sm text-destructive">{save.error.message}</p>}
+        {save.error && (
+          <p role="alert" className="text-sm text-destructive">
+            {save.error.message}
+          </p>
+        )}
         <Button type="submit" className="w-full" disabled={save.isPending}>
           {save.isPending ? 'Sparar…' : 'Spara nytt lösenord'}
         </Button>
       </form>
-      <Button asChild variant="link" className="mt-4 w-full"><a href="/?reset=failed">Begär en ny återställningslänk</a></Button>
+      <Button asChild variant="link" className="mt-4 w-full">
+        <a href="/?reset=failed">Begär en ny återställningslänk</a>
+      </Button>
     </AuthShell>
   )
 }

@@ -2,8 +2,5 @@
   "files": [],
   // Läses av shadcn-CLI:n för att hitta @-aliaset (TypeScript använder tsconfig.app.json)
   "compilerOptions": { "paths": { "@/*": ["./src/*"] } },
-  "references": [
-    { "path": "./tsconfig.app.json" },
-    { "path": "./tsconfig.node.json" }
-  ]
+  "references": [{ "path": "./tsconfig.app.json" }, { "path": "./tsconfig.node.json" }]
 }

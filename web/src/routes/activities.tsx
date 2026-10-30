@@ -19,10 +19,16 @@ type Activity = {
   avgHr: number | null
 }
 
-const activitiesQuery = { queryKey: ['activities'], queryFn: () => api.get<Activity[]>('/api/activities') }
+const activitiesQuery = {
+  queryKey: ['activities'],
+  queryFn: () => api.get<Activity[]>('/api/activities'),
+}
 
 const dateFormat = new Intl.DateTimeFormat('sv-SE', { dateStyle: 'medium', timeStyle: 'short' })
-const kmFormat = new Intl.NumberFormat('sv-SE', { minimumFractionDigits: 2, maximumFractionDigits: 2 })
+const kmFormat = new Intl.NumberFormat('sv-SE', {
+  minimumFractionDigits: 2,
+  maximumFractionDigits: 2,
+})
 
 function formatDuration(seconds: number) {
   const h = Math.floor(seconds / 3600)
@@ -77,7 +83,9 @@ export function ActivitiesPage() {
       <h1 className="text-2xl font-semibold tracking-tight">Pass</h1>
 
       <form onSubmit={onSubmit} className="mt-6">
-        <Label htmlFor="fit-file" className="mb-2">FIT-fil från din klocka</Label>
+        <Label htmlFor="fit-file" className="mb-2">
+          FIT-fil från din klocka
+        </Label>
         <Input
           id="fit-file"
           type="file"
@@ -109,16 +117,15 @@ export function ActivitiesPage() {
         )}
       </form>
 
-      {activities.data?.length === 0 && (
-        <p className="mt-8 text-muted-foreground">Inga pass än.</p>
-      )}
+      {activities.data?.length === 0 && <p className="mt-8 text-muted-foreground">Inga pass än.</p>}
       <ul className="mt-8 divide-y">
         {activities.data?.map((a) => (
           <li key={a.id} className="flex items-start justify-between gap-4 py-4">
             <div>
               <p className="font-medium">{a.title ?? dateFormat.format(new Date(a.startedAt))}</p>
               <p className="mt-1 text-sm text-muted-foreground">
-                {kmFormat.format(a.distanceM / 1000)} km · {formatDuration(a.durationS)} · {formatPace(a.durationS, a.distanceM)}
+                {kmFormat.format(a.distanceM / 1000)} km · {formatDuration(a.durationS)} ·{' '}
+                {formatPace(a.durationS, a.distanceM)}
                 {a.avgHr !== null && ` · ${a.avgHr} bpm`}
               </p>
             </div>
