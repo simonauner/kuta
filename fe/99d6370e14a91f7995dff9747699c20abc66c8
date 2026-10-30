@@ -14,6 +14,7 @@ web/src/locales/en.json
 api/Kuta.Api.Tests/StravaImportTests.cs
   s_acd06763c92952::t_226b1aa71846dc 1-36,39-111,118-224
   s_acd06763c92952::t_93b9603cdfb3ac 37-38
+  s_acd06763c92952::t_44b856136cf6c5 112-117
 AGENTS.md
   s_acd06763c92952::t_95153a95563d8c 48,59
   s_acd06763c92952::t_c329cef11c75c0 23,41,84
@@ -26,6 +27,7 @@ README.md
   s_acd06763c92952::t_95153a95563d8c 103-104,106-114
   s_acd06763c92952::t_e3b1a41fd5e4f0 19
   s_acd06763c92952::t_c329cef11c75c0 11-13,17,105
+  s_acd06763c92952::t_44b856136cf6c5 71
 api/Kuta.Api/StravaImportEndpoint.cs
   s_acd06763c92952::t_95153a95563d8c 29-66,71,95,97-100
   s_acd06763c92952::t_d3fd6364cf1d20 1-28,67-70,72-94,96,101-115
@@ -44,6 +46,7 @@ api/Kuta.Api/ActivityEndpoints.cs
   s_acd06763c92952::t_f2f9685d750374 102-104,107,112-113
 api/Kuta.Api/ActivityStorage.cs
   s_acd06763c92952::t_829746d0ba1ab8 1-37,39-51
+  s_acd06763c92952::t_44b856136cf6c5 38
 api/Kuta.Api/MeEndpoints.cs
   s_acd06763c92952::t_6339e4860c5037 61-62,64
 ---
