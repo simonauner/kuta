@@ -1,0 +1,27 @@
+api/Kuta.Api/MeEndpoints.cs
+  s_6fd5f3f6e9c798::t_4510961017c16b 1-46
+api/Kuta.Api/Program.cs
+  s_6fd5f3f6e9c798::t_7119ad16566b0b 5,25-30,32-35,65
+api/Kuta.Api/Migrations/003_supabase_auth.sql
+  s_6fd5f3f6e9c798::t_2b686de376f0d5 1-12
+api/Kuta.Api.Tests/AuthTests.cs
+  s_6fd5f3f6e9c798::t_cc603df25de0c6 3,10,13-16,18,23,28-37,40-47,54-55,58-74
+api/Kuta.Api/Kuta.Api.csproj
+  s_6fd5f3f6e9c798::t_7119ad16566b0b 11
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.7.5",
+  "base_commit_sha": "35fe8aaf92840fe63b8fd80dc602bc7669b7ffd9",
+  "prompts": {},
+  "sessions": {
+    "s_6fd5f3f6e9c798": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "110cb47e-0b75-4e34-90b9-538aef87a42f",
+        "model": "claude-opus-5-5"
+      },
+      "human_author": "Simon Aunér <simonauner@gmail.com>"
+    }
+  }
+}
