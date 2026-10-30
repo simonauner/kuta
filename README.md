@@ -61,6 +61,15 @@ Frontendkontroller med Node-versionen i `.nvmrc`: kör `npm ci` i `web/`, sedan
 Nodes inbyggda testverktyg och mockade nätverksanrop; de kräver inte Supabase.
 GitHub Actions kör frontendkontrollerna på berörda pull requests och push till `main`.
 
+API-jobbet i `.github/workflows/api.yml` kör hela `api/Kuta.Api.Tests` vid ändringar
+i API:t, Supabase-konfigurationen, `global.json`, `Dockerfile` eller själva jobbet,
+både på pull requests och push till `main`. Det installerar .NET enligt `global.json`
+och Supabase CLI 2.72.7, startar en tillfällig lokal Supabase med Auth, Mailpit och
+Storage, läser dess lokala nycklar och väntar på auth efter omstart innan testerna
+körs. Testerna körs sekventiellt (`-- --parallel none`) så att testservrarna inte
+försöker migrera den tomma databasen samtidigt. Inga produktionshemligheter
+eller hostade tjänster används. Supabase stoppas även om testerna misslyckas.
+
 Footern visar copyright och webbens byggnummer (`ÅÅÅÅMMDD.ttmmss`, UTC), som sätts
 automatiskt av Vite vid bygget, även i Docker. I utvecklingsläge visas `Version utveckling`.
 

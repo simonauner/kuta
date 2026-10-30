@@ -1,0 +1,57 @@
+name: API
+
+on:
+  pull_request:
+    paths:
+      - 'api/**'
+      - 'supabase/**'
+      - 'global.json'
+      - '.github/workflows/api.yml'
+      - 'Dockerfile'
+  push:
+    branches: [main]
+    paths:
+      - 'api/**'
+      - 'supabase/**'
+      - 'global.json'
+      - '.github/workflows/api.yml'
+      - 'Dockerfile'
+
+permissions:
+  contents: read
+
+jobs:
+  api:
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    env:
+      ASPNETCORE_ENVIRONMENT: Development
+    steps:
+      - uses: actions/checkout@v7
+      - uses: actions/setup-dotnet@v6
+        with:
+          global-json-file: global.json
+      - uses: supabase/setup-cli@v3
+        with:
+          version: 2.72.7
+      - name: Start local Supabase
+        run: |
+          supabase start -x studio,postgres-meta,imgproxy
+          # Auth can load the default email templates before Kong is ready.
+          docker restart supabase_auth_kuta
+          local_config=$(supabase status -o json)
+          jq -r '
+            "Supabase__PublishableKey=\(.PUBLISHABLE_KEY)",
+            "Storage__AccessKeyId=\(.S3_PROTOCOL_ACCESS_KEY_ID)",
+            "Storage__SecretAccessKey=\(.S3_PROTOCOL_ACCESS_KEY_SECRET)"
+          ' <<< "$local_config" >> "$GITHUB_ENV"
+          curl --fail --silent --show-error --max-time 5 \
+            --retry 30 --retry-all-errors --retry-delay 1 \
+            -H "apikey: $(jq -r '.PUBLISHABLE_KEY' <<< "$local_config")" \
+            http://127.0.0.1:55321/auth/v1/health > /dev/null
+      - name: Run API tests
+        # Test servers migrate the same fresh database on first startup.
+        run: dotnet test --project api/Kuta.Api.Tests -- --parallel none
+      - name: Stop local Supabase
+        if: always()
+        run: supabase stop
