@@ -73,7 +73,13 @@ export default defineConfig({
         navigateFallback: '/app.html',
         navigateFallbackAllowlist: [/^\/app(?:\/(?:pass|statistik|profil))?\/?(?:\?|$)/],
       },
-      includeAssets: ['favicon.svg', 'favicon-32.png', 'apple-touch-icon.png', 'icons/*.png', 'brand/*.svg'],
+      includeAssets: [
+        'favicon.svg',
+        'favicon-32.png',
+        'apple-touch-icon.png',
+        'icons/*.png',
+        'brand/*.svg',
+      ],
       manifest: {
         name: 'Kuta',
         short_name: 'Kuta',
@@ -89,7 +95,12 @@ export default defineConfig({
           { src: 'favicon.svg', sizes: 'any', type: 'image/svg+xml', purpose: 'any' },
           { src: '/icons/icon-192.png', sizes: '192x192', type: 'image/png', purpose: 'any' },
           { src: '/icons/icon-512.png', sizes: '512x512', type: 'image/png', purpose: 'any' },
-          { src: '/icons/icon-maskable-512.png', sizes: '512x512', type: 'image/png', purpose: 'maskable' },
+          {
+            src: '/icons/icon-maskable-512.png',
+            sizes: '512x512',
+            type: 'image/png',
+            purpose: 'maskable',
+          },
         ],
       },
     }),

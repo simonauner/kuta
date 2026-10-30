@@ -17,7 +17,8 @@ export function Layout() {
   const pathname = useRouterState({ select: (s) => s.location.pathname })
   const me = useQuery(meQuery)
 
-  if (new URLSearchParams(window.location.search).get('reset') === 'password') return <ResetPasswordPage />
+  if (new URLSearchParams(window.location.search).get('reset') === 'password')
+    return <ResetPasswordPage />
   if (new URLSearchParams(window.location.search).get('reset') === 'failed') return <AuthPage />
 
   if (me.isPending) return null
@@ -49,7 +50,8 @@ export function Layout() {
       >
         <ul className="mx-auto flex max-w-2xl justify-around">
           {tabs.map(({ to, label, icon: Icon }) => {
-            const active = to === '/app' ? pathname === '/app' || pathname === '/app/' : pathname.startsWith(to)
+            const active =
+              to === '/app' ? pathname === '/app' || pathname === '/app/' : pathname.startsWith(to)
             return (
               <li key={to}>
                 <Link

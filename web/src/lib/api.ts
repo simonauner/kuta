@@ -17,7 +17,12 @@ export function resetCsrfToken() {
 }
 
 function getCsrfToken() {
-  csrfToken ??= request<{ token: string }>('/api/antiforgery').then((r) => r.token)
+  csrfToken ??= request<{ token: string }>('/api/antiforgery')
+    .then((r) => r.token)
+    .catch((error) => {
+      resetCsrfToken()
+      throw error
+    })
   return csrfToken
 }
 
@@ -42,5 +47,9 @@ export const api = {
     }),
   // Filuppladdning: webbläsaren sätter själv Content-Type med multipart-gränsen
   upload: async <T>(path: string, form: FormData) =>
-    request<T>(path, { method: 'POST', headers: { 'X-CSRF-TOKEN': await getCsrfToken() }, body: form }),
+    request<T>(path, {
+      method: 'POST',
+      headers: { 'X-CSRF-TOKEN': await getCsrfToken() },
+      body: form,
+    }),
 }

@@ -1,8 +1,4 @@
-import {
-  createRootRoute,
-  createRoute,
-  createRouter,
-} from '@tanstack/react-router'
+import { createRootRoute, createRoute, createRouter } from '@tanstack/react-router'
 import { Layout } from '@/components/layout'
 import { ActivitiesPage } from '@/routes/activities'
 import { FeedPage } from '@/routes/feed'
@@ -32,12 +28,7 @@ const profileRoute = createRoute({
   component: ProfilePage,
 })
 
-const routeTree = rootRoute.addChildren([
-  feedRoute,
-  activitiesRoute,
-  statsRoute,
-  profileRoute,
-])
+const routeTree = rootRoute.addChildren([feedRoute, activitiesRoute, statsRoute, profileRoute])
 
 export const router = createRouter({ routeTree, defaultPreload: 'intent' })
 
