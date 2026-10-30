@@ -1,0 +1,21 @@
+fly.secrets.tpl
+  s_6fd5f3f6e9c798::t_34bdd4a42f415d 1-6
+scripts/fly-secrets.sh
+  s_6fd5f3f6e9c798::t_34bdd4a42f415d 1-19
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.7.5",
+  "base_commit_sha": "86ed9a5d832db7c7d0ccba8db15a87b29bd3f8a8",
+  "prompts": {},
+  "sessions": {
+    "s_6fd5f3f6e9c798": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "110cb47e-0b75-4e34-90b9-538aef87a42f",
+        "model": "claude-opus-5-5"
+      },
+      "human_author": "Simon Aunér <simonauner@gmail.com>"
+    }
+  }
+}
