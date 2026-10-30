@@ -1,0 +1,65 @@
+web/src/routes/settings.tsx
+  s_acd06763c92952::t_0964c33d77226e 1-22,27-29,33-34,38-41,45-48,52,59-61,65-69
+  s_acd06763c92952::t_c329cef11c75c0 23-26,30-32,35-37,42-44,49-51,53-58,62-64
+api/Kuta.Api/FitImport.cs
+  s_acd06763c92952::t_ddbc800fe6268f 76
+web/src/locales/sv.json
+  s_acd06763c92952::t_c329cef11c75c0 18,21-22,29,131-145
+  s_acd06763c92952::t_ae95aec13e9e9a 28,123-125
+web/src/router.tsx
+  s_acd06763c92952::t_0964c33d77226e 11,43-48,55
+web/src/locales/en.json
+  s_acd06763c92952::t_c329cef11c75c0 18,21-22,29,131-145
+  s_acd06763c92952::t_ae95aec13e9e9a 28,123-125
+api/Kuta.Api.Tests/StravaImportTests.cs
+  s_acd06763c92952::t_226b1aa71846dc 1-36,39-111,118-224
+  s_acd06763c92952::t_93b9603cdfb3ac 37-38
+AGENTS.md
+  s_acd06763c92952::t_95153a95563d8c 48,59
+  s_acd06763c92952::t_c329cef11c75c0 23,41,84
+web/src/components/strava-import.tsx
+  s_acd06763c92952::t_c329cef11c75c0 40-42,55,58-60,63-65,69-75,78-81
+  s_acd06763c92952::t_0964c33d77226e 1-39,43-54,56-57,61-62,66-68,76-77,82-88
+api/Kuta.Api/Migrations/006_strava_import.sql
+  s_acd06763c92952::t_ddbc800fe6268f 1-6
+README.md
+  s_acd06763c92952::t_95153a95563d8c 103-104,106-114
+  s_acd06763c92952::t_e3b1a41fd5e4f0 19
+  s_acd06763c92952::t_c329cef11c75c0 11-13,17,105
+api/Kuta.Api/StravaImportEndpoint.cs
+  s_acd06763c92952::t_95153a95563d8c 29-66,71,95,97-100
+  s_acd06763c92952::t_d3fd6364cf1d20 1-28,67-70,72-94,96,101-115
+web/src/routes/activities.tsx
+  s_acd06763c92952::t_0964c33d77226e 48,79-84
+web/src/routes/profile.tsx
+  s_acd06763c92952::t_0964c33d77226e 1-3,6,14,18-23
+  s_acd06763c92952::t_c329cef11c75c0 15-17
+web/vite.config.ts
+  s_acd06763c92952::t_c329cef11c75c0 75-77
+api/Kuta.Api/StravaImport.cs
+  s_acd06763c92952::t_ddbc800fe6268f 1-23,26-110,112,114-129,139-152,154-165
+  s_acd06763c92952::t_95153a95563d8c 113,131,138
+  s_acd06763c92952::t_93b9603cdfb3ac 24-25,111,130,132-137,153
+api/Kuta.Api/ActivityEndpoints.cs
+  s_acd06763c92952::t_f2f9685d750374 102-104,107,112-113
+api/Kuta.Api/ActivityStorage.cs
+  s_acd06763c92952::t_829746d0ba1ab8 1-37,39-51
+api/Kuta.Api/MeEndpoints.cs
+  s_acd06763c92952::t_6339e4860c5037 61-62,64
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.7.5",
+  "base_commit_sha": "fe99d6370e14a91f7995dff9747699c20abc66c8",
+  "prompts": {},
+  "sessions": {
+    "s_acd06763c92952": {
+      "agent_id": {
+        "tool": "codex",
+        "id": "01a18efb-8bf3-72a0-93fc-3e606809cffe",
+        "model": "gpt-6.1-sol"
+      },
+      "human_author": "Simon Aunér <simonauner@gmail.com>"
+    }
+  }
+}
