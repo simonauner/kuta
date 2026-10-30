@@ -1,0 +1,28 @@
+web/vite.config.ts
+  s_6fd5f3f6e9c798::t_c061204396c39c 22-24,65-66,68,71,75
+scripts/run-dev.sh
+  s_6fd5f3f6e9c798::t_0cfb22cab2280c 3,5-9,14-42,44-46,70-73,76-77,80-83
+  s_6fd5f3f6e9c798::t_563324cb3ce060 12,53-55,74
+.gitignore
+  s_6fd5f3f6e9c798::t_c061204396c39c 10-12
+AGENTS.md
+  s_6fd5f3f6e9c798::t_ce3a3f3814cca5 7
+README.md
+  s_6fd5f3f6e9c798::t_be6c95391ef1c7 15-24
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.7.5",
+  "base_commit_sha": "740dad7b374d665874c16809d3ab0a62456a29c8",
+  "prompts": {},
+  "sessions": {
+    "s_6fd5f3f6e9c798": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "110cb47e-0b75-4e34-90b9-538aef87a42f",
+        "model": "claude-opus-5-5"
+      },
+      "human_author": "Simon Aunér <simonauner@gmail.com>"
+    }
+  }
+}
