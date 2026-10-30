@@ -26,6 +26,7 @@ var app = builder.Build();
 var upgrader = DeployChanges.To
     .PostgresqlDatabase(connectionString)
     .WithScriptsEmbeddedInAssembly(Assembly.GetExecutingAssembly())
+    .WithTransactionPerScript()
     .LogToConsole()
     .Build();
 
