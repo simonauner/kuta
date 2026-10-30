@@ -59,9 +59,16 @@ export default defineConfig({
   resolve: {
     alias: { '@': path.resolve(import.meta.dirname, 'src') },
   },
+  // Kuta håller sig till 553xx lokalt (Supabase 55320–55329) så att det kan köras bredvid andra projekt
   server: {
+    port: 55300,
+    strictPort: true,
     proxy: {
-      '/api': 'http://localhost:5080',
+      '/api': 'http://localhost:55302',
     },
+  },
+  preview: {
+    port: 55301,
+    strictPort: true,
   },
 })
