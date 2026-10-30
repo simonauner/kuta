@@ -1,8 +1,9 @@
 import { useQuery } from '@tanstack/react-query'
-import { Link, useParams } from '@tanstack/react-router'
+import { useParams } from '@tanstack/react-router'
 import { useMemo, useState } from 'react'
 import { useTranslation } from 'react-i18next'
 import { ActivityCharts, type ChartSeries } from '@/components/activity-charts'
+import { BackLink } from '@/components/back-link'
 import { ActivityMap } from '@/components/activity-map'
 import { ErrorMessage } from '@/components/error-message'
 import { ApiError } from '@/lib/api'
@@ -240,17 +241,5 @@ export function ActivityPage() {
         </>
       )}
     </section>
-  )
-}
-
-function BackLink() {
-  const { t } = useTranslation()
-  return (
-    <Link
-      to="/app/activities"
-      className="text-sm text-muted-foreground underline-offset-2 hover:underline"
-    >
-      ← {t('activity.back')}
-    </Link>
   )
 }

@@ -110,16 +110,35 @@ export function formatDuration(seconds: number) {
   return h ? `${h}:${mmss}` : mmss
 }
 
+// "1:02:30", "45:00" eller "45" (minuter) → sekunder; null om det inte går att tolka
+export function parseDuration(text: string) {
+  const parts = text.trim().split(':')
+  if (parts.length > 3 || parts.some((p) => !/^\d+$/.test(p))) return null
+  const numbers = parts.map(Number)
+  if (numbers.slice(1).some((n) => n >= 60)) return null
+  const seconds =
+    parts.length === 1 ? numbers[0] * 60 : numbers.reduce((total, n) => total * 60 + n, 0)
+  return seconds > 0 ? seconds : null
+}
+
+// Värdet för <input type="datetime-local">: lokal tid utan tidszon
+export function toDateTimeLocal(date: Date) {
+  return new Date(date.getTime() - date.getTimezoneOffset() * 60_000).toISOString().slice(0, 16)
+}
+
 export function formatPace(durationS: number, distanceM: number) {
   if (distanceM < 1) return '–'
   return `${formatDuration(Math.round(durationS / (distanceM / 1000)))} /km`
 }
 
-const sports = ['running', 'cycling', 'walking', 'hiking'] as const
+export const sports = ['running', 'cycling', 'walking', 'hiking'] as const
 
 // Egen titel om löparen skrivit en, annars sport + tid på dygnet ("Löpning eftermiddag").
 // Plats ("Löpning Uppsala") kommer när orten slås upp vid importen.
-export function activityTitle(activity: Activity, t: TFunction) {
+export function activityTitle(
+  activity: Pick<Activity, 'title' | 'sport' | 'startedAt'>,
+  t: TFunction,
+) {
   if (activity.title) return activity.title
   const sport = (sports as readonly string[]).includes(activity.sport) ? activity.sport : 'other'
   const hour = new Date(activity.startedAt).getHours()

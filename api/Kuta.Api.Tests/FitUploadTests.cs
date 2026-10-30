@@ -26,15 +26,23 @@ public class FitUploadTests(KutaFactory factory) : IClassFixture<KutaFactory>
             var start = new System.DateTime(2026, 10, 1, 6, 30, 0, DateTimeKind.Utc);
             var morning = FitFile.Run(start, seconds: 600);
 
-            // Utan samtycke: passet sparas, men varken puls eller råfil (som innehåller puls)
-            var upload = await Upload(client, morning, ct);
+            // Förhandsvisningen för formuläret sparar ingenting och visar ingen puls utan samtycke
+            var preview = await Upload(client, morning, ct, "/api/activities/preview");
+            var previewed = await preview.Content.ReadFromJsonAsync<JsonElement>(ct);
+            Assert.Equal((1800d, 600, "Garmin Fenix 5s", JsonValueKind.Null), (previewed.GetProperty("distanceM").GetDouble(),
+                previewed.GetProperty("durationS").GetInt32(), previewed.GetProperty("device").GetString(),
+                previewed.GetProperty("avgHr").ValueKind));
+            Assert.Empty((await client.GetFromJsonAsync<JsonElement[]>("/api/activities", ct))!);
+
+            // Utan samtycke: passet sparas, men varken puls eller råfil (som innehåller puls). Titeln från formuläret följer med.
+            var upload = await Upload(client, morning, ct, title: " Morgonrunda ");
             Assert.Equal(HttpStatusCode.Created, upload.StatusCode);
             var created = await upload.Content.ReadFromJsonAsync<JsonElement>(ct);
             var id = created.GetProperty("id").GetGuid();
             Assert.Equal(JsonValueKind.Null, created.GetProperty("avgHr").ValueKind);
-            var row = await conn.QuerySingleAsync<(string Sport, int DurationS, double DistanceM, short? AvgHr, string? RawFileKey, bool HasRoute)>(
-                "select sport, duration_s, distance_m, avg_hr, raw_file_key, route is not null from activities where id = @id", new { id });
-            Assert.Equal(("running", 600, 1800d, (short?)null, (string?)null, true), row);
+            var row = await conn.QuerySingleAsync<(string Sport, string? Title, int DurationS, double DistanceM, short? AvgHr, string? RawFileKey, bool HasRoute)>(
+                "select sport, title, duration_s, distance_m, avg_hr, raw_file_key, route is not null from activities where id = @id", new { id });
+            Assert.Equal(("running", (string?)"Morgonrunda", 600, 1800d, (short?)null, (string?)null, true), row);
             Assert.Equal(0, await StoredFiles(conn, runner));
             var streams = await conn.QuerySingleAsync<(int Points, int? Hr, int? Lat, int LastT)>(
                 "select cardinality(t), cardinality(hr), cardinality(lat), t[cardinality(t)] from activity_streams where activity_id = @id", new { id });
@@ -144,6 +152,43 @@ public class FitUploadTests(KutaFactory factory) : IClassFixture<KutaFactory>
         }
     }
 
+    [Fact]
+    public async Task Manual_activity_is_saved_without_heart_rate_unless_consented()
+    {
+        var ct = TestContext.Current.CancellationToken;
+        var runner = $"manual-{Guid.NewGuid():N}@example.com";
+        var client = factory.CreateClient();
+        await using var conn = await factory.Services.GetRequiredService<NpgsqlDataSource>().OpenConnectionAsync(ct);
+        try
+        {
+            await SignUpAsync(client, runner, "Löparen", ct);
+            var run = new ManualActivityRequest("running", "Löpband",
+                DateTimeOffset.Parse("2026-10-01T18:00:00+02:00"), 1800, 5000, 0, 150);
+
+            var created = await client.PostAsJsonAsync("/api/activities/manual", run, ct);
+            Assert.Equal(HttpStatusCode.Created, created.StatusCode);
+            var id = (await created.Content.ReadFromJsonAsync<JsonElement>(ct)).GetProperty("id").GetGuid();
+            var detail = await client.GetFromJsonAsync<JsonElement>($"/api/activities/{id}", ct);
+            Assert.Equal(("Löpband", "2026-10-01T16:00:00Z", 5000d, JsonValueKind.Null, JsonValueKind.Null),
+                (detail.GetProperty("title").GetString(), detail.GetProperty("startedAt").GetString(),
+                 detail.GetProperty("distanceM").GetDouble(), detail.GetProperty("avgHr").ValueKind,
+                 detail.GetProperty("streams").ValueKind));
+            Assert.Equal("manual", await conn.ExecuteScalarAsync<string>("select source from activities where id = @id", new { id }));
+
+            await client.PutAsync("/api/me/hr-consent", null, ct);
+            var withHr = await client.PostAsJsonAsync("/api/activities/manual", run, ct);
+            Assert.Equal(150, (await withHr.Content.ReadFromJsonAsync<JsonElement>(ct)).GetProperty("avgHr").GetInt32());
+
+            var invalid = await client.PostAsJsonAsync("/api/activities/manual", run with { DurationS = 0 }, ct);
+            Assert.Equal(HttpStatusCode.BadRequest, invalid.StatusCode);
+            Assert.Equal("invalidActivity", (await invalid.Content.ReadFromJsonAsync<JsonElement>(ct)).GetProperty("code").GetString());
+        }
+        finally
+        {
+            await conn.ExecuteAsync("delete from auth.users where email = @runner", new { runner });
+        }
+    }
+
     // Råfiler i den lokala Supabase Storage (fit/<användar-id>/…)
     static Task<int> StoredFiles(NpgsqlConnection conn, string email) => conn.ExecuteScalarAsync<int>(
         """
@@ -151,13 +196,15 @@ public class FitUploadTests(KutaFactory factory) : IClassFixture<KutaFactory>
         where bucket_id = 'fit-files' and name like 'fit/' || (select id from auth.users where email = @email) || '/%'
         """, new { email });
 
-    static async Task<HttpResponseMessage> Upload(HttpClient client, byte[] fit, CancellationToken ct)
+    static async Task<HttpResponseMessage> Upload(HttpClient client, byte[] fit, CancellationToken ct,
+        string path = "/api/activities", string? title = null)
     {
         using var form = new MultipartFormDataContent();
         var file = new ByteArrayContent(fit);
         file.Headers.ContentType = new MediaTypeHeaderValue("application/octet-stream");
         form.Add(file, "file", "pass.fit");
-        return await client.PostAsync("/api/activities", form, ct);
+        if (title is not null) form.Add(new StringContent(title), "title");
+        return await client.PostAsync(path, form, ct);
     }
 }
 

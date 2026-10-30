@@ -7,6 +7,7 @@ import {
 import { Layout } from '@/components/layout'
 import { ActivitiesPage } from '@/routes/activities'
 import { FeedPage } from '@/routes/feed'
+import { NewActivityPage } from '@/routes/new-activity'
 import { ProfilePage } from '@/routes/profile'
 import { StatsPage } from '@/routes/stats'
 import { activityQuery } from '@/lib/activity-query'
@@ -23,6 +24,11 @@ const activitiesRoute = createRoute({
   getParentRoute: () => rootRoute,
   path: '/app/activities',
   component: ActivitiesPage,
+})
+const newActivityRoute = createRoute({
+  getParentRoute: () => rootRoute,
+  path: '/app/activities/new',
+  component: NewActivityPage,
 })
 // Passsidan laddas först när den öppnas: kartan (MapLibre) och diagrammen är tunga
 const activityRoute = createRoute({
@@ -46,6 +52,7 @@ const profileRoute = createRoute({
 const routeTree = rootRoute.addChildren([
   feedRoute,
   activitiesRoute,
+  newActivityRoute,
   activityRoute,
   statsRoute,
   profileRoute,
