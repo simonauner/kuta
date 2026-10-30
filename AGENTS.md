@@ -39,6 +39,7 @@ Kuta är en Strava-liknande löparapp: ladda upp pass från Garmin (FIT) eller l
   - `DELETE /api/activities/{id}` tar bort ett eget pass (tidsserier via kaskad) och dess råfil; någon annans pass ger 404. Råfilen raderas först. Webben har "Ta bort" med bekräftelse i passlistan.
   - Råfiler via S3-protokollet (`Storage__ServiceUrl/Region/Bucket/AccessKeyId/SecretAccessKey`): lokalt Supabase Storage (bucket `fit-files` i `supabase/config.toml`), i drift R2 eller Supabase Storage.
   - Webben: passlistan (`routes/activities.tsx`) har uppladdning, pulssamtycke och passlista (km, tid, tempo).
+  - Nya sökvägar i appen måste också läggas till i listan över appens sökvägar i `Program.cs` (och i `WebRoutingTests`); annars ger direktlänk och omladdning 404 i drift, fast det fungerar i Vites dev-server.
   - Passsidan `/app/activities/$activityId` (`routes/activity.tsx`, laddas vid behov) visar ett pass från `GET /api/activities/{id}` (eget pass, annars 404; med alla tidsserier): titel, statistik, karta, diagram (höjd, tempo, puls) och splits per km. Titeln är egen eller sport + tid på dygnet (`lib/activity.ts`, med tester i `web/tests/activity.test.mjs`).
   - Karta: MapLibre med kartbilder från OpenFreeMap (ingen nyckel; leverantören ser ungefär var passet gick). `tiles.openfreemap.org` är tillagt i CSP:n; workern pekas ut med `setWorkerUrl`. Planen är egen PMTiles när ruttdata ska stanna hos Kuta. Diagram: uPlot.
   - Lokalt: service workern registreras inte i webbläsarpanelen på `vite preview` (samma för `main`); i drift fungerar den.
