@@ -10,6 +10,7 @@ web/src/locales/en.json
 web/src/routes/activities.tsx
   s_8b6915d520f192::t_bed13180b9bea5 11-17,127-131,134-160
   s_8b6915d520f192::t_a4893ce14db5a3 31,111-126,161-163,165
+  s_8b6915d520f192::t_860168580650e6 132-133
 ---
 {
   "schema_version": "authorship/3.0.0",
