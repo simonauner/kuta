@@ -1,0 +1,23 @@
+web/package.json
+  s_d609c1139dbd7e::t_d5a56ee1fa7101 10
+web/tests/api.test.mjs
+  s_d609c1139dbd7e::t_d5a56ee1fa7101 1-103
+README.md
+  s_d609c1139dbd7e::t_d5a56ee1fa7101 42-45
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.7.5",
+  "base_commit_sha": "49a608883c2cb5dbcd7a838f3cf1ac0ffbbf6c25",
+  "prompts": {},
+  "sessions": {
+    "s_d609c1139dbd7e": {
+      "agent_id": {
+        "tool": "codex",
+        "id": "01a18ebc-051c-70a1-b50d-ddb1b2ceec38",
+        "model": "gpt-6.1-sol"
+      },
+      "human_author": "Simon Aunér <simonauner@gmail.com>"
+    }
+  }
+}

@@ -1,0 +1,19 @@
+web/src/components/ui/button.tsx
+  s_d609c1139dbd7e::t_973996e0bfc1af 63
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.7.5",
+  "base_commit_sha": "58ed72b73c63bf0bb908915bd5296dba6b5ce104",
+  "prompts": {},
+  "sessions": {
+    "s_d609c1139dbd7e": {
+      "agent_id": {
+        "tool": "codex",
+        "id": "01a18ebc-051c-70a1-b50d-ddb1b2ceec38",
+        "model": "gpt-6.1-sol"
+      },
+      "human_author": "Simon Aunér <simonauner@gmail.com>"
+    }
+  }
+}
