@@ -1,3 +1,4 @@
+import { DeleteAllActivities } from '@/components/delete-all-activities'
 import { ErrorMessage } from '@/components/error-message'
 import { useTranslation } from 'react-i18next'
 import { useMutation, useQuery } from '@tanstack/react-query'
@@ -34,6 +35,7 @@ export function ProfilePage() {
           <ErrorMessage error={logout.error} />
         </p>
       )}
+      <DeleteAllActivities />
     </section>
   )
 }
