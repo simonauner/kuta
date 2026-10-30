@@ -1,0 +1,22 @@
+api/Kuta.Api.Tests/SecurityHeadersTests.cs
+  s_6fd5f3f6e9c798::t_90f657d04c8f51 1-16
+api/Kuta.Api/Program.cs
+  s_6fd5f3f6e9c798::t_90f657d04c8f51 74-85
+  s_6fd5f3f6e9c798::t_1b187a97691ab8 86-88
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.7.5",
+  "base_commit_sha": "67e2ab5af918bfa274285ced914dd8a218d6d8b9",
+  "prompts": {},
+  "sessions": {
+    "s_6fd5f3f6e9c798": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "110cb47e-0b75-4e34-90b9-538aef87a42f",
+        "model": "claude-opus-5-5"
+      },
+      "human_author": "Simon Aunér <simonauner@gmail.com>"
+    }
+  }
+}
