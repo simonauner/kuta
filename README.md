@@ -59,7 +59,13 @@ Frontendkontroller med Node-versionen i `.nvmrc`: kör `npm ci` i `web/`, sedan
 `npm run format:check`, `npm run lint`, `npm test` och `npm run build`.
 `npm run format` formaterar webbfilerna med Prettier. API-klientens tester använder
 Nodes inbyggda testverktyg och mockade nätverksanrop; de kräver inte Supabase.
-GitHub Actions kör frontendkontrollerna på berörda pull requests och push till `main`.
+GitHub Actions kör frontendkontrollerna vid ändringar i `web/` och bygger API:t och
+testprojektet vid ändringar i `api/` eller `supabase/`, på pull requests och push till
+`main`. Respektive workflow och verktygskonfiguration (`.nvmrc` respektive
+`global.json`) startar också motsvarande kontroller. `Dockerfile` och `.dockerignore`
+startar båda. Ändringar i enbart `.md`-filer startar inget av dessa workflows, även
+under `web/` eller `api/`. Backendtester mot lokal Supabase körs fortfarande lokalt
+enligt ovan; backend-workflowet kontrollerar enbart att projekten bygger.
 
 API-jobbet i `.github/workflows/api.yml` kör hela `api/Kuta.Api.Tests` vid ändringar
 i API:t, Supabase-konfigurationen, `global.json`, `Dockerfile` eller själva jobbet,
