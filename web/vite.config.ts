@@ -19,6 +19,9 @@ const contentSecurityPolicy = [
   "form-action 'self'",
 ].join('; ')
 
+const webPort = Number(process.env.KUTA_WEB_PORT ?? 55300)
+const apiPort = Number(process.env.KUTA_API_PORT ?? 55302)
+
 // https://vite.dev/config/
 export default defineConfig({
   plugins: [
@@ -59,16 +62,17 @@ export default defineConfig({
   resolve: {
     alias: { '@': path.resolve(import.meta.dirname, 'src') },
   },
-  // Kuta håller sig till 553xx lokalt (Supabase 55320–55329) så att det kan köras bredvid andra projekt
+  // Kuta håller sig till 553xx lokalt (Supabase 55320–55329) så att det kan köras bredvid andra projekt.
+  // scripts/run-dev.sh --ports flyttar serien för att köra flera instanser samtidigt.
   server: {
-    port: 55300,
+    port: webPort,
     strictPort: true,
     proxy: {
-      '/api': 'http://localhost:55302',
+      '/api': `http://localhost:${apiPort}`,
     },
   },
   preview: {
-    port: 55301,
+    port: webPort + 1,
     strictPort: true,
   },
 })

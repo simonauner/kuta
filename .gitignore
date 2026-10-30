@@ -7,3 +7,6 @@ obj/
 .env
 .env.*
 !.env.example
+
+# Lokala instanser från scripts/run-dev.sh --ports
+.context/
