@@ -2,6 +2,14 @@
 
 Kuta (kuta.io) är en Strava-liknande löparapp: ladda upp pass från Garmin (FIT) eller logga manuellt, följ statistik över tid (puls, fart, max distans), logga skor per pass, få rekord ("snabbaste 5k", "snabbaste 5k i år"), och följ andra löpare med flöde, profiler och grupper. Svenskt namn, ska funka internationellt. Webbapp som PWA (sparas till hemskärmen) – ingen App Store i början.
 
+## Arbetsflöde
+- Håll bestående projektregler i `AGENTS.md`, körinstruktioner i `README.md` och återanvändbara agentprocedurer i `.agents/skills/`. Uppdatera berörd dokumentation när ett arbetssätt eller beslut ändras; undvik ändringsloggar och dubblerade instruktioner.
+- Använd [run-dev](.agents/skills/run-dev/SKILL.md) för att starta appen och verifiera flöden lokalt. Använd syntetiska konton och data. Andra worktrees delar maskin och Docker: välj en egen ledig portserie för en ny miljö, stoppa bara egna processer med deras PID och rör inte andras containrar, volymer eller git stash.
+- Verifiera ändrat beteende på lägsta nivå som visar regeln: beräkningstester för rekordmotorn, databas-/integrationstester för lagring och åtkomst, och webbläsarkontroll för ändrade flöden. Kontrollera att privata pass inte kan läsas eller ändras av en annan användare när åtkomstlogik ändras.
+- Före commit av applikationskod: kör `npm run build` i `web/` med Node-versionen i `.nvmrc` och `dotnet test --project api/Kuta.Api.Tests` mot lokal Supabase. Testerna använder standardinstansen även om appen startats med `--ports`; ändra eller återställ inte en lånad miljö för att köra dem. Redovisa om de inte kunnat köras. För enbart dokumentation eller instruktioner räcker granskning av diff, lokala länkar och beskrivna kommandon mot implementationen.
+- Redovisa vad som verifierats, resultatet och miljön/versionen som kontrollerats. En pågående kontroll är inte godkänd. Återanvänd tidigare resultat bara om relevanta kod-, test- och konfigurationsunderlag är oförändrade.
+- Ändra inte hostad databas, hemligheter eller driftsättning om uppgiften inte omfattar just den åtgärden. Verifiering sker lokalt; en instruktion om att testa innebär inte en instruktion om att deploya.
+
 ## Stack (beslutad)
 - **API:** .NET 10, ASP.NET Core minimal API, **Dapper** (inte EF Core), Npgsql, Postgres + PostGIS, NetTopologySuite.
 - **Supabase:** hanterad Postgres (EU-region) och **Supabase Auth**. Inloggningen går via vårt API (BFF, samma mönster som Kredovis): API:t pratar med Supabase Auth och lägger sessionen i en krypterad HttpOnly-cookie, så tokens aldrig når JavaScript. Webben använder varken supabase-js eller Supabases Data API och behöver inga Supabase-nycklar. Lokalt håller sig allt till 553xx: webben 55300 (preview 55301), API:t 55302, Supabase 55320–55329 (se `supabase/config.toml`). Starta allt med `scripts/run-dev.sh`; `--ports BAS` kör en extra instans med egen Supabase-stack (se README).
@@ -24,7 +32,7 @@ Kuta (kuta.io) är en Strava-liknande löparapp: ladda upp pass från Garmin (FI
   - PWA:ns service worker får aldrig svara på navigeringar till `/api/` (`navigateFallbackDenylist` i `vite.config.ts`) – annars når bekräftelselänken aldrig API:t.
   - Saknas: lösenordsåterställning, MFA, inloggning med Google/Apple, logga ut andra sessioner, städning av gamla sessionsrader, Turnstile.
   - Lokalt: kommer bekräftelsemejlet i Mailpit (http://127.0.0.1:55324) med Supabases engelska standardmall har auth-containern startat före Kong – kör `docker restart supabase_auth_kuta`.
-- Migreringar körda: 001–003. Ändra aldrig en körd migrering – nya ändringar i nästa nummer.
+- Ändra aldrig en körd migrering – nya ändringar i nästa nummer. Migreringsfilerna finns i `api/Kuta.Api/Migrations/`.
 - Privat repo: github.com/simonauner/kuta. Node 24 (`.nvmrc`).
 - Driftsatt på https://kuta.fly.dev (en maskin i `arn`, `fly deploy --ha=false` tills migreringar och token-förnyelse klarar flera maskiner; ingen automatisk deploy vid push): `Dockerfile` (API:t servar den byggda webben från `wwwroot`, samma origin), `fly.toml` (egen app `kuta`, `arn`), steg i README. Utanför Development krävs `DataProtection__Certificate`; lokala värden ligger bara i `appsettings.Development.json`. Pipelinens ordning i `Program.cs` är medveten (headers → statiska filer → routing → auth) – se kommentarerna.
 - Hostat Supabase-projekt: `https://hrkqzqfyisvdyzfxzokf.supabase.co`. Data Protection-nycklarna i drift är verifierat krypterade med certifikatet. Egen SMTP saknas (Scaleway TEM som Kredovis, kräver verifierad domän) – tills dess når bekräftelsemejl bara projektets medlemmar.
@@ -60,4 +68,4 @@ Kuta (kuta.io) är en Strava-liknande löparapp: ladda upp pass från Garmin (FI
 ## Konventioner
 - Svenska i UI-texter, engelska i kod och commit-meddelanden.
 - JSON i API:t är lowerCamelCase. Returnera typade records från Dapper, aldrig `dynamic`-rader (de serialiseras med snake_case-kolumnnamn som nycklar).
-- Små, fokuserade commits. Kör `npm run build` i `web/` och `dotnet test --project api/Kuta.Api.Tests` (kräver `supabase start`) innan commit.
+- Små, fokuserade commits. Följ verifieringen under Arbetsflöde innan commit.
