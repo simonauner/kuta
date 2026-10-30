@@ -43,22 +43,30 @@ En egen Fly-app (`kuta`, region `arn`), separat från Kredovis. `Dockerfile` byg
 - Authentication → Email Templates → Confirm signup: innehållet i `supabase/templates/confirmation.html`.
 - Egen SMTP (Authentication → SMTP). Supabases inbyggda mejl skickar bara till projektets egna medlemmar och några få per timme.
 
-**Fly** (en gång):
+**Hemligheter** ligger i 1Password, aldrig i filer eller kommandon. [fly.secrets.tpl](fly.secrets.tpl) listar dem som `op://`-referenser; värdena finns i objektet `fly-kuta` i valvet `Development`, ett fält per hemlighet med hemlighetens namn:
+
+| Fält | Värde |
+|---|---|
+| `ConnectionStrings__Default` | Supabase → Connect → Session pooler, i Npgsql-format: `Host=…;Port=5432;Database=postgres;Username=postgres.<ref>;Password=…;SSL Mode=Require;Maximum Pool Size=10` |
+| `Supabase__SecretKey` | Supabase → Project Settings → API Keys → secret key (`sb_secret_…`) |
+| `DataProtection__Certificate` | Certifikatet som krypterar Data Protection-nycklarna, base64 på en rad (se nedan) |
+
+Certifikatet skapas i en tillfällig katalog utanför repot och kopieras till urklipp; klistra in det i fältet, och töm sedan urklippet:
 
 ```bash
-fly apps create kuta
+(cd "$(mktemp -d)" && openssl req -x509 -newkey rsa:2048 -sha256 -nodes -days 3650 -subj "/CN=kuta-dataprotection" -keyout key.pem -out cert.pem 2>/dev/null && openssl pkcs12 -export -inkey key.pem -in cert.pem -passout pass: | base64 | tr -d '\n' | pbcopy && rm -f key.pem cert.pem)
 ```
 
-Fyll i `Supabase__Url` och `Supabase__PublishableKey` i `fly.toml`. Skapa certifikatet som krypterar Data Protection-nycklarna och spara `kuta-dataprotection.pfx` i 1Password:
-
 ```bash
-openssl req -x509 -newkey rsa:2048 -nodes -days 3650 -subj "/CN=kuta-dataprotection" -keyout key.pem -out cert.pem && openssl pkcs12 -export -inkey key.pem -in cert.pem -out kuta-dataprotection.pfx -passout pass: && rm key.pem cert.pem
+pbcopy < /dev/null
 ```
 
-Sätt hemligheterna (anslutningssträngen från Supabase → Connect → Session pooler, i Npgsql-format med `SSL Mode=Require;Maximum Pool Size=10`):
+Förlorat certifikat förlorar ingen data, men alla måste logga in igen. Data Protection kontrollerar inte certifikatets utgångsdatum.
+
+**Importera hemligheterna** (1Password CLI inloggad; värdena går från `op inject` till `fly secrets import` i minnet, och ingenting importeras om en referens saknas). Kör igen efter varje ändring i 1Password; en ny hemlighet läggs till i mallen och som fält samtidigt.
 
 ```bash
-fly secrets set --stage ConnectionStrings__Default='Host=…;Port=5432;Database=postgres;Username=postgres.<ref>;Password=…;SSL Mode=Require;Maximum Pool Size=10' Supabase__SecretKey='sb_secret_…' DataProtection__Certificate="$(base64 -i kuta-dataprotection.pfx)"
+scripts/fly-secrets.sh fly.toml --stage
 ```
 
 **Deploy:**
