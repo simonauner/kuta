@@ -8,11 +8,11 @@ Kuta (kuta.io) är en Strava-liknande löparapp: ladda upp pass från Garmin (FI
 - **Web:** React + Vite + TypeScript, TanStack Router (kodbaserad) + Query, Tailwind v4, shadcn/ui (components.json finns, komponenter läggs till med `npx shadcn@latest add ...`), Motion för animationer, vite-plugin-pwa, MapLibre GL.
 - **Filer:** Cloudflare R2 (S3-kompatibelt) för rå-FIT-filer och PMTiles-kartor. `activities.raw_file_key` pekar på objektnyckeln.
 - **Jobb/köer:** börja med Postgres-baserad kö (Hangfire eller Wolverine), inte Redis/RabbitMQ. E-post och web push kommer senare.
-- **FIT-parsning:** Garmins officiella C#-SDK (NuGet `Dynastream.Fit`).
+- **FIT-parsning:** Garmins officiella C#-SDK (NuGet `Garmin.FIT.Sdk`).
 
 ## Status
 - `web/`: bygger (`npm run build` OK). Skal med routes Flöde/Pass/Statistik/Profil, bottennavigering, sidövergångar, PWA-manifest. PNG-ikoner (192/512/maskable, apple-touch-icon) saknas.
-- `api/`: **skrivet men aldrig kompilerat eller körts** (skapades i en miljö utan .NET SDK). Paketversioner är flytande (`10.*` osv.) – verifiera, pinna. Namnmatchning snake_case→PascalCase är satt via `DefaultTypeMap.MatchNamesWithUnderscores`.
+- `api/`: **skrivet men aldrig kompilerat eller körts** (skapades i en miljö utan .NET SDK). Kompilerar; paketversioner pinnade. Namnmatchning snake_case→PascalCase är satt via `DefaultTypeMap.MatchNamesWithUnderscores`.
 - `001_init.sql` är inte körd. Granska schemat innan första körning.
 - Inget GitHub-repo skapat än.
 
@@ -28,7 +28,7 @@ Kuta (kuta.io) är en Strava-liknande löparapp: ladda upp pass från Garmin (FI
 1. Skapa privat GitHub-repo `kuta`, initiera git, första commit.
 2. `docker compose up -d`, `dotnet restore && dotnet build`, `dotnet run --project api/Kuta.Api`; verifiera `/api/health` (ska visa PostGIS-version) och att migreringen går igenom. Fixa det som inte kompilerar.
 3. Auth (börja enkelt, t.ex. ASP.NET Core Identity eller passkeys) och ersätt `userId`-parametern i `/api/activities`.
-4. FIT-uppladdning: endpoint, lagring i R2, parsning med `Dynastream.Fit`, skriv `activities` + `activity_streams`.
+4. FIT-uppladdning: endpoint, lagring i R2, parsning med `Garmin.FIT.Sdk`, skriv `activities` + `activity_streams`.
 5. Rekordmotor (glidande fönster över distans/tid-strömmen), tester med riktiga FIT-filer.
 6. Webb: uppladdning, passsida med karta + grafer (Recharts, uPlot för långa serier), statistikvyer, skor.
 7. Därefter: följare, flöde, grupper; e-post och push.

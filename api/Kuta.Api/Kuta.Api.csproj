@@ -6,15 +6,12 @@
     <ImplicitUsings>enable</ImplicitUsings>
   </PropertyGroup>
 
-  <!-- OBS: skelettet är inte kompilerat än (ingen .NET SDK i miljön där det skrevs).
-       Flytande versioner används så att `dotnet restore` väljer senaste kompatibla;
-       pinna dem när det bygger. -->
   <ItemGroup>
-    <PackageReference Include="Dapper" Version="2.*" />
-    <PackageReference Include="Npgsql" Version="10.*" />
-    <PackageReference Include="Npgsql.NetTopologySuite" Version="10.*" />
-    <PackageReference Include="dbup-postgresql" Version="6.*" />
-    <PackageReference Include="Dynastream.Fit" Version="21.*" />
+    <PackageReference Include="Dapper" Version="2.1.89" />
+    <PackageReference Include="Npgsql" Version="10.0.3" />
+    <PackageReference Include="Npgsql.NetTopologySuite" Version="10.0.3" />
+    <PackageReference Include="dbup-postgresql" Version="6.1.5" />
+    <PackageReference Include="Garmin.FIT.Sdk" Version="21.218.0" />
   </ItemGroup>
 
   <ItemGroup>
