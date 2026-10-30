@@ -20,6 +20,23 @@ export type ActivityStreams = {
   alt: (number | null)[] | null
   lat: (number | null)[] | null
   lon: (number | null)[] | null
+  // Steg/min (löpning, gång) eller varv/min (cykling); °C
+  cadence: (number | null)[] | null
+  temp: (number | null)[] | null
+}
+
+// Varv som klockan registrerade (manuellt eller autolap); startS = sekunder från passets start
+export type ActivityLap = {
+  lapIndex: number
+  startS: number
+  durationS: number
+  movingS: number | null
+  distanceM: number
+  avgHr: number | null
+  maxHr: number | null
+  ascentM: number | null
+  descentM: number | null
+  avgCadence: number | null
 }
 
 export type ActivityDetail = Activity & {
@@ -27,7 +44,15 @@ export type ActivityDetail = Activity & {
   maxHr: number | null
   avgSpeedMps: number | null
   elevationGainM: number | null
+  device: string | null
   streams: ActivityStreams | null
+  laps: ActivityLap[]
+}
+
+// Medel av de uppmätta värdena i en kanal (luckor räknas inte), avrundat
+export function average(values: (number | null)[] | null) {
+  const measured = values?.filter((v): v is number => v !== null) ?? []
+  return measured.length ? Math.round(measured.reduce((a, b) => a + b, 0) / measured.length) : null
 }
 
 export function formatDuration(seconds: number) {

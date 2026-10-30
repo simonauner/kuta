@@ -39,6 +39,17 @@ public class FitUploadTests(KutaFactory factory) : IClassFixture<KutaFactory>
             var streams = await conn.QuerySingleAsync<(int Points, int? Hr, int? Lat, int LastT)>(
                 "select cardinality(t), cardinality(hr), cardinality(lat), t[cardinality(t)] from activity_streams where activity_id = @id", new { id });
             Assert.Equal((601, (int?)null, (int?)601, 600), streams);
+            var details = await conn.QuerySingleAsync<(string? Device, short? Cadence, short? Temp)>(
+                "select a.device, s.cadence[1], s.temp[1] from activities a join activity_streams s on s.activity_id = a.id where a.id = @id",
+                new { id });
+            Assert.Equal(("Garmin Fenix 5s", (short?)170, (short?)18), details);
+            var laps = await conn.QuerySingleAsync<(int Count, int WithHr, short? Cadence, int SecondStart)>(
+                """
+                select count(*)::int, count(avg_hr)::int, max(avg_cadence),
+                       max(start_s) filter (where lap_index = 1)
+                from activity_laps where activity_id = @id
+                """, new { id });
+            Assert.Equal((10, 0, (short?)170, 60), laps); // varvens puls följer samtycket
 
             Assert.Equal(HttpStatusCode.Conflict, (await Upload(client, morning, ct)).StatusCode);
             Assert.Equal(HttpStatusCode.BadRequest, (await Upload(client, "inte en fit-fil"u8.ToArray(), ct)).StatusCode);
@@ -52,6 +63,8 @@ public class FitUploadTests(KutaFactory factory) : IClassFixture<KutaFactory>
                 "select a.avg_hr, a.max_hr, cardinality(s.hr) from activities a join activity_streams s on s.activity_id = a.id where a.id = @eveningId",
                 new { eveningId });
             Assert.Equal(((short?)150, (short?)165, (int?)301), hr);
+            Assert.Equal(5, await conn.ExecuteScalarAsync<int>(
+                "select count(avg_hr) from activity_laps where activity_id = @eveningId", new { eveningId }));
             Assert.Equal(1, await StoredFiles(conn, runner));
 
             // Återkallat samtycke raderar all sparad puls, även råfilerna
@@ -60,7 +73,8 @@ public class FitUploadTests(KutaFactory factory) : IClassFixture<KutaFactory>
                 """
                 select count(*) from activities a join activity_streams s on s.activity_id = a.id
                 where a.user_id = (select id from auth.users where email = @runner)
-                  and (a.avg_hr is not null or s.hr is not null or a.raw_file_key is not null)
+                  and (a.avg_hr is not null or s.hr is not null or a.raw_file_key is not null
+                       or exists (select 1 from activity_laps l where l.activity_id = a.id and l.avg_hr is not null))
                 """, new { runner }));
             Assert.Equal(0, await StoredFiles(conn, runner));
 
@@ -102,6 +116,11 @@ public class FitUploadTests(KutaFactory factory) : IClassFixture<KutaFactory>
             Assert.Equal(121, detailStreams.GetProperty("t").GetArrayLength());
             Assert.Equal(121, detailStreams.GetProperty("hr").GetArrayLength());
             Assert.Equal(59.33, detailStreams.GetProperty("lat")[0].GetDouble(), precision: 5);
+            Assert.Equal(170, detailStreams.GetProperty("cadence")[0].GetInt32());
+            Assert.Equal("Garmin Fenix 5s", detail.GetProperty("device").GetString());
+            var detailLaps = detail.GetProperty("laps");
+            Assert.Equal(2, detailLaps.GetArrayLength());
+            Assert.Equal(155, detailLaps[0].GetProperty("avgHr").GetInt32());
 
             // Någon annan kan varken se eller ta bort passet, och får inte veta att det finns
             await SignUpAsync(otherClient, other, "Någon annan", ct);
@@ -155,8 +174,8 @@ static class FitFile
 
         var fileId = new FileIdMesg();
         fileId.SetType(Dynastream.Fit.File.Activity);
-        fileId.SetManufacturer(Manufacturer.Development);
-        fileId.SetProduct(1);
+        fileId.SetManufacturer(Manufacturer.Garmin);
+        fileId.SetGarminProduct(GarminProduct.Fenix5s);
         fileId.SetSerialNumber(1);
         fileId.SetTimeCreated(new Dynastream.Fit.DateTime(start));
         encoder.Write(fileId);
@@ -171,7 +190,26 @@ static class FitFile
             record.SetHeartRate((byte)(150 + i % 16));
             record.SetPositionLat((int)(59.33 * SemicirclesPerDegree));
             record.SetPositionLong((int)((18.06 + i * 0.00005) * SemicirclesPerDegree));
+            record.SetCadence(85); // per ben: 170 steg/min
+            record.SetTemperature(18);
             encoder.Write(record);
+
+            // Ett varv per minut (som klockans autolap), skrivet när varvet är slut
+            if (i > 0 && i % 60 == 0)
+            {
+                var lap = new LapMesg();
+                lap.SetTimestamp(new Dynastream.Fit.DateTime(start.AddSeconds(i)));
+                lap.SetStartTime(new Dynastream.Fit.DateTime(start.AddSeconds(i - 60)));
+                lap.SetTotalElapsedTime(60);
+                lap.SetTotalTimerTime(60);
+                lap.SetTotalDistance(180);
+                lap.SetAvgHeartRate(155);
+                lap.SetMaxHeartRate(165);
+                lap.SetTotalAscent(2);
+                lap.SetTotalDescent(1);
+                lap.SetAvgCadence(85);
+                encoder.Write(lap);
+            }
         }
 
         var session = new SessionMesg();

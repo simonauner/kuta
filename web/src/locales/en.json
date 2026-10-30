@@ -47,6 +47,16 @@
     "chartElevation": "Elevation (m)",
     "chartPace": "Pace (min/km)",
     "chartHr": "Heart rate (bpm)",
+    "chartCadence": "Cadence",
+    "chartTemp": "Temperature (°C)",
+    "avgCadence": "Avg cadence",
+    "avgTemp": "Avg temperature",
+    "cadence": "Cadence",
+    "lap": "Lap",
+    "tab": {
+      "overview": "Overview",
+      "laps": "Laps"
+    },
     "map": "Route map",
     "noRoute": "This activity has no GPS route.",
     "defaultTitle": "{{timeOfDay}} {{sport}}",

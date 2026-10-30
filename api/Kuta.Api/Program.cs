@@ -135,7 +135,20 @@ var upgrader = DeployChanges.To
     .LogToConsole()
     .Build();
 
-var result = upgrader.PerformUpgrade();
+// Bara en process i taget migrerar (parallella teststarter, flera maskiner): ett sessionslås i Postgres runt DbUp,
+// med ett godtyckligt men fast nyckeltal. Släpps uttryckligen: en poolad anslutning behåller annars låset.
+DbUp.Engine.DatabaseUpgradeResult result;
+using (var migrationLock = new NpgsqlConnection(connectionString))
+{
+    migrationLock.Open();
+    using (var take = new NpgsqlCommand("select pg_advisory_lock(5821)", migrationLock)) take.ExecuteNonQuery();
+    try { result = upgrader.PerformUpgrade(); }
+    finally
+    {
+        using var release = new NpgsqlCommand("select pg_advisory_unlock(5821)", migrationLock);
+        release.ExecuteNonQuery();
+    }
+}
 if (!result.Successful)
 {
     Console.Error.WriteLine(result.Error);

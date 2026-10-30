@@ -47,6 +47,16 @@
     "chartElevation": "Höjd (m)",
     "chartPace": "Tempo (min/km)",
     "chartHr": "Puls (bpm)",
+    "chartCadence": "Kadens",
+    "chartTemp": "Temperatur (°C)",
+    "avgCadence": "Snittkadens",
+    "avgTemp": "Snittemperatur",
+    "cadence": "Kadens",
+    "lap": "Varv",
+    "tab": {
+      "overview": "Översikt",
+      "laps": "Varv"
+    },
     "map": "Karta över rutten",
     "noRoute": "Passet har ingen GPS-rutt.",
     "defaultTitle": "{{sport}} {{timeOfDay}}",

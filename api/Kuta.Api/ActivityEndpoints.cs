@@ -12,10 +12,17 @@ public record ActivitySummary(
 // Ett pass med tidsserier (en array per kanal, index = mätpunkt; null där klockan inte mätte).
 public record ActivityDetail(
     Guid Id, string Sport, string? Title, System.DateTime StartedAt, int DurationS, int? MovingS, double DistanceM,
-    short? AvgHr, short? MaxHr, float? AvgSpeedMps, float? ElevationGainM, ActivityStreams? Streams);
+    short? AvgHr, short? MaxHr, float? AvgSpeedMps, float? ElevationGainM, string? Device, ActivityStreams? Streams,
+    IEnumerable<ActivityLap> Laps);
 
 public record ActivityStreams(
-    int[] T, float?[]? Dist, short?[]? Hr, float?[]? Speed, float?[]? Alt, double?[]? Lat, double?[]? Lon);
+    int[] T, float?[]? Dist, short?[]? Hr, float?[]? Speed, float?[]? Alt, double?[]? Lat, double?[]? Lon,
+    short?[]? Cadence, short?[]? Temp);
+
+// Varv som klockan registrerade (manuellt eller automatiskt, t.ex. varje km)
+public record ActivityLap(
+    short LapIndex, int StartS, int DurationS, int? MovingS, double DistanceM, short? AvgHr, short? MaxHr,
+    float? AscentM, float? DescentM, short? AvgCadence);
 
 public static class ActivityEndpoints
 {
@@ -50,25 +57,36 @@ public static class ActivityEndpoints
             await using var command = new NpgsqlCommand(
                 """
                 select a.id, a.sport, a.title, a.started_at, a.duration_s, a.moving_s, a.distance_m, a.avg_hr, a.max_hr,
-                       a.avg_speed_mps, a.elevation_gain_m, s.t, s.dist, s.hr, s.speed, s.alt, s.lat, s.lon
+                       a.avg_speed_mps, a.elevation_gain_m, a.device, s.t, s.dist, s.hr, s.speed, s.alt, s.lat, s.lon,
+                       s.cadence, s.temp
                 from activities a left join activity_streams s on s.activity_id = a.id
                 where a.id = @id and a.user_id = @userId
                 """, conn);
             command.Parameters.AddWithValue("id", id);
             command.Parameters.AddWithValue("userId", user.GetUserId());
-            await using var reader = await command.ExecuteReaderAsync(cancellationToken);
-            if (!await reader.ReadAsync(cancellationToken)) return Results.NotFound();
+            ActivityDetail detail;
+            await using (var reader = await command.ExecuteReaderAsync(cancellationToken))
+            {
+                if (!await reader.ReadAsync(cancellationToken)) return Results.NotFound();
 
-            // Läses för hand: Dapper/Npgsql klarar inte null-element i arrayer utan typen float?[] osv.
-            T? Value<T>(int i) => reader.IsDBNull(i) ? default : reader.GetFieldValue<T>(i);
-            var streams = reader.IsDBNull(11) ? null : new ActivityStreams(
-                reader.GetFieldValue<int[]>(11), Value<float?[]>(12), Value<short?[]>(13), Value<float?[]>(14),
-                Value<float?[]>(15), Value<double?[]>(16), Value<double?[]>(17));
-            return Results.Ok(new ActivityDetail(
-                reader.GetGuid(0), reader.GetString(1), Value<string>(2),
-                System.DateTime.SpecifyKind(reader.GetDateTime(3), DateTimeKind.Utc), reader.GetInt32(4),
-                Value<int?>(5), reader.GetDouble(6), Value<short?>(7), Value<short?>(8), Value<float?>(9), Value<float?>(10),
-                streams));
+                // Läses för hand: Dapper/Npgsql klarar inte null-element i arrayer utan typen float?[] osv.
+                T? Value<T>(int i) => reader.IsDBNull(i) ? default : reader.GetFieldValue<T>(i);
+                var streams = reader.IsDBNull(12) ? null : new ActivityStreams(
+                    reader.GetFieldValue<int[]>(12), Value<float?[]>(13), Value<short?[]>(14), Value<float?[]>(15),
+                    Value<float?[]>(16), Value<double?[]>(17), Value<double?[]>(18), Value<short?[]>(19),
+                    Value<short?[]>(20));
+                detail = new ActivityDetail(
+                    reader.GetGuid(0), reader.GetString(1), Value<string>(2),
+                    System.DateTime.SpecifyKind(reader.GetDateTime(3), DateTimeKind.Utc), reader.GetInt32(4),
+                    Value<int?>(5), reader.GetDouble(6), Value<short?>(7), Value<short?>(8), Value<float?>(9),
+                    Value<float?>(10), Value<string>(11), streams, []);
+            }
+            var laps = await conn.QueryAsync<ActivityLap>(
+                """
+                select lap_index, start_s, duration_s, moving_s, distance_m, avg_hr, max_hr, ascent_m, descent_m, avg_cadence
+                from activity_laps where activity_id = @id order by lap_index
+                """, new { id });
+            return Results.Ok(detail with { Laps = laps });
         });
 
         // Uppladdning av en FIT-fil: tolka den, spara råfilen (bara med pulssamtycke) och skriv passet med tidsserier
@@ -115,16 +133,17 @@ public static class ActivityEndpoints
                 id = await conn.ExecuteScalarAsync<Guid>(
                     """
                     insert into activities (user_id, source, sport, started_at, duration_s, moving_s, distance_m,
-                                            avg_hr, max_hr, avg_speed_mps, elevation_gain_m, route, raw_file_key, raw_file_sha256)
+                                            avg_hr, max_hr, avg_speed_mps, elevation_gain_m, route, device,
+                                            raw_file_key, raw_file_sha256)
                     values (@userId, 'fit', @Sport, @StartedAt, @DurationS, @MovingS, @DistanceM,
-                            @AvgHr, @MaxHr, @AvgSpeedMps, @ElevationGainM, @route::geography, @key, @sha256)
+                            @AvgHr, @MaxHr, @AvgSpeedMps, @ElevationGainM, @route::geography, @Device, @key, @sha256)
                     returning id
                     """,
                     new
                     {
                         userId, parsed.Sport, parsed.StartedAt, parsed.DurationS, parsed.MovingS, parsed.DistanceM,
                         parsed.AvgHr, parsed.MaxHr, parsed.AvgSpeedMps, parsed.ElevationGainM,
-                        route = (object?)parsed.Route ?? DBNull.Value, key, sha256,
+                        route = (object?)parsed.Route ?? DBNull.Value, parsed.Device, key, sha256,
                     }, tx);
             }
             catch (PostgresException e) when (e.SqlState == PostgresErrorCodes.UniqueViolation)
@@ -134,10 +153,26 @@ public static class ActivityEndpoints
             }
             await conn.ExecuteAsync(
                 """
-                insert into activity_streams (activity_id, t, dist, hr, speed, alt, lat, lon)
-                values (@id, @T, @Dist, @Hr, @Speed, @Alt, @Lat, @Lon)
+                insert into activity_streams (activity_id, t, dist, hr, speed, alt, lat, lon, cadence, temp)
+                values (@id, @T, @Dist, @Hr, @Speed, @Alt, @Lat, @Lon, @Cadence, @Temp)
                 """,
-                new { id, parsed.T, parsed.Dist, parsed.Hr, parsed.Speed, parsed.Alt, parsed.Lat, parsed.Lon }, tx);
+                new
+                {
+                    id, parsed.T, parsed.Dist, parsed.Hr, parsed.Speed, parsed.Alt, parsed.Lat, parsed.Lon,
+                    parsed.Cadence, parsed.Temp,
+                }, tx);
+            await conn.ExecuteAsync(
+                """
+                insert into activity_laps (activity_id, lap_index, start_s, duration_s, moving_s, distance_m, avg_hr, max_hr,
+                                           ascent_m, descent_m, avg_cadence)
+                values (@id, @LapIndex, @StartS, @DurationS, @MovingS, @DistanceM, @AvgHr, @MaxHr,
+                        @AscentM, @DescentM, @AvgCadence)
+                """,
+                (parsed.Laps ?? []).Select((l, i) => new
+                {
+                    id, LapIndex = (short)i, l.StartS, l.DurationS, l.MovingS, l.DistanceM, l.AvgHr, l.MaxHr,
+                    l.AscentM, l.DescentM, l.AvgCadence,
+                }), tx);
             await BestEfforts.ReplaceAsync(conn, tx, id, userId, parsed.Sport, parsed.StartedAt, parsed.T, parsed.Dist);
             await tx.CommitAsync(cancellationToken);
 
