@@ -16,6 +16,7 @@ api/Kuta.Api/Program.cs
   s_d76f222bb24440::t_8bc65c44f28556 160-164
 api/Kuta.Api/AuthEndpoints.cs
   s_d76f222bb24440::t_5e0960860d2f3a 126,128
+  s_d76f222bb24440::t_af70c93a902a58 113,115
 web/public/robots.txt
   s_d76f222bb24440::t_5e0960860d2f3a 1-4
 web/vite.config.ts
@@ -34,6 +35,7 @@ web/src/landing.css
 api/Kuta.Api.Tests/WebRoutingTests.cs
   s_d76f222bb24440::t_ee3a1191b77ded 13-15
   s_d76f222bb24440::t_775459e09d7c8b 1-12,16-17,19-21,23-43
+  s_d76f222bb24440::t_af70c93a902a58 18,22
 api/Kuta.Api.Tests/SecurityHeadersTests.cs
   s_d76f222bb24440::t_8bc65c44f28556 17,21
 web/app.html
@@ -44,6 +46,7 @@ web/src/router.tsx
   s_d76f222bb24440::t_5e0960860d2f3a 16,21,26,31
 web/src/routes/auth.tsx
   s_d76f222bb24440::t_08d33bda340543 185-190
+  s_d76f222bb24440::t_af70c93a902a58 14,44,103,124,144
 README.md
   s_d76f222bb24440::t_46c6cb246a2b55 7
   s_d76f222bb24440::t_8bc65c44f28556 5-6,8,11-12
@@ -61,6 +64,9 @@ AGENTS.md
   s_d76f222bb24440::t_498a611c048c23 15
   s_d76f222bb24440::t_7561a192e66878 32
   s_d76f222bb24440::t_a3b0257e96d5d6 23
+  s_d76f222bb24440::t_af70c93a902a58 45
+api/Kuta.Api.Tests/PasswordRecoveryTests.cs
+  s_d76f222bb24440::t_af70c93a902a58 33,46,69,96,106,144-145
 ---
 {
   "schema_version": "authorship/3.0.0",
