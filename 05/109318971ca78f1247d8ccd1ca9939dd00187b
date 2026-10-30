@@ -3,6 +3,8 @@ web/src/components/layout.tsx
   s_5f8423a9cb8a7e::t_58cf66392d8d71 42
   s_5f8423a9cb8a7e::t_7e270c89104b2c 37-40,43-49,54-57,59-75
   s_5f8423a9cb8a7e::t_1f23a276875e6c 76,87-88,90-92
+  s_5f8423a9cb8a7e::t_56a7064a05b79b 41,50,58
+  s_5f8423a9cb8a7e::t_ca9254ff524152 51-53
 web/vite.config.ts
   s_5f8423a9cb8a7e::t_1f23a276875e6c 50-54
 README.md
