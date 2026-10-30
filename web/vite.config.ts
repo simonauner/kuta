@@ -11,8 +11,9 @@ const contentSecurityPolicy = [
   "default-src 'self'",
   "script-src 'self'",
   "style-src 'self'",
-  "img-src 'self' data: blob:",
-  "connect-src 'self'",
+  // OpenFreeMap: kartstil, kartbitar, typsnitt och ikoner för passkartan (src/components/activity-map.tsx)
+  "img-src 'self' data: blob: https://tiles.openfreemap.org",
+  "connect-src 'self' https://tiles.openfreemap.org",
   "worker-src 'self' blob:",
   "object-src 'none'",
   "base-uri 'none'",

@@ -8,36 +8,12 @@ import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
 import { api } from '@/lib/api'
+import { activityTitle, formatDuration, formatPace, type Activity } from '@/lib/activity'
 import { meQuery } from '@/lib/auth'
-
-// Som API:t: SI-enheter (meter, sekunder). Metriskt här; imperial blir ett val per användare senare.
-type Activity = {
-  id: string
-  sport: string
-  title: string | null
-  startedAt: string
-  durationS: number
-  distanceM: number
-  avgHr: number | null
-}
 
 const activitiesQuery = {
   queryKey: ['activities'],
   queryFn: () => api.get<Activity[]>('/api/activities'),
-}
-
-function formatDuration(seconds: number) {
-  const h = Math.floor(seconds / 3600)
-  const m = Math.floor((seconds % 3600) / 60)
-  const s = seconds % 60
-  const mmss = `${String(m).padStart(h ? 2 : 1, '0')}:${String(s).padStart(2, '0')}`
-  return h ? `${h}:${mmss}` : mmss
-}
-
-function formatPace(durationS: number, distanceM: number) {
-  if (distanceM < 1) return '–'
-  const perKm = Math.round(durationS / (distanceM / 1000))
-  return `${formatDuration(perKm)} /km`
 }
 
 export function ActivitiesPage() {
@@ -129,7 +105,16 @@ export function ActivitiesPage() {
         {activities.data?.map((a) => (
           <li key={a.id} className="flex items-start justify-between gap-4 py-4">
             <div>
-              <p className="font-medium">{a.title ?? dateFormat.format(new Date(a.startedAt))}</p>
+              <Link
+                to="/app/activities/$activityId"
+                params={{ activityId: a.id }}
+                className="font-medium underline-offset-2 hover:underline"
+              >
+                {activityTitle(a, t)}
+              </Link>
+              <p className="text-xs text-muted-foreground">
+                {dateFormat.format(new Date(a.startedAt))}
+              </p>
               <p className="mt-1 text-sm text-muted-foreground">
                 {kmFormat.format(a.distanceM / 1000)} km · {formatDuration(a.durationS)} ·{' '}
                 {formatPace(a.durationS, a.distanceM)}

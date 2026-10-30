@@ -95,8 +95,17 @@ public class FitUploadTests(KutaFactory factory) : IClassFixture<KutaFactory>
             var id = (await (await Upload(client, fit, ct)).Content.ReadFromJsonAsync<JsonElement>(ct)).GetProperty("id").GetGuid();
             Assert.Equal(1, await StoredFiles(conn, runner));
 
-            // Någon annan kan inte ta bort passet, och får inte veta att det finns
+            // Passsidan: ägaren får passet med tidsserier (puls med, eftersom samtycke finns)
+            var detail = await client.GetFromJsonAsync<JsonElement>($"/api/activities/{id}", ct);
+            Assert.Equal(360d, detail.GetProperty("distanceM").GetDouble());
+            var detailStreams = detail.GetProperty("streams");
+            Assert.Equal(121, detailStreams.GetProperty("t").GetArrayLength());
+            Assert.Equal(121, detailStreams.GetProperty("hr").GetArrayLength());
+            Assert.Equal(59.33, detailStreams.GetProperty("lat")[0].GetDouble(), precision: 5);
+
+            // Någon annan kan varken se eller ta bort passet, och får inte veta att det finns
             await SignUpAsync(otherClient, other, "Någon annan", ct);
+            Assert.Equal(HttpStatusCode.NotFound, (await otherClient.GetAsync($"/api/activities/{id}", ct)).StatusCode);
             Assert.Equal(HttpStatusCode.NotFound, (await otherClient.DeleteAsync($"/api/activities/{id}", ct)).StatusCode);
             Assert.Equal(1, await conn.ExecuteScalarAsync<int>("select count(*) from activities where id = @id", new { id }));
 
