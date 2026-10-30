@@ -1,0 +1,42 @@
+api/Kuta.Api/RawFileStore.cs
+  s_6fd5f3f6e9c798::t_d8adac9215af9e 7
+  s_6fd5f3f6e9c798::t_312849937a7970 44-49
+  s_6fd5f3f6e9c798::t_eb5754c57d127b 1-6,8-43,50
+api/Kuta.Api/FitImport.cs
+  s_6fd5f3f6e9c798::t_7513f88bcad4a0 1-87
+api/Kuta.Api/appsettings.Development.json
+  s_6fd5f3f6e9c798::t_700ce59a3951cf 9-15
+api/Kuta.Api/MeEndpoints.cs
+  s_6fd5f3f6e9c798::t_8af81cb7ac05a2 6-7,23,39,41-52,58,60,66,69-71,73-84
+  s_6fd5f3f6e9c798::t_1da62071512912 53-57,59,61-65,67-68
+  s_6fd5f3f6e9c798::t_aaf731c2f923b2 72
+api/Kuta.Api/Kuta.Api.csproj
+  s_6fd5f3f6e9c798::t_e49f9b36cf2db6 10
+api/Kuta.Api/Program.cs
+  s_6fd5f3f6e9c798::t_f685023ffbe1b5 36,158
+scripts/run-dev.sh
+  s_6fd5f3f6e9c798::t_09ccf2cd51f93d 73-74
+supabase/config.toml
+  s_6fd5f3f6e9c798::t_e49f9b36cf2db6 106-107,111-113
+  s_6fd5f3f6e9c798::t_fa998595e307cc 114
+api/Kuta.Api/ActivityEndpoints.cs
+  s_6fd5f3f6e9c798::t_8a7d205f310217 64-71
+  s_6fd5f3f6e9c798::t_0e8576d59c5ab4 1-35,38-63,72-111
+  s_6fd5f3f6e9c798::t_ebd7ffb72e8444 36-37
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.7.5",
+  "base_commit_sha": "a3eaa150678cc35c49fcdf3b611afe6ef8323e4f",
+  "prompts": {},
+  "sessions": {
+    "s_6fd5f3f6e9c798": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "110cb47e-0b75-4e34-90b9-538aef87a42f",
+        "model": "claude-opus-5-5"
+      },
+      "human_author": "Simon Aunér <simonauner@gmail.com>"
+    }
+  }
+}

@@ -1,0 +1,29 @@
+.agents/skills/run-dev/SKILL.md
+  s_6fd5f3f6e9c798::t_4c717a43488352 33
+fly.secrets.tpl
+  s_6fd5f3f6e9c798::t_0341c51d04a96f 6-7
+AGENTS.md
+  s_6fd5f3f6e9c798::t_f6048ec38ee7f8 70
+  s_6fd5f3f6e9c798::t_9b5525cb00351a 36-41
+  s_6fd5f3f6e9c798::t_b83cc03c1f9559 9
+README.md
+  s_6fd5f3f6e9c798::t_f8fa1fc92857de 21
+  s_6fd5f3f6e9c798::t_a777f11cf763b8 40
+  s_6fd5f3f6e9c798::t_9750e37cc06ff9 60-62
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.7.5",
+  "base_commit_sha": "8a77b82fde1f5607c46ed1951c127c189bd28132",
+  "prompts": {},
+  "sessions": {
+    "s_6fd5f3f6e9c798": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "110cb47e-0b75-4e34-90b9-538aef87a42f",
+        "model": "claude-opus-5-5"
+      },
+      "human_author": "Simon Aunér <simonauner@gmail.com>"
+    }
+  }
+}
