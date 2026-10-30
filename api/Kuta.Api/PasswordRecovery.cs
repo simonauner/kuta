@@ -69,20 +69,38 @@ public static class PasswordRecovery
             """, new { ticket.Id, ticket.UserId }, transaction);
         if (active is null) return InvalidLink(http);
 
-        var result = await supabase.ResetPasswordAsync(ticket.AccessToken, password, ct);
+        PasswordResetResult result;
+        try
+        {
+            result = await supabase.ResetPasswordAsync(ticket.AccessToken, password, ct);
+        }
+        catch (Exception exception) when (exception is HttpRequestException or OperationCanceledException)
+        {
+            // Bytet kan ha lyckats hos Supabase även om svaret försvann. Avsluta sessionerna även då.
+            await EndSessionsAsync(conn, transaction, ticket.UserId);
+            throw;
+        }
         if (result == PasswordResetResult.WeakPassword)
             return Results.BadRequest(new ApiError("Lösenordet är för svagt. Använd minst 8 tecken."));
         if (result == PasswordResetResult.SamePassword)
             return Results.BadRequest(new ApiError("Välj ett annat lösenord än ditt nuvarande."));
         if (result != PasswordResetResult.Updated) return InvalidLink(http);
 
-        await conn.ExecuteAsync("update user_sessions set ended_at = now() where user_id = @userId and ended_at is null",
-            new { ticket.UserId }, transaction);
-        await transaction.CommitAsync(ct);
+        await EndSessionsAsync(conn, transaction, ticket.UserId);
         http.Response.Cookies.Delete(CookieName(http), Cookie(http));
         await http.SignOutAsync(CookieAuthenticationDefaults.AuthenticationScheme);
         await supabase.SignOutAsync(ticket.AccessToken, ct);
         return Results.NoContent();
+    }
+
+    private static async Task EndSessionsAsync(NpgsqlConnection conn, NpgsqlTransaction transaction, Guid userId)
+    {
+        // Klientens avbrott får inte lämna gamla sessioner aktiva efter ett möjligt lösenordsbyte.
+        using var completion = new CancellationTokenSource(TimeSpan.FromSeconds(30));
+        await conn.ExecuteAsync(new CommandDefinition(
+            "update user_sessions set ended_at = now() where user_id = @userId and ended_at is null",
+            new { userId }, transaction, cancellationToken: completion.Token));
+        await transaction.CommitAsync(completion.Token);
     }
 
     private static IResult InvalidLink(HttpContext http)

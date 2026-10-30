@@ -41,7 +41,8 @@ public static class AuthEndpoints
         auth.AddEndpointFilter(async (context, next) =>
         {
             try { return await next(context); }
-            catch (HttpRequestException)
+            catch (Exception exception) when (exception is HttpRequestException ||
+                exception is OperationCanceledException && !context.HttpContext.RequestAborted.IsCancellationRequested)
             {
                 return Results.Json(new ApiError("Inloggningen är tillfälligt otillgänglig. Försök igen om en stund."),
                     statusCode: 503);

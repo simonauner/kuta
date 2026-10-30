@@ -8,6 +8,7 @@ RUN npm run build
 
 FROM mcr.microsoft.com/dotnet/sdk:10.0 AS api
 WORKDIR /src
+COPY global.json ./
 COPY api/Kuta.Api/Kuta.Api.csproj api/Kuta.Api/
 RUN dotnet restore api/Kuta.Api/Kuta.Api.csproj
 COPY api/Kuta.Api/ api/Kuta.Api/
