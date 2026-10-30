@@ -1,6 +1,6 @@
 import { useQuery } from '@tanstack/react-query'
 import { Link, useParams } from '@tanstack/react-router'
-import { useMemo } from 'react'
+import { useMemo, useState } from 'react'
 import { useTranslation } from 'react-i18next'
 import { ActivityCharts, type ChartSeries } from '@/components/activity-charts'
 import { ActivityMap } from '@/components/activity-map'
@@ -8,6 +8,7 @@ import { ErrorMessage } from '@/components/error-message'
 import { ApiError, api } from '@/lib/api'
 import {
   activityTitle,
+  average,
   formatDuration,
   formatPace,
   splits,
@@ -36,6 +37,7 @@ function distanceKm(streams: ActivityStreams) {
 export function ActivityPage() {
   const { activityId } = useParams({ from: '/app/activities/$activityId' })
   const { t, i18n } = useTranslation()
+  const [tab, setTab] = useState<'overview' | 'laps'>('overview')
   const activity = useQuery({
     queryKey: ['activity', activityId],
     queryFn: () => api.get<ActivityDetail>(`/api/activities/${activityId}`),
@@ -66,6 +68,10 @@ export function ActivityPage() {
       })
     if (streams.hr)
       series.push({ label: t('activity.chartHr'), values: streams.hr, color: '#e03131' })
+    if (streams.cadence)
+      series.push({ label: t('activity.chartCadence'), values: streams.cadence, color: '#ae3ec9' })
+    if (streams.temp)
+      series.push({ label: t('activity.chartTemp'), values: streams.temp, color: '#f08c00' })
     return { coordinates, series, distanceKm: distanceKm(streams), splits: splits(streams) }
   }, [activity.data, t])
 
@@ -93,6 +99,10 @@ export function ActivityPage() {
     dateStyle: 'full',
     timeStyle: 'short',
   })
+  // Kadens i steg/min för löpning och gång, varv/min för cykling (så lagras den, se FitImport)
+  const cadenceUnit = a.sport === 'cycling' ? 'rpm' : 'spm'
+  const cadence = average(a.streams?.cadence ?? null)
+  const temp = average(a.streams?.temp ?? null)
   const stats = [
     [t('activity.distance'), `${number.format(a.distanceM / 1000)} km`],
     [t('activity.time'), formatDuration(a.durationS)],
@@ -101,6 +111,8 @@ export function ActivityPage() {
     a.movingS !== null && [t('activity.movingTime'), formatDuration(a.movingS)],
     a.avgHr !== null && [t('activity.avgHr'), `${a.avgHr} bpm`],
     a.maxHr !== null && [t('activity.maxHr'), `${a.maxHr} bpm`],
+    cadence !== null && [t('activity.avgCadence'), `${cadence} ${cadenceUnit}`],
+    temp !== null && [t('activity.avgTemp'), `${temp} °C`],
   ].filter((s): s is [string, string] => !!s)
 
   return (
@@ -108,6 +120,7 @@ export function ActivityPage() {
       <BackLink />
       <p className="mt-4 text-sm text-muted-foreground">{when.format(new Date(a.startedAt))}</p>
       <h1 className="mt-1 text-2xl font-semibold tracking-tight">{activityTitle(a, t)}</h1>
+      {a.device && <p className="mt-1 text-xs text-muted-foreground">{a.device}</p>}
 
       <dl className="mt-6 grid grid-cols-3 gap-4">
         {stats.map(([label, value], i) => (
@@ -122,49 +135,109 @@ export function ActivityPage() {
         ))}
       </dl>
 
-      <div className="mt-8">
-        {view && view.coordinates.length > 1 ? (
-          <ActivityMap coordinates={view.coordinates} label={t('activity.map')} />
-        ) : (
-          <p className="text-sm text-muted-foreground">{t('activity.noRoute')}</p>
-        )}
-      </div>
-
-      {view && view.series.length > 0 && (
-        <div className="mt-8">
-          <h2 className="mb-2 text-lg font-semibold">{t('activity.charts')}</h2>
-          <ActivityCharts distanceKm={view.distanceKm} series={view.series} />
+      {a.laps.length > 0 && (
+        <div role="tablist" className="mt-8 flex gap-1 border-b">
+          {(['overview', 'laps'] as const).map((value) => (
+            <button
+              key={value}
+              role="tab"
+              type="button"
+              aria-selected={tab === value}
+              onClick={() => setTab(value)}
+              className={`-mb-px border-b-2 px-3 py-2 text-sm ${tab === value ? 'border-primary font-medium' : 'border-transparent text-muted-foreground'}`}
+            >
+              {t(`activity.tab.${value}`)}
+            </button>
+          ))}
         </div>
       )}
 
-      {view && view.splits.length > 0 && (
-        <div className="mt-8">
-          <h2 className="mb-2 text-lg font-semibold">{t('activity.splits')}</h2>
-          <table className="w-full text-sm tabular-nums">
-            <thead className="text-left text-xs text-muted-foreground">
-              <tr>
-                <th className="py-1 font-normal">{t('activity.splitKm')}</th>
-                <th className="py-1 font-normal">{t('activity.splitPace')}</th>
-                <th className="py-1 font-normal">{t('activity.splitElevation')}</th>
-                {a.streams?.hr && <th className="py-1 font-normal">{t('activity.splitHr')}</th>}
+      {tab === 'laps' ? (
+        <table className="mt-6 w-full text-sm tabular-nums">
+          <thead className="text-left text-xs text-muted-foreground">
+            <tr>
+              <th className="py-1 font-normal">{t('activity.lap')}</th>
+              <th className="py-1 font-normal">{t('activity.distance')}</th>
+              <th className="py-1 font-normal">{t('activity.time')}</th>
+              <th className="py-1 font-normal">{t('activity.pace')}</th>
+              <th className="py-1 font-normal">{t('activity.splitElevation')}</th>
+              {a.laps.some((l) => l.avgHr !== null) && (
+                <th className="py-1 font-normal">{t('activity.splitHr')}</th>
+              )}
+              {a.laps.some((l) => l.avgCadence !== null) && (
+                <th className="py-1 font-normal">{t('activity.cadence')}</th>
+              )}
+            </tr>
+          </thead>
+          <tbody className="divide-y">
+            {a.laps.map((l) => (
+              <tr key={l.lapIndex}>
+                <td className="py-1.5">{l.lapIndex + 1}</td>
+                <td className="py-1.5">{number.format(l.distanceM / 1000)} km</td>
+                <td className="py-1.5">{formatDuration(l.movingS ?? l.durationS)}</td>
+                <td className="py-1.5">{formatPace(l.movingS ?? l.durationS, l.distanceM)}</td>
+                <td className="py-1.5">
+                  {l.ascentM === null && l.descentM === null
+                    ? '–'
+                    : `${Math.round((l.ascentM ?? 0) - (l.descentM ?? 0))} m`}
+                </td>
+                {a.laps.some((x) => x.avgHr !== null) && (
+                  <td className="py-1.5">{l.avgHr ?? '–'}</td>
+                )}
+                {a.laps.some((x) => x.avgCadence !== null) && (
+                  <td className="py-1.5">{l.avgCadence ?? '–'}</td>
+                )}
               </tr>
-            </thead>
-            <tbody className="divide-y">
-              {view.splits.map((s) => (
-                <tr key={s.km}>
-                  <td className="py-1.5">
-                    {s.distanceM < 950 ? number.format(s.distanceM / 1000) : s.km}
-                  </td>
-                  <td className="py-1.5">{formatPace(s.durationS, s.distanceM)}</td>
-                  <td className="py-1.5">
-                    {s.elevationM === null ? '–' : `${Math.round(s.elevationM)} m`}
-                  </td>
-                  {a.streams?.hr && <td className="py-1.5">{s.avgHr ?? '–'}</td>}
-                </tr>
-              ))}
-            </tbody>
-          </table>
-        </div>
+            ))}
+          </tbody>
+        </table>
+      ) : (
+        <>
+          <div className="mt-8">
+            {view && view.coordinates.length > 1 ? (
+              <ActivityMap coordinates={view.coordinates} label={t('activity.map')} />
+            ) : (
+              <p className="text-sm text-muted-foreground">{t('activity.noRoute')}</p>
+            )}
+          </div>
+
+          {view && view.series.length > 0 && (
+            <div className="mt-8">
+              <h2 className="mb-2 text-lg font-semibold">{t('activity.charts')}</h2>
+              <ActivityCharts distanceKm={view.distanceKm} series={view.series} />
+            </div>
+          )}
+
+          {view && view.splits.length > 0 && (
+            <div className="mt-8">
+              <h2 className="mb-2 text-lg font-semibold">{t('activity.splits')}</h2>
+              <table className="w-full text-sm tabular-nums">
+                <thead className="text-left text-xs text-muted-foreground">
+                  <tr>
+                    <th className="py-1 font-normal">{t('activity.splitKm')}</th>
+                    <th className="py-1 font-normal">{t('activity.splitPace')}</th>
+                    <th className="py-1 font-normal">{t('activity.splitElevation')}</th>
+                    {a.streams?.hr && <th className="py-1 font-normal">{t('activity.splitHr')}</th>}
+                  </tr>
+                </thead>
+                <tbody className="divide-y">
+                  {view.splits.map((s) => (
+                    <tr key={s.km}>
+                      <td className="py-1.5">
+                        {s.distanceM < 950 ? number.format(s.distanceM / 1000) : s.km}
+                      </td>
+                      <td className="py-1.5">{formatPace(s.durationS, s.distanceM)}</td>
+                      <td className="py-1.5">
+                        {s.elevationM === null ? '–' : `${Math.round(s.elevationM)} m`}
+                      </td>
+                      {a.streams?.hr && <td className="py-1.5">{s.avgHr ?? '–'}</td>}
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
+          )}
+        </>
       )}
     </section>
   )
