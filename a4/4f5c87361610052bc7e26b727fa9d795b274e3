@@ -1,0 +1,19 @@
+api/Kuta.Api.Tests/SessionTests.cs
+  s_e9be55d9b23841::t_59ca2bf85aa264 1-225
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.7.5",
+  "base_commit_sha": "a44f5c87361610052bc7e26b727fa9d795b274e3",
+  "prompts": {},
+  "sessions": {
+    "s_e9be55d9b23841": {
+      "agent_id": {
+        "tool": "codex",
+        "id": "01a18eba-bcb6-72d0-8f6b-f96eb9f15923",
+        "model": "gpt-6.1-sol"
+      },
+      "human_author": "Simon Aunér <simonauner@gmail.com>"
+    }
+  }
+}
