@@ -13,6 +13,13 @@
   --border: oklch(0.92 0 0);
   --primary: oklch(0.65 0.2 35);
   --primary-foreground: oklch(0.99 0 0);
+  --secondary: oklch(0.96 0 0);
+  --secondary-foreground: oklch(0.2 0 0);
+  --accent: oklch(0.96 0 0);
+  --accent-foreground: oklch(0.2 0 0);
+  --destructive: oklch(0.58 0.24 27);
+  --input: oklch(0.92 0 0);
+  --ring: oklch(0.65 0.2 35);
 }
 
 .dark {
@@ -25,6 +32,13 @@
   --border: oklch(1 0 0 / 10%);
   --primary: oklch(0.72 0.19 35);
   --primary-foreground: oklch(0.14 0 0);
+  --secondary: oklch(0.27 0 0);
+  --secondary-foreground: oklch(0.97 0 0);
+  --accent: oklch(0.27 0 0);
+  --accent-foreground: oklch(0.97 0 0);
+  --destructive: oklch(0.7 0.19 22);
+  --input: oklch(1 0 0 / 15%);
+  --ring: oklch(0.72 0.19 35);
 }
 
 @theme inline {
@@ -37,6 +51,13 @@
   --color-border: var(--border);
   --color-primary: var(--primary);
   --color-primary-foreground: var(--primary-foreground);
+  --color-secondary: var(--secondary);
+  --color-secondary-foreground: var(--secondary-foreground);
+  --color-accent: var(--accent);
+  --color-accent-foreground: var(--accent-foreground);
+  --color-destructive: var(--destructive);
+  --color-input: var(--input);
+  --color-ring: var(--ring);
   --radius-lg: var(--radius);
   --radius-md: calc(var(--radius) - 2px);
   --radius-sm: calc(var(--radius) - 4px);
@@ -64,6 +85,13 @@
       --border: oklch(1 0 0 / 10%);
       --primary: oklch(0.72 0.19 35);
       --primary-foreground: oklch(0.14 0 0);
+      --secondary: oklch(0.27 0 0);
+      --secondary-foreground: oklch(0.97 0 0);
+      --accent: oklch(0.27 0 0);
+      --accent-foreground: oklch(0.97 0 0);
+      --destructive: oklch(0.7 0.19 22);
+      --input: oklch(1 0 0 / 15%);
+      --ring: oklch(0.72 0.19 35);
     }
   }
 }
