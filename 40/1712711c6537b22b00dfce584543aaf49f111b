@@ -1,0 +1,24 @@
+web/src/routes/profile.tsx
+  s_6fd5f3f6e9c798::t_b01e8eb5253e8e 20
+  s_6fd5f3f6e9c798::t_40eaf0523b2d69 2
+web/src/routes/activities.tsx
+  s_6fd5f3f6e9c798::t_a8bc6f84e0a08c 2-4,9,44,86-96
+web/src/components/heart-rate-consent.tsx
+  s_6fd5f3f6e9c798::t_c328a0f6118e09 1-53
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.7.5",
+  "base_commit_sha": "401712711c6537b22b00dfce584543aaf49f111b",
+  "prompts": {},
+  "sessions": {
+    "s_6fd5f3f6e9c798": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "110cb47e-0b75-4e34-90b9-538aef87a42f",
+        "model": "claude-opus-5-5"
+      },
+      "human_author": "Simon Aunér <simonauner@gmail.com>"
+    }
+  }
+}
