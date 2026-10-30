@@ -6,13 +6,16 @@ using DbUp;
 using Microsoft.AspNetCore.Authentication.Cookies;
 using Microsoft.AspNetCore.DataProtection;
 using Microsoft.AspNetCore.DataProtection.KeyManagement;
+using Microsoft.AspNetCore.HttpOverrides;
 using Microsoft.Extensions.Options;
 using Npgsql;
 
 var builder = WebApplication.CreateBuilder(args);
 
-var connectionString = builder.Configuration.GetConnectionString("Default")
-    ?? throw new InvalidOperationException("ConnectionStrings:Default saknas");
+// GSS-kryptering (Kerberos) av: vi loggar in med lösenord, och utan libgssapi i imagen loggar Npgsql ett fel vid varje försök
+var connectionString = new NpgsqlConnectionStringBuilder(builder.Configuration.GetConnectionString("Default")
+    ?? throw new InvalidOperationException("ConnectionStrings:Default saknas")) { GssEncryptionMode = GssEncryptionMode.Disable }
+    .ConnectionString;
 
 // Dapper: snake_case-kolumner -> PascalCase-properties
 DefaultTypeMap.MatchNamesWithUnderscores = true;
@@ -31,9 +34,17 @@ builder.Services.AddHttpContextAccessor();
 builder.Services.AddHttpClient<SupabaseAuthClient>();
 builder.Services.AddSingleton<SharedTokenRefresh>();
 
-// shortcut: nycklarna ligger okrypterade i Postgres; skydda dem med certifikat (som Kredovis) före produktion.
+// Nycklarna sparas i Postgres och krypteras med ett certifikat utanför Development (DataProtection__Certificate)
 builder.Services.AddSingleton<IConfigureOptions<KeyManagementOptions>, PostgresKeyManagementSetup>();
-builder.Services.AddDataProtection().SetApplicationName("kuta");
+var dataProtection = builder.Services.AddDataProtection().SetApplicationName("kuta");
+var certificates = DataProtectionCertificates.Load(builder.Configuration, requireCurrent: !builder.Environment.IsDevelopment());
+if (certificates.Current is { } currentCertificate) dataProtection.ProtectKeysWithCertificate(currentCertificate);
+if (certificates.Previous is { } previousCertificate) dataProtection.UnprotectKeysWithAnyCertificate(previousCertificate);
+
+// Bakom Flys proxy (ASPNETCORE_FORWARDEDHEADERS_ENABLED): klientens IP i ForwardedHeaders__ForwardedForHeaderName
+// (Fly-Client-IP) för rate limiten, och X-Forwarded-Proto så att appen ser https.
+builder.Services.Configure<ForwardedHeadersOptions>(builder.Configuration.GetSection("ForwardedHeaders"));
+builder.Services.AddHsts(o => o.MaxAge = TimeSpan.FromDays(365));
 
 // __Host- kräver Secure, som inte går över http lokalt
 var cookiePrefix = builder.Environment.IsDevelopment() ? "" : "__Host-";
@@ -72,18 +83,32 @@ builder.Services.AddRateLimiter(o =>
 
 var app = builder.Build();
 
-// API:t svarar bara med JSON och redirects: inget får köras, laddas eller ramas in från svaren.
-// Webbens CSP sätts vid bygget (web/vite.config.ts); frame-ancestors och HSTS sätts där webben hostas.
+// API:t svarar bara med JSON och redirects: inget får köras eller laddas från svaren. Webbens CSP ligger i
+// index.html (web/vite.config.ts); headern lägger till det en meta-tagg inte kan, frame-ancestors.
 app.Use((context, next) =>
 {
+    var api = context.Request.Path.StartsWithSegments("/api");
     var headers = context.Response.Headers;
-    headers.ContentSecurityPolicy = "default-src 'none'; frame-ancestors 'none'";
+    headers.ContentSecurityPolicy = api ? "default-src 'none'; frame-ancestors 'none'" : "frame-ancestors 'none'";
     headers.XContentTypeOptions = "nosniff";
     headers.XFrameOptions = "DENY";
-    headers["Referrer-Policy"] = "no-referrer";
+    headers["Referrer-Policy"] = api ? "no-referrer" : "strict-origin-when-cross-origin";
     return next(context);
 });
-// Uttryckligen efter headers: annars lägger WebApplication auth först och 401/403 får inga headers
+if (!app.Environment.IsDevelopment()) app.UseHsts();
+
+// I drift ligger den byggda webben i wwwroot (se Dockerfile), så att webb och API delar origin.
+// Filnamnen under /assets innehåller en hash och kan cachas för alltid; resten (index.html, sw.js) ska inte cachas.
+var staticFiles = new StaticFileOptions
+{
+    OnPrepareResponse = ctx => ctx.Context.Response.Headers.CacheControl =
+        ctx.Context.Request.Path.StartsWithSegments("/assets") ? "public, max-age=31536000, immutable" : "no-cache",
+};
+app.UseDefaultFiles();
+app.UseStaticFiles(staticFiles);
+// Uttryckligen i den här ordningen: annars lägger WebApplication routing och auth först, så att 401/403 saknar
+// headers och fallback-routen tar sw.js m.fl. innan de statiska filerna hittas.
+app.UseRouting();
 app.UseAuthentication();
 app.UseAuthorization();
 app.UseRateLimiter();
@@ -131,6 +156,9 @@ api.MapGet("/activities", async (NpgsqlDataSource db, ClaimsPrincipal user) =>
         new { userId = user.GetUserId() });
     return Results.Ok(rows);
 }).RequireAuthorization();
+
+// Appens egna sökvägar (/pass, /profil …) ger index.html; okända /api-sökvägar ska ge 404, inte appen.
+app.MapFallbackToFile("{*path:regex(^(?!api/).*$)}", "index.html", staticFiles);
 
 app.Run();
 return 0;

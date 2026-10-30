@@ -13,4 +13,13 @@ public class SecurityHeadersTests(WebApplicationFactory<Program> factory) : ICla
         Assert.Equal("nosniff", string.Join(",", response.Headers.GetValues("X-Content-Type-Options")));
         Assert.Equal("DENY", string.Join(",", response.Headers.GetValues("X-Frame-Options")));
     }
+
+    // Webben (i drift index.html via fallback) har sin CSP i meta-taggen; headern lägger till frame-ancestors
+    [Fact]
+    public async Task Web_responses_forbid_framing()
+    {
+        var response = await factory.CreateClient().GetAsync("/profil", TestContext.Current.CancellationToken);
+        Assert.Equal("frame-ancestors 'none'", string.Join(",", response.Headers.GetValues("Content-Security-Policy")));
+        Assert.Equal("DENY", string.Join(",", response.Headers.GetValues("X-Frame-Options")));
+    }
 }
