@@ -82,7 +82,7 @@ export function Layout() {
       <main className="mx-auto w-full max-w-2xl flex-1 px-4 pb-8 pt-6">
         <motion.div
           key={pathname}
-          initial={{ opacity: 0, y: 8 }}
+          initial={pathname.startsWith('/app/activities') ? false : { opacity: 0, y: 8 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.18, ease: 'easeOut' }}
         >

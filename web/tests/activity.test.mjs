@@ -1,6 +1,13 @@
 import assert from 'node:assert/strict'
 import { test } from 'node:test'
-import { activityTitle, formatDuration, formatPace, splits } from '../src/lib/activity.ts'
+import {
+  activityTitle,
+  formatDuration,
+  formatPace,
+  parseDuration,
+  splits,
+  toDateTimeLocal,
+} from '../src/lib/activity.ts'
 
 // 2,5 km på 750 s: 3 m/s, en mätpunkt per sekund, höjden stiger 1 m per 100 m, puls 150.
 function run({ seconds = 834, gapAt = null } = {}) {
@@ -69,4 +76,16 @@ test('own title wins, otherwise sport and time of day', () => {
     activityTitle({ title: null, sport: 'running', startedAt: at(23) }, t),
     'running|night',
   )
+})
+
+test('durations are read as h:mm:ss, mm:ss or whole minutes', () => {
+  assert.equal(parseDuration('1:02:30'), 3750)
+  assert.equal(parseDuration(' 45:00 '), 2700)
+  assert.equal(parseDuration('45'), 2700)
+  for (const invalid of ['', '0', '1:60', '1:2:3:4', '4,5', '-5'])
+    assert.equal(parseDuration(invalid), null)
+})
+
+test('datetime-local value is local time without zone', () => {
+  assert.equal(toDateTimeLocal(new Date(2026, 9, 31, 7, 5)), '2026-10-31T07:05')
 })

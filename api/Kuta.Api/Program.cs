@@ -179,7 +179,7 @@ api.MapActivities();
 api.MapBestEfforts();
 
 // Startsidan är statisk; bara appens kända sökvägar får React-skalet.
-foreach (var path in new[] { "/app", "/app/activities", "/app/activities/{activityId:guid}", "/app/stats", "/app/profile", "/app/settings" })
+foreach (var path in new[] { "/app", "/app/activities", "/app/activities/new", "/app/activities/{activityId:guid}", "/app/stats", "/app/profile", "/app/settings" })
     app.MapFallbackToFile(path, "app.html", staticFiles);
 
 app.Run();

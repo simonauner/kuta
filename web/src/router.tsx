@@ -7,9 +7,12 @@ import {
 import { Layout } from '@/components/layout'
 import { ActivitiesPage } from '@/routes/activities'
 import { FeedPage } from '@/routes/feed'
+import { NewActivityPage } from '@/routes/new-activity'
 import { ProfilePage } from '@/routes/profile'
 import { SettingsPage } from '@/routes/settings'
 import { StatsPage } from '@/routes/stats'
+import { activityQuery } from '@/lib/activity-query'
+import { queryClient } from '@/lib/query-client'
 
 const rootRoute = createRootRoute({ component: Layout })
 
@@ -23,10 +26,17 @@ const activitiesRoute = createRoute({
   path: '/app/activities',
   component: ActivitiesPage,
 })
+const newActivityRoute = createRoute({
+  getParentRoute: () => rootRoute,
+  path: '/app/activities/new',
+  component: NewActivityPage,
+})
 // Passsidan laddas först när den öppnas: kartan (MapLibre) och diagrammen är tunga
 const activityRoute = createRoute({
   getParentRoute: () => rootRoute,
   path: '/app/activities/$activityId',
+  // Vänta in titeln före ögonblicksbilden; queryn behåller passsidans felhantering.
+  loader: ({ params }) => queryClient.prefetchQuery(activityQuery(params.activityId)),
   component: lazyRouteComponent(() => import('@/routes/activity'), 'ActivityPage'),
 })
 const statsRoute = createRoute({
@@ -49,13 +59,28 @@ const settingsRoute = createRoute({
 const routeTree = rootRoute.addChildren([
   feedRoute,
   activitiesRoute,
+  newActivityRoute,
   activityRoute,
   statsRoute,
   profileRoute,
   settingsRoute,
 ])
 
-export const router = createRouter({ routeTree, defaultPreload: 'intent' })
+export const router = createRouter({
+  routeTree,
+  defaultPreload: 'intent',
+  defaultViewTransition: {
+    types: ({ fromLocation, toLocation }) => {
+      const from = fromLocation?.pathname ?? ''
+      const to = toLocation.pathname
+      return !window.matchMedia('(prefers-reduced-motion: reduce)').matches &&
+        ((from === '/app/activities' && to.startsWith('/app/activities/')) ||
+          (to === '/app/activities' && from.startsWith('/app/activities/')))
+        ? ['activity-title']
+        : false
+    },
+  },
+})
 
 declare module '@tanstack/react-router' {
   interface Register {

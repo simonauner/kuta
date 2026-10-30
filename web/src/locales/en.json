@@ -18,15 +18,41 @@
     "description": "Your runner profile."
   },
   "activities": {
-    "file": "FIT file from your watch (up to 20 MB)",
     "hrSaved": "Heart rate is saved. Change this in",
-    "uploading": "Uploading …",
-    "upload": "Upload",
     "empty": "No activities yet.",
     "delete": "Delete",
     "deleteLabel": "Delete activity {{date}}",
     "confirmDelete": "Delete this activity? This cannot be undone.",
     "hrNotSaved": "Heart rate is not saved. Change this before uploading in"
+  },
+  "newActivity": {
+    "title": "Create activity",
+    "upload": "Upload file",
+    "file": "FIT file from your watch",
+    "overwrite": "The file replaces what you entered: {{fields}}.",
+    "useFile": "Fill in from file",
+    "cancel": "Cancel",
+    "removeFile": "Remove file",
+    "reading": "Reading the file …",
+    "name": "Title",
+    "sport": "Sport",
+    "sports": {
+      "running": "Run",
+      "cycling": "Ride",
+      "walking": "Walk",
+      "hiking": "Hike",
+      "other": "Other"
+    },
+    "startedAt": "Date and time",
+    "distance": "Distance (km)",
+    "duration": "Time (h:mm:ss)",
+    "durationHint": "For example 45:00 or 1:02:30",
+    "elevation": "Elevation gain (m)",
+    "avgHr": "Avg heart rate",
+    "locked": "The measurements come from the file.",
+    "lockedFrom": "The measurements come from the file ({{device}}).",
+    "save": "Save",
+    "saving": "Saving …"
   },
   "activity": {
     "back": "All activities",
@@ -128,6 +154,8 @@
     "duplicateActivity": "This activity has already been uploaded.",
     "invalidRecordYear": "Enter a year between 1 and 9998.",
     "invalidFit": "The file could not be read as an activity from a FIT file.",
+    "invalidTitle": "The title can be at most 100 characters.",
+    "invalidActivity": "Check the sport, date, time and distance.",
     "passwordTooShort": "Use at least 8 characters in your password.",
     "passwordUnchanged": "Choose a different password from your current one.",
     "recoveryExpired": "The reset link is invalid or has expired. Request a new link.",

@@ -10,7 +10,7 @@ Logotypen ”Spåret” finns som fristående SVG i `web/public/brand/` (mörk o
 
 React-appen öppnas på `/app`, med vyerna `/app/activities`, `/app/stats` samt `/app/profile` och `/app/settings`. `web/app.html` har `noindex`. Mejlets bekräftelselänk återvänder till `/app`. Vite bygger båda HTML-filerna, och .NET serverar dem från samma origin. PWA:n startar på `/app` och använder bara appskalet som navigeringsfallback inom `/app`.
 
-Profil visar löparens namn. Kugghjulet öppnar Inställningar på `/app/settings`, med språkval, pulssamtycke, Strava-import, e-postadress, utloggning och Danger zone för att radera alla pass. Vanlig FIT-uppladdning finns kvar på Pass, med aktuell pulsinställning och länk till Inställningar.
+Profil visar löparens namn. Kugghjulet öppnar Inställningar på `/app/settings`, med språkval, pulssamtycke, Strava-import, e-postadress, utloggning och Danger zone för att radera alla pass. Vanlig FIT-uppladdning och manuell registrering nås via Pass → Skapa ny aktivitet. Filmodalen visar aktuell pulsinställning och länkar till Inställningar.
 
 ## Språk och URL:er
 
