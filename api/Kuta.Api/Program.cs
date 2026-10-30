@@ -97,6 +97,19 @@ app.Use((context, next) =>
 });
 if (!app.Environment.IsDevelopment()) app.UseHsts();
 
+// En adress för appen: kuta.fly.dev och www skickas vidare till CanonicalHost (kutaapp.com i fly.toml), så att
+// cookies, länkar och bekräftelsemejl alltid gäller samma origin. Flys hälsokontroll går mot maskinens IP och berörs inte.
+app.Use((context, next) =>
+{
+    var canonical = app.Configuration["CanonicalHost"];
+    var host = context.Request.Host.Host;
+    if (string.IsNullOrEmpty(canonical) || host == canonical ||
+        !(host.EndsWith(".fly.dev", StringComparison.OrdinalIgnoreCase) || host.Equals($"www.{canonical}", StringComparison.OrdinalIgnoreCase)))
+        return next(context);
+    context.Response.Redirect($"https://{canonical}{context.Request.PathBase}{context.Request.Path}{context.Request.QueryString}", permanent: true);
+    return Task.CompletedTask;
+});
+
 // I drift ligger den byggda webben i wwwroot (se Dockerfile), så att webb och API delar origin.
 // Filnamnen under /assets innehåller en hash och kan cachas för alltid; resten (index.html, sw.js) ska inte cachas.
 var staticFiles = new StaticFileOptions
