@@ -1,0 +1,21 @@
+api/Kuta.Api.Tests/AuthFailureTests.cs
+  s_e9be55d9b23841::t_bf646fb7872f38 1-37
+api/Kuta.Api/AuthEndpoints.cs
+  s_e9be55d9b23841::t_7f4b66d47af207 44-45
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.7.5",
+  "base_commit_sha": "ff70d0cf8287d3d66ad1d99b0a1257c56bf64da2",
+  "prompts": {},
+  "sessions": {
+    "s_e9be55d9b23841": {
+      "agent_id": {
+        "tool": "codex",
+        "id": "01a18eba-bcb6-72d0-8f6b-f96eb9f15923",
+        "model": "gpt-6.1-sol"
+      },
+      "human_author": "Simon Aunér <simonauner@gmail.com>"
+    }
+  }
+}
