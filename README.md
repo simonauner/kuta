@@ -64,6 +64,40 @@ GitHub Actions kör frontendkontrollerna på berörda pull requests och push til
 Footern visar copyright och webbens byggnummer (`ÅÅÅÅMMDD.ttmmss`, UTC), som sätts
 automatiskt av Vite vid bygget, även i Docker. I utvecklingsläge visas `Version utveckling`.
 
+## Bästa insatser och rekord
+
+FIT-importen räknar bästa insats för löpning över 1 km, 1 mile, 5 km, 10 km,
+halvmaraton och maraton och sparar dem i samma transaktion som passet. Beräkningen
+använder tids- och distansströmmen med linjär interpolering mellan mätpunkterna.
+Tiden är förfluten tid inklusive pauser, inte rörelsetid. Ingen distans extrapoleras
+före första eller efter sista mätpunkten. Saknade/ogiltiga värden, återställd distans
+och icke stigande tid bryter strömmen; ett rekord får inte korsa en sådan brytpunkt.
+Utan en sammanhängande ström över hela distansen blir det ingen insats.
+
+`distanceM` är standarddistansens heltalsetikett: 1000, 1609, 5000, 10000, 21097
+eller 42195. Motorn använder exakt 1609,344 m för milen och 21097,5 m för halvmaran.
+`elapsedS` och `startOffsetS` är sekunder med decimaler. `achievedAt` är insatsens
+starttid i UTC (passets starttid plus `startOffsetS`).
+
+Alla anrop kräver inloggning och ger bara den egna användarens data:
+
+| Anrop | Resultat |
+|---|---|
+| `GET /api/activities/{id}/best-efforts` | Passets bästa insatser, sorterade på distans; 404 för okänt eller annans pass. |
+| `GET /api/records` | Snabbaste insatsen per distans; vid lika tid väljs den tidigaste. |
+| `GET /api/records?year=2026` | Samma urval inom UTC-kalenderåret då insatsen började. |
+| `POST /api/activities/{id}/best-efforts/recalculate` | Ersätter passets insatser från sparade tidsserier; 204 vid framgång, annars 404 för okänt eller annans pass. Kräver `X-CSRF-TOKEN`. |
+
+Omberäkningen kan upprepas efter ändrad beräkningslogik och fungerar även utan
+sparad råfil eller pulssamtycke. Kör den för befintliga pass som importerats innan
+rekordmotorn infördes; de fylls inte automatiskt i vid migreringen. Pass utan
+distansström och andra sporter ger en tom lista. Person- och årsbästa beräknas från
+`best_efforts`, så borttagning av ett pass gör att nästa bästa insats tar över direkt.
+
+Beräkningstesterna jämför också med en uttömmande referensberäkning på oregelbundna
+strömmar. Integrationstesterna använder syntetiska FIT-filer skapade med Garmins SDK
+och kontrollerar import, omberäkning, årsskifte, kaskadradering, CSRF och ägarskap.
+
 ## Driftsättning (Fly.io)
 
 En egen Fly-app (`kuta`, region `arn`). `Dockerfile` bygger webben och API:t till en image där API:t servar webben, så att de delar origin. Migreringarna körs när appen startar.

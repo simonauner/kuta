@@ -138,6 +138,7 @@ public static class ActivityEndpoints
                 values (@id, @T, @Dist, @Hr, @Speed, @Alt, @Lat, @Lon)
                 """,
                 new { id, parsed.T, parsed.Dist, parsed.Hr, parsed.Speed, parsed.Alt, parsed.Lat, parsed.Lon }, tx);
+            await BestEfforts.ReplaceAsync(conn, tx, id, userId, parsed.Sport, parsed.StartedAt, parsed.T, parsed.Dist);
             await tx.CommitAsync(cancellationToken);
 
             return Results.Created($"/api/activities/{id}", new ActivitySummary(

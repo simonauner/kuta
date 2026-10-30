@@ -116,6 +116,7 @@
     "fileRequired": "Choose a FIT file to upload.",
     "fileTooLarge": "The file is too large (20 MB maximum).",
     "duplicateActivity": "This activity has already been uploaded.",
+    "invalidRecordYear": "Enter a year between 1 and 9998.",
     "invalidFit": "The file could not be read as an activity from a FIT file.",
     "passwordTooShort": "Use at least 8 characters in your password.",
     "passwordUnchanged": "Choose a different password from your current one.",
