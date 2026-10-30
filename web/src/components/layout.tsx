@@ -1,7 +1,10 @@
+import { useQuery } from '@tanstack/react-query'
 import { Link, Outlet, useRouterState } from '@tanstack/react-router'
 import { Activity, BarChart3, Home, User } from 'lucide-react'
 import { AnimatePresence, motion } from 'motion/react'
+import { meQuery } from '@/lib/auth'
 import { cn } from '@/lib/utils'
+import { AuthPage, ChooseNamePage } from '@/routes/auth'
 
 const tabs = [
   { to: '/', label: 'Flöde', icon: Home },
@@ -12,6 +15,17 @@ const tabs = [
 
 export function Layout() {
   const pathname = useRouterState({ select: (s) => s.location.pathname })
+  const me = useQuery(meQuery)
+
+  if (me.isPending) return null
+  if (me.isError)
+    return (
+      <p role="alert" className="p-6 text-muted-foreground">
+        Kunde inte nå Kuta. Kontrollera anslutningen och ladda om sidan.
+      </p>
+    )
+  if (!me.data) return <AuthPage />
+  if (me.data.displayName === null) return <ChooseNamePage />
 
   return (
     <div className="mx-auto flex min-h-dvh max-w-2xl flex-col">
