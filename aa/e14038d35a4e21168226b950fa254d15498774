@@ -1,0 +1,40 @@
+api/Kuta.Api/Migrations/006_fit_details.sql
+  s_6fd5f3f6e9c798::t_28380776cec18e 1-22
+api/Kuta.Api/MeEndpoints.cs
+  s_6fd5f3f6e9c798::t_87bfad02c4e818 72-74
+api/Kuta.Api/FitImport.cs
+  s_6fd5f3f6e9c798::t_7d99f2481f4cf0 11,14-16,18,21-24,43-45,50-52,64-69,82-83,89-118,121-127
+  s_6fd5f3f6e9c798::t_6ad87eb5bc8fab 7,12,17
+  s_6fd5f3f6e9c798::t_3ed2ea4fad3ef1 128
+api/Kuta.Api/ActivityEndpoints.cs
+  s_6fd5f3f6e9c798::t_4f81996b9cea56 60-61
+  s_6fd5f3f6e9c798::t_c1cb9fe35f128b 156-169,172-175
+  s_6fd5f3f6e9c798::t_2f3f2b05bb0d69 146
+  s_6fd5f3f6e9c798::t_35005ff9dbbddd 67-89
+  s_6fd5f3f6e9c798::t_24ce72b9c8a3b6 15-16,19-25
+  s_6fd5f3f6e9c798::t_df62590f2ebc3d 136-137,139
+  s_6fd5f3f6e9c798::t_6ad87eb5bc8fab 171
+api/Kuta.Api.Tests/FitUploadTests.cs
+  s_6fd5f3f6e9c798::t_5119d5c3649474 76-77
+  s_6fd5f3f6e9c798::t_26f31bb1ea1781 193-194,196-212
+  s_6fd5f3f6e9c798::t_2702b8fec400d7 66-67
+  s_6fd5f3f6e9c798::t_acaa538771a814 177-178
+  s_6fd5f3f6e9c798::t_eeab2f41809fa8 42-52
+  s_6fd5f3f6e9c798::t_a6de185cf45a83 119-123
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.7.5",
+  "base_commit_sha": "aae14038d35a4e21168226b950fa254d15498774",
+  "prompts": {},
+  "sessions": {
+    "s_6fd5f3f6e9c798": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "110cb47e-0b75-4e34-90b9-538aef87a42f",
+        "model": "claude-opus-5-5"
+      },
+      "human_author": "Simon Aunér <simonauner@gmail.com>"
+    }
+  }
+}
