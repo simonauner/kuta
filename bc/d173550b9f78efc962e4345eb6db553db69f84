@@ -1,0 +1,19 @@
+api/Kuta.Api.Tests/PasswordRecoveryTests.cs
+  s_6fd5f3f6e9c798::t_15e47ba160cc47 20,84,123,158
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.7.5",
+  "base_commit_sha": "bcd173550b9f78efc962e4345eb6db553db69f84",
+  "prompts": {},
+  "sessions": {
+    "s_6fd5f3f6e9c798": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "110cb47e-0b75-4e34-90b9-538aef87a42f",
+        "model": "claude-opus-5-5"
+      },
+      "human_author": "Simon Aunér <simonauner@gmail.com>"
+    }
+  }
+}
