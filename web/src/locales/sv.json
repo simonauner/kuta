@@ -18,6 +18,7 @@
     "description": "Din löparprofil."
   },
   "activities": {
+    "week": "v. {{week}}",
     "hrSaved": "Pulsdata sparas. Ändra i",
     "empty": "Inga pass än.",
     "delete": "Ta bort",

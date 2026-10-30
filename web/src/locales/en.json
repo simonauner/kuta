@@ -18,6 +18,7 @@
     "description": "Your runner profile."
   },
   "activities": {
+    "week": "Week {{week}}",
     "hrSaved": "Heart rate is saved. Change this in",
     "empty": "No activities yet.",
     "delete": "Delete",
