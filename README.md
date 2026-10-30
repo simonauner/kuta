@@ -37,9 +37,11 @@ Tester (kräver `supabase start`): `dotnet test --project api/Kuta.Api.Tests`.
 
 En egen Fly-app (`kuta`, region `arn`). `Dockerfile` bygger webben och API:t till en image där API:t servar webben, så att de delar origin. Migreringarna körs när appen startar.
 
+**Domän före deploy:** `CanonicalHost` i `fly.toml` är `kutaapp.com`. Konfigurera DNS för domänen mot Fly-appen och verifiera att Fly har ett giltigt TLS-certifikat för `kutaapp.com` innan du deployar denna konfiguration. Appen skickar vidare `kuta.fly.dev` och `www.kutaapp.com` till `https://kutaapp.com`.
+
 **Supabase-projektet** (en gång, i dashboarden):
 - EU-region. Stäng av Data API. Minsta lösenordslängd 8.
-- Authentication → URL Configuration: Site URL `https://kuta.fly.dev` (bekräftelselänken byggs på den).
+- Authentication → URL Configuration: Site URL `https://kutaapp.com` (bekräftelselänken byggs på den). Adressen ska följa `CanonicalHost` i `fly.toml` och vara inställd före deploy.
 - Authentication → Email Templates → Confirm signup: innehållet i `supabase/templates/confirmation.html`.
 - Egen SMTP (Authentication → SMTP). Supabases inbyggda mejl skickar bara till projektets egna medlemmar och några få per timme.
 
@@ -69,8 +71,8 @@ Förlorat certifikat förlorar ingen data, men alla måste logga in igen. Data P
 scripts/fly-secrets.sh fly.toml --stage
 ```
 
-**Deploy:**
+**Deploy:** kör en maskin tills migreringar och token-förnyelse klarar flera maskiner, enligt `AGENTS.md`.
 
 ```bash
-fly deploy
+fly deploy --ha=false
 ```
