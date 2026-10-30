@@ -1,0 +1,21 @@
+.agents/skills/run-dev/SKILL.md
+  s_fbb711a8b750b1::t_945042bfb5536c 1-45
+AGENTS.md
+  s_fbb711a8b750b1::t_f90298cfc57579 5-12,35,71
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.7.5",
+  "base_commit_sha": "c2a2f983d981b17a2aecf08527000bf38f75a900",
+  "prompts": {},
+  "sessions": {
+    "s_fbb711a8b750b1": {
+      "agent_id": {
+        "tool": "codex",
+        "id": "01a18e6b-b398-7d43-a953-5cb91b5bd90c",
+        "model": "gpt-6.1-sol"
+      },
+      "human_author": "Simon Aunér <simonauner@gmail.com>"
+    }
+  }
+}
