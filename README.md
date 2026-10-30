@@ -32,3 +32,37 @@ Flyttar hela portserien: webben på BAS, API:t på BAS+2 och en egen Supabase-st
 Kommer bekräftelsemejlet ändå på engelska med en länk till Supabase har auth-containern startat före Kong (skriptet hanterar det när det själv startar Supabase): `docker restart supabase_auth_kuta` och registrera igen.
 
 Tester (kräver `supabase start`): `dotnet test --project api/Kuta.Api.Tests`.
+
+## Driftsättning (Fly.io)
+
+En egen Fly-app (`kuta`, region `arn`), separat från Kredovis. `Dockerfile` bygger webben och API:t till en image där API:t servar webben, så att de delar origin. Migreringarna körs när appen startar.
+
+**Supabase-projektet** (en gång, i dashboarden):
+- EU-region. Stäng av Data API. Minsta lösenordslängd 8.
+- Authentication → URL Configuration: Site URL `https://kuta.fly.dev` (bekräftelselänken byggs på den).
+- Authentication → Email Templates → Confirm signup: innehållet i `supabase/templates/confirmation.html`.
+- Egen SMTP (Authentication → SMTP). Supabases inbyggda mejl skickar bara till projektets egna medlemmar och några få per timme.
+
+**Fly** (en gång):
+
+```bash
+fly apps create kuta
+```
+
+Fyll i `Supabase__Url` och `Supabase__PublishableKey` i `fly.toml`. Skapa certifikatet som krypterar Data Protection-nycklarna och spara `kuta-dataprotection.pfx` i 1Password:
+
+```bash
+openssl req -x509 -newkey rsa:2048 -nodes -days 3650 -subj "/CN=kuta-dataprotection" -keyout key.pem -out cert.pem && openssl pkcs12 -export -inkey key.pem -in cert.pem -out kuta-dataprotection.pfx -passout pass: && rm key.pem cert.pem
+```
+
+Sätt hemligheterna (anslutningssträngen från Supabase → Connect → Session pooler, i Npgsql-format med `SSL Mode=Require;Maximum Pool Size=10`):
+
+```bash
+fly secrets set --stage ConnectionStrings__Default='Host=…;Port=5432;Database=postgres;Username=postgres.<ref>;Password=…;SSL Mode=Require;Maximum Pool Size=10' Supabase__SecretKey='sb_secret_…' DataProtection__Certificate="$(base64 -i kuta-dataprotection.pfx)"
+```
+
+**Deploy:**
+
+```bash
+fly deploy
+```

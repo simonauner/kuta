@@ -26,6 +26,7 @@ Kuta (kuta.io) är en Strava-liknande löparapp: ladda upp pass från Garmin (FI
   - Lokalt: kommer bekräftelsemejlet i Mailpit (http://127.0.0.1:55324) med Supabases engelska standardmall har auth-containern startat före Kong – kör `docker restart supabase_auth_kuta`.
 - Migreringar körda: 001–003. Ändra aldrig en körd migrering – nya ändringar i nästa nummer.
 - Privat repo: github.com/simonauner/kuta. Node 24 (`.nvmrc`).
+- Driftsättning förberedd men inte gjord: `Dockerfile` (API:t servar den byggda webben från `wwwroot`, samma origin), `fly.toml` (egen app `kuta`, `arn`), steg i README. Utanför Development krävs `DataProtection__Certificate`; lokala värden ligger bara i `appsettings.Development.json`. Pipelinens ordning i `Program.cs` är medveten (headers → statiska filer → routing → auth) – se kommentarerna.
 - Inget hostat Supabase-projekt än. Vid uppsättning: EU-region, stäng av Data API i dashboarden (grants är redan återkallade, se nedan), lägg in bekräftelsemallen och minsta lösenordslängd 8 i dashboarden, och sätt via miljövariabler: `ConnectionStrings__Default` (session pooler, port 5432, `Maximum Pool Size` under poolstorleken), `Supabase__Url`, `Supabase__PublishableKey` och `Supabase__SecretKey` (gör att besökarens IP skickas vidare till Supabase). Före produktion: skydda Data Protection-nycklarna med certifikat och konfigurera forwarded headers så att rate limiten ser klientens IP.
 
 ## Designbeslut att hålla fast vid
