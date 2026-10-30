@@ -62,7 +62,8 @@ create table best_efforts (
     distance_m    integer not null,           -- 1000, 1609, 5000, 10000, 21097, 42195
     elapsed_s     real not null,
     start_offset_s integer not null,
-    achieved_at   timestamptz not null
+    achieved_at   timestamptz not null,
+    unique (activity_id, distance_m)            -- en per distans och pass; importen gör upsert
 );
 
 create index best_efforts_pr_idx on best_efforts (user_id, distance_m, elapsed_s);
