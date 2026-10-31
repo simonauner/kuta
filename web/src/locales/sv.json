@@ -257,7 +257,6 @@
   },
   "settings": {
     "title": "Inställningar",
-    "back": "← Profil",
     "health": "Hälsodata",
     "strava": "Importera från Strava",
     "stravaFile": "Strava-export (ZIP)",

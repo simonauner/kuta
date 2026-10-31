@@ -6,6 +6,14 @@ import { ErrorMessage } from '@/components/error-message'
 import { HeartRateConsent } from '@/components/heart-rate-consent'
 import { LanguageSelect } from '@/components/language-select'
 import { StravaImport } from '@/components/strava-import'
+import {
+  Breadcrumb,
+  BreadcrumbItem,
+  BreadcrumbLink,
+  BreadcrumbList,
+  BreadcrumbPage,
+  BreadcrumbSeparator,
+} from '@/components/ui/breadcrumb'
 import { Button } from '@/components/ui/button'
 import { api } from '@/lib/api'
 import { meQuery, useSessionChanged } from '@/lib/auth'
@@ -21,13 +29,20 @@ export function SettingsPage() {
 
   return (
     <section>
-      <Link
-        to="/app/profile"
-        className="text-sm text-muted-foreground underline-offset-2 hover:underline"
-      >
-        {t('settings.back')}
-      </Link>
-      <h1 className="mt-4 text-2xl font-semibold tracking-tight">{t('settings.title')}</h1>
+      <Breadcrumb aria-label={t('breadcrumbs')} className="mb-4">
+        <BreadcrumbList>
+          <BreadcrumbItem>
+            <BreadcrumbLink render={<Link to="/app/profile" activeOptions={{ exact: true }} />}>
+              {t('nav.profile')}
+            </BreadcrumbLink>
+          </BreadcrumbItem>
+          <BreadcrumbSeparator />
+          <BreadcrumbItem>
+            <BreadcrumbPage>{t('settings.title')}</BreadcrumbPage>
+          </BreadcrumbItem>
+        </BreadcrumbList>
+      </Breadcrumb>
+      <h1 className="text-2xl font-semibold tracking-tight">{t('settings.title')}</h1>
       <div className="mt-6 flex">
         <LanguageSelect />
       </div>
