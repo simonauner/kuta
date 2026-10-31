@@ -2,10 +2,10 @@ using System.Security.Claims;
 using Dapper;
 using Npgsql;
 
-public record Runner(Guid Id, string DisplayName, string Status);
+public record Runner(Guid Id, string DisplayName, string Status, string? SupporterTier);
 public record FollowLists(IEnumerable<Runner> Following, IEnumerable<Runner> Followers);
 public record FeedItem(Guid Id, Guid UserId, string DisplayName, string Sport, string? Title,
-    DateTime StartedAt, int DurationS, double DistanceM, string Privacy, string? RouteGeoJson);
+    DateTime StartedAt, int DurationS, double DistanceM, string Privacy, string? RouteGeoJson, string? SupporterTier);
 public record FeedPage(IReadOnlyList<FeedItem> Items, ActivityCursor? NextCursor);
 
 public static class SocialEndpoints
@@ -23,9 +23,10 @@ public static class SocialEndpoints
         social.MapGet("/runners/{id:guid}", async (Guid id, NpgsqlDataSource db, ClaimsPrincipal user) =>
         {
             await using var conn = await db.OpenConnectionAsync();
-            var runner = await conn.QuerySingleOrDefaultAsync<Runner>("""
+            var runner = await conn.QuerySingleOrDefaultAsync<Runner>($"""
                 select u.id, u.display_name, case when f.follower_id is null then 'none'
-                    when f.accepted_at is null then 'pending' else 'accepted' end as status
+                    when f.accepted_at is null then 'pending' else 'accepted' end as status,
+                    {Supporters.VisibleTier} as supporter_tier
                 from users u left join follows f on f.following_id = u.id and f.follower_id = @userId
                 where u.id = @id
                 """, new { id, userId = user.GetUserId() });
@@ -45,13 +46,15 @@ public static class SocialEndpoints
         {
             await using var conn = await db.OpenConnectionAsync();
             var userId = user.GetUserId();
-            var following = await conn.QueryAsync<Runner>("""
-                select u.id, u.display_name, case when f.accepted_at is null then 'pending' else 'accepted' end as status
+            var following = await conn.QueryAsync<Runner>($"""
+                select u.id, u.display_name, case when f.accepted_at is null then 'pending' else 'accepted' end as status,
+                    {Supporters.VisibleTier} as supporter_tier
                 from follows f join users u on u.id = f.following_id where f.follower_id = @userId
                 order by u.display_name, u.id
                 """, new { userId });
-            var followers = await conn.QueryAsync<Runner>("""
-                select u.id, u.display_name, case when f.accepted_at is null then 'pending' else 'accepted' end as status
+            var followers = await conn.QueryAsync<Runner>($"""
+                select u.id, u.display_name, case when f.accepted_at is null then 'pending' else 'accepted' end as status,
+                    {Supporters.VisibleTier} as supporter_tier
                 from follows f join users u on u.id = f.follower_id where f.following_id = @userId
                 order by f.accepted_at nulls first, u.display_name, u.id
                 """, new { userId });
@@ -112,7 +115,8 @@ public static class SocialEndpoints
             with page as materialized (
                 select a.id, a.user_id, u.display_name, a.sport, a.title, a.started_at, a.duration_s,
                     coalesce((select sum(p.distance_m) from activity_parts p where p.activity_id = a.id
-                        and p.original = not a.parts_edited), a.distance_m) as distance_m, a.privacy, a.route
+                        and p.original = not a.parts_edited), a.distance_m) as distance_m, a.privacy, a.route,
+                    {Supporters.VisibleTier} as supporter_tier
                 from activities a join users u on u.id = a.user_id
                 where {CanRead} and (
                     (@runnerId::uuid is not null and a.user_id = @runnerId) or
@@ -122,7 +126,8 @@ public static class SocialEndpoints
                 order by a.started_at desc, a.id desc limit 26
             )
             select id, user_id, display_name, sport, title, started_at, duration_s, distance_m, privacy,
-                case when st_isempty(preview.route) then null else st_asgeojson(preview.route, 6) end as route_geo_json
+                case when st_isempty(preview.route) then null else st_asgeojson(preview.route, 6) end as route_geo_json,
+                supporter_tier
             from page
             cross join lateral (
                 select st_unaryunion(st_collect(zone)) as areas from (
