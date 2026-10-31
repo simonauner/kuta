@@ -11,6 +11,9 @@ obj/
 # Lokala instanser från scripts/run-dev.sh --ports
 .context/
 
+# PR-bilder bifogas på GitHub, inte i repot
+.github/screenshots/
+
 # Certifikat och nycklar (t.ex. kuta-dataprotection.pfx) – sparas i 1Password, aldrig i repot
 *.pfx
 *.pem
