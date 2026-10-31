@@ -10,6 +10,7 @@ import { BackLink } from '@/components/back-link'
 import { MultisportEditor } from '@/components/multisport-editor'
 import { partStreams, sportNameKey, sportColors, type ActivityPart } from '@/lib/multisport'
 import { Button } from '@/components/ui/button'
+import { Heading } from '@/components/ui/heading'
 import { meQuery } from '@/lib/auth'
 import { equipmentQuery } from '@/lib/equipment'
 import { TagLabels } from '@/components/activity-tags'
@@ -275,7 +276,7 @@ export function ActivityPage() {
       )}
       <p className="mt-4 text-sm text-muted-foreground">{when.format(new Date(a.startedAt))}</p>
       <div className="mt-1 flex flex-wrap items-center justify-between gap-3">
-        <h1 className="flex min-w-0 items-center gap-3 text-2xl font-semibold tracking-tight">
+        <Heading level={1} className="flex min-w-0 items-center gap-3">
           <span className="wrap-anywhere" style={{ viewTransitionName: `activity-title-${a.id}` }}>
             {activityTitle(original, t)}
           </span>
@@ -284,7 +285,7 @@ export function ActivityPage() {
             className="size-9 shrink-0"
             style={{ viewTransitionName: `activity-sport-${a.id}` }}
           />
-        </h1>
+        </Heading>
         {original.userId === me?.id && (
           <Button asChild size="sm" variant="outline" className="ml-auto">
             <Link
@@ -305,7 +306,7 @@ export function ActivityPage() {
       {a.device && <p className="mt-1 text-xs text-muted-foreground">{a.device}</p>}
 
       {a.description && (
-        <p className="mt-4 whitespace-pre-wrap text-sm wrap-anywhere">{a.description}</p>
+        <p className="mt-4 whitespace-pre-wrap text-body wrap-anywhere">{a.description}</p>
       )}
       {original.userId === me?.id && original.excludeFromRecords && (
         <p className="mt-4 text-sm text-muted-foreground">{t('activity.excludedFromRecords')}</p>
@@ -349,7 +350,7 @@ export function ActivityPage() {
 
       {a.equipmentIds.length > 0 && (
         <div className="mt-5">
-          <h2 className="text-sm font-medium">{t('equipment.title')}</h2>
+          <p className="text-metadata text-muted-foreground">{t('equipment.title')}</p>
           <ul className="mt-2 flex flex-wrap gap-2">
             {equipment.data
               ?.filter((item) => a.equipmentIds.includes(item.id))
@@ -373,7 +374,7 @@ export function ActivityPage() {
       )}
       {a.tags.length > 0 && (
         <div className="mt-5">
-          <h2 className="text-sm font-medium">{t('tags.label')}</h2>
+          <p className="text-metadata text-muted-foreground">{t('tags.label')}</p>
           <TagLabels tags={a.tags} />
         </div>
       )}
@@ -396,9 +397,9 @@ export function ActivityPage() {
           className="mt-6 rounded-xl border bg-card p-4"
           aria-labelledby="activity-records-title"
         >
-          <h2 id="activity-records-title" className="text-sm font-semibold">
+          <Heading level={2} id="activity-records-title">
             {t('records.activityRecords')}
-          </h2>
+          </Heading>
           <ul className="mt-3 grid gap-3 sm:grid-cols-2">
             {bestEfforts.data
               .filter((e) => e.recordStatus)
@@ -598,21 +599,27 @@ export function ActivityPage() {
 
       {view && view.series.length > 0 && (
         <div className="mt-8">
-          <h2 className="mb-2 text-lg font-semibold">{t('activity.charts')}</h2>
+          <Heading level={2} className="mb-2">
+            {t('activity.charts')}
+          </Heading>
           <ActivityCharts axis={view.axis} series={view.series} />
         </div>
       )}
 
       {view && view.splits.length > 0 && (
         <div className="mt-8">
-          <h2 className="mb-2 text-lg font-semibold">{t('activity.splits')}</h2>
+          <Heading level={2} className="mb-2">
+            {t('activity.splits')}
+          </Heading>
           {splitTable}
         </div>
       )}
 
       {hasEfforts && (
         <div className="mt-8">
-          <h2 className="mb-2 text-lg font-semibold">{t('records.bestEfforts')}</h2>
+          <Heading level={2} className="mb-2">
+            {t('records.bestEfforts')}
+          </Heading>
           {effortTable}
         </div>
       )}
