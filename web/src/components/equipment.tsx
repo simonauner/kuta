@@ -17,7 +17,7 @@ export function EquipmentSection() {
   const queryClient = useQueryClient()
   const deleteDialog = useRef<HTMLDialogElement>(null)
   const [deleting, setDeleting] = useState<Equipment | null>(null)
-  const [adding, setAdding] = useState(false)
+  const createDialog = useRef<HTMLDialogElement>(null)
   const [name, setName] = useState('')
   const [brand, setBrand] = useState('')
   const [kind, setKind] = useState('shoe')
@@ -35,7 +35,7 @@ export function EquipmentSection() {
       }),
     onSuccess: async () => {
       await queryClient.invalidateQueries({ queryKey: equipmentQuery.queryKey })
-      setAdding(false)
+      createDialog.current?.close()
       setName('')
       setBrand('')
       setDistanceKm('')
@@ -62,7 +62,7 @@ export function EquipmentSection() {
   })
   function onSubmit(e: FormEvent) {
     e.preventDefault()
-    create.mutate()
+    if (!create.isPending) create.mutate()
   }
   return (
     <section className="mt-8 border-t pt-6" aria-labelledby="equipment-heading">
@@ -74,11 +74,16 @@ export function EquipmentSection() {
           size="sm"
           variant="outline"
           onClick={() => {
-            setAdding(!adding)
+            setName('')
+            setBrand('')
+            setKind('shoe')
+            setDistanceKm('')
+            setDuration('')
             create.reset()
+            createDialog.current?.showModal()
           }}
         >
-          {t(adding ? 'equipment.cancel' : 'equipment.add')}
+          {t('equipment.add')}
         </Button>
       </div>
       <p className="mt-2 text-sm text-muted-foreground">{t('equipment.description')}</p>
@@ -143,78 +148,95 @@ export function EquipmentSection() {
           </li>
         ))}
       </ul>
-      {adding && (
-        <form onSubmit={onSubmit} className="mt-4 grid grid-cols-2 gap-4">
-          <label className="col-span-2 space-y-2 text-sm font-medium">
-            {t('equipment.name')}
-            <Input
-              required
-              maxLength={100}
-              value={name}
-              onChange={(e) => setName(e.currentTarget.value)}
-            />
-          </label>
-          <label className="space-y-2 text-sm font-medium">
-            {t('equipment.brand')}
-            <Input
-              maxLength={100}
-              value={brand}
-              onChange={(e) => setBrand(e.currentTarget.value)}
-            />
-          </label>
-          <label className="space-y-2 text-sm font-medium">
-            {t('equipment.kind')}
-            <select
-              className="h-9 w-full rounded-md border bg-background px-3"
-              value={kind}
-              onChange={(e) => setKind(e.currentTarget.value)}
-            >
-              {kinds.data?.map((value) => (
-                <option key={value} value={value}>
-                  {t(`equipmentKinds.${value}`)}
-                </option>
-              ))}
-            </select>
-          </label>
-          <p className="col-span-2 text-xs text-muted-foreground">{t('equipment.initialHint')}</p>
-          <label className="space-y-2 text-sm font-medium">
-            {t('equipment.initialDistance')}
-            <Input
-              type="number"
-              inputMode="decimal"
-              min={0}
-              step={0.01}
-              value={distanceKm}
-              onChange={(e) => setDistanceKm(e.currentTarget.value)}
-            />
-          </label>
-          <label className="space-y-2 text-sm font-medium">
-            {t('equipment.initialDuration')}
-            <Input
-              pattern="\d+(:[0-5]\d){0,2}"
-              placeholder="0:00:00"
-              title={t('newActivity.durationHint')}
-              value={duration}
-              onChange={(e) => setDuration(e.currentTarget.value)}
-            />
-          </label>
-          {kinds.error && (
-            <p role="alert" className="col-span-2 text-sm text-destructive">
-              <ErrorMessage error={kinds.error} />
-            </p>
-          )}
-          <div className="col-span-2">
-            <Button disabled={create.isPending || !kinds.data?.length}>
-              {t('equipment.save')}
-            </Button>
-          </div>
-          {create.error && (
-            <p role="alert" className="col-span-2 text-sm text-destructive">
-              <ErrorMessage error={create.error} />
-            </p>
-          )}
+      <dialog
+        ref={createDialog}
+        aria-labelledby="create-equipment-title"
+        onCancel={(event) => {
+          if (create.isPending) event.preventDefault()
+        }}
+        className="fixed inset-0 m-auto max-h-[calc(100dvh-2rem)] w-[calc(100%-2rem)] max-w-md overflow-y-auto rounded-xl border bg-background p-6 text-foreground shadow-xl backdrop:bg-black/70"
+      >
+        <h2 id="create-equipment-title" className="text-xl font-semibold">
+          {t('equipment.add')}
+        </h2>
+        <form onSubmit={onSubmit}>
+          <fieldset disabled={create.isPending} className="mt-5 grid grid-cols-2 gap-4">
+            <label className="col-span-2 space-y-2 text-sm font-medium">
+              {t('equipment.name')}
+              <Input
+                autoFocus
+                required
+                maxLength={100}
+                value={name}
+                onChange={(e) => setName(e.currentTarget.value)}
+              />
+            </label>
+            <label className="space-y-2 text-sm font-medium">
+              {t('equipment.brand')}
+              <Input
+                maxLength={100}
+                value={brand}
+                onChange={(e) => setBrand(e.currentTarget.value)}
+              />
+            </label>
+            <label className="space-y-2 text-sm font-medium">
+              {t('equipment.kind')}
+              <select
+                className="h-9 w-full rounded-md border bg-background px-3"
+                value={kind}
+                onChange={(e) => setKind(e.currentTarget.value)}
+              >
+                {kinds.data?.map((value) => (
+                  <option key={value} value={value}>
+                    {t(`equipmentKinds.${value}`)}
+                  </option>
+                ))}
+              </select>
+            </label>
+            <p className="col-span-2 text-xs text-muted-foreground">{t('equipment.initialHint')}</p>
+            <label className="space-y-2 text-sm font-medium">
+              {t('equipment.initialDistance')}
+              <Input
+                type="number"
+                inputMode="decimal"
+                min={0}
+                step={0.01}
+                value={distanceKm}
+                onChange={(e) => setDistanceKm(e.currentTarget.value)}
+              />
+            </label>
+            <label className="space-y-2 text-sm font-medium">
+              {t('equipment.initialDuration')}
+              <Input
+                pattern="\d+(:[0-5]\d){0,2}"
+                placeholder="0:00:00"
+                title={t('newActivity.durationHint')}
+                value={duration}
+                onChange={(e) => setDuration(e.currentTarget.value)}
+              />
+            </label>
+            {kinds.error && (
+              <p role="alert" className="col-span-2 text-sm text-destructive">
+                <ErrorMessage error={kinds.error} />
+              </p>
+            )}
+
+            {create.error && (
+              <p role="alert" className="col-span-2 text-sm text-destructive">
+                <ErrorMessage error={create.error} />
+              </p>
+            )}
+            <div className="col-span-2 flex flex-wrap justify-end gap-3 pt-2">
+              <Button type="button" variant="outline" onClick={() => createDialog.current?.close()}>
+                {t('equipment.cancel')}
+              </Button>
+              <Button type="submit" disabled={!kinds.data?.length}>
+                {create.isPending ? t('newActivity.saving') : t('equipment.save')}
+              </Button>
+            </div>
+          </fieldset>
         </form>
-      )}
+      </dialog>
       <dialog
         ref={deleteDialog}
         aria-labelledby="delete-shoe-title"
