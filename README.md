@@ -175,17 +175,21 @@ Alla anrop kräver inloggning; skrivningar kräver `X-CSRF-TOKEN`:
 | `DELETE /api/equipment/{id}` | Raderar egen utrustning och dess kopplingar, men behåller passen. |
 | `GET /api/equipment/kinds` | Tillåtna typer. |
 | `POST /api/equipment` | Skapar utrustning med `name`, `kind`, valfritt `brand`, `initialDistanceM` och `initialDurationS`. Båda startvärdena är 0 om de utelämnas. |
-| `PUT /api/activities/{id}/equipment` | Ersätter kopplingarna med `{"equipmentIds":["uuid"]}`; tom lista kopplar bort alla. Annans eller okänt pass ger 404. |
+| `PUT /api/activities/{id}` | Sparar titel, beskrivning, taggar och utrustning tillsammans med `{"title":"Morgonpass","description":null,"tags":["race"],"equipmentIds":["uuid"]}`; tomma listor tar bort respektive val. Annans eller okänt pass ger 404. |
 
 Vid skapande av pass skickas `equipmentIds` som JSON-array (manuellt) eller
 upprepade formulärfält (FIT). Okänd eller annans utrustning avvisas utan att
 passet eller kopplingarna ändras. API:t använder SI-enheter; webben visar kilometer.
 
+Passsidan visar bara kopplad utrustning och valda taggar. Knappen Redigera aktivitet
+öppnar `/app/activities/$activityId/edit`, där titel, beskrivning, taggar och utrustning ändras med gemensamma Spara och
+Avbryt. Spara uppdaterar allt i samma transaktion; Avbryt lämnar passet oförändrat.
+
 ## Taggar på aktiviteter
 
 Ett pass kan ha flera taggar: `race` (Lopp), `workout` (Intervaller/kvalitet),
 `long_run` (Långpass) och `easy` (Lugnt). Välj dem vid manuell registrering eller
-FIT-uppladdning, ändra dem på passsidan och filtrera passlistan efter en tagg.
+FIT-uppladdning, ändra dem via passsidans Redigera aktivitet och filtrera passlistan efter en tagg.
 Listans taggfilter sparas i URL:en (`/app/activities?tag=race`), kan kombineras
 med `year` och följer med till pass, skapandeformulär och tillbaka till listan.
 
@@ -197,7 +201,8 @@ i vardera `tagNames` i svenska och engelska språkfilen, ingen ny migrering.
 
 Alla anrop kräver inloggning och gäller bara egna pass. Skapande tar `tags` som
 JSON-array för manuella pass eller upprepade formulärfält för FIT. Ändra med
-`PUT /api/activities/{id}/tags`, exempelvis `{"tags":["race","workout"]}`; tom array
+`PUT /api/activities/{id}` med `title`, `description`, `tags` och `equipmentIds`, exempelvis
+`{"title":"Morgonpass","description":null,"tags":["race","workout"],"equipmentIds":[]}`; tom array
 tar bort alla taggar. Skrivningar kräver `X-CSRF-TOKEN`.
 
 ### Träningsformer

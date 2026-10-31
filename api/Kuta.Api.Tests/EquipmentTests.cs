@@ -89,17 +89,25 @@ public class EquipmentTests(KutaFactory factory) : IClassFixture<KutaFactory>
 
             Assert.Equal(HttpStatusCode.BadRequest, (await other.PostAsJsonAsync("/api/activities/manual", manual, ct)).StatusCode);
             Assert.Empty((await other.GetFromJsonAsync<ActivityPage>("/api/activities", ct))!.Items);
-            Assert.Equal(HttpStatusCode.NotFound, (await other.PutAsJsonAsync($"/api/activities/{activity.Id}/equipment",
-                new { equipmentIds = new[] { gear.Id } }, ct)).StatusCode);
+            Assert.Equal(HttpStatusCode.NotFound, (await other.PutAsJsonAsync($"/api/activities/{activity.Id}",
+                new { title = activity.Title, equipmentIds = new[] { gear.Id }, tags = Array.Empty<string>() }, ct)).StatusCode);
             var otherGear = await AddEquipment(conn, otherId, "Private shoe", 0, 0);
-            Assert.Equal(HttpStatusCode.BadRequest, (await owner.PutAsJsonAsync($"/api/activities/{activity.Id}/equipment",
-                new { equipmentIds = new[] { otherGear } }, ct)).StatusCode);
-            Assert.Equal(gear.Id, Assert.Single((await owner.GetFromJsonAsync<ActivityDetail>($"/api/activities/{activity.Id}", ct))!.EquipmentIds));
-            Assert.Equal(HttpStatusCode.NoContent, (await owner.PutAsJsonAsync($"/api/activities/{activity.Id}/equipment",
-                new { equipmentIds = new[] { gear.Id } }, ct)).StatusCode);
-            Assert.Equal(HttpStatusCode.NoContent, (await owner.PutAsJsonAsync($"/api/activities/{activity.Id}/equipment",
-                new { equipmentIds = Array.Empty<Guid>() }, ct)).StatusCode);
-            Assert.Empty((await owner.GetFromJsonAsync<ActivityDetail>($"/api/activities/{activity.Id}", ct))!.EquipmentIds);
+            Assert.Equal(HttpStatusCode.BadRequest, (await owner.PutAsJsonAsync($"/api/activities/{activity.Id}",
+                new { title = "Rejected title", description = "Rejected description", equipmentIds = new[] { otherGear }, tags = new[] { "race" } }, ct)).StatusCode);
+            var unchanged = (await owner.GetFromJsonAsync<ActivityDetail>($"/api/activities/{activity.Id}", ct))!;
+            Assert.Equal(gear.Id, Assert.Single(unchanged.EquipmentIds));
+            Assert.Empty(unchanged.Tags);
+            Assert.Equal(activity.Title, unchanged.Title);
+            Assert.Null(unchanged.Description);
+            Assert.Equal(HttpStatusCode.NoContent, (await owner.PutAsJsonAsync($"/api/activities/{activity.Id}",
+                new { title = activity.Title, equipmentIds = new[] { gear.Id }, tags = Array.Empty<string>() }, ct)).StatusCode);
+            Assert.Equal(HttpStatusCode.NoContent, (await owner.PutAsJsonAsync($"/api/activities/{activity.Id}",
+                new { title = "  Renamed run  ", description = "  First line\nSecond line  ", equipmentIds = Array.Empty<Guid>(), tags = new[] { "race" } }, ct)).StatusCode);
+            var updated = (await owner.GetFromJsonAsync<ActivityDetail>($"/api/activities/{activity.Id}", ct))!;
+            Assert.Equal("Renamed run", updated.Title);
+            Assert.Equal("First line\nSecond line", updated.Description);
+            Assert.Empty(updated.EquipmentIds);
+            Assert.Equal(new[] { "race" }, updated.Tags);
 
             // Rejecting FIT equipment must roll back the common storage path, allowing the same file afterwards.
             using (var rejectedForm = new MultipartFormDataContent())

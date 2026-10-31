@@ -1,5 +1,6 @@
 import { Menu } from '@base-ui/react/menu'
-import { EllipsisVertical } from 'lucide-react'
+import { Select } from '@base-ui/react/select'
+import { Check, ChevronDown, EllipsisVertical } from 'lucide-react'
 import { Modal } from '@/components/ui/modal'
 import { useRef, useState, type FormEvent } from 'react'
 import { Link } from '@tanstack/react-router'
@@ -8,13 +9,7 @@ import { useTranslation } from 'react-i18next'
 import { api } from '@/lib/api'
 import { cn } from '@/lib/utils'
 import { formatDuration, parseDuration } from '@/lib/activity'
-import {
-  equipmentQuery,
-  equipmentKindsQuery,
-  lastUsedShoeQuery,
-  type Equipment,
-} from '@/lib/equipment'
-import { activityQuery } from '@/lib/activity-query'
+import { equipmentQuery, equipmentKindsQuery, type Equipment } from '@/lib/equipment'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { ErrorMessage } from '@/components/error-message'
@@ -326,6 +321,12 @@ export function EquipmentPicker({
 }) {
   const { t } = useTranslation()
   const equipment = useQuery(equipmentQuery)
+  const options =
+    equipment.data?.filter(
+      (item) => !item.retired || value.includes(item.id) || initialIds.includes(item.id),
+    ) ?? []
+  const label = (item: Equipment) =>
+    `${item.name}${item.retired ? ` · ${t('equipment.retired')}` : ''}`
   return (
     <fieldset disabled={disabled}>
       <legend className="mb-2 text-sm font-medium">{t('equipment.title')}</legend>
@@ -342,12 +343,51 @@ export function EquipmentPicker({
           </Link>
         </p>
       )}
-      <div className="flex flex-wrap gap-3">
-        {equipment.data
-          ?.filter(
-            (item) => !item.retired || value.includes(item.id) || initialIds.includes(item.id),
-          )
-          .map((item) => (
+      {options.length > 3 ? (
+        <Select.Root
+          multiple
+          value={value}
+          onValueChange={onChange}
+          disabled={disabled}
+          items={options.map((item) => ({ value: item.id, label: label(item) }))}
+        >
+          <Select.Trigger
+            aria-label={t('equipment.title')}
+            className="flex min-h-9 w-full items-center justify-between gap-2 rounded-md border bg-background px-3 py-2 text-left text-sm outline-none focus-visible:ring-2 focus-visible:ring-ring disabled:opacity-50"
+          >
+            <Select.Value placeholder={t('equipment.choose')} className="min-w-0 break-words" />
+            <Select.Icon>
+              <ChevronDown className="size-4 shrink-0" aria-hidden="true" />
+            </Select.Icon>
+          </Select.Trigger>
+          <Select.Portal>
+            <Select.Positioner alignItemWithTrigger={false} sideOffset={4} className="z-50">
+              <Select.Popup className="max-h-[min(20rem,var(--available-height))] w-[var(--anchor-width)] overflow-y-auto rounded-md border bg-card p-1 text-card-foreground shadow-md outline-none">
+                <Select.List>
+                  {options.map((item) => (
+                    <Select.Item
+                      key={item.id}
+                      value={item.id}
+                      className="flex cursor-default items-center gap-2 rounded-sm px-2 py-2 text-sm outline-none data-highlighted:bg-accent data-highlighted:text-accent-foreground"
+                    >
+                      <span className="size-4 shrink-0">
+                        <Select.ItemIndicator>
+                          <Check className="size-4" aria-hidden="true" />
+                        </Select.ItemIndicator>
+                      </span>
+                      <Select.ItemText className="min-w-0 break-words">
+                        {label(item)}
+                      </Select.ItemText>
+                    </Select.Item>
+                  ))}
+                </Select.List>
+              </Select.Popup>
+            </Select.Positioner>
+          </Select.Portal>
+        </Select.Root>
+      ) : (
+        <div className="flex flex-wrap gap-3">
+          {options.map((item) => (
             <label
               key={item.id}
               className="flex cursor-pointer items-center gap-2 rounded-md border px-3 py-2 text-sm"
@@ -363,69 +403,16 @@ export function EquipmentPicker({
                   )
                 }
               />
-              {item.name}
-              {item.retired && ` · ${t('equipment.retired')}`}
+              {label(item)}
             </label>
           ))}
-      </div>
+        </div>
+      )}
       {equipment.error && (
         <p role="alert" className="text-sm text-destructive">
           <ErrorMessage error={equipment.error} />
         </p>
       )}
     </fieldset>
-  )
-}
-
-export function ActivityEquipmentEditor({
-  activityId,
-  initialIds,
-}: {
-  activityId: string
-  initialIds: string[]
-}) {
-  const { t } = useTranslation()
-  const [ids, setIds] = useState(initialIds)
-  const queryClient = useQueryClient()
-  const save = useMutation({
-    mutationFn: () =>
-      api.send('PUT', `/api/activities/${activityId}/equipment`, { equipmentIds: ids }),
-    onSuccess: () =>
-      Promise.all([
-        queryClient.invalidateQueries({ queryKey: activityQuery(activityId).queryKey }),
-        queryClient.invalidateQueries({ queryKey: ['activities'] }),
-        queryClient.invalidateQueries({ queryKey: equipmentQuery.queryKey }),
-        queryClient.invalidateQueries({ queryKey: lastUsedShoeQuery.queryKey }),
-      ]),
-  })
-  const changed = ids.length !== initialIds.length || ids.some((id) => !initialIds.includes(id))
-  return (
-    <form
-      className="mt-5 space-y-3"
-      onSubmit={(e) => {
-        e.preventDefault()
-        save.mutate()
-      }}
-    >
-      <EquipmentPicker
-        value={ids}
-        initialIds={initialIds}
-        onChange={(value) => {
-          setIds(value)
-          save.reset()
-        }}
-        disabled={save.isPending}
-      />
-      {changed && (
-        <Button size="sm" disabled={save.isPending}>
-          {t('equipment.saveLinks')}
-        </Button>
-      )}
-      {save.error && (
-        <p role="alert" className="text-sm text-destructive">
-          <ErrorMessage error={save.error} />
-        </p>
-      )}
-    </form>
   )
 }

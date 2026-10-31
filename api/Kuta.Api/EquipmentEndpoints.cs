@@ -5,7 +5,6 @@ using Npgsql;
 public record EquipmentRequest(string? Name, string? Brand, string? Kind, double InitialDistanceM = 0, long InitialDurationS = 0);
 public record EquipmentSummary(Guid Id, string Name, string? Brand, string Kind, bool Retired,
     double InitialDistanceM, long InitialDurationS, double DistanceM, long DurationS);
-public record ActivityEquipmentRequest(Guid[] EquipmentIds);
 public record LastUsedShoe(Guid? Id);
 public sealed class InvalidEquipmentException : Exception;
 
@@ -77,23 +76,7 @@ public static class EquipmentEndpoints
                 req.InitialDistanceM, req.InitialDurationS));
         });
 
-        api.MapPut("/activities/{id:guid}/equipment", async (Guid id, ActivityEquipmentRequest req,
-            NpgsqlDataSource db, ClaimsPrincipal user) =>
-        {
-            if (req.EquipmentIds is null) return Results.BadRequest(InvalidEquipment);
-            await using var conn = await db.OpenConnectionAsync();
-            await using var tx = await conn.BeginTransactionAsync();
-            var userId = user.GetUserId();
-            var owned = await conn.QuerySingleOrDefaultAsync<Guid?>(
-                "select id from activities where id = @id and user_id = @userId for update", new { id, userId }, tx);
-            if (owned is null) return Results.NotFound();
-            if (!await OwnsAsync(conn, tx, userId, req.EquipmentIds, allowRetired: true)) return Results.BadRequest(InvalidEquipment);
-            await conn.ExecuteAsync("delete from activity_equipment where activity_id = @id and user_id = @userId",
-                new { id, userId }, tx);
-            await AttachAsync(conn, tx, id, userId, req.EquipmentIds);
-            await tx.CommitAsync();
-            return Results.NoContent();
-        }).RequireAuthorization();
+
     }
 
     // Sum directly from activities: changing a link or deleting an activity updates usage without counter drift.

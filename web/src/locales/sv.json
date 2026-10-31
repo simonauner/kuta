@@ -129,6 +129,9 @@
     "saving": "Sparar …"
   },
   "activity": {
+    "edit": "Redigera aktivitet",
+    "save": "Spara ändringar",
+    "cancel": "Avbryt",
     "back": "Alla pass",
     "notFound": "Passet finns inte.",
     "distance": "Distans",
@@ -308,6 +311,7 @@
     "empty": "Inga pass med den här taggen."
   },
   "equipment": {
+    "choose": "Välj utrustning",
     "actionsLabel": "Åtgärder för {{name}}",
     "title": "Utrustning",
     "description": "Total distans och tid från kopplade pass, inklusive tidigare användning. Tiden räknas inklusive pauser.",

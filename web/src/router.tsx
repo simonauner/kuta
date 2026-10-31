@@ -5,6 +5,7 @@ import {
   lazyRouteComponent,
 } from '@tanstack/react-router'
 import { Layout } from '@/components/layout'
+import { EditActivityPage } from '@/routes/edit-activity'
 import { ActivitiesPage } from '@/routes/activities'
 import { FeedPage } from '@/routes/feed'
 import { NewActivityPage } from '@/routes/new-activity'
@@ -44,6 +45,12 @@ const activityRoute = createRoute({
   loader: ({ params }) => queryClient.prefetchQuery(activityQuery(params.activityId)),
   component: lazyRouteComponent(() => import('@/routes/activity'), 'ActivityPage'),
 })
+const editActivityRoute = createRoute({
+  getParentRoute: () => rootRoute,
+  path: '/app/activities/$activityId/edit',
+  validateSearch: activitySearch,
+  component: EditActivityPage,
+})
 const statsRoute = createRoute({
   getParentRoute: () => rootRoute,
   path: '/app/stats',
@@ -72,6 +79,7 @@ const routeTree = rootRoute.addChildren([
   activitiesRoute,
   newActivityRoute,
   activityRoute,
+  editActivityRoute,
   statsRoute,
   profileRoute,
   equipmentRoute,

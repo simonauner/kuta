@@ -30,7 +30,7 @@ public record ActivityLap(
     short LapIndex, int StartS, int DurationS, int? MovingS, double DistanceM, short? AvgHr, short? MaxHr,
     float? AscentM, float? DescentM, short? AvgCadence);
 
-public record ActivityTagsRequest(string[] Tags);
+public record ActivityUpdateRequest(string? Title, string? Description, string[] Tags, Guid[] EquipmentIds);
 
 public static class ActivityEndpoints
 {
@@ -203,17 +203,26 @@ public static class ActivityEndpoints
         // CSRF-token kontrolleras av filtret i AuthEndpoints (X-CSRF-TOKEN), inte av ramverkets formulärkontroll
         .DisableAntiforgery();
 
-        activities.MapPut("/{id:guid}/tags", async (Guid id, ActivityTagsRequest req,
+        activities.MapPut("/{id:guid}", async (Guid id, ActivityUpdateRequest req,
             NpgsqlDataSource db, ClaimsPrincipal user) =>
         {
-            if (req.Tags is null)
-                return Results.BadRequest(new ApiError("Välj giltiga taggar.", "invalidTags"));
-            if (ActivityInput.ValidateTags(req.Tags) is { } invalid) return Results.BadRequest(invalid);
+            if (req.Tags is null) return Results.BadRequest(new ApiError("Välj giltiga taggar.", "invalidTags"));
+            if ((ActivityInput.ValidateTitle(req.Title) ?? ActivityInput.ValidateDescription(req.Description) ?? ActivityInput.ValidateTags(req.Tags)) is { } invalid) return Results.BadRequest(invalid);
+            if (req.EquipmentIds is null) return Results.BadRequest(EquipmentEndpoints.InvalidEquipment);
             await using var conn = await db.OpenConnectionAsync();
-            var updated = await conn.ExecuteAsync(
-                "update activities set tags = @tags where id = @id and user_id = @userId",
-                new { id, userId = user.GetUserId(), tags = ActivityInput.NormalizeTags(req.Tags) });
-            return updated == 0 ? Results.NotFound() : Results.NoContent();
+            await using var tx = await conn.BeginTransactionAsync();
+            var userId = user.GetUserId();
+            var owned = await conn.QuerySingleOrDefaultAsync<Guid?>(
+                "select id from activities where id = @id and user_id = @userId for update", new { id, userId }, tx);
+            if (owned is null) return Results.NotFound();
+            if (!await EquipmentEndpoints.OwnsAsync(conn, tx, userId, req.EquipmentIds, allowRetired: true)) return Results.BadRequest(EquipmentEndpoints.InvalidEquipment);
+            await conn.ExecuteAsync("delete from activity_equipment where activity_id = @id and user_id = @userId",
+                new { id, userId }, tx);
+            await EquipmentEndpoints.AttachAsync(conn, tx, id, userId, req.EquipmentIds);
+            await conn.ExecuteAsync("update activities set title = @title, description = @description, tags = @tags where id = @id and user_id = @userId",
+                new { id, userId, title = ActivityInput.NormalizeTitle(req.Title), description = ActivityInput.NormalizeDescription(req.Description), tags = ActivityInput.NormalizeTags(req.Tags) }, tx);
+            await tx.CommitAsync();
+            return Results.NoContent();
         });
         activities.MapStravaImport();
 
