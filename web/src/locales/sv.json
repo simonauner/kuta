@@ -13,7 +13,19 @@
     "description": "Här dyker pass från dig och de du följer upp."
   },
   "stats": {
-    "description": "Distans, fart, puls och personbästa över tid."
+    "description": "Följ din träningsmängd, distans, tempo och puls över tid.",
+    "allSports": "Alla sporter",
+    "count": "Pass",
+    "distanceM": "Distans",
+    "durationS": "Träningstid",
+    "paceSPerKm": "Snittempo",
+    "avgHr": "Snittpuls",
+    "monthly": "Månad för månad",
+    "month": "Månad",
+    "empty": "Inga pass för vald sport och år.",
+    "noHeartRate": "Inga sparade pulsdata under perioden.",
+    "chartScale": "Skala: 0–{{max}}. Alla värden finns i tabellen nedan.",
+    "method": "Tid inkluderar pauser. Tempo beräknas som total tid per kilometer för pass med distans och tid. Lägre tempo betyder snabbare fart. Snittpuls vägs med passens tid, endast för pass med sparad puls. Saknade värden visas som –. Alla sporter kombinerar även tempo och puls mellan sporter. Månader följer din enhets tidszon."
   },
   "profile": {
     "description": "Din löparprofil och utrustning."

@@ -13,7 +13,19 @@
     "description": "Activities from you and the people you follow will appear here."
   },
   "stats": {
-    "description": "Distance, pace, heart rate and personal bests over time."
+    "description": "Track your training volume, distance, pace and heart rate over time.",
+    "allSports": "All sports",
+    "count": "Activities",
+    "distanceM": "Distance",
+    "durationS": "Training time",
+    "paceSPerKm": "Average pace",
+    "avgHr": "Average heart rate",
+    "monthly": "Month by month",
+    "month": "Month",
+    "empty": "No activities for the selected sport and year.",
+    "noHeartRate": "No saved heart rate data during this period.",
+    "chartScale": "Scale: 0–{{max}}. All values are in the table below.",
+    "method": "Time includes pauses. Pace is total time per kilometre for activities with distance and time. Lower pace means faster speed. Heart rate is weighted by activity duration, using only activities with saved heart rate. Missing values appear as –. All sports also combines pace and heart rate across sports. Months follow your device’s time zone."
   },
   "profile": {
     "description": "Your runner profile and equipment."
