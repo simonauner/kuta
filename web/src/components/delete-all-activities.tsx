@@ -20,7 +20,9 @@ export function DeleteAllActivities() {
     onSuccess: async () => {
       await queryClient.invalidateQueries({
         predicate: (query) =>
-          ['activities', 'activity', 'records', 'equipment'].includes(String(query.queryKey[0])),
+          ['activities', 'activity', 'records', 'equipment', 'equipmentLastUsedShoe'].includes(
+            String(query.queryKey[0]),
+          ),
       })
       setWord(null)
     },

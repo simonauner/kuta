@@ -1,5 +1,5 @@
 import { TagLabels } from '@/components/activity-tags'
-import { equipmentQuery } from '@/lib/equipment'
+import { equipmentQuery, lastUsedShoeQuery } from '@/lib/equipment'
 import { activityTagsQuery } from '@/lib/activity-query'
 import { ErrorMessage } from '@/components/error-message'
 import { SlowLoading } from '@/components/slow-loading'
@@ -65,6 +65,7 @@ export function ActivitiesPage() {
       Promise.all([
         queryClient.invalidateQueries({ queryKey: ['activities'] }),
         queryClient.invalidateQueries({ queryKey: equipmentQuery.queryKey }),
+        queryClient.invalidateQueries({ queryKey: lastUsedShoeQuery.queryKey }),
       ]),
   })
 
