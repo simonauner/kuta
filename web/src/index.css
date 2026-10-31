@@ -28,6 +28,16 @@ select {
 }
 
 @theme inline {
+  --text-page: 1.5rem;
+  --text-page--line-height: 2rem;
+  --text-section: 1.25rem;
+  --text-section--line-height: 1.75rem;
+  --text-subsection: 1rem;
+  --text-subsection--line-height: 1.5rem;
+  --text-body: 1rem;
+  --text-body--line-height: 1.5rem;
+  --text-metadata: 0.75rem;
+  --text-metadata--line-height: 1rem;
   --color-background: var(--background);
   --color-foreground: var(--foreground);
   --color-card: var(--card);
@@ -63,7 +73,7 @@ select {
     @apply border-border;
   }
   body {
-    @apply bg-background text-foreground antialiased;
+    @apply bg-background text-body text-foreground antialiased;
     padding-top: env(safe-area-inset-top);
   }
   tbody > tr {

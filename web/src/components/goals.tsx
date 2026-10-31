@@ -1,4 +1,5 @@
 import { FormField } from '@/components/ui/form-field'
+import { Heading } from '@/components/ui/heading'
 import { useEffect, useRef, useState, type FormEvent } from 'react'
 import { motion, useReducedMotion } from 'motion/react'
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
@@ -87,9 +88,9 @@ export function GoalList({
   if (!goals.data?.length) return null
   return (
     <section className={runnerId ? undefined : 'mt-6'} aria-labelledby="goals-heading">
-      <h2 id="goals-heading" className={runnerId ? 'mb-3 text-lg font-semibold' : 'sr-only'}>
+      <Heading level={2} id="goals-heading" className="mb-3">
         {t('goals.heading')}
-      </h2>
+      </Heading>
       <ul className="grid gap-3 sm:grid-cols-2">
         {goals.data.map((goal) => (
           <li key={goal.id}>

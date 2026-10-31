@@ -1,4 +1,5 @@
 import { FormField } from '@/components/ui/form-field'
+import { Heading } from '@/components/ui/heading'
 import { useState } from 'react'
 import { useQuery } from '@tanstack/react-query'
 import { useTranslation } from 'react-i18next'
@@ -69,7 +70,7 @@ export function StatsPage() {
   if (years.isPending || hasNoActivities) {
     return (
       <section>
-        <h1 className="text-2xl font-semibold tracking-tight">{t('nav.stats')}</h1>
+        <Heading level={1}>{t('nav.stats')}</Heading>
         <p className="mt-2 text-muted-foreground">{t('stats.description')}</p>
         <SlowLoading loading={years.isPending}>
           <ActivitiesEmptyState context="stats" />
@@ -80,7 +81,7 @@ export function StatsPage() {
 
   return (
     <section>
-      <h1 className="text-2xl font-semibold tracking-tight">{t('nav.stats')}</h1>
+      <Heading level={1}>{t('nav.stats')}</Heading>
       <p className="mt-2 text-muted-foreground">{t('stats.description')}</p>
       <div className="mt-6 flex flex-wrap gap-4">
         <FormField label={t('activities.year')} className="text-sm font-medium">
@@ -158,10 +159,13 @@ export function StatsPage() {
                   </div>
                 ))}
               </dl>
-              <div className="mt-6 rounded-xl border bg-card p-4">
+              <Heading level={2} className="mt-8">
+                {t('stats.monthly')}
+              </Heading>
+              <div className="mt-4 rounded-xl border bg-card p-4">
                 <FormField
                   layout="inline"
-                  label={t('stats.monthly')}
+                  label={t('yearComparison.metric')}
                   className="justify-between text-sm font-medium"
                 >
                   {(id) => (
@@ -258,7 +262,7 @@ export function StatsPage() {
                   </tbody>
                 </table>
               </div>
-              <p className="mt-4 text-xs leading-relaxed text-muted-foreground">
+              <p className="mt-4 text-metadata leading-relaxed text-muted-foreground">
                 {t('stats.method')}
               </p>
             </>
