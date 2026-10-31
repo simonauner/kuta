@@ -91,6 +91,20 @@ public static class Goals
             if (!await ActivityList.IsValidTimeZoneAsync(conn, timeZone, ct)) return InvalidTimeZone();
             return Results.Ok(await LoadAsync(conn, user.GetUserId(), timeZone, DateTimeOffset.UtcNow, ct));
         });
+        // Andra löpares mål enligt deras synlighet; dolda mål ger en tom lista, okänd löpare 404.
+        api.MapGet("/runners/{id:guid}/goals", async (Guid id, string? timeZone, NpgsqlDataSource db, ClaimsPrincipal user,
+            CancellationToken ct) =>
+        {
+            timeZone ??= "UTC";
+            await using var conn = await db.OpenConnectionAsync(ct);
+            if (!await ActivityList.IsValidTimeZoneAsync(conn, timeZone, ct)) return InvalidTimeZone();
+            return await CanReadAsync(conn, user.GetUserId(), id, ct) switch
+            {
+                null => Results.NotFound(),
+                false => Results.Ok(Array.Empty<GoalProgress>()),
+                true => Results.Ok(await LoadAsync(conn, id, timeZone, DateTimeOffset.UtcNow, ct)),
+            };
+        }).RequireAuthorization();
         goals.MapPost("", async (GoalRequest req, NpgsqlDataSource db, ClaimsPrincipal user, CancellationToken ct) =>
         {
             if (Validate(req) is { } invalid) return Results.BadRequest(invalid);
@@ -114,6 +128,16 @@ public static class Goals
             return await DeleteAsync(conn, user.GetUserId(), id, ct) ? Results.NoContent() : Results.NotFound();
         });
     }
+
+    // Målens synlighet följer passens regel men gäller profilen: ägaren, alla vid public, godkända följare vid
+    // followers. null = okänd löpare.
+    public static Task<bool?> CanReadAsync(NpgsqlConnection conn, Guid viewerId, Guid ownerId, CancellationToken ct) =>
+        conn.QuerySingleOrDefaultAsync<bool?>(new CommandDefinition("""
+            select u.id = @viewerId or u.goal_privacy = 'public' or (u.goal_privacy = 'followers' and exists (
+                select 1 from follows f
+                where f.follower_id = @viewerId and f.following_id = u.id and f.accepted_at is not null))
+            from users u where u.id = @ownerId
+            """, new { viewerId, ownerId }, cancellationToken: ct));
 
     static IResult InvalidTimeZone() =>
         Results.BadRequest(new ApiError("Tidszonen är ogiltig. Kontrollera enhetens inställningar.", "invalidTimeZone"));

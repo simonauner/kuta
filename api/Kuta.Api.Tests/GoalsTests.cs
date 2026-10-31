@@ -209,4 +209,70 @@ public class GoalsTests(KutaFactory factory) : IClassFixture<KutaFactory>
         }
         finally { await conn.ExecuteAsync("delete from auth.users where email = any(@emails)", new { emails }); }
     }
+
+    [Fact]
+    public async Task Goal_visibility_follows_profile_choice_and_only_accepted_follows()
+    {
+        var ct = TestContext.Current.CancellationToken;
+        await using var conn = await factory.Services.GetRequiredService<NpgsqlDataSource>().OpenConnectionAsync(ct);
+        var ids = new[] { Guid.NewGuid(), Guid.NewGuid(), Guid.NewGuid(), Guid.NewGuid() };
+        var (owner, follower, pending, stranger) = (ids[0], ids[1], ids[2], ids[3]);
+        try
+        {
+            foreach (var id in ids)
+                await conn.ExecuteAsync("""
+                    insert into auth.users (id) values (@id); insert into users (id, display_name) values (@id, 'Synthetic runner')
+                    """, new { id });
+            await conn.ExecuteAsync("""
+                insert into follows (follower_id, following_id, accepted_at) values (@follower, @owner, now()), (@pending, @owner, null)
+                """, new { owner, follower, pending });
+            var expected = new Dictionary<string, bool[]>
+            {
+                ["private"] = [true, false, false, false],
+                ["followers"] = [true, true, false, false],
+                ["public"] = [true, true, true, true],
+            };
+            Assert.Equal("private", await conn.ExecuteScalarAsync<string>("select goal_privacy from users where id = @owner", new { owner }));
+            foreach (var (privacy, readable) in expected)
+            {
+                await conn.ExecuteAsync("update users set goal_privacy = @privacy where id = @owner", new { privacy, owner });
+                for (var i = 0; i < ids.Length; i++)
+                    Assert.Equal(readable[i], await Goals.CanReadAsync(conn, ids[i], owner, ct));
+            }
+            Assert.Null(await Goals.CanReadAsync(conn, owner, Guid.NewGuid(), ct));
+            var invalid = await Assert.ThrowsAsync<PostgresException>(() =>
+                conn.ExecuteAsync("update users set goal_privacy = 'friends' where id = @owner", new { owner }));
+            Assert.Equal(PostgresErrorCodes.CheckViolation, invalid.SqlState);
+        }
+        finally { await conn.ExecuteAsync("delete from auth.users where id = any(@ids)", new { ids }); }
+    }
+
+    [Fact]
+    public async Task Http_runner_goals_follow_the_owners_goal_privacy()
+    {
+        var ct = TestContext.Current.CancellationToken;
+        await using var conn = await factory.Services.GetRequiredService<NpgsqlDataSource>().OpenConnectionAsync(ct);
+        using var owner = factory.CreateClient();
+        using var other = factory.CreateClient();
+        var emails = new[] { $"goal-share-{Guid.NewGuid():N}@example.com", $"goal-viewer-{Guid.NewGuid():N}@example.com" };
+        try
+        {
+            await TestSession.CreateRunnerAsync(factory, owner, conn, emails[0], "Owner", ct);
+            await TestSession.CreateRunnerAsync(factory, other, conn, emails[1], "Viewer", ct);
+            var ownerId = (await owner.GetFromJsonAsync<Me>("/api/me", ct))!.Id;
+            var path = $"/api/runners/{ownerId}/goals?timeZone=Europe%2FStockholm";
+            Assert.Equal(HttpStatusCode.Created, (await owner.PostAsJsonAsync("/api/goals",
+                new GoalRequest("running", "distance", "week", 10_000, true, "Europe/Stockholm"), ct)).StatusCode);
+
+            Assert.Empty((await other.GetFromJsonAsync<JsonElement>(path, ct)).EnumerateArray());
+            Assert.Single((await owner.GetFromJsonAsync<JsonElement>(path, ct)).EnumerateArray());
+            Assert.Equal(HttpStatusCode.BadRequest, (await owner.PutAsJsonAsync("/api/me/goal-privacy", new { privacy = "friends" }, ct)).StatusCode);
+            using var updated = await owner.PutAsJsonAsync("/api/me/goal-privacy", new GoalPrivacyRequest("public"), ct);
+            Assert.Equal("public", (await updated.Content.ReadFromJsonAsync<Me>(ct))!.GoalPrivacy);
+            var shared = Assert.Single((await other.GetFromJsonAsync<JsonElement>(path, ct)).EnumerateArray());
+            Assert.Equal("running", shared.GetProperty("sportGroup").GetString());
+            Assert.Equal(HttpStatusCode.NotFound, (await other.GetAsync($"/api/runners/{Guid.NewGuid()}/goals", ct)).StatusCode);
+        }
+        finally { await conn.ExecuteAsync("delete from auth.users where email = any(@emails)", new { emails }); }
+    }
 }

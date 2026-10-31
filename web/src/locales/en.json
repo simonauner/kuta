@@ -556,5 +556,11 @@
     "cross-country skiing": "Cross-country skiing",
     "paddling": "Paddling",
     "rowing": "Rowing"
+  },
+  "goalPrivacy": {
+    "title": "Goal visibility",
+    "label": "Who can see your goals",
+    "help": "Saved automatically and applies to all your goals at once. Visible goals are shown with their progress on your profile.",
+    "saved": "Goal visibility has been saved."
   }
 }

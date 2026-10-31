@@ -46,11 +46,24 @@ function useGoalText() {
   return { t, i18n, amount, title, groupLabel }
 }
 
-export function GoalList({ onSelect }: { onSelect: (goal: Goal) => void }) {
+// Utan runnerId: egna mål, redigerbara via onSelect. Med runnerId: en annan löpares mål enligt dess synlighet
+// (tom lista när de är dolda), som visas utan redigering.
+export function GoalList({
+  onSelect,
+  runnerId,
+}: {
+  onSelect?: (goal: Goal) => void
+  runnerId?: string
+}) {
   const timeZone = Intl.DateTimeFormat().resolvedOptions().timeZone
+  const params = new URLSearchParams({ timeZone })
   const goals = useQuery({
-    queryKey: goalsQueryKey(timeZone),
-    queryFn: () => api.get<Goal[]>(`/api/goals?${new URLSearchParams({ timeZone })}`),
+    // Under 'runner' så att följ/avfölj hämtar om de delade målen.
+    queryKey: runnerId ? ['runner', runnerId, 'goals', timeZone] : goalsQueryKey(timeZone),
+    queryFn: () =>
+      api.get<Goal[]>(
+        runnerId ? `/api/runners/${runnerId}/goals?${params}` : `/api/goals?${params}`,
+      ),
   })
   const groups = useQuery(sportGroupsQuery)
   const { t } = useTranslation()
@@ -62,8 +75,8 @@ export function GoalList({ onSelect }: { onSelect: (goal: Goal) => void }) {
     )
   if (!goals.data?.length) return null
   return (
-    <section className="mt-6" aria-labelledby="goals-heading">
-      <h2 id="goals-heading" className="sr-only">
+    <section className={runnerId ? undefined : 'mt-6'} aria-labelledby="goals-heading">
+      <h2 id="goals-heading" className={runnerId ? 'mb-3 text-lg font-semibold' : 'sr-only'}>
         {t('goals.heading')}
       </h2>
       <ul className="grid gap-3 sm:grid-cols-2">
@@ -75,7 +88,7 @@ export function GoalList({ onSelect }: { onSelect: (goal: Goal) => void }) {
                 goal.sportGroup &&
                 (groups.data?.find((g) => g.key === goal.sportGroup)?.sports[0] ?? goal.sportGroup)
               }
-              onSelect={() => onSelect(goal)}
+              onSelect={onSelect && (() => onSelect(goal))}
             />
           </li>
         ))}
@@ -91,7 +104,7 @@ function GoalCard({
 }: {
   goal: Goal
   iconSport: string | null
-  onSelect: () => void
+  onSelect?: () => void
 }) {
   const { t, amount, title, groupLabel } = useGoalText()
   const reduceMotion = useReducedMotion()
@@ -100,13 +113,18 @@ function GoalCard({
   const [today] = useState(() => new Date())
   const daysLeft = goalDaysLeft(current.end, today)
   const goalTitle = title(goal)
+  const Root = onSelect ? 'button' : 'div'
   return (
-    <button
-      type="button"
-      onClick={onSelect}
-      aria-label={t('goals.editLabel', { title: goalTitle })}
+    <Root
+      {...(onSelect && {
+        type: 'button' as const,
+        onClick: onSelect,
+        'aria-label': t('goals.editLabel', { title: goalTitle }),
+      })}
       className={cn(
-        'w-full rounded-xl border bg-card p-4 text-left text-card-foreground shadow-xs transition-colors hover:bg-accent/50 focus-visible:ring-[3px] focus-visible:ring-ring/50 focus-visible:outline-none',
+        'w-full rounded-xl border bg-card p-4 text-left text-card-foreground shadow-xs',
+        onSelect &&
+          'transition-colors hover:bg-accent/50 focus-visible:ring-[3px] focus-visible:ring-ring/50 focus-visible:outline-none',
         goal.ended && 'opacity-70',
       )}
     >
@@ -171,7 +189,7 @@ function GoalCard({
           )}
         </p>
       )}
-    </button>
+    </Root>
   )
 }
 

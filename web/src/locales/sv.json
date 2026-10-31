@@ -556,5 +556,11 @@
     "cross-country skiing": "Längdskidåkning",
     "paddling": "Paddling",
     "rowing": "Rodd"
+  },
+  "goalPrivacy": {
+    "title": "Målens synlighet",
+    "label": "Vem ser dina mål",
+    "help": "Sparas automatiskt och gäller alla dina mål direkt. Synliga mål visas med förlopp på din profil.",
+    "saved": "Målens synlighet har sparats."
   }
 }

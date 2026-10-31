@@ -27,7 +27,7 @@ public static class ActivityStorage
         await using var tx = await conn.BeginTransactionAsync(ct);
         // Samma profillås som återkallat samtycke: läs aldrig ett äldre samtycke före transaktionen.
         var profile = await conn.QuerySingleOrDefaultAsync<Profile>(new CommandDefinition(
-            "select display_name, hr_consent_at is not null as hr_consent, default_activity_privacy from users where id = @userId for update",
+            "select display_name, hr_consent_at is not null as hr_consent, default_activity_privacy, goal_privacy from users where id = @userId for update",
             new { userId }, tx, cancellationToken: ct));
         if (profile is null) return null;
         var equipmentIds = req.EquipmentIds ?? [];
@@ -66,7 +66,7 @@ public static class ActivityStorage
         if (!await EquipmentEndpoints.OwnsAsync(conn, tx, userId, equipmentIds ?? [], allowRetired: source == "strava"))
             throw new InvalidEquipmentException();
         var profile = await conn.QuerySingleAsync<Profile>(
-            "select display_name, hr_consent_at is not null as hr_consent, default_activity_privacy from users where id = @userId for update", new { userId }, tx);
+            "select display_name, hr_consent_at is not null as hr_consent, default_activity_privacy, goal_privacy from users where id = @userId for update", new { userId }, tx);
         if (!profile.HrConsent) parsed = parsed.WithoutHeartRate();
         var key = profile.HrConsent && hash is not null ? $"fit/{userId}/{Convert.ToHexStringLower(hash)}{extension}" : null;
         var id = await conn.QuerySingleOrDefaultAsync<Guid?>(

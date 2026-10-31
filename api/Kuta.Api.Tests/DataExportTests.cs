@@ -54,6 +54,7 @@ public class DataExportTests(KutaFactory factory) : IClassFixture<KutaFactory>
                 var profile = await ReadJsonAsync(zip, "profile.json", ct);
                 Assert.Equal(userId, profile.GetProperty("id").GetGuid());
                 Assert.Equal("private", profile.GetProperty("defaultActivityPrivacy").GetString());
+                Assert.Equal("private", profile.GetProperty("goalPrivacy").GetString());
                 Assert.False(profile.TryGetProperty("password", out _));
                 var equipment = await ReadJsonAsync(zip, "equipment.json", ct);
                 Assert.Equal(shoeId, Assert.Single(equipment.EnumerateArray()).GetProperty("id").GetGuid());

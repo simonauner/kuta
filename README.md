@@ -186,6 +186,12 @@ visar även förra periodens resultat när det nåddes och hur många perioder i
 (från två). Ett avslutat engångsmål visas nedtonat tills det tas bort. Klick på kortet öppnar
 redigering och borttagning i samma modal. Inga mål ger ingen sektion.
 
+**Profil → Inställningar → Målens synlighet** styr vem som ser målen: bara du (förval),
+godkända följare eller alla inloggade med länken. Valet sparas automatiskt och gäller alla mål
+direkt, utan val per mål. Den egna profilen och andra löpares profiler visar synliga mål med
+förlopp under rubriken Mål, utan redigering; dolda mål ger ingen sektion. Läsregeln är passens:
+ägaren, `public` för alla inloggade och `followers` bara vid godkänd följrelation.
+
 Mål gäller [sportgrupper](#sportgrupper), inte exakta sporter, och dialogen visar vilka
 träningsformer den valda gruppen räknar.
 
@@ -208,12 +214,19 @@ API (inloggning krävs; skrivningar kräver CSRF; bara egna mål, andras ger 404
   `month` eller `year`, `target` i meter, sekunder eller hela pass (högst 100 000 000 m eller s, respektive
   10 000 pass). `timeZone` avgör startdatumet vid skapande. Ogiltiga värden ger `invalidGoal`.
 - `DELETE /api/goals/{id}`.
+- `GET /api/runners/{id}/goals?timeZone=…` ger samma målsvar för en löpare enligt dess
+  `goal_privacy`; dolda mål ger en tom lista och okänd löpare 404.
+- `PUT /api/me/goal-privacy` tar `{ privacy: "private" | "followers" | "public" }` och svarar
+  med `/api/me`, som har `goalPrivacy`. Ogiltigt värde ger `invalidPrivacy`.
 
 Migrering 016 skapar `goals` med ägarkoppling, kaskadradering vid kontoradering och RLS utan
-Data API-grants. Radering av alla pass behåller målen. Målen ingår i exportens `goals.json`.
+Data API-grants; migrering 017 lägger till `users.goal_privacy`, som även ingår i exportens
+`profile.json`. Radering av alla pass behåller målen. Målen ingår i exportens `goals.json`.
 Periodlogik, grupper och validering testas som enhetstester, summering per tidszon, sportgrupp, multisportdelar
 och ägarskap i lokal Postgres, och HTTP-testet täcker routing, statuskoder, svarskontrakt och
-att en annan användare varken ser eller ändrar målet.
+att en annan användare varken ser eller ändrar målet. Synlighetsmatrisen (ägare, godkänd och
+väntande följare, okänd) testas i Postgres; ett HTTP-test visar att löparens mål döljs, att
+inställningen sparas och att målet sedan syns för en annan inloggad.
 
 ## Sportgrupper
 

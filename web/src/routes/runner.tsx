@@ -2,6 +2,7 @@ import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
 import { Link, useParams } from '@tanstack/react-router'
 import { useTranslation } from 'react-i18next'
 import { ActivityFeed } from '@/components/activity-feed'
+import { GoalList } from '@/components/goals'
 import { ErrorMessage } from '@/components/error-message'
 import { Button } from '@/components/ui/button'
 import { ApiError, api } from '@/lib/api'
@@ -84,6 +85,7 @@ export function RunnerPage() {
               <ErrorMessage error={follow.error} />
             </p>
           )}
+          <GoalList key={`goals-${runnerId}`} runnerId={runnerId} />
           <h2 className="text-lg font-semibold">{t('nav.activities')}</h2>
           <ActivityFeed key={runnerId} runnerId={runnerId} />
         </>
