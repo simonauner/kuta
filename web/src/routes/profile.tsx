@@ -1,4 +1,3 @@
-import { EquipmentSection } from '@/components/equipment'
 import { useQuery } from '@tanstack/react-query'
 import { Link } from '@tanstack/react-router'
 import { Settings } from 'lucide-react'
@@ -23,7 +22,13 @@ export function ProfilePage() {
         </Button>
       </div>
       <p className="mt-6 text-muted-foreground">{t('profile.description')}</p>
-      <EquipmentSection />
+      <Link
+        to="/app/profile/equipment"
+        className="mt-6 flex items-center justify-between rounded-lg border p-4 font-medium hover:bg-accent focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-ring"
+      >
+        {t('equipment.title')}
+        <span aria-hidden="true">→</span>
+      </Link>
     </section>
   )
 }
