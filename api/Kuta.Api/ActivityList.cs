@@ -31,7 +31,7 @@ public static class ActivityList
             """ : "";
         await using var command = new NpgsqlCommand($"""
             with page as (
-                select a.id, a.sport, a.title, a.started_at, a.duration_s, a.distance_m, a.avg_hr, a.tags
+                select a.id, a.sport, a.title, a.started_at, a.duration_s, coalesce((select sum(p.distance_m) from activity_parts p where p.activity_id = a.id and p.original = not a.parts_edited), a.distance_m) as distance_m, a.avg_hr, a.tags
                 from activities a
                 where a.user_id = @userId and a.tags @> @tags::text[] {cursorFilter} {yearFilter}
                 order by a.started_at desc, a.id desc

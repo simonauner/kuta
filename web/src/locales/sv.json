@@ -47,7 +47,11 @@
       "cycling": "Cykling",
       "walking": "Promenad",
       "hiking": "Vandring",
-      "other": "Annat"
+      "other": "Annat",
+      "swimming": "Simning",
+      "triathlon": "Triathlon",
+      "swimrun": "Swimrun",
+      "multisport": "Multisport"
     },
     "startedAt": "Datum och tid",
     "distance": "Distans (km)",
@@ -98,7 +102,12 @@
       "cycling": "Cykling",
       "walking": "Promenad",
       "hiking": "Vandring",
-      "other": "Pass"
+      "other": "Pass",
+      "swimming": "Simning",
+      "triathlon": "Triathlon",
+      "swimrun": "Swimrun",
+      "multisport": "Multisport",
+      "transition": "Växling"
     },
     "timeOfDay": {
       "night": "natt",
@@ -106,7 +115,8 @@
       "forenoon": "förmiddag",
       "afternoon": "eftermiddag",
       "evening": "kväll"
-    }
+    },
+    "speed": "Hastighet"
   },
   "consent": {
     "title": "Spara puls från mina pass.",
@@ -174,7 +184,8 @@
     "invalidStravaArchive": "ZIP-filen innehåller inte en giltig Strava-export.",
     "invalidTags": "Välj giltiga taggar.",
     "invalidEquipment": "Välj giltig utrustning som tillhör dig.",
-    "invalidEquipmentInput": "Kontrollera namn, typ och tidigare användning."
+    "invalidEquipmentInput": "Kontrollera namn, typ och tidigare användning.",
+    "invalidActivityParts": "Kontrollera sporter och gränser. Delarna måste täcka hela inspelningen utan luckor eller överlapp."
   },
   "home": "Kuta – startsida",
   "footer": {
@@ -280,5 +291,26 @@
     "reactivate": "Återaktivera",
     "reactivateLabel": "Återaktivera {{name}}"
   },
-  "breadcrumbs": "Brödsmulor"
+  "breadcrumbs": "Brödsmulor",
+  "multisport": {
+    "title": "Sportdelar",
+    "split": "Dela upp i sporter",
+    "edit": "Ändra uppdelning",
+    "kind": "Typ av pass",
+    "instructions": "Ange sportbyten i sekunder från passets start. Klicka på en del för att granska karta och diagram nedanför. Originalets mätpunkter sparas, och uppdelningen går att återställa.",
+    "whole": "Hela passet",
+    "partSport": "Sport för del {{number}}",
+    "boundary": "Slut på del {{number}} (sekunder)",
+    "useEquipment": "Räkna användning för passets valda utrustning",
+    "addBoundary": "Dela här",
+    "removeBoundary": "Slå ihop med föregående",
+    "save": "Spara uppdelning",
+    "cancel": "Avbryt",
+    "restore": "Återställ importerad version",
+    "unavailable": "Uppdelning kräver en sammanhängande tids- och distansserie.",
+    "selected": "Visar del {{number}}: {{sport}}",
+    "distanceBySport": "Distans per sport",
+    "confirmRestore": "Återställa kommer ta bort uppdelningen. Vill du fortsätta?",
+    "restoreConfirm": "Återställ"
+  }
 }

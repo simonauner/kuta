@@ -9,7 +9,7 @@ public sealed record ParsedActivity(
     string Sport, System.DateTime StartedAt, int DurationS, int? MovingS, double DistanceM,
     short? AvgHr, short? MaxHr, float? AvgSpeedMps, float? ElevationGainM, LineString? Route,
     int[] T, float?[]? Dist, short?[]? Hr, float?[]? Speed, float?[]? Alt, double?[]? Lat, double?[]? Lon,
-    string? Device = null, short?[]? Cadence = null, short?[]? Temp = null, ParsedLap[]? Laps = null)
+    string? Device = null, short?[]? Cadence = null, short?[]? Temp = null, ParsedLap[]? Laps = null, ActivityPart[]? Parts = null)
 {
     // Utan samtycke sparas inte puls (hälsodata): varken sammanfattning, tidsserie eller varvens puls.
     public ParsedActivity WithoutHeartRate() => this with
@@ -30,7 +30,6 @@ public static class FitImport
     private static readonly GeometryFactory Wgs84 = new(new PrecisionModel(), 4326);
 
     // Null när filen inte är en FIT-fil med ett pass (session) i.
-    // shortcut: tar första sessionen; multisport-filer (flera sessioner) blir ett pass, dela upp dem när det behövs.
     public static ParsedActivity? Parse(byte[] file)
     {
         using var stream = new MemoryStream(file);
@@ -53,7 +52,78 @@ public static class FitImport
         stream.Position = 0;
         if (!decoder.Read(stream) || sessions.Count == 0) return null;
 
-        var session = sessions[0];
+        if (sessions.Count == 1) return ParseSession(sessions[0], records, laps, fileId, devices);
+        if (sessions.Count > 200) return null;
+        var ordered = sessions.OrderBy(s => s.GetStartTime()?.GetDateTime()).ToArray();
+        var legs = ordered.Select(session =>
+        {
+            var from = session.GetStartTime()?.GetDateTime();
+            var until = session.GetTimestamp()?.GetDateTime();
+            return ParseSession(session,
+                records.Where(r => r.GetTimestamp()?.GetDateTime() >= from && (r.GetTimestamp()?.GetDateTime() < until || session == ordered[^1] && r.GetTimestamp()?.GetDateTime() == until)).ToList(),
+                laps.Where(l => l.GetStartTime()?.GetDateTime() >= from && l.GetStartTime()?.GetDateTime() < until).ToList(), fileId, devices);
+        }).OfType<ParsedActivity>().ToArray();
+        if (legs.Length != sessions.Count || legs.Any(l => l.DurationS <= 0)) return null;
+        var first = legs[0];
+        var parts = legs.Select((l, i) => new ActivityPart(i, l.Sport,
+            (int)Math.Round((l.StartedAt - first.StartedAt).TotalSeconds),
+            (int)Math.Round((l.StartedAt - first.StartedAt).TotalSeconds) + l.DurationS,
+            l.DistanceM, l.Sport is "running" or "walking" or "hiking")).ToArray();
+        if (parts.Zip(parts.Skip(1)).Any(p => p.First.EndS > p.Second.StartS)) return null;
+        var sporting = parts.Where(p => p.Sport != "transition").Select(p => p.Sport).ToArray();
+        var kind = sporting.SequenceEqual(new[] { "swimming", "cycling", "running" }) ? "triathlon"
+            : sporting.Contains("swimming") && sporting.Contains("running") && sporting.All(s => s is "running" or "swimming")
+                ? "swimrun" : "multisport";
+        if (kind == "swimrun") parts = parts.Select(p => p with { UseEquipment = p.Sport != "transition" }).ToArray();
+        // FIT distance may restart for each session, or already include preceding sessions.
+        var samples = new List<(ParsedActivity Leg, int I, int T, float? D)>();
+        double offset = 0;
+        foreach (var (leg, part) in legs.Zip(parts))
+        {
+            var lastDistance = leg.Dist?.LastOrDefault(d => d is not null) ?? 0;
+            var baseline = lastDistance > leg.DistanceM + 1 ? offset : 0;
+            if (leg.T.Length == 0 || leg.T[0] > 0)
+                samples.Add((leg, -1, part.StartS, (float)offset));
+            for (var i = 0; i < leg.T.Length; i++)
+            {
+                var time = leg.T[i] + part.StartS;
+                if (samples.Count > 0 && time <= samples[^1].T)
+                {
+                    if (time == part.StartS && time == samples[^1].T) continue;
+                    return null;
+                }
+                samples.Add((leg, i, time, leg.Dist?[i] is { } d ? (float)(offset + d - baseline) : null));
+            }
+            offset += part.DistanceM;
+            // Session summaries supply exact sport boundaries even when smart recording omits a record there.
+            if (samples.Count == 0 || samples[^1].T < part.EndS)
+                samples.Add((leg, -1, part.EndS, (float)offset));
+        }
+        T?[]? Merge<T>(Func<ParsedActivity, T?[]?> channel) where T : struct
+        {
+            var values = samples.Select(s => s.I < 0 ? null : channel(s.Leg)?[s.I]).ToArray();
+            return values.Any(v => v is not null) ? values : null;
+        }
+        var latitude = Merge(l => l.Lat);
+        var longitude = Merge(l => l.Lon);
+        return first with
+        {
+            Sport = kind, DurationS = parts[^1].EndS, MovingS = legs.Sum(l => l.MovingS ?? l.DurationS),
+            DistanceM = legs.Sum(l => l.DistanceM), AvgSpeedMps = null,
+            AvgHr = null, MaxHr = legs.Max(l => l.MaxHr),
+            ElevationGainM = legs.Any(l => l.ElevationGainM is not null) ? legs.Sum(l => l.ElevationGainM ?? 0) : null,
+            T = samples.Select(s => s.T).ToArray(), Dist = samples.Select(s => s.D).ToArray(),
+            Hr = Merge(l => l.Hr), Speed = Merge(l => l.Speed), Alt = Merge(l => l.Alt),
+            Lat = latitude, Lon = longitude, Route = Route(latitude, longitude),
+            Cadence = Merge(l => l.Cadence), Temp = Merge(l => l.Temp),
+            Laps = legs.Zip(parts).SelectMany(p => (p.First.Laps ?? []).Select(l => l with { StartS = l.StartS + p.Second.StartS })).ToArray(),
+            Parts = parts,
+        };
+    }
+
+    private static ParsedActivity? ParseSession(SessionMesg session, List<RecordMesg> records, List<LapMesg> laps,
+        FileIdMesg? fileId, List<DeviceInfoMesg> devices)
+    {
         var start = session.GetStartTime()?.GetDateTime() ?? records.FirstOrDefault()?.GetTimestamp()?.GetDateTime();
         if (start is not { } startedAt) return null;
 

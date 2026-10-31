@@ -9,6 +9,7 @@ public class ActivityInputTests
     public void Complete_activity_is_valid_and_optional_values_can_be_left_out()
     {
         Assert.Null(ActivityInput.Validate(Valid, Now));
+        Assert.Null(ActivityInput.Validate(Valid with { Sport = "swimming" }, Now));
         Assert.Null(ActivityInput.Validate(Valid with { Title = null, ElevationGainM = null, AvgHr = null, DistanceM = 0 }, Now));
     }
 
@@ -22,7 +23,7 @@ public class ActivityInputTests
     public static TheoryData<ManualActivityRequest> Invalid => new()
     {
         Valid with { Sport = null },
-        Valid with { Sport = "swimming" },
+        Valid with { Sport = "unknown" },
         Valid with { StartedAt = null },
         Valid with { StartedAt = Now.AddDays(2) },
         Valid with { DurationS = 0 },

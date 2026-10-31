@@ -45,7 +45,7 @@ public static class BestEffortEndpoints
                 }
             }
             await BestEfforts.ReplaceAsync(conn, tx, id, userId, activity.Sport, activity.StartedAt,
-                t, dist);
+                t, dist, await Multisport.LoadAsync(conn, id, tx));
             await tx.CommitAsync();
             return Results.NoContent();
         });

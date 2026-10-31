@@ -101,7 +101,9 @@ public static class ActivityStorage
                 l.AscentM, l.DescentM, l.AvgCadence,
             }), tx);
         await EquipmentEndpoints.AttachAsync(conn, tx, id.Value, userId, equipmentIds ?? []);
-        await BestEfforts.ReplaceAsync(conn, tx, id.Value, userId, parsed.Sport, parsed.StartedAt, parsed.T, parsed.Dist);
+        if (parsed.Parts is { Length: > 0 } parts)
+            await Multisport.SavePartsAsync(conn, tx, id.Value, parts, true);
+        await BestEfforts.ReplaceAsync(conn, tx, id.Value, userId, parsed.Sport, parsed.StartedAt, parsed.T, parsed.Dist, parsed.Parts);
         try
         {
             if (key is not null) await store.PutAsync(key, bytes!, ct);

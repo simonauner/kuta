@@ -161,6 +161,21 @@ public static class StravaImport
         return output.ToArray();
     }
 
+    public static ParsedActivity MergeFit(ParsedActivity summary, ParsedActivity fit)
+    {
+        // Multisport summaries and session boundaries belong to the same FIT clock and must stay together.
+        if (fit.Parts is { Length: > 0 }) return fit;
+        var offset = checked((int)Math.Round((fit.StartedAt - summary.StartedAt).TotalSeconds));
+        return summary with
+        {
+            T = fit.T.Select(t => checked(t + offset)).ToArray(),
+            Dist = fit.Dist, Hr = fit.Hr, Speed = fit.Speed, Alt = fit.Alt,
+            Lat = fit.Lat, Lon = fit.Lon, Route = fit.Route,
+            Device = fit.Device, Cadence = fit.Cadence, Temp = fit.Temp,
+            Laps = fit.Laps?.Select(l => l with { StartS = checked(l.StartS + offset) }).ToArray(),
+        };
+    }
+
     public static ParsedActivity ParseGpx(byte[] bytes, ParsedActivity summary)
     {
         using var input = new MemoryStream(bytes);

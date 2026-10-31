@@ -1,3 +1,5 @@
+import type { ActivityPart } from './multisport.ts'
+import { sportNameKey } from './multisport.ts'
 import type { TFunction } from 'i18next'
 import sv from '../locales/sv.json' with { type: 'json' }
 
@@ -122,6 +124,9 @@ export type ActivityDetail = Activity & {
   elevationGainM: number | null
   device: string | null
   streams: ActivityStreams | null
+  parts: ActivityPart[]
+  partsEdited: boolean
+  canSplit: boolean
   laps: ActivityLap[]
 }
 
@@ -160,7 +165,35 @@ export function formatPace(durationS: number, distanceM: number) {
   return `${formatDuration(Math.round(durationS / (distanceM / 1000)))} /km`
 }
 
-export const sports = ['running', 'cycling', 'walking', 'hiking'] as const
+export function formatSportPace(
+  sport: string,
+  durationS: number,
+  distanceM: number,
+  locale?: string,
+) {
+  if (
+    ['triathlon', 'swimrun', 'multisport', 'transition'].includes(sport) ||
+    distanceM < 1 ||
+    durationS <= 0
+  )
+    return '–'
+  if (sport === 'cycling')
+    return `${((distanceM / durationS) * 3.6).toLocaleString(locale, { maximumFractionDigits: 1 })} km/h`
+  if (sport === 'swimming')
+    return `${formatDuration(Math.round(durationS / (distanceM / 100)))} /100 m`
+  return formatPace(durationS, distanceM)
+}
+
+export const sports = [
+  'running',
+  'cycling',
+  'walking',
+  'hiking',
+  'swimming',
+  'triathlon',
+  'swimrun',
+  'multisport',
+] as const
 
 // Egen titel om löparen skrivit en, annars sport + tid på dygnet ("Löpning eftermiddag").
 // Plats ("Löpning Uppsala") kommer när orten slås upp vid importen.
@@ -184,7 +217,7 @@ export function activityTitle(
               ? 'evening'
               : 'night'
   return t('activity.defaultTitle', {
-    sport: t(`activity.sport.${sport as (typeof sports)[number] | 'other'}`),
+    sport: t(sportNameKey(sport)),
     timeOfDay: t(`activity.timeOfDay.${timeOfDay}`),
   })
 }

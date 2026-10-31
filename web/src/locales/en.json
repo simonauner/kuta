@@ -47,7 +47,11 @@
       "cycling": "Ride",
       "walking": "Walk",
       "hiking": "Hike",
-      "other": "Other"
+      "other": "Other",
+      "swimming": "Swimming",
+      "triathlon": "Triathlon",
+      "swimrun": "Swimrun",
+      "multisport": "Multisport"
     },
     "startedAt": "Date and time",
     "distance": "Distance (km)",
@@ -98,7 +102,12 @@
       "cycling": "ride",
       "walking": "walk",
       "hiking": "hike",
-      "other": "activity"
+      "other": "activity",
+      "swimming": "Swimming",
+      "triathlon": "Triathlon",
+      "swimrun": "Swimrun",
+      "multisport": "Multisport",
+      "transition": "Transition"
     },
     "timeOfDay": {
       "night": "Night",
@@ -106,7 +115,8 @@
       "forenoon": "Late morning",
       "afternoon": "Afternoon",
       "evening": "Evening"
-    }
+    },
+    "speed": "Speed"
   },
   "consent": {
     "title": "Save heart rate from my activities.",
@@ -174,7 +184,8 @@
     "invalidStravaArchive": "The ZIP file does not contain a valid Strava export.",
     "invalidTags": "Choose valid tags.",
     "invalidEquipment": "Choose valid equipment that belongs to you.",
-    "invalidEquipmentInput": "Check the name, type and prior use."
+    "invalidEquipmentInput": "Check the name, type and prior use.",
+    "invalidActivityParts": "Check sports and boundaries. Legs must cover the entire recording without gaps or overlaps."
   },
   "home": "Kuta – home",
   "footer": {
@@ -280,5 +291,26 @@
     "reactivate": "Reactivate",
     "reactivateLabel": "Reactivate {{name}}"
   },
-  "breadcrumbs": "Breadcrumbs"
+  "breadcrumbs": "Breadcrumbs",
+  "multisport": {
+    "title": "Sport legs",
+    "split": "Split into sports",
+    "edit": "Edit legs",
+    "kind": "Activity type",
+    "instructions": "Set sport changes in seconds from the activity start. Select a leg to review its map and charts below. Original samples are preserved, and the split can be restored.",
+    "whole": "Whole activity",
+    "partSport": "Sport for leg {{number}}",
+    "boundary": "End of leg {{number}} (seconds)",
+    "useEquipment": "Count usage for the activity’s selected equipment",
+    "addBoundary": "Split leg",
+    "removeBoundary": "Merge with previous",
+    "save": "Save legs",
+    "cancel": "Cancel",
+    "restore": "Restore imported version",
+    "unavailable": "Splitting requires a continuous time and distance stream.",
+    "selected": "Showing leg {{number}}: {{sport}}",
+    "distanceBySport": "Distance by sport",
+    "confirmRestore": "Restoring will remove the split. Do you want to continue?",
+    "restoreConfirm": "Restore"
+  }
 }

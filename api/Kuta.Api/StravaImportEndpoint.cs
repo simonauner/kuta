@@ -88,19 +88,7 @@ public static class StravaImportEndpoint
                             if (extension == ".fit")
                             {
                                 var fit = FitImport.Parse(bytes) ?? throw new InvalidDataException("Invalid FIT.");
-                                parsed = row.Summary with
-                                {
-                                    T = fit.T, Dist = fit.Dist, Hr = fit.Hr, Speed = fit.Speed, Alt = fit.Alt,
-                                    Lat = fit.Lat, Lon = fit.Lon, Route = fit.Route,
-                                    Device = fit.Device, Cadence = fit.Cadence, Temp = fit.Temp, Laps = fit.Laps,
-                                };
-                                // FIT-tiderna är relativa FIT-starten; CSV kan ha en annan starttid.
-                                var offset = checked((int)Math.Round((fit.StartedAt - row.Summary.StartedAt).TotalSeconds));
-                                parsed = parsed with
-                                {
-                                    T = fit.T.Select(t => checked(t + offset)).ToArray(),
-                                    Laps = fit.Laps?.Select(l => l with { StartS = checked(l.StartS + offset) }).ToArray(),
-                                };
+                                parsed = StravaImport.MergeFit(row.Summary, fit);
                             }
                             else if (extension == ".gpx") parsed = StravaImport.ParseGpx(bytes, parsed);
                             else throw new InvalidDataException("Unsupported activity file.");

@@ -101,11 +101,18 @@ public static class EquipmentEndpoints
         conn.QueryAsync<EquipmentSummary>(
             """
             select e.id, e.name, e.brand, e.kind, e.retired, e.initial_distance_m, e.initial_duration_s,
-                   e.initial_distance_m + coalesce(sum(a.distance_m), 0) as distance_m,
-                   e.initial_duration_s + coalesce(sum(a.duration_s), 0)::bigint as duration_s
+                   e.initial_distance_m + coalesce(sum(coalesce(usage.distance_m, a.distance_m)), 0) as distance_m,
+                   e.initial_duration_s + coalesce(sum(coalesce(usage.duration_s, a.duration_s)), 0)::bigint as duration_s
             from equipment e
             left join activity_equipment ae on ae.equipment_id = e.id and ae.user_id = e.user_id
             left join activities a on a.id = ae.activity_id and a.user_id = e.user_id
+            left join lateral (
+                select coalesce(sum(p.distance_m) filter (where p.use_equipment), 0) as distance_m,
+                       coalesce(sum(p.end_s - p.start_s) filter (where p.use_equipment), 0) as duration_s
+                from activity_parts p
+                where p.activity_id = a.id and p.original = not a.parts_edited
+                having count(*) > 0
+            ) usage on true
             where e.user_id = @userId
             group by e.id
             order by e.retired, e.created_at, e.id

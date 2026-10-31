@@ -1,3 +1,4 @@
+import { multisportKinds } from '@/lib/multisport'
 import { Modal } from '@/components/ui/modal'
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
 import { useNavigate, useSearch } from '@tanstack/react-router'
@@ -101,7 +102,10 @@ export function NewActivityPage() {
     gcTime: 0,
   })
   const fromFile = file ? preview.data : undefined
-  const selectedSport = sport ?? (fromFile ? knownSport(fromFile.sport) : 'running')
+  const importedMultisport = fromFile && multisportKinds.some((k) => k === fromFile.sport)
+  const selectedSport = importedMultisport
+    ? fromFile.sport
+    : (sport ?? (fromFile ? knownSport(fromFile.sport) : 'running'))
 
   const save = useMutation({
     mutationFn: () => {
@@ -226,6 +230,7 @@ export function NewActivityPage() {
               <select
                 id={id}
                 value={selectedSport}
+                disabled={!!importedMultisport}
                 onChange={(e) => setSport(e.currentTarget.value)}
                 className="h-9 w-full rounded-md border border-input bg-transparent px-3 text-base shadow-xs outline-none focus-visible:border-ring focus-visible:ring-[3px] focus-visible:ring-ring/50 md:text-sm dark:bg-input/30"
               >

@@ -14,7 +14,7 @@ public record ActivitySummary(
 public record ActivityDetail(
     Guid Id, string Sport, string? Title, System.DateTime StartedAt, int DurationS, int? MovingS, double DistanceM,
     short? AvgHr, short? MaxHr, float? AvgSpeedMps, float? ElevationGainM, string? Device, ActivityStreams? Streams,
-    IEnumerable<ActivityLap> Laps, string[] Tags, Guid[] EquipmentIds);
+    IEnumerable<ActivityLap> Laps, string[] Tags, Guid[] EquipmentIds, ActivityPart[] Parts, bool PartsEdited, bool CanSplit);
 
 // Det som formuläret förifylls med från en FIT-fil
 public record ActivityPreview(
@@ -41,6 +41,7 @@ public static class ActivityEndpoints
         api.MapGet("/activity-tags", () => Results.Ok(ActivityInput.Tags)).RequireAuthorization();
 
         var activities = api.MapGroup("/activities").RequireAuthorization();
+        activities.MapMultisport();
 
         // Inloggad användares pass, 25 åt gången med stabila rubriker för hela perioderna.
         activities.MapGet("", async (NpgsqlDataSource db, ClaimsPrincipal user, string? timeZone, string? tag,
@@ -78,10 +79,10 @@ public static class ActivityEndpoints
             await using var conn = await db.OpenConnectionAsync(cancellationToken);
             await using var command = new NpgsqlCommand(
                 """
-                select a.id, a.sport, a.title, a.started_at, a.duration_s, a.moving_s, a.distance_m, a.avg_hr, a.max_hr,
+                select a.id, a.sport, a.title, a.started_at, a.duration_s, a.moving_s, coalesce((select sum(p.distance_m) from activity_parts p where p.activity_id = a.id and p.original = not a.parts_edited), a.distance_m), a.avg_hr, a.max_hr,
                        a.avg_speed_mps, a.elevation_gain_m, a.device, s.t, s.dist, s.hr, s.speed, s.alt, s.lat, s.lon,
                        s.cadence, s.temp, a.tags,
-                       array(select equipment_id from activity_equipment where activity_id = a.id order by equipment_id) as equipment_ids
+                       array(select equipment_id from activity_equipment where activity_id = a.id order by equipment_id) as equipment_ids, a.parts_edited
                 from activities a left join activity_streams s on s.activity_id = a.id
                 where a.id = @id and a.user_id = @userId
                 """, conn);
@@ -102,14 +103,14 @@ public static class ActivityEndpoints
                     reader.GetGuid(0), reader.GetString(1), Value<string>(2),
                     System.DateTime.SpecifyKind(reader.GetDateTime(3), DateTimeKind.Utc), reader.GetInt32(4),
                     Value<int?>(5), reader.GetDouble(6), Value<short?>(7), Value<short?>(8), Value<float?>(9),
-                    Value<float?>(10), Value<string>(11), streams, [], reader.GetFieldValue<string[]>(21), reader.GetFieldValue<Guid[]>(22));
+                    Value<float?>(10), Value<string>(11), streams, [], reader.GetFieldValue<string[]>(21), reader.GetFieldValue<Guid[]>(22), [], reader.GetBoolean(23), streams is not null && Multisport.CanSplit(streams.T, streams.Dist));
             }
             var laps = await conn.QueryAsync<ActivityLap>(
                 """
                 select lap_index, start_s, duration_s, moving_s, distance_m, avg_hr, max_hr, ascent_m, descent_m, avg_cadence
                 from activity_laps where activity_id = @id order by lap_index
                 """, new { id });
-            return Results.Ok(detail with { Laps = laps });
+            return Results.Ok(detail with { Laps = laps, Parts = await Multisport.LoadAsync(conn, id) });
         });
 
         // Förhandsvisning för formuläret "Skapa ny aktivitet": tolkar filen utan att spara något.
@@ -160,7 +161,7 @@ public static class ActivityEndpoints
             var (fit, error) = await ReadFitAsync(file, conn, userId, cancellationToken);
             if (fit is null) return error!;
             var (bytes, sha256, parsed, hrConsent) = fit;
-            if (sport is not null) parsed = parsed with { Sport = sport };
+            if (sport is not null && parsed.Parts is not { Length: > 0 }) parsed = parsed with { Sport = sport };
             title = ActivityInput.NormalizeTitle(title);
 
             Guid? id;
