@@ -1,0 +1,52 @@
+README.md
+  s_af8cef77906f4e::t_02687db80a16e6 459-460
+api/Kuta.Api/Migrations/018_exclude_from_records.sql
+  s_af8cef77906f4e::t_a2f2a59368ce68 1
+api/Kuta.Api/RecordTrends.cs
+  s_af8cef77906f4e::t_a2f2a59368ce68 22,32,46-48
+web/src/routes/edit-activity.tsx
+  s_af8cef77906f4e::t_02687db80a16e6 48,60,137-153
+web/src/lib/activity.ts
+  s_af8cef77906f4e::t_02687db80a16e6 145
+api/Kuta.Api/ActivityEndpoints.cs
+  s_af8cef77906f4e::t_a2f2a59368ce68 18,34,224-225,268,291
+web/src/components/records.tsx
+  s_af8cef77906f4e::t_2b87fe140b79c1 6,78-83
+api/Kuta.Api/BestEffortEndpoints.cs
+  s_af8cef77906f4e::t_a2f2a59368ce68 67
+web/src/locales/en.json
+  s_af8cef77906f4e::t_02687db80a16e6 183-185
+  s_af8cef77906f4e::t_2b87fe140b79c1 48-49
+api/Kuta.Api.Tests/BestEffortTests.cs
+  s_af8cef77906f4e::t_6eafa6c3d05943 126-132,134-141,146,148-154,157-158,162-168
+  s_af8cef77906f4e::t_eb76c4801a604d 159-161
+  s_af8cef77906f4e::t_9e3e2d42fe3cb7 133,142-145,147,155-156
+web/src/routes/activity.tsx
+  s_af8cef77906f4e::t_02687db80a16e6 311-312
+  s_af8cef77906f4e::t_a798df3599ada1 310
+web/src/locales/sv.json
+  s_af8cef77906f4e::t_02687db80a16e6 183-185
+  s_af8cef77906f4e::t_2b87fe140b79c1 48-49
+web/src/components/help-popover.tsx
+  s_af8cef77906f4e::t_31a8a847c61cf0 1-19,21-27
+  s_af8cef77906f4e::t_54a880e2e7cc10 20
+api/Kuta.Api.Tests/RecordTrendsTests.cs
+  s_af8cef77906f4e::t_6eafa6c3d05943 19,22-23,27,37
+  s_af8cef77906f4e::t_bbb01ed95ec78c 38
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.7.5",
+  "base_commit_sha": "96276e840c91cc8568f32a795056f0ccde0eaec4",
+  "prompts": {},
+  "sessions": {
+    "s_af8cef77906f4e": {
+      "agent_id": {
+        "tool": "codex",
+        "id": "01a19315-5fde-7173-af67-aaba91aa6227",
+        "model": "gpt-6.1-sol"
+      },
+      "human_author": "Simon Aunér <simonauner@gmail.com>"
+    }
+  }
+}
