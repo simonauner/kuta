@@ -4,6 +4,23 @@ using Npgsql;
 
 public static class ActivityStorage
 {
+    public static async Task<bool> DeleteAsync(NpgsqlConnection conn, RawFileStore store, Guid userId, Guid id,
+        CancellationToken ct)
+    {
+        await using var tx = await conn.BeginTransactionAsync(ct);
+        var activity = await conn.QuerySingleOrDefaultAsync<OwnedFile>(new CommandDefinition(
+            "select id, raw_file_key from activities where id = @id and user_id = @userId for update",
+            new { id, userId }, tx, cancellationToken: ct));
+        if (activity is null) return false;
+        if (activity.RawFileKey is { } key) await store.DeleteAsync([key], ct);
+        await conn.ExecuteAsync(new CommandDefinition("delete from activities where id = @id and user_id = @userId",
+            new { id, userId }, tx, cancellationToken: ct));
+        await tx.CommitAsync(ct);
+        return true;
+    }
+
+    private record OwnedFile(Guid Id, string? RawFileKey);
+
     public static async Task<ActivitySummary?> SaveManualAsync(NpgsqlConnection conn, Guid userId,
         ManualActivityRequest req, CancellationToken ct)
     {

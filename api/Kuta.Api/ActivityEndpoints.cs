@@ -224,14 +224,8 @@ public static class ActivityEndpoints
             CancellationToken cancellationToken) =>
         {
             await using var conn = await db.OpenConnectionAsync(cancellationToken);
-            var userId = user.GetUserId();
-            var activity = await conn.QuerySingleOrDefaultAsync<OwnedActivity>(
-                "select id, raw_file_key from activities where id = @id and user_id = @userId", new { id, userId });
-            if (activity is null) return Results.NotFound();
-
-            if (activity.RawFileKey is { } key) await store.DeleteAsync([key], cancellationToken);
-            await conn.ExecuteAsync("delete from activities where id = @id and user_id = @userId", new { id, userId });
-            return Results.NoContent();
+            return await ActivityStorage.DeleteAsync(conn, store, user.GetUserId(), id, cancellationToken)
+                ? Results.NoContent() : Results.NotFound();
         });
     }
 
