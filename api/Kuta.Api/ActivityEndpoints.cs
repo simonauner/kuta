@@ -40,18 +40,28 @@ public static class ActivityEndpoints
 
         // Inloggad användares pass, 25 åt gången med stabila rubriker för hela perioderna.
         activities.MapGet("", async (NpgsqlDataSource db, ClaimsPrincipal user, string? timeZone,
-            DateTimeOffset? beforeStartedAt, Guid? beforeId, CancellationToken cancellationToken) =>
+            DateTimeOffset? beforeStartedAt, Guid? beforeId, int? year, CancellationToken cancellationToken) =>
         {
             if (beforeStartedAt.HasValue != beforeId.HasValue)
                 return Results.BadRequest(new ApiError("Sidmarkören är ogiltig. Ladda om sidan.", "invalidActivityPage"));
+            if (year is < 1 or > 9998)
+                return Results.BadRequest(new ApiError("Ange ett år mellan 1 och 9998.", "invalidActivityYear"));
             timeZone ??= "UTC";
             await using var conn = await db.OpenConnectionAsync(cancellationToken);
-            if (!await conn.ExecuteScalarAsync<bool>(new CommandDefinition(
-                "select exists (select 1 from pg_timezone_names where name = @timeZone)",
-                new { timeZone }, cancellationToken: cancellationToken)))
+            if (!await ActivityList.IsValidTimeZoneAsync(conn, timeZone, cancellationToken))
                 return Results.BadRequest(new ApiError("Tidszonen är ogiltig. Kontrollera enhetens inställningar.", "invalidTimeZone"));
             return Results.Ok(await ActivityList.ReadAsync(conn, user.GetUserId(), timeZone,
-                beforeStartedAt, beforeId, cancellationToken));
+                beforeStartedAt, beforeId, year, cancellationToken));
+        });
+
+        activities.MapGet("/years", async (NpgsqlDataSource db, ClaimsPrincipal user, string? timeZone,
+            CancellationToken cancellationToken) =>
+        {
+            timeZone ??= "UTC";
+            await using var conn = await db.OpenConnectionAsync(cancellationToken);
+            if (!await ActivityList.IsValidTimeZoneAsync(conn, timeZone, cancellationToken))
+                return Results.BadRequest(new ApiError("Tidszonen är ogiltig. Kontrollera enhetens inställningar.", "invalidTimeZone"));
+            return Results.Ok(await ActivityList.ReadYearsAsync(conn, user.GetUserId(), timeZone, cancellationToken));
         });
 
         // Ett eget pass med tidsserier för passsidan. Någon annans pass ger 404, som ett som inte finns.

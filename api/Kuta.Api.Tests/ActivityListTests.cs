@@ -39,10 +39,10 @@ public class ActivityListTests(WebApplicationFactory<Program> factory) : IClassF
             await conn.ExecuteAsync("delete from activities where id = @id", new { id = cursor.Id });
             // Ett nytt pass framför markören får inte flytta sidgränsen.
             await Add(conn, userId, "2026-11-01T12:00:00Z");
-            var second = await ActivityList.ReadAsync(conn, userId, "UTC", cursor.StartedAt, cursor.Id, ct);
+            var second = await ActivityList.ReadAsync(conn, userId, "UTC", cursor.StartedAt, cursor.Id, ct: ct);
             Assert.Equal(25, second.Items.Count);
             var next = Assert.IsType<ActivityCursor>(second.NextCursor);
-            var last = await ActivityList.ReadAsync(conn, userId, "UTC", next.StartedAt, next.Id, ct);
+            var last = await ActivityList.ReadAsync(conn, userId, "UTC", next.StartedAt, next.Id, ct: ct);
             Assert.Single(last.Items);
             Assert.Null(last.NextCursor);
             var ids = first.Items.Concat(second.Items).Concat(last.Items).Select(a => a.Id).ToList();
@@ -87,6 +87,47 @@ public class ActivityListTests(WebApplicationFactory<Program> factory) : IClassF
             Assert.Equal(lone, page.Items[^1].Id);
             Assert.True(page.Items[^1].ShowWeek);
             Assert.NotNull(page.NextCursor);
+        }
+        finally { await conn.ExecuteAsync("delete from auth.users where id = any(@ids)", new { ids = new[] { userId, otherId } }); }
+    }
+
+    [Fact]
+    public async Task Year_filter_pages_stay_within_the_local_year_and_years_include_the_complete_owned_history()
+    {
+        var ct = TestContext.Current.CancellationToken;
+        await using var conn = await factory.Services.GetRequiredService<NpgsqlDataSource>().OpenConnectionAsync(ct);
+        var userId = await Runner(conn);
+        var otherId = await Runner(conn);
+        try
+        {
+            await Add(conn, otherId, "2021-06-01T12:00:00Z");
+            Assert.Empty(await ActivityList.ReadYearsAsync(conn, userId, "Europe/Stockholm", ct));
+            await conn.ExecuteAsync("""
+                insert into activities (user_id, source, started_at, duration_s, distance_m)
+                select @userId, 'manual', '2024-12-31T23:30:00Z'::timestamptz + n * interval '1 hour', 1800, 5000
+                from generate_series(0, 25) n
+                """, new { userId });
+            await Add(conn, userId, "2023-12-31T23:30:00Z");
+            await Add(conn, userId, "2022-06-01T12:00:00Z");
+            Assert.Equal(new[] { 2025, 2024, 2022 }, await ActivityList.ReadYearsAsync(conn, userId, "Europe/Stockholm", ct));
+            Assert.Equal(new[] { 2025, 2024, 2023, 2022 }, await ActivityList.ReadYearsAsync(conn, userId, "UTC", ct));
+            var first = await ActivityList.ReadAsync(conn, userId, "Europe/Stockholm", year: 2025, ct: ct);
+            Assert.Equal(25, first.Items.Count);
+            var cursor = Assert.IsType<ActivityCursor>(first.NextCursor);
+            var last = await ActivityList.ReadAsync(conn, userId, "Europe/Stockholm",
+                cursor.StartedAt, cursor.Id, year: 2025, ct: ct);
+            Assert.Equal(DateTime.Parse("2024-12-31T23:30:00Z").ToUniversalTime(), Assert.Single(last.Items).StartedAt);
+            Assert.Null(last.NextCursor);
+            var utc = await ActivityList.ReadAsync(conn, userId, "UTC", year: 2025, ct: ct);
+            Assert.Equal(25, utc.Items.Count);
+            Assert.Null(utc.NextCursor);
+            var singleYear = await ActivityList.ReadAsync(conn, userId, "Europe/Stockholm", year: 2024, ct: ct);
+            var single = Assert.Single(singleYear.Items);
+            Assert.False(single.ShowMonth);
+            Assert.False(single.ShowWeek);
+            var absentYear = await ActivityList.ReadAsync(conn, userId, "Europe/Stockholm", year: 2021, ct: ct);
+            Assert.Empty(absentYear.Items);
+            Assert.Null(absentYear.NextCursor);
         }
         finally { await conn.ExecuteAsync("delete from auth.users where id = any(@ids)", new { ids = new[] { userId, otherId } }); }
     }

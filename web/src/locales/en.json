@@ -19,6 +19,8 @@
     "logout": "Log out"
   },
   "activities": {
+    "year": "Year",
+    "allYears": "All years",
     "retry": "Try again",
     "loading": "Loading activities…",
     "loadOlder": "Show older activities",
@@ -140,6 +142,7 @@
     "recoverySent": "If this address has an account, you will receive an email with a link to reset your password."
   },
   "errors": {
+    "invalidActivityYear": "Enter a year between 1 and 9998.",
     "invalidTimeZone": "The time zone is invalid. Check your device settings.",
     "invalidActivityPage": "The page cursor is invalid. Reload the page.",
     "generic": "Something went wrong. Please try again.",

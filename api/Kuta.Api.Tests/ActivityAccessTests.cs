@@ -32,6 +32,7 @@ public class ActivityAccessTests(WebApplicationFactory<Program> factory) : IClas
 
             using var anonymous = factory.CreateClient();
             Assert.Equal(HttpStatusCode.Unauthorized, (await anonymous.GetAsync("/api/activities", ct)).StatusCode);
+            Assert.Equal(HttpStatusCode.Unauthorized, (await anonymous.GetAsync("/api/activities/years", ct)).StatusCode);
             for (var i = 0; i < userIds.Length; i++)
             {
                 using var scope = factory.Services.CreateScope();
@@ -49,6 +50,10 @@ public class ActivityAccessTests(WebApplicationFactory<Program> factory) : IClas
                 Assert.Equal(activityIds[i], activity.Id);
                 Assert.Equal($"Private run {i}", activity.Title);
                 Assert.Null(activities.NextCursor);
+                var years = await client.GetFromJsonAsync<int[]>("/api/activities/years?timeZone=UTC", ct);
+                Assert.Equal(new[] { activity.StartedAt.Year }, years);
+                var filtered = await client.GetFromJsonAsync<ActivityPage>($"/api/activities?year={activity.StartedAt.Year}", ct);
+                Assert.Equal(activity.Id, Assert.Single(filtered!.Items).Id);
                 Assert.False(activity.ShowMonth);
                 Assert.False(activity.ShowWeek);
                 var older = await client.GetFromJsonAsync<ActivityPage>(
@@ -56,6 +61,11 @@ public class ActivityAccessTests(WebApplicationFactory<Program> factory) : IClas
                 Assert.Empty(older!.Items);
                 if (i == 0)
                 {
+                    var invalidYear = await client.GetAsync("/api/activities?year=9999", ct);
+                    Assert.Equal(HttpStatusCode.BadRequest, invalidYear.StatusCode);
+                    Assert.Equal("invalidActivityYear", (await invalidYear.Content.ReadFromJsonAsync<ApiError>(ct))!.Code);
+                    var invalidYearsZone = await client.GetAsync("/api/activities/years?timeZone=NotAZone", ct);
+                    Assert.Equal(HttpStatusCode.BadRequest, invalidYearsZone.StatusCode);
                     var missingId = await client.GetAsync("/api/activities?beforeStartedAt=2026-01-01T00:00:00Z", ct);
                     Assert.Equal(HttpStatusCode.BadRequest, missingId.StatusCode);
                     Assert.Equal("invalidActivityPage", (await missingId.Content.ReadFromJsonAsync<ApiError>(ct))!.Code);

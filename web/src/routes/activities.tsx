@@ -1,7 +1,7 @@
 import { ErrorMessage } from '@/components/error-message'
 import { useTranslation } from 'react-i18next'
-import { useInfiniteQuery, useMutation, useQueryClient } from '@tanstack/react-query'
-import { Link } from '@tanstack/react-router'
+import { useInfiniteQuery, useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
+import { getRouteApi, Link } from '@tanstack/react-router'
 import { Button } from '@/components/ui/button'
 import { api } from '@/lib/api'
 import {
@@ -13,8 +13,12 @@ import {
   type ActivityPage,
 } from '@/lib/activity'
 
+const route = getRouteApi('/app/activities')
+
 export function ActivitiesPage() {
   const { t, i18n } = useTranslation()
+  const { year } = route.useSearch()
+  const navigate = route.useNavigate()
   const dateFormat = new Intl.DateTimeFormat(i18n.resolvedLanguage, {
     dateStyle: 'medium',
     timeStyle: 'short',
@@ -26,11 +30,18 @@ export function ActivitiesPage() {
   })
   const queryClient = useQueryClient()
   const timeZone = Intl.DateTimeFormat().resolvedOptions().timeZone
+  const years = useQuery({
+    queryKey: ['activities', 'years', timeZone],
+    queryFn: () => api.get<number[]>(`/api/activities/years?${new URLSearchParams({ timeZone })}`),
+    staleTime: 60_000,
+  })
+  const availableYears = years.data ?? []
   const activities = useInfiniteQuery({
-    queryKey: ['activities', timeZone],
+    queryKey: ['activities', 'list', timeZone, year],
     initialPageParam: null as ActivityCursor | null,
     queryFn: ({ pageParam }) => {
       const params = new URLSearchParams({ timeZone })
+      if (year !== undefined) params.set('year', String(year))
       if (pageParam) {
         params.set('beforeStartedAt', pageParam.startedAt)
         params.set('beforeId', pageParam.id)
@@ -54,6 +65,44 @@ export function ActivitiesPage() {
           <Link to="/app/activities/new">{t('newActivity.title')}</Link>
         </Button>
       </div>
+      {(availableYears.length > 1 || year !== undefined) && (
+        <div className="mt-6 flex items-center gap-3">
+          <label htmlFor="activity-year" className="text-sm font-medium">
+            {t('activities.year')}
+          </label>
+          <select
+            id="activity-year"
+            className="rounded-md border bg-background px-3 py-2 text-sm text-foreground"
+            value={year ?? ''}
+            onChange={(e) =>
+              void navigate({ search: e.target.value ? { year: Number(e.target.value) } : {} })
+            }
+          >
+            <option value="">{t('activities.allYears')}</option>
+            {year !== undefined && !availableYears.includes(year) && (
+              <option value={year}>{year}</option>
+            )}
+            {availableYears.map((value) => (
+              <option key={value} value={value}>
+                {value}
+              </option>
+            ))}
+          </select>
+        </div>
+      )}
+      {years.error && (
+        <div role="alert" className="mt-4 text-sm text-destructive">
+          <ErrorMessage error={years.error} />{' '}
+          <Button
+            variant="outline"
+            size="sm"
+            disabled={years.isFetching}
+            onClick={() => void years.refetch()}
+          >
+            {t('activities.retry')}
+          </Button>
+        </div>
+      )}
       {remove.error && (
         <p role="alert" className="mt-4 text-sm text-destructive">
           <ErrorMessage error={remove.error} />
@@ -94,6 +143,7 @@ export function ActivitiesPage() {
                     <Link
                       to="/app/activities/$activityId"
                       params={{ activityId: a.id }}
+                      search={{ year }}
                       className="inline-block font-medium underline-offset-2 hover:underline"
                       style={{ viewTransitionName: `activity-title-${a.id}` }}
                     >
