@@ -24,6 +24,18 @@ public static class RacePredictor
         return oxygen / fraction;
     }
 
+    // Tröskelfart (m/s): farten som VDOT räcker till i en timme, den löparversion av FTP som rTSS bygger på.
+    // Andelen av maxkapaciteten efter 60 min är fast, så syreupptaget ger farten ur andragradsekvationen.
+    public static double ThresholdSpeed(double vdot)
+    {
+        const double minutes = 60;
+        var fraction = 0.8 + 0.1894393 * Math.Exp(-0.012778 * minutes) + 0.2989558 * Math.Exp(-0.1932605 * minutes);
+        var oxygen = vdot * fraction;
+        const double a = 0.000104, b = 0.182258;
+        var metersPerMinute = (-b + Math.Sqrt(b * b + 4 * a * (oxygen + 4.60))) / (2 * a);
+        return metersPerMinute / 60;
+    }
+
     // VDOT sjunker när tiden för en given distans ökar, så tiden kan sökas med bisektion.
     public static double? Predict(double meters, double vdot)
     {

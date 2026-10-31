@@ -1,4 +1,5 @@
 import { SlowLoading } from '@/components/slow-loading'
+import type { ReactNode } from 'react'
 import { FeedEmptyState } from '@/components/feed-empty-state'
 import { ActivityMapPreview } from '@/components/activity-map-preview'
 import { useInfiniteQuery } from '@tanstack/react-query'
@@ -23,7 +24,13 @@ type FeedItem = {
 }
 type FeedPage = { items: FeedItem[]; nextCursor: ActivityCursor | null }
 
-export function ActivityFeed({ runnerId }: { runnerId?: string }) {
+export function ActivityFeed({
+  runnerId,
+  emptyState,
+}: {
+  runnerId?: string
+  emptyState?: ReactNode
+}) {
   const { t, i18n } = useTranslation()
   const feed = useInfiniteQuery({
     queryKey: runnerId ? ['feed', runnerId] : ['feed'],
@@ -55,12 +62,14 @@ export function ActivityFeed({ runnerId }: { runnerId?: string }) {
           </Button>
         </div>
       )}
-      {feed.data?.pages[0].items.length === 0 &&
-        (runnerId ? (
-          <p className="text-muted-foreground">{t('social.noActivities')}</p>
-        ) : (
-          <FeedEmptyState />
-        ))}
+      {feed.isSuccess &&
+        feed.data.pages[0].items.length === 0 &&
+        (emptyState ??
+          (runnerId ? (
+            <p className="text-muted-foreground">{t('social.noActivities')}</p>
+          ) : (
+            <FeedEmptyState />
+          )))}
       <ul className="space-y-4">
         {feed.data?.pages
           .flatMap((page) => page.items)

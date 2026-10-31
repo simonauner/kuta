@@ -1,10 +1,10 @@
 import { SlowLoading } from '@/components/slow-loading'
 import { useQuery } from '@tanstack/react-query'
-import { Link } from '@tanstack/react-router'
-import { ArrowRight, FileArchive, Plus, Users } from 'lucide-react'
+import { FileArchive, Plus, Users } from 'lucide-react'
 import { useTranslation } from 'react-i18next'
 import { ErrorMessage } from '@/components/error-message'
 import { ShareProfile } from '@/components/share-profile'
+import { AddActivityButton, StravaImportLink } from '@/components/onboarding-actions'
 import { Button } from '@/components/ui/button'
 import { api } from '@/lib/api'
 
@@ -43,12 +43,7 @@ export function FeedEmptyState() {
                   : 'feed.welcomeDescription',
               )}
             </p>
-            <Button asChild size="lg" className="mt-6">
-              <Link to="/app/activities/new">
-                <Plus aria-hidden="true" />
-                {t('feed.addActivity')}
-              </Link>
-            </Button>
+            <AddActivityButton className="mt-6" />
             <p className="mt-3 text-sm text-muted-foreground">{t('feed.addActivityHelp')}</p>
           </section>
           <div className="grid gap-4 sm:grid-cols-2">
@@ -60,12 +55,7 @@ export function FeedEmptyState() {
               <p className="mb-4 mt-2 text-sm text-muted-foreground">
                 {t('feed.stravaDescription')}
               </p>
-              <Button asChild variant="link" className="h-auto whitespace-normal p-0 text-left">
-                <Link to="/app/settings" hash="import-heading">
-                  {t('settings.strava')}
-                  <ArrowRight aria-hidden="true" />
-                </Link>
-              </Button>
+              <StravaImportLink className="p-0 text-left" />
             </section>
             <section aria-labelledby="social-start-heading" className="rounded-xl border p-5">
               <Users aria-hidden="true" className="mb-4 size-5 text-muted-foreground" />

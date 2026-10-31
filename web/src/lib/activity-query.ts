@@ -31,3 +31,10 @@ export const sportGroupsQuery = {
   queryFn: () => api.get<SportGroup[]>('/api/activities/sport-groups'),
   staleTime: Infinity,
 }
+
+export const activityYearsQuery = (timeZone: string) =>
+  queryOptions({
+    queryKey: ['activities', 'years', timeZone],
+    queryFn: () => api.get<number[]>(`/api/activities/years?${new URLSearchParams({ timeZone })}`),
+    staleTime: 60_000,
+  })
