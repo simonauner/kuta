@@ -165,9 +165,10 @@ export function average(values: (number | null)[] | null) {
 }
 
 export function formatDuration(seconds: number) {
+  seconds = Math.round(seconds)
   const h = Math.floor(seconds / 3600)
   const m = Math.floor((seconds % 3600) / 60)
-  const s = Math.round(seconds % 60)
+  const s = seconds % 60
   const mmss = `${String(m).padStart(h ? 2 : 1, '0')}:${String(s).padStart(2, '0')}`
   return h ? `${h}:${mmss}` : mmss
 }
