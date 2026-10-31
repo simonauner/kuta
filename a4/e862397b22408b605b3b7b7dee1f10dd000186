@@ -1,0 +1,26 @@
+README.md
+  s_05b0823f2b3b31::t_eb532e9ded244c 565
+fly.toml
+  s_05b0823f2b3b31::t_eb532e9ded244c 17,19,21
+AGENTS.md
+  s_05b0823f2b3b31::t_eb532e9ded244c 75
+  s_05b0823f2b3b31::t_29edaa6b892be7 74
+fly.secrets.tpl
+  s_05b0823f2b3b31::t_eb532e9ded244c 2,4-8
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.7.5",
+  "base_commit_sha": "a4e862397b22408b605b3b7b7dee1f10dd000186",
+  "prompts": {},
+  "sessions": {
+    "s_05b0823f2b3b31": {
+      "agent_id": {
+        "tool": "codex",
+        "id": "01a19437-2c13-7f52-8d74-8a313de1f15e",
+        "model": "gpt-6.1-sol"
+      },
+      "human_author": "Simon Aunér <simonauner@gmail.com>"
+    }
+  }
+}
