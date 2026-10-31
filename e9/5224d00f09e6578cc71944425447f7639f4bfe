@@ -1,0 +1,27 @@
+web/src/components/multisport-preview.tsx
+  s_bcec312a97abae::t_a33cda236b6ed2 1,33-35,39,44
+web/tests/multisport.test.mjs
+  s_bcec312a97abae::t_a33cda236b6ed2 3,53-56
+web/src/routes/activity.tsx
+  s_bcec312a97abae::t_a33cda236b6ed2 2,104-111,113,182,189
+web/src/lib/activity.ts
+  s_bcec312a97abae::t_a33cda236b6ed2 4,208
+web/src/lib/sports.ts
+  s_bcec312a97abae::t_a33cda236b6ed2 70-73
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.7.5",
+  "base_commit_sha": "e95224d00f09e6578cc71944425447f7639f4bfe",
+  "prompts": {},
+  "sessions": {
+    "s_bcec312a97abae": {
+      "agent_id": {
+        "tool": "codex",
+        "id": "01a1942c-bbd4-7f93-9403-de2964ee138d",
+        "model": "gpt-6.1-sol"
+      },
+      "human_author": "Simon Aunér <simonauner@gmail.com>"
+    }
+  }
+}
