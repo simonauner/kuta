@@ -140,3 +140,158 @@
     white-space: nowrap;
   }
 }
+
+.product-shot.statistics-carousel,
+.product-shot.phone-shot {
+  padding: 0;
+  border: 0;
+  background: transparent;
+  color: var(--muted-foreground);
+}
+.app-phone {
+  width: min(100%, 360px);
+  margin-inline: auto;
+  padding: 9px;
+  border: 1px solid #555;
+  border-radius: 46px;
+  background: #202020;
+  box-shadow:
+    0 20px 50px #0002,
+    inset 0 0 0 2px #333;
+}
+.phone-screen {
+  overflow: hidden;
+  border-radius: 36px;
+  background: #090909;
+  color: #fafafa;
+}
+.phone-status {
+  position: relative;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  height: 38px;
+  padding-inline: 24px;
+  font-size: 12px;
+  font-weight: 600;
+}
+.phone-camera {
+  position: absolute;
+  top: 8px;
+  left: 50%;
+  width: 80px;
+  height: 23px;
+  border-radius: 20px;
+  background: #000;
+  transform: translateX(-50%);
+}
+.phone-home {
+  display: grid;
+  height: 19px;
+  place-items: center;
+}
+.phone-home::after {
+  content: '';
+  width: 32%;
+  height: 4px;
+  border-radius: 4px;
+  background: #fafafa;
+}
+.statistics-slides {
+  position: relative;
+  aspect-ratio: 390 / 760;
+}
+.statistics-slides .statistics-slide {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  object-fit: contain;
+}
+.statistics-slide[hidden] {
+  display: none;
+}
+.statistics-controls {
+  display: grid;
+  gap: 12px;
+  justify-items: center;
+  padding-top: 14px;
+}
+.statistics-controls[hidden] {
+  display: none;
+}
+.statistics-choices {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+  gap: 6px;
+}
+.statistics-controls button {
+  border: 1px solid var(--border);
+  border-radius: 6px;
+  padding: 8px 10px;
+  background: transparent;
+  color: var(--foreground);
+  font: inherit;
+  font-size: 12px;
+  cursor: pointer;
+}
+.statistics-controls button:hover,
+.statistics-controls button[aria-pressed='true'] {
+  border-color: var(--link-accent);
+  color: var(--link-accent);
+}
+.statistics-controls button:focus-visible {
+  outline: 2px solid var(--link-accent);
+  outline-offset: 3px;
+}
+.statistics-controls .statistics-rotation {
+  border: 0;
+  padding: 8px;
+  text-decoration: underline;
+  text-underline-offset: 3px;
+}
+
+.goals-feature {
+  border-top: 1px solid var(--border);
+  padding-block: 80px;
+}
+.goals-feature > .detail-copy {
+  max-width: 680px;
+}
+.goals-shots {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 48px;
+  max-width: 900px;
+  margin: 40px auto 0;
+}
+.phone-shot .phone-screen > img {
+  border-radius: 0;
+}
+.goals-shots figcaption {
+  font-size: 13px;
+  line-height: 1.7;
+  padding-top: 22px;
+}
+.goals-shots figcaption strong {
+  color: var(--foreground);
+}
+.goals-example-note {
+  margin-top: 24px;
+  text-align: center;
+  font-size: 11px;
+  color: var(--muted-foreground);
+}
+@media (max-width: 800px) {
+  .goals-feature {
+    padding-block: 48px;
+  }
+}
+@media (max-width: 600px) {
+  .goals-shots {
+    grid-template-columns: minmax(0, 1fr);
+    gap: 32px;
+    margin-top: 32px;
+  }
+}
