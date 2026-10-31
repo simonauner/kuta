@@ -1,0 +1,54 @@
+web/index.html
+  s_02abbca9d81b03::t_c9559f48725556 283
+  s_02abbca9d81b03::t_045aeb4cc3b443 42-43,64,87,101,111,223,248,280
+web/tests/footer.test.mjs
+  s_02abbca9d81b03::t_96fdae72972808 1-2,6-11,16,19,21-40,42-43
+  s_02abbca9d81b03::t_b1ecbb791a2a4a 3-5,13-15,17-18,20,41
+  s_02abbca9d81b03::t_4e6823f5b1f414 12
+web/vite.config.ts
+  s_02abbca9d81b03::t_c9559f48725556 1-4,63-70
+web/src/index.css
+  s_02abbca9d81b03::t_c9559f48725556 4
+web/src/landing.css
+  s_02abbca9d81b03::t_c9559f48725556 2
+  s_02abbca9d81b03::t_4095007b9b75f2 141-142,145-146,149-151,153-156,158-160,568,765-766
+web/src/components/footer.css
+  s_02abbca9d81b03::t_c9559f48725556 1-67
+web/privacy.html
+  s_02abbca9d81b03::t_c9559f48725556 468
+README.md
+  s_02abbca9d81b03::t_c9559f48725556 7
+web/src/locales/sv.json
+  s_02abbca9d81b03::t_c9559f48725556 266-268
+web/src/components/footer.tsx
+  s_02abbca9d81b03::t_c9559f48725556 1-5,8-21,23-36
+  s_02abbca9d81b03::t_892cd18d891962 6-7
+  s_02abbca9d81b03::t_971bd40c643eb7 22
+web/tsconfig.node.json
+  s_02abbca9d81b03::t_c9559f48725556 15-16
+web/features.html
+  s_02abbca9d81b03::t_c9559f48725556 203
+  s_02abbca9d81b03::t_66994e4eda0b36 42,53,200
+web/src/locales/en.json
+  s_02abbca9d81b03::t_c9559f48725556 266-268
+web/src/components/layout.tsx
+  s_02abbca9d81b03::t_c9559f48725556 1,95-106
+web/src/theme.css
+  s_02abbca9d81b03::t_c1cc887fe04efb 3-5
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.7.5",
+  "base_commit_sha": "a0a1902790caf4907bfa563be0ff3e57410d314f",
+  "prompts": {},
+  "sessions": {
+    "s_02abbca9d81b03": {
+      "agent_id": {
+        "tool": "codex",
+        "id": "01a18fd4-e3bd-7623-a9f4-9567ee2e065f",
+        "model": "gpt-6.1-sol"
+      },
+      "human_author": "Simon Aunér <simonauner@gmail.com>"
+    }
+  }
+}
