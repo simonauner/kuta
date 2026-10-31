@@ -157,16 +157,15 @@ export function StatsPage() {
                     return (
                       <g key={m.month}>
                         <title>{`${monthLabel(m.month)}: ${format(value, metric)}`}</title>
-                        {value !== null && value > 0 && (
-                          <rect
-                            x={index * 50 + 12}
-                            y={180 - height}
-                            width="26"
-                            height={height}
-                            rx="3"
-                            fill="currentColor"
-                          />
-                        )}
+                        <rect
+                          x={index * 50 + 12}
+                          y={180 - height}
+                          width="26"
+                          height={height}
+                          rx="3"
+                          fill="currentColor"
+                          className="transition-[y,height] duration-400 ease-out motion-reduce:transition-none"
+                        />
                         <text
                           x={index * 50 + 25}
                           y="202"
