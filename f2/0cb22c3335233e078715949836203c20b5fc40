@@ -1,0 +1,50 @@
+AGENTS.md
+  s_48ee732072430f::t_558abe93d67813 52,65
+web/src/locales/sv.json
+  s_48ee732072430f::t_558abe93d67813 35,168
+api/Kuta.Api/StravaImportEndpoint.cs
+  s_48ee732072430f::t_5b08f45cf9d16c 119
+web/src/lib/activity.ts
+  s_48ee732072430f::t_558abe93d67813 119
+README.md
+  s_48ee732072430f::t_558abe93d67813 206-211,216
+api/Kuta.Api.Tests/FitUploadTests.cs
+  s_48ee732072430f::t_fd37a23c33b9a3 38,46,169,177,203,210
+api/Kuta.Api/StravaImport.cs
+  s_48ee732072430f::t_5b08f45cf9d16c 8,52-54,71-72
+api/Kuta.Api/ActivityStorage.cs
+  s_48ee732072430f::t_5b08f45cf9d16c 10,23,25,30
+api/Kuta.Api/ActivityEndpoints.cs
+  s_48ee732072430f::t_5b08f45cf9d16c 17,84,105,148,150,156,172,179,193
+api/Kuta.Api/ActivityInput.cs
+  s_48ee732072430f::t_5b08f45cf9d16c 4,18-26,40
+api/Kuta.Api.Tests/ActivityInputTests.cs
+  s_48ee732072430f::t_fd37a23c33b9a3 22-32
+web/src/locales/en.json
+  s_48ee732072430f::t_558abe93d67813 35,168
+api/Kuta.Api.Tests/StravaImportTests.cs
+  s_48ee732072430f::t_fd37a23c33b9a3 28-47,172-175,292,311-313
+api/Kuta.Api/Migrations/012_activity_description.sql
+  s_48ee732072430f::t_5b08f45cf9d16c 1-2
+web/src/routes/activity.tsx
+  s_48ee732072430f::t_558abe93d67813 122-125
+web/src/routes/new-activity.tsx
+  s_48ee732072430f::t_558abe93d67813 42,83,113,124,151,227-235
+  s_48ee732072430f::t_778bf16a3f0794 236-238
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.7.5",
+  "base_commit_sha": "f20cb22c3335233e078715949836203c20b5fc40",
+  "prompts": {},
+  "sessions": {
+    "s_48ee732072430f": {
+      "agent_id": {
+        "tool": "codex",
+        "id": "01a18fba-b3e7-7f53-8096-cfc727efa7c3",
+        "model": "gpt-6.1-sol"
+      },
+      "human_author": "Simon Aunér <simonauner@gmail.com>"
+    }
+  }
+}
