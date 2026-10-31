@@ -43,11 +43,12 @@ public static class EquipmentEndpoints
                 """, new { userId = user.GetUserId() });
             return Results.Ok(new LastUsedShoe(id));
         });
-        equipment.MapPut("/{id:guid}/retire", async (Guid id, NpgsqlDataSource db, ClaimsPrincipal user) =>
+        equipment.MapMethods("/{id:guid}/retire", ["PUT", "DELETE"], async (Guid id, HttpRequest request, NpgsqlDataSource db, ClaimsPrincipal user) =>
         {
             await using var conn = await db.OpenConnectionAsync();
             var updated = await conn.ExecuteAsync(
-                "update equipment set retired = true where id = @id and user_id = @userId", new { id, userId = user.GetUserId() });
+                "update equipment set retired = @retired where id = @id and user_id = @userId",
+                new { id, userId = user.GetUserId(), retired = HttpMethods.IsPut(request.Method) });
             return updated == 0 ? Results.NotFound() : Results.NoContent();
         });
         equipment.MapDelete("/{id:guid}", async (Guid id, NpgsqlDataSource db, ClaimsPrincipal user) =>

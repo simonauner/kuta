@@ -47,9 +47,14 @@ export function EquipmentSection() {
     },
   })
   const refresh = () => queryClient.invalidateQueries({ queryKey: equipmentQuery.queryKey })
-  const retire = useMutation({
-    mutationFn: (id: string) => api.send('PUT', `/api/equipment/${id}/retire`),
-    onSuccess: refresh,
+  const setRetired = useMutation({
+    mutationFn: ({ id, retired }: Pick<Equipment, 'id' | 'retired'>) =>
+      api.send(retired ? 'PUT' : 'DELETE', `/api/equipment/${id}/retire`),
+    onSuccess: () =>
+      Promise.all([
+        refresh(),
+        queryClient.invalidateQueries({ queryKey: ['equipmentLastUsedShoe'] }),
+      ]),
   })
   const remove = useMutation({
     mutationFn: (id: string) => api.send('DELETE', `/api/equipment/${id}`),
@@ -96,6 +101,11 @@ export function EquipmentSection() {
           <ErrorMessage error={equipment.error} />
         </p>
       )}
+      {setRetired.error && (
+        <p role="alert" className="mt-3 text-sm text-destructive">
+          <ErrorMessage error={setRetired.error} />
+        </p>
+      )}
       {equipment.data?.length === 0 && (
         <p className="mt-4 text-sm text-muted-foreground">{t('equipment.empty')}</p>
       )}
@@ -104,26 +114,32 @@ export function EquipmentSection() {
           <li key={item.id} className="py-3">
             <div className="flex items-center justify-between gap-4">
               <div className="min-w-0 break-words">
-                <p className="font-medium">{item.name}</p>
+                <p className="font-medium">
+                  {item.name}
+                  {item.retired && (
+                    <span className="font-normal text-muted-foreground">
+                      {' '}
+                      · {t('shoes.retired')}
+                    </span>
+                  )}
+                </p>
                 <p className="text-xs text-muted-foreground">
                   {t(`equipmentKinds.${item.kind}`)}
                   {item.brand && ` · ${item.brand}`}
                 </p>
               </div>
               <div className="flex shrink-0 flex-wrap items-center justify-end gap-2">
-                {item.retired ? (
-                  <span className="text-sm text-muted-foreground">{t('shoes.retired')}</span>
-                ) : (
-                  <Button
-                    size="sm"
-                    variant="outline"
-                    disabled={retire.isPending}
-                    aria-label={t('shoes.retireLabel', { name: item.name })}
-                    onClick={() => retire.mutate(item.id)}
-                  >
-                    {t('shoes.retire')}
-                  </Button>
-                )}
+                <Button
+                  size="sm"
+                  variant="outline"
+                  disabled={setRetired.isPending}
+                  aria-label={t(item.retired ? 'shoes.reactivateLabel' : 'shoes.retireLabel', {
+                    name: item.name,
+                  })}
+                  onClick={() => setRetired.mutate({ id: item.id, retired: !item.retired })}
+                >
+                  {t(item.retired ? 'shoes.reactivate' : 'shoes.retire')}
+                </Button>
                 <Button
                   size="sm"
                   variant="ghost"

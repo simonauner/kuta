@@ -268,7 +268,9 @@
     "deleteWarning": "Skon raderas permanent och kopplas bort från alla dina pass. Passen behålls. Det går inte att ångra.",
     "cancel": "Avbryt",
     "deleting": "Raderar …",
-    "createNew": "Skapa ny"
+    "createNew": "Skapa ny",
+    "reactivate": "Återaktivera",
+    "reactivateLabel": "Återaktivera {{name}}"
   },
   "breadcrumbs": "Brödsmulor"
 }

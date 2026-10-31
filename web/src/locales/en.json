@@ -268,7 +268,9 @@
     "deleteWarning": "The shoe will be permanently deleted and removed from all your activities. Your activities will remain. This cannot be undone.",
     "cancel": "Cancel",
     "deleting": "Deleting …",
-    "createNew": "Create new"
+    "createNew": "Create new",
+    "reactivate": "Reactivate",
+    "reactivateLabel": "Reactivate {{name}}"
   },
   "breadcrumbs": "Breadcrumbs"
 }

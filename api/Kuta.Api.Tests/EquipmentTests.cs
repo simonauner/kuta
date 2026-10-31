@@ -128,7 +128,7 @@ public class EquipmentTests(KutaFactory factory) : IClassFixture<KutaFactory>
     }
 
     [Fact]
-    public async Task Retirement_and_deletion_are_private_and_preserve_activities_and_last_used_selection()
+    public async Task Retirement_reactivation_and_deletion_are_private_and_preserve_activities_and_last_used_selection()
     {
         var ct = TestContext.Current.CancellationToken;
         await using var conn = await factory.Services.GetRequiredService<NpgsqlDataSource>().OpenConnectionAsync(ct);
@@ -160,12 +160,21 @@ public class EquipmentTests(KutaFactory factory) : IClassFixture<KutaFactory>
             Assert.Equal(HttpStatusCode.NotFound, (await other.PutAsync($"/api/equipment/{second}/retire", null, ct)).StatusCode);
             Assert.Equal(HttpStatusCode.NotFound, (await other.DeleteAsync($"/api/equipment/{second}", ct)).StatusCode);
             Assert.Equal(HttpStatusCode.NoContent, (await owner.PutAsync($"/api/equipment/{second}/retire", null, ct)).StatusCode);
+            Assert.Equal(HttpStatusCode.NotFound, (await other.DeleteAsync($"/api/equipment/{second}/retire", ct)).StatusCode);
             Assert.True((await EquipmentEndpoints.LoadAsync(conn, ownerId)).Single(e => e.Id == second).Retired);
             Assert.Equal(first, (await owner.GetFromJsonAsync<LastUsedShoe>("/api/equipment/last-used-shoe", ct))!.Id);
             await using (var tx = await conn.BeginTransactionAsync(ct))
             {
                 Assert.False(await EquipmentEndpoints.OwnsAsync(conn, tx, ownerId, [second]));
                 Assert.True(await EquipmentEndpoints.OwnsAsync(conn, tx, ownerId, [second], allowRetired: true));
+                await tx.RollbackAsync(ct);
+            }
+            Assert.Equal(HttpStatusCode.NoContent, (await owner.DeleteAsync($"/api/equipment/{second}/retire", ct)).StatusCode);
+            Assert.False((await EquipmentEndpoints.LoadAsync(conn, ownerId)).Single(e => e.Id == second).Retired);
+            Assert.Equal(second, (await owner.GetFromJsonAsync<LastUsedShoe>("/api/equipment/last-used-shoe", ct))!.Id);
+            await using (var tx = await conn.BeginTransactionAsync(ct))
+            {
+                Assert.True(await EquipmentEndpoints.OwnsAsync(conn, tx, ownerId, [second]));
                 await tx.RollbackAsync(ct);
             }
             Assert.Equal(second, Assert.Single((await owner.GetFromJsonAsync<ActivityDetail>($"/api/activities/{recentRun}", ct))!.EquipmentIds));
