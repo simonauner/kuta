@@ -1,0 +1,63 @@
+api/Kuta.Api/ActivityStorage.cs
+  s_c00ea9040aa9cc::t_69e4dd5d3dd9af 14
+api/Kuta.Api/Program.cs
+  s_c00ea9040aa9cc::t_7dc7abb2194f2d 236-238
+api/Kuta.Api/StravaImport.cs
+  s_c00ea9040aa9cc::t_69e4dd5d3dd9af 7-8,67-68,74-121,123
+  s_c00ea9040aa9cc::t_35939dbdb8714a 122,124
+web/src/locales/sv.json
+  s_c00ea9040aa9cc::t_69e4dd5d3dd9af 173,181-182,193,195
+web/public/sitemap.xml
+  s_c00ea9040aa9cc::t_69e4dd5d3dd9af 4
+web/privacy.html
+  s_c00ea9040aa9cc::t_69e4dd5d3dd9af 1-474
+web/src/routes/auth.tsx
+  s_c00ea9040aa9cc::t_69e4dd5d3dd9af 245,263-268
+web/src/locales/en.json
+  s_c00ea9040aa9cc::t_69e4dd5d3dd9af 173,181-182,193,195
+AGENTS.md
+  s_c00ea9040aa9cc::t_69e4dd5d3dd9af 65
+api/Kuta.Api/Migrations/011_strava_equipment.sql
+  s_c00ea9040aa9cc::t_69e4dd5d3dd9af 1-4
+web/vite.config.ts
+  s_c00ea9040aa9cc::t_69e4dd5d3dd9af 32-33,44
+web/index.html
+  s_c00ea9040aa9cc::t_69e4dd5d3dd9af 290
+api/Kuta.Api.Tests/StravaImportTests.cs
+  s_c00ea9040aa9cc::t_69e4dd5d3dd9af 29-57,139-142,172-187,268,288-289
+  s_c00ea9040aa9cc::t_06d316fa0c7d50 28
+web/src/components/layout.tsx
+  s_c00ea9040aa9cc::t_69e4dd5d3dd9af 21,96-101
+web/src/privacy.css
+  s_c00ea9040aa9cc::t_69e4dd5d3dd9af 1-59
+api/Kuta.Api/StravaImportEndpoint.cs
+  s_c00ea9040aa9cc::t_69e4dd5d3dd9af 3,11,32,42-44,49,54-55,63,67-68,116-129,131
+api/Kuta.Api.Tests/StravaEquipmentTests.cs
+  s_c00ea9040aa9cc::t_69e4dd5d3dd9af 1-54
+README.md
+  s_c00ea9040aa9cc::t_69e4dd5d3dd9af 11-15,213,217-219,270-284,286,289-320
+  s_c00ea9040aa9cc::t_f4ba145fc44824 285,287-288
+api/Kuta.Api.Tests/WebRoutingTests.cs
+  s_c00ea9040aa9cc::t_69e4dd5d3dd9af 15,23-28
+api/Kuta.Api/StravaEquipment.cs
+  s_c00ea9040aa9cc::t_69e4dd5d3dd9af 1-52
+web/src/components/strava-import.tsx
+  s_c00ea9040aa9cc::t_69e4dd5d3dd9af 10-16,22-28,35-36,89-92
+  s_c00ea9040aa9cc::t_b786a3d3aa3109 93-94
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.7.5",
+  "base_commit_sha": "81c68b302531977f9bda8097f6f0126f3891a90c",
+  "prompts": {},
+  "sessions": {
+    "s_c00ea9040aa9cc": {
+      "agent_id": {
+        "tool": "codex",
+        "id": "01a18f8c-2fbb-71c0-99ae-757c0ace6644",
+        "model": "gpt-6.1-sol"
+      },
+      "human_author": "Simon Aunér <simonauner@gmail.com>"
+    }
+  }
+}
