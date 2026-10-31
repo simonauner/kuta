@@ -200,7 +200,10 @@ konditionen ökar snabbt. Modellen är TrainingPeaks förenkling av Banisters im
   ett multisportpass. Den räknas av `BestEfforts.ReplaceAsync`, alltså vid FIT- och Strava-import, uppdelning och
   omberäkning av rekord. Farten jämnas ut över minst 30 s, ett uppehåll över 10 s (autopaus) bildar ett eget
   avsnitt, och trasiga värden bryter strömmen. Pass utan distansström (manuella och äldre pass) uppskattas ur
-  snittfarten, `distans² / tid`. Backar justeras inte.
+  snittfarten, `distans² / tid`, utan backjustering.
+- **Backar:** varje avsnitts fart multipliceras med `C(i) / 3,6`, där `C(i)` är Minettis energikostnad för löpning
+  (J/kg/m) vid lutningen `i = Δhöjd / Δdistans` ur höjdströmmen, begränsad till ±45 %. Uppför ger högre belastning
+  och svag nedförslutning lägre. Saknad höjd räknas som plan mark. Äldre pass får justeringen vid omberäkning av rekord.
 - **Tröskelfart:** `users.threshold_speed_m_s` om användaren angett den, annars farten som VDOT-prognosen räcker
   till i en timme (`RacePredictor.ThresholdSpeed`). Utan någon av dem finns ingen belastning. Samma tröskel gäller
   hela historiken.

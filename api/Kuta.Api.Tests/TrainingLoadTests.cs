@@ -35,13 +35,37 @@ public class TrainingLoadTests
     }
 
     [Fact]
+    public void Hills_scale_the_speed_by_minettis_cost_of_running()
+    {
+        Assert.Equal(1, TrainingLoad.GradeFactor(0));
+        Assert.Equal(5.968, TrainingLoad.GradeFactor(0.1) * 3.6, precision: 3);
+        Assert.Equal(2.152, TrainingLoad.GradeFactor(-0.1) * 3.6, precision: 3);
+        Assert.Equal(TrainingLoad.GradeFactor(0.45), TrainingLoad.GradeFactor(2));
+
+        // 10 % uppför i 3 m/s; saknad eller ofullständig höjd räknas som plan mark.
+        var (t, dist) = Steady(600, 3);
+        var up = t.Select(s => (float?)(s * 0.3)).ToArray();
+        var flat = 600 * 9d;
+        var hill = flat * Math.Pow(TrainingLoad.GradeFactor(0.1), 2);
+        Assert.Equal(hill, TrainingLoad.Intensity(t, dist, up), precision: 6);
+        Assert.Equal(flat * Math.Pow(TrainingLoad.GradeFactor(-0.1), 2),
+            TrainingLoad.Intensity(t, dist, up.Reverse().ToArray()), precision: 6);
+        Assert.Equal(flat, TrainingLoad.Intensity(t, dist, up.Select(_ => (float?)null).ToArray()), precision: 6);
+        Assert.Equal(flat, TrainingLoad.Intensity(t, dist, up[..10]), precision: 6);
+
+        // Multisportdelarna klipper höjden tillsammans med distansen, även vid interpolerade gränser.
+        ActivityPart[] parts = [new(0, "cycling", 0, 295, 885, false), new(1, "running", 295, 600, 915, false)];
+        Assert.Equal(hill * 305 / 600, TrainingLoad.RunIntensity("multisport", t, dist, up, parts), precision: 6);
+    }
+
+    [Fact]
     public void Only_running_counts_in_plain_and_multisport_activities()
     {
         var (t, dist) = Steady(600, 5);
-        Assert.Equal(0, TrainingLoad.RunIntensity("cycling", t, dist, null));
-        Assert.Equal(600 * 25, TrainingLoad.RunIntensity("trail run", t, dist, null), precision: 6);
+        Assert.Equal(0, TrainingLoad.RunIntensity("cycling", t, dist, null, null));
+        Assert.Equal(600 * 25, TrainingLoad.RunIntensity("trail run", t, dist, null, null), precision: 6);
         ActivityPart[] parts = [new(0, "cycling", 0, 300, 1500, false), new(1, "running", 300, 600, 1500, false)];
-        Assert.Equal(300 * 25, TrainingLoad.RunIntensity("multisport", t, dist, parts), precision: 6);
+        Assert.Equal(300 * 25, TrainingLoad.RunIntensity("multisport", t, dist, null, parts), precision: 6);
     }
 
     [Fact]

@@ -6,9 +6,9 @@ public static class BestEfforts
     // The caller holds the activity lock and transaction, so reprocessing replaces all derived rows atomically.
     // Also refreshes the running intensity behind the training load, which depends on the same streams and parts.
     public static async Task ReplaceAsync(NpgsqlConnection conn, NpgsqlTransaction tx, Guid activityId,
-        Guid userId, string sport, DateTime startedAt, int[] t, float?[]? dist, ActivityPart[]? parts = null)
+        Guid userId, string sport, DateTime startedAt, int[] t, float?[]? dist, float?[]? alt, ActivityPart[]? parts = null)
     {
-        var intensity = dist is null ? (double?)null : TrainingLoad.RunIntensity(sport, t, dist, parts);
+        var intensity = dist is null ? (double?)null : TrainingLoad.RunIntensity(sport, t, dist, alt, parts);
         await conn.ExecuteAsync("update activities set run_intensity = @intensity where id = @activityId",
             new { activityId, intensity }, tx);
         await conn.ExecuteAsync("delete from best_efforts where activity_id = @activityId", new { activityId }, tx);
