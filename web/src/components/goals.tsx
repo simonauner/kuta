@@ -14,10 +14,12 @@ import {
   goalMetrics,
   goalPeriodLabel,
   goalPeriods,
+  goalPrivacies,
   parseGoalInput,
   type Goal,
   type GoalMetric,
   type GoalPeriod,
+  type GoalPrivacy,
 } from '@/lib/goals'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
@@ -41,16 +43,37 @@ function useGoalText() {
       ...goalPeriodLabel(goal.period, goal.current.start, i18n.resolvedLanguage),
     })
   }
+  const privacyLabel = (privacy: GoalPrivacy) =>
+    t(
+      privacy === 'private'
+        ? 'social.private'
+        : privacy === 'followers'
+          ? 'social.followersVisibility'
+          : 'social.public',
+    )
   const groupLabel = (key: string | null) =>
     key === null ? t('activities.allSports') : sportGroupLabel(key, t)
-  return { t, i18n, amount, title, groupLabel }
+  return { t, i18n, amount, title, groupLabel, privacyLabel }
 }
 
-export function GoalList({ onSelect }: { onSelect: (goal: Goal) => void }) {
+// Utan runnerId: egna mål, redigerbara via onSelect. Med runnerId: löparens mål som besökaren får se enligt
+// varje måls synlighet, utan redigering.
+export function GoalList({
+  onSelect,
+  runnerId,
+}: {
+  onSelect?: (goal: Goal) => void
+  runnerId?: string
+}) {
   const timeZone = Intl.DateTimeFormat().resolvedOptions().timeZone
+  const params = new URLSearchParams({ timeZone })
   const goals = useQuery({
-    queryKey: goalsQueryKey(timeZone),
-    queryFn: () => api.get<Goal[]>(`/api/goals?${new URLSearchParams({ timeZone })}`),
+    // Under 'runner' så att följ/avfölj hämtar om de delade målen.
+    queryKey: runnerId ? ['runner', runnerId, 'goals', timeZone] : goalsQueryKey(timeZone),
+    queryFn: () =>
+      api.get<Goal[]>(
+        runnerId ? `/api/runners/${runnerId}/goals?${params}` : `/api/goals?${params}`,
+      ),
   })
   const groups = useQuery(sportGroupsQuery)
   const { t } = useTranslation()
@@ -62,8 +85,8 @@ export function GoalList({ onSelect }: { onSelect: (goal: Goal) => void }) {
     )
   if (!goals.data?.length) return null
   return (
-    <section className="mt-6" aria-labelledby="goals-heading">
-      <h2 id="goals-heading" className="sr-only">
+    <section className={runnerId ? undefined : 'mt-6'} aria-labelledby="goals-heading">
+      <h2 id="goals-heading" className={runnerId ? 'mb-3 text-lg font-semibold' : 'sr-only'}>
         {t('goals.heading')}
       </h2>
       <ul className="grid gap-3 sm:grid-cols-2">
@@ -75,7 +98,7 @@ export function GoalList({ onSelect }: { onSelect: (goal: Goal) => void }) {
                 goal.sportGroup &&
                 (groups.data?.find((g) => g.key === goal.sportGroup)?.sports[0] ?? goal.sportGroup)
               }
-              onSelect={() => onSelect(goal)}
+              onSelect={onSelect && (() => onSelect(goal))}
             />
           </li>
         ))}
@@ -91,22 +114,27 @@ function GoalCard({
 }: {
   goal: Goal
   iconSport: string | null
-  onSelect: () => void
+  onSelect?: () => void
 }) {
-  const { t, amount, title, groupLabel } = useGoalText()
+  const { t, amount, title, groupLabel, privacyLabel } = useGoalText()
   const reduceMotion = useReducedMotion()
   const { current, previous } = goal
   const fraction = goalFraction(current.value, goal.target)
   const [today] = useState(() => new Date())
   const daysLeft = goalDaysLeft(current.end, today)
   const goalTitle = title(goal)
+  const Root = onSelect ? 'button' : 'div'
   return (
-    <button
-      type="button"
-      onClick={onSelect}
-      aria-label={t('goals.editLabel', { title: goalTitle })}
+    <Root
+      {...(onSelect && {
+        type: 'button' as const,
+        onClick: onSelect,
+        'aria-label': t('goals.editLabel', { title: goalTitle }),
+      })}
       className={cn(
-        'w-full rounded-xl border bg-card p-4 text-left text-card-foreground shadow-xs transition-colors hover:bg-accent/50 focus-visible:ring-[3px] focus-visible:ring-ring/50 focus-visible:outline-none',
+        'w-full rounded-xl border bg-card p-4 text-left text-card-foreground shadow-xs',
+        onSelect &&
+          'transition-colors hover:bg-accent/50 focus-visible:ring-[3px] focus-visible:ring-ring/50 focus-visible:outline-none',
         goal.ended && 'opacity-70',
       )}
     >
@@ -120,6 +148,7 @@ function GoalCard({
             {groupLabel(goal.sportGroup)}
             {' · '}
             {goal.ended ? t('goals.ended') : t('goals.daysLeft', { count: daysLeft })}
+            {onSelect && ` · ${privacyLabel(goal.privacy)}`}
           </p>
         </div>
         {current.achieved && (
@@ -171,12 +200,12 @@ function GoalCard({
           )}
         </p>
       )}
-    </button>
+    </Root>
   )
 }
 
 export function GoalDialog({ goal, onClose }: { goal: Goal | null; onClose: () => void }) {
-  const { t, i18n, title, groupLabel } = useGoalText()
+  const { t, i18n, title, groupLabel, privacyLabel } = useGoalText()
   const groups = useQuery(sportGroupsQuery)
   const queryClient = useQueryClient()
   const dialog = useRef<HTMLDialogElement>(null)
@@ -188,6 +217,7 @@ export function GoalDialog({ goal, onClose }: { goal: Goal | null; onClose: () =
   const [target, setTarget] = useState(goal ? goalInput(goal.metric, goal.target) : '')
   const [period, setPeriod] = useState<GoalPeriod>(goal?.period ?? 'week')
   const [recurring, setRecurring] = useState(goal?.recurring ?? true)
+  const [privacy, setPrivacy] = useState<GoalPrivacy>(goal?.privacy ?? 'private')
   const [confirmingDelete, setConfirmingDelete] = useState(false)
   const parsedTarget = parseGoalInput(metric, target)
 
@@ -202,6 +232,7 @@ export function GoalDialog({ goal, onClose }: { goal: Goal | null; onClose: () =
         period,
         target: parsedTarget,
         recurring,
+        privacy,
         timeZone: Intl.DateTimeFormat().resolvedOptions().timeZone,
       }),
     onSuccess: async () => {
@@ -326,6 +357,27 @@ export function GoalDialog({ goal, onClose }: { goal: Goal | null; onClose: () =
                 {goal && !goal.recurring ? t('goals.onceSaved') : t(`goals.onceCurrent.${period}`)}
               </option>
             </select>
+          </label>
+          <label className="col-span-2 space-y-2 text-sm font-medium">
+            {t('goals.visibility')}
+            <select
+              className={selectClass}
+              value={privacy}
+              aria-describedby="goal-visibility-help"
+              onChange={(e) => setPrivacy(e.currentTarget.value as GoalPrivacy)}
+            >
+              {goalPrivacies.map((value) => (
+                <option key={value} value={value}>
+                  {privacyLabel(value)}
+                </option>
+              ))}
+            </select>
+            <span
+              id="goal-visibility-help"
+              className="block text-xs font-normal text-muted-foreground"
+            >
+              {t('goals.visibilityHelp')}
+            </span>
           </label>
           {(save.error || remove.error) && (
             <p role="alert" className="col-span-2 text-sm text-destructive">

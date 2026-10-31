@@ -3,8 +3,11 @@ import { isoWeek } from './activity.ts'
 // Som API:t: mål i SI-enheter (meter, sekunder) eller antal pass. sportGroup null = alla träningsformer.
 export const goalMetrics = ['distance', 'duration', 'count'] as const
 export const goalPeriods = ['week', 'month', 'year'] as const
+export const goalPrivacies = ['private', 'followers', 'public'] as const
 export type GoalMetric = (typeof goalMetrics)[number]
 export type GoalPeriod = (typeof goalPeriods)[number]
+// Samma val och läsregel som passens synlighet; nya mål är privata.
+export type GoalPrivacy = (typeof goalPrivacies)[number]
 export type GoalPeriodProgress = { start: string; end: string; value: number; achieved: boolean }
 export type Goal = {
   id: string
@@ -14,6 +17,7 @@ export type Goal = {
   target: number
   recurring: boolean
   startsOn: string
+  privacy: GoalPrivacy
   ended: boolean
   current: GoalPeriodProgress
   previous: GoalPeriodProgress | null

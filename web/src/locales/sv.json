@@ -546,7 +546,9 @@
     "confirmDelete": "Ta bort målet? Det går inte att ångra.",
     "deleteConfirmed": "Ta bort",
     "deleting": "Tar bort…",
-    "includes": "Räknar {{sports}}."
+    "includes": "Räknar {{sports}}.",
+    "visibility": "Synlighet",
+    "visibilityHelp": "Synliga mål visas med förlopp på din profil."
   },
   "sportGroups": {
     "running": "Löpning",

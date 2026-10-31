@@ -546,7 +546,9 @@
     "confirmDelete": "Delete this goal? This can't be undone.",
     "deleteConfirmed": "Delete",
     "deleting": "Deleting…",
-    "includes": "Includes {{sports}}."
+    "includes": "Includes {{sports}}.",
+    "visibility": "Visibility",
+    "visibilityHelp": "Visible goals are shown with their progress on your profile."
   },
   "sportGroups": {
     "running": "Running",

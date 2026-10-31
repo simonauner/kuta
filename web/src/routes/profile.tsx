@@ -4,6 +4,7 @@ import { Settings, Share2 } from 'lucide-react'
 import { useTranslation } from 'react-i18next'
 import { Button } from '@/components/ui/button'
 import { ActivityFeed } from '@/components/activity-feed'
+import { GoalList } from '@/components/goals'
 import { Input } from '@/components/ui/input'
 import { meQuery } from '@/lib/auth'
 
@@ -58,6 +59,7 @@ export function ProfilePage() {
           />
         </div>
       )}
+      {me && <GoalList runnerId={me.id} />}
       <h2 className="text-lg font-semibold">{t('nav.activities')}</h2>
       {me && <ActivityFeed runnerId={me.id} />}
     </section>
