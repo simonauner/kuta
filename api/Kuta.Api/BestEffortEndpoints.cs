@@ -50,10 +50,12 @@ public static class BestEffortEndpoints
             return Results.NoContent();
         });
 
-        api.MapGet("/records", async (int? year, NpgsqlDataSource db, ClaimsPrincipal user) =>
+        api.MapGet("/records", async (int? year, string? tag, NpgsqlDataSource db, ClaimsPrincipal user) =>
         {
             if (year is < 1 or > 9998)
                 return Results.BadRequest(new ApiError("Ange ett år mellan 1 och 9998.", "invalidRecordYear"));
+            if (ActivityInput.ValidateTags(tag is null ? null : [tag]) is { } invalid)
+                return Results.BadRequest(invalid);
             var from = year is { } y ? new DateTime(y, 1, 1, 0, 0, 0, DateTimeKind.Utc) : (DateTime?)null;
             var until = from?.AddYears(1);
             await using var conn = await db.OpenConnectionAsync();
@@ -62,10 +64,11 @@ public static class BestEffortEndpoints
                 select distinct on (distance_m) activity_id, distance_m, elapsed_s, start_offset_s, achieved_at
                 from best_efforts
                 where user_id = @userId
+                  and activity_id in (select id from activities where user_id = @userId and tags @> @tags::text[])
                   and (@from::timestamptz is null or achieved_at >= @from)
                   and (@until::timestamptz is null or achieved_at < @until)
                 order by distance_m, elapsed_s, achieved_at, activity_id
-                """, new { userId = user.GetUserId(), from, until }));
+                """, new { userId = user.GetUserId(), from, until, tags = tag is null ? Array.Empty<string>() : [tag] }));
         }).RequireAuthorization();
     }
 

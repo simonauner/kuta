@@ -57,7 +57,9 @@ Kuta är en Strava-liknande löparapp: ladda upp pass från Garmin (FIT) eller l
   - Ur FIT-filen även (migrering 007): klockans namn (`activities.device`; produktnamnet från klockan, annars tillverkare + Garmins produktkod), kadens (steg/min för löpning, gång och vandring – FIT anger per ben – varv/min för cykling) och temperatur som tidsserier, och klockans varv i `activity_laps`. Varvens puls följer samma samtycke som övrig puls. Passsidan visar snittkadens, snittemperatur, diagram för båda och en flik Varv. Pass uppladdade före 007 har inget av detta.
   - `ParsedActivity` skapas positionellt av Strava-importen (GPX): nya fält läggs sist med standardvärde.
   - Migreringarna körs under ett advisory lock i Postgres (`Program.cs`), så att parallella starter (tester, flera maskiner) inte kör samma skript samtidigt.
-  - Saknas: plats i titeln (egen ortslista i PostGIS), redigering (titel, taggen Lopp, skor), radering av råfiler vid kontoradering, multisport (flera sessioner), GPX.
+  - Saknas: plats i titeln (egen ortslista i PostGIS), redigering (titel), radering av råfiler vid kontoradering, multisport (flera sessioner), GPX.
+- Utrustning: `equipment` med typen `shoe` från start (migrering 009 ersätter `shoes`). `activity_equipment` kopplar flera utrustningsdelar till pass och säkerställer samma ägare via FK. Total distans och förfluten tid inklusive pauser räknas direkt från passen plus tidigare användning; se README. Profilen skapar utrustning och visar totaler, passformuläret och passsidan väljer utrustning.
+- Aktivitetstaggar: `activities.tags text[]` med GIN-index (migrering 008). Tillåtna nycklar i `ActivityInput.Tags`; webben hämtar listan via `/api/activity-tags` och översätter `tagNames`. Taggar väljs vid skapande och ändras på passsidan via `PUT /api/activities/{id}/tags`. Passlista och rekord stöder `?tag=race` (se README).
 - Rekordmotor (`BestEffortCalculator`, `BestEfforts`, `BestEffortEndpoints`): FIT-importen sparar bästa insatser för löpning i samma transaktion som passet. Glidande fönster med linjär interpolering och förfluten tid inklusive pauser; trasiga värden och återställd tid/distans bryter strömmen. `GET /api/activities/{id}/best-efforts`, `GET /api/records?year=2026` (utelämnat år = personbästa), `POST /api/activities/{id}/best-efforts/recalculate` (CSRF). Bara egna pass. Rekord väljs direkt ur `best_efforts`, så radering kräver ingen separat rekorduppdatering. Exakta distanser, UTC-årsurval och omberäkning av äldre pass beskrivs i README. Beräkningstester och integrationstester med syntetiska FIT-filer finns; verifiering med riktiga klockfiler återstår.
 - Ändra aldrig en körd migrering – nya ändringar i nästa nummer. Migreringsfilerna finns i `api/Kuta.Api/Migrations/`.
 - Privat repo: github.com/simonauner/kuta. Node 24 (`.nvmrc`).
@@ -89,7 +91,7 @@ Kuta är en Strava-liknande löparapp: ladda upp pass från Garmin (FIT) eller l
 3. ~~Lösenordsåterställning (Supabase `/recover` + mejlmall som länkar till API:t)~~ – implementerad; återställningsmallen måste konfigureras i hostad Supabase före användning i drift.
 4. ~~FIT-uppladdning~~ (se Status). Före deploy: lagring i drift (R2 eller Supabase Storage) och `Storage__*`.
 5. ~~Rekordmotor (glidande fönster över distans/tid-strömmen)~~ – implementerad med beräknings- och integrationstester; komplettera med riktiga FIT-filer från klockor.
-6. Webb: uppladdning, passsida med karta + grafer (Recharts, uPlot för långa serier), statistikvyer, skor.
+6. Webb: uppladdning, passsida med karta + grafer (Recharts, uPlot för långa serier), statistikvyer. Utrustning med användningstid och distans finns på profilen.
 7. Därefter: följare, flöde, grupper; e-post och push.
 
 ## Konventioner

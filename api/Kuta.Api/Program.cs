@@ -176,6 +176,7 @@ api.MapAuth();
 api.MapMe();
 
 api.MapActivities();
+api.MapEquipment();
 api.MapBestEfforts();
 
 // Startsidan är statisk; bara appens kända sökvägar får React-skalet.

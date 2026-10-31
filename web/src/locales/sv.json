@@ -15,7 +15,7 @@
     "description": "Distans, fart, puls och personbästa över tid."
   },
   "profile": {
-    "description": "Dina skor, grupper och inställningar.",
+    "description": "Din utrustning, grupper och inställningar.",
     "logout": "Logga ut"
   },
   "activities": {
@@ -159,7 +159,10 @@
     "invalidActivity": "Kontrollera sport, datum, tid och distans.",
     "passwordTooShort": "Använd minst 8 tecken i lösenordet.",
     "passwordUnchanged": "Välj ett annat lösenord än ditt nuvarande.",
-    "recoveryExpired": "Återställningslänken är ogiltig eller har gått ut. Begär en ny länk."
+    "recoveryExpired": "Återställningslänken är ogiltig eller har gått ut. Begär en ny länk.",
+    "invalidTags": "Välj giltiga taggar.",
+    "invalidEquipment": "Välj giltig utrustning som tillhör dig.",
+    "invalidEquipmentInput": "Kontrollera namn, typ och tidigare användning."
   },
   "home": "Kuta – startsida",
   "footer": {
@@ -190,5 +193,40 @@
       "DISTANS",
       "TRÖSKEL"
     ]
+  },
+  "tagNames": {
+    "race": "Lopp",
+    "workout": "Intervaller/kvalitet",
+    "long_run": "Långpass",
+    "easy": "Lugnt"
+  },
+  "tags": {
+    "label": "Taggar",
+    "save": "Spara taggar",
+    "all": "Alla pass",
+    "empty": "Inga pass med den här taggen."
+  },
+  "equipment": {
+    "title": "Utrustning",
+    "description": "Total distans och tid från kopplade pass, inklusive tidigare användning. Tiden räknas inklusive pauser.",
+    "empty": "Du har ingen utrustning än.",
+    "add": "Lägg till utrustning",
+    "cancel": "Avbryt",
+    "save": "Spara utrustning",
+    "saveLinks": "Spara utrustning",
+    "name": "Namn",
+    "brand": "Märke (valfritt)",
+    "kind": "Typ",
+    "initialDistance": "Tidigare distans (km)",
+    "initialDuration": "Tidigare tid (h:mm:ss)",
+    "initialHint": "Har utrustningen använts tidigare? Ange användning som inte redan finns i dina Kuta-pass. Lämna tomt för ny utrustning.",
+    "distance": "Total distans",
+    "duration": "Total tid (h:mm:ss)",
+    "retired": "Pensionerad",
+    "addInProfile": "Lägg till på din profil.",
+    "loading": "Hämtar utrustning…"
+  },
+  "equipmentKinds": {
+    "shoe": "Skor"
   }
 }

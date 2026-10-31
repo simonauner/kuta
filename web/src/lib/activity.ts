@@ -1,5 +1,7 @@
 import type { TFunction } from 'i18next'
 
+export type ActivityTag = keyof typeof import('@/locales/sv.json').tagNames
+
 // Som API:t: SI-enheter (meter, sekunder, m/s). Metriskt här; imperial blir ett val per användare senare.
 export type Activity = {
   id: string
@@ -9,6 +11,8 @@ export type Activity = {
   durationS: number
   distanceM: number
   avgHr: number | null
+  equipmentIds: string[]
+  tags: ActivityTag[]
 }
 
 // ISO-veckor räknas från måndag; torsdagen avgör vilket veckoår veckan hör till.

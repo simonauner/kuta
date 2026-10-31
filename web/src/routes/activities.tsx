@@ -1,3 +1,7 @@
+import { useState } from 'react'
+import { TagLabels } from '@/components/activity-tags'
+import { equipmentQuery } from '@/lib/equipment'
+import { activityTagsQuery } from '@/lib/activity-query'
 import { ErrorMessage } from '@/components/error-message'
 import { useTranslation } from 'react-i18next'
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
@@ -12,11 +16,6 @@ import {
   type Activity,
 } from '@/lib/activity'
 
-const activitiesQuery = {
-  queryKey: ['activities'],
-  queryFn: () => api.get<Activity[]>('/api/activities'),
-}
-
 export function ActivitiesPage() {
   const { t, i18n } = useTranslation()
   const dateFormat = new Intl.DateTimeFormat(i18n.resolvedLanguage, {
@@ -29,11 +28,21 @@ export function ActivitiesPage() {
     maximumFractionDigits: 2,
   })
   const queryClient = useQueryClient()
-  const activities = useQuery(activitiesQuery)
+  const [tag, setTag] = useState('')
+  const tagOptions = useQuery(activityTagsQuery)
+  const activities = useQuery({
+    queryKey: ['activities', tag],
+    queryFn: () =>
+      api.get<Activity[]>(`/api/activities${tag ? `?tag=${encodeURIComponent(tag)}` : ''}`),
+  })
 
   const remove = useMutation({
     mutationFn: (id: string) => api.send('DELETE', `/api/activities/${id}`),
-    onSuccess: () => queryClient.invalidateQueries({ queryKey: ['activities'] }),
+    onSuccess: () =>
+      Promise.all([
+        queryClient.invalidateQueries({ queryKey: ['activities'] }),
+        queryClient.invalidateQueries({ queryKey: equipmentQuery.queryKey }),
+      ]),
   })
 
   return (
@@ -44,6 +53,26 @@ export function ActivitiesPage() {
           <Link to="/app/activities/new">{t('newActivity.title')}</Link>
         </Button>
       </div>
+      <label className="mt-5 flex items-center gap-3 text-sm">
+        {t('tags.label')}
+        <select
+          className="rounded-md border bg-background px-3 py-2"
+          value={tag}
+          onChange={(e) => setTag(e.currentTarget.value)}
+        >
+          <option value="">{t('tags.all')}</option>
+          {tagOptions.data?.map((value) => (
+            <option key={value} value={value}>
+              {t(`tagNames.${value}`)}
+            </option>
+          ))}
+        </select>
+      </label>
+      {activities.error && (
+        <p role="alert" className="mt-4 text-sm text-destructive">
+          <ErrorMessage error={activities.error} />
+        </p>
+      )}
       {remove.error && (
         <p role="alert" className="mt-4 text-sm text-destructive">
           <ErrorMessage error={remove.error} />
@@ -51,7 +80,7 @@ export function ActivitiesPage() {
       )}
 
       {activities.data?.length === 0 && (
-        <p className="mt-8 text-muted-foreground">{t('activities.empty')}</p>
+        <p className="mt-8 text-muted-foreground">{t(tag ? 'tags.empty' : 'activities.empty')}</p>
       )}
       <div className="mt-8 space-y-6">
         {groupActivities(activities.data ?? []).map((period) => (
@@ -87,6 +116,7 @@ export function ActivitiesPage() {
                       {formatPace(a.durationS, a.distanceM)}
                       {a.avgHr !== null && ` · ${a.avgHr} bpm`}
                     </p>
+                    <TagLabels tags={a.tags} />
                   </div>
                   <Button
                     variant="ghost"

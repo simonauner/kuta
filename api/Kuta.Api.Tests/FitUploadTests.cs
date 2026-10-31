@@ -165,7 +165,7 @@ public class FitUploadTests(KutaFactory factory) : IClassFixture<KutaFactory>
             var run = new ManualActivityRequest("running", "Löpband",
                 DateTimeOffset.Parse("2026-10-01T18:00:00+02:00"), 1800, 5000, 0, 150);
 
-            var created = await client.PostAsJsonAsync("/api/activities/manual", run, ct);
+            var created = await client.PostAsJsonAsync("/api/activities/manual", run with { Tags = ["workout"] }, ct);
             Assert.Equal(HttpStatusCode.Created, created.StatusCode);
             var id = (await created.Content.ReadFromJsonAsync<JsonElement>(ct)).GetProperty("id").GetGuid();
             var detail = await client.GetFromJsonAsync<JsonElement>($"/api/activities/{id}", ct);
@@ -173,6 +173,7 @@ public class FitUploadTests(KutaFactory factory) : IClassFixture<KutaFactory>
                 (detail.GetProperty("title").GetString(), detail.GetProperty("startedAt").GetString(),
                  detail.GetProperty("distanceM").GetDouble(), detail.GetProperty("avgHr").ValueKind,
                  detail.GetProperty("streams").ValueKind));
+            Assert.Equal("workout", Assert.Single(detail.GetProperty("tags").EnumerateArray()).GetString());
             Assert.Equal("manual", await conn.ExecuteScalarAsync<string>("select source from activities where id = @id", new { id }));
 
             await client.PutAsync("/api/me/hr-consent", null, ct);

@@ -1,3 +1,4 @@
+import { EquipmentSection } from '@/components/equipment'
 import { DeleteAllActivities } from '@/components/delete-all-activities'
 import { ErrorMessage } from '@/components/error-message'
 import { useTranslation } from 'react-i18next'
@@ -21,6 +22,7 @@ export function ProfilePage() {
       <h1 className="text-2xl font-semibold tracking-tight">{me?.displayName}</h1>
       <p className="mt-1 text-sm text-muted-foreground">{me?.email}</p>
       <p className="mt-6 text-muted-foreground">{t('profile.description')}</p>
+      <EquipmentSection />
       <HeartRateConsent className="mt-6" />
       <Button
         variant="outline"
