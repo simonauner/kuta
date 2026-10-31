@@ -456,6 +456,8 @@ Alla anrop kräver inloggning och ger bara den egna användarens data:
 | `GET /api/records/predictions` | Loppprognos: `basis` (underlagets insats), `vdot` och `predictions` med `distanceM`/`elapsedS` för alla rekorddistanser. Tomt underlag ger `null` och en tom lista. |
 | `POST /api/activities/{id}/best-efforts/recalculate` | Ersätter passets insatser från sparade tidsserier; 204 vid framgång, annars 404 för okänt eller annans pass. Kräver `X-CSRF-TOKEN`. |
 
+På passets redigeringssida kan ägaren välja **Undanta från löprekord** vid exempelvis GPS-glapp. `PUT /api/activities/{id}` sparar `excludeFromRecords` (boolesk, förval false; utelämnat fält behåller valet). Passdetaljer och export innehåller markeringen. Hela passet filtreras bort från personbästa, årsrekord, taggfiltrerade rekord, rekordutveckling och prognoser. Träningsstatistik och mål påverkas inte. Passets beräknade insatser behålls och visas fortfarande på passsidan; undantaget överlever omberäkning och redigering av sportdelar och kan ångras utan ny import.
+
 Omberäkningen kan upprepas efter ändrad beräkningslogik och fungerar även utan
 sparad råfil eller pulssamtycke. Kör den för befintliga pass som importerats innan
 rekordmotorn infördes; de fylls inte automatiskt i vid migreringen. Pass utan
