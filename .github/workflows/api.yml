@@ -1,22 +1,14 @@
 name: API
 
 on:
+  workflow_call:
   pull_request:
     paths:
       - 'api/**'
       - 'supabase/**'
       - 'global.json'
       - '.github/workflows/api.yml'
-      - 'Dockerfile'
-      - '.dockerignore'
-      - '!**/*.md'
-  push:
-    branches: [main]
-    paths:
-      - 'api/**'
-      - 'supabase/**'
-      - 'global.json'
-      - '.github/workflows/api.yml'
+      - '.github/workflows/deploy.yml'
       - 'Dockerfile'
       - '.dockerignore'
       - '!**/*.md'

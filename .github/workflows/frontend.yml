@@ -1,20 +1,13 @@
 name: Frontend
 
 on:
+  workflow_call:
   pull_request:
     paths:
       - 'web/**'
       - '.nvmrc'
       - '.github/workflows/frontend.yml'
-      - 'Dockerfile'
-      - '.dockerignore'
-      - '!**/*.md'
-  push:
-    branches: [main]
-    paths:
-      - 'web/**'
-      - '.nvmrc'
-      - '.github/workflows/frontend.yml'
+      - '.github/workflows/deploy.yml'
       - 'Dockerfile'
       - '.dockerignore'
       - '!**/*.md'
