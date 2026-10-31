@@ -169,7 +169,7 @@
     "passwordUnchanged": "Choose a different password from your current one.",
     "recoveryExpired": "The reset link is invalid or has expired. Request a new link.",
     "stravaArchiveRequired": "Choose a Strava ZIP export (up to 500 MB).",
-    "invalidStravaArchive": "The ZIP file does not contain a valid Strava activities.csv.",
+    "invalidStravaArchive": "The ZIP file does not contain a valid Strava export.",
     "invalidTags": "Choose valid tags.",
     "invalidEquipment": "Choose valid equipment that belongs to you.",
     "invalidEquipmentInput": "Check the name, type and prior use."
@@ -188,8 +188,9 @@
     "import": "Import activities",
     "importing": "Importing …",
     "importWait": "Importing activities. This may take several minutes. Keep this page open.",
-    "importHelp": "Choose the complete ZIP export, up to 500 MB. Names, summaries and available streams are imported. Heart rate follows your choice above. You can retry after an interruption; duplicates are skipped. Find your imported activities under Activities.",
+    "importHelp": "Choose the complete ZIP export, up to 500 MB. Shoes are imported first and linked to activities to calculate distance and time per shoe. Names, summaries and available streams are imported. Heart rate follows your choice above. You can retry after an interruption; duplicates are skipped. Find your imported activities under Activities.",
     "importResult": "Imported: {{imported}}. Duplicates: {{duplicates}}. Failed: {{failed}}.",
+    "importEquipmentResult": "Shoes imported: {{imported}}. Existing activities linked to shoes: {{linked}}.",
     "failedImports": "Strava IDs of activities that could not be imported",
     "account": "Account",
     "logout": "Log out"
