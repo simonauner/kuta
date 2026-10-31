@@ -1,0 +1,20 @@
+web/src/components/year-comparison.tsx
+  s_ece5f4cbd15b54::t_5309fcec8006cd 86-99
+  s_ece5f4cbd15b54::t_3285f29435ab5b 1,85,100
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.7.5",
+  "base_commit_sha": "09c505cfd29ca7de1fec2a71d45e42cf0bd38c5f",
+  "prompts": {},
+  "sessions": {
+    "s_ece5f4cbd15b54": {
+      "agent_id": {
+        "tool": "codex",
+        "id": "01a192bd-a56c-7721-a2ca-666c8919a186",
+        "model": "gpt-6.1-sol"
+      },
+      "human_author": "Simon Aunér <simonauner@gmail.com>"
+    }
+  }
+}
