@@ -15,8 +15,7 @@
     "description": "Distance, pace, heart rate and personal bests over time."
   },
   "profile": {
-    "description": "Your shoes, groups and settings.",
-    "logout": "Log out"
+    "description": "Your runner profile."
   },
   "activities": {
     "year": "Year",
@@ -25,11 +24,12 @@
     "loading": "Loading activities…",
     "loadOlder": "Show older activities",
     "week": "Week {{week}}",
-    "hrSaved": "Heart rate data is saved. Change this in",
+    "hrSaved": "Heart rate is saved. Change this in",
     "empty": "No activities yet.",
     "delete": "Delete",
     "deleteLabel": "Delete activity {{date}}",
-    "confirmDelete": "Delete this activity? This cannot be undone."
+    "confirmDelete": "Delete this activity? This cannot be undone.",
+    "hrNotSaved": "Heart rate is not saved. Change this before uploading in"
   },
   "newActivity": {
     "title": "Create activity",
@@ -167,12 +167,29 @@
     "invalidActivity": "Check the sport, date, time and distance.",
     "passwordTooShort": "Use at least 8 characters in your password.",
     "passwordUnchanged": "Choose a different password from your current one.",
-    "recoveryExpired": "The reset link is invalid or has expired. Request a new link."
+    "recoveryExpired": "The reset link is invalid or has expired. Request a new link.",
+    "stravaArchiveRequired": "Choose a Strava ZIP export (up to 500 MB).",
+    "invalidStravaArchive": "The ZIP file does not contain a valid Strava activities.csv."
   },
   "home": "Kuta – home",
   "footer": {
     "version": "Version {{version}}",
     "development": "development"
+  },
+  "settings": {
+    "title": "Settings",
+    "back": "← Profile",
+    "health": "Health data",
+    "strava": "Import from Strava",
+    "stravaFile": "Strava export (ZIP)",
+    "import": "Import activities",
+    "importing": "Importing …",
+    "importWait": "Importing activities. This may take several minutes. Keep this page open.",
+    "importHelp": "Choose the complete ZIP export, up to 500 MB. Names, summaries and available streams are imported. Heart rate follows your choice above. You can retry after an interruption; duplicates are skipped. Find your imported activities under Activities.",
+    "importResult": "Imported: {{imported}}. Duplicates: {{duplicates}}. Failed: {{failed}}.",
+    "failedImports": "Strava IDs of activities that could not be imported",
+    "account": "Account",
+    "logout": "Log out"
   },
   "dangerZone": {
     "title": "Danger zone",
