@@ -1,0 +1,19 @@
+web/src/components/layout.tsx
+  s_83982096078527::t_e3d5b2e2a04304 96-110
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.7.5",
+  "base_commit_sha": "7408c8be65e4753288d230c97b38b6cc3da72617",
+  "prompts": {},
+  "sessions": {
+    "s_83982096078527": {
+      "agent_id": {
+        "tool": "codex",
+        "id": "01a18fa9-87cd-7dc3-933c-242372b729ff",
+        "model": "gpt-6.1-sol"
+      },
+      "human_author": "Simon Aunér <simonauner@gmail.com>"
+    }
+  }
+}
