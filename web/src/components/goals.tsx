@@ -6,7 +6,7 @@ import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
 import { useTranslation } from 'react-i18next'
 import { api } from '@/lib/api'
 import { cn } from '@/lib/utils'
-import { sportGroupsQuery } from '@/lib/activity-query'
+import { sportGroupsQuery, refreshGoalQueries } from '@/lib/activity-query'
 import { sportGroupLabel, sportGroupMembers } from '@/lib/sport-groups'
 import {
   formatGoalAmount,
@@ -225,7 +225,7 @@ export function GoalDialog({ goal, onClose }: { goal: Goal | null; onClose: () =
 
   useEffect(() => dialog.current?.showModal(), [])
 
-  const refresh = () => queryClient.invalidateQueries({ queryKey: ['activities', 'goals'] })
+  const refresh = () => refreshGoalQueries(queryClient)
   const save = useMutation({
     mutationFn: () =>
       api.send(goal ? 'PUT' : 'POST', goal ? `/api/goals/${goal.id}` : '/api/goals', {

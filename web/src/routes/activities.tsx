@@ -2,8 +2,7 @@ import { FormField } from '@/components/ui/form-field'
 import { SportIcon } from '@/components/sport-icon'
 import { sports } from '@/lib/sports'
 import { TagLabels } from '@/components/activity-tags'
-import { equipmentQuery, lastUsedShoeQuery } from '@/lib/equipment'
-import { activityTagsQuery, activityYearsQuery } from '@/lib/activity-query'
+import { activityTagsQuery, activityYearsQuery, refreshActivityQueries } from '@/lib/activity-query'
 import { ErrorMessage } from '@/components/error-message'
 import { ActivitiesEmptyState } from '@/components/activities-empty-state'
 import { SlowLoading } from '@/components/slow-loading'
@@ -76,14 +75,7 @@ export function ActivitiesPage() {
 
   const remove = useMutation({
     mutationFn: (id: string) => api.send('DELETE', `/api/activities/${id}`),
-    onSuccess: () =>
-      Promise.all([
-        queryClient.invalidateQueries({ queryKey: ['activities'] }),
-        queryClient.invalidateQueries({ queryKey: ['records'] }),
-        queryClient.invalidateQueries({ queryKey: ['me'] }),
-        queryClient.invalidateQueries({ queryKey: equipmentQuery.queryKey }),
-        queryClient.invalidateQueries({ queryKey: lastUsedShoeQuery.queryKey }),
-      ]),
+    onSuccess: () => refreshActivityQueries(queryClient),
   })
 
   return (

@@ -30,6 +30,7 @@ import {
 import { sports as sportOptions, knownSport } from '@/lib/sports'
 import { meQuery } from '@/lib/auth'
 import { equipmentQuery, lastUsedShoeQuery, type Equipment } from '@/lib/equipment'
+import { refreshActivityQueries } from '@/lib/activity-query'
 import { TagPicker } from '@/components/activity-tags'
 
 // Det API:t läser ur en FIT-fil, utan att spara något (POST /api/activities/preview)
@@ -145,13 +146,7 @@ export function NewActivityPage() {
       })
     },
     onSuccess: async (activity) => {
-      await Promise.all([
-        queryClient.invalidateQueries({ queryKey: ['activities'] }),
-        queryClient.invalidateQueries({ queryKey: ['records'] }),
-        queryClient.invalidateQueries({ queryKey: ['feed'] }),
-        queryClient.invalidateQueries({ queryKey: lastUsedShoeQuery.queryKey }),
-        queryClient.invalidateQueries({ queryKey: equipmentQuery.queryKey }),
-      ])
+      await refreshActivityQueries(queryClient)
       await navigate({
         to: '/app/activities/$activityId',
         params: { activityId: activity.id },

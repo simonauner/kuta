@@ -12,9 +12,8 @@ import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { meQuery } from '@/lib/auth'
 import { ApiError, api } from '@/lib/api'
-import { activityQuery } from '@/lib/activity-query'
+import { activityQuery, refreshActivityQueries } from '@/lib/activity-query'
 import { activityTitle, type ActivityDetail } from '@/lib/activity'
-import { equipmentQuery, lastUsedShoeQuery } from '@/lib/equipment'
 
 export function EditActivityPage() {
   const { activityId } = useParams({ from: '/app/activities/$activityId/edit' })
@@ -66,15 +65,7 @@ function EditActivityForm({ activity }: { activity: ActivityDetail }) {
         restoreParts: draft === null,
       }),
     onSuccess: async () => {
-      await Promise.all([
-        queryClient.invalidateQueries({ queryKey: meQuery.queryKey }),
-        queryClient.invalidateQueries({ queryKey: activityQuery(activity.id).queryKey }),
-        queryClient.invalidateQueries({ queryKey: ['activities'] }),
-        queryClient.invalidateQueries({ queryKey: ['feed'] }),
-        queryClient.invalidateQueries({ queryKey: ['records'] }),
-        queryClient.invalidateQueries({ queryKey: equipmentQuery.queryKey }),
-        queryClient.invalidateQueries({ queryKey: lastUsedShoeQuery.queryKey }),
-      ])
+      await refreshActivityQueries(queryClient)
       await navigate(destination)
     },
   })
