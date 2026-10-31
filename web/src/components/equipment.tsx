@@ -139,7 +139,7 @@ export function EquipmentSection() {
                 </Menu.Trigger>
                 <Menu.Portal>
                   <Menu.Positioner align="end" sideOffset={4} className="z-50">
-                    <Menu.Popup className="min-w-40 rounded-md border bg-popover p-1 text-popover-foreground shadow-md outline-none">
+                    <Menu.Popup className="min-w-40 rounded-md border bg-card p-1 text-card-foreground shadow-md outline-none">
                       <Menu.Item
                         className="cursor-default rounded-sm px-2 py-1.5 text-sm outline-none data-highlighted:bg-accent data-highlighted:text-accent-foreground data-disabled:opacity-50"
                         disabled={setRetired.isPending}
