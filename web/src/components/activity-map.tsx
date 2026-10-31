@@ -57,7 +57,7 @@ export function ActivityMap({
       ref={container}
       role="img"
       aria-label={label}
-      className="h-72 w-full overflow-hidden rounded-lg border sm:h-96"
+      className="h-72 max-h-[45svh] w-full overflow-hidden rounded-lg border sm:h-96"
     />
   )
 }
