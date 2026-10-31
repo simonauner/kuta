@@ -111,70 +111,82 @@ export function EquipmentSection() {
       {equipment.data?.length === 0 && (
         <p className="mt-4 text-sm text-muted-foreground">{t('equipment.empty')}</p>
       )}
-      <ul className="mt-4 divide-y">
-        {equipment.data?.map((item) => (
-          <li key={item.id} className="py-3">
-            <div className="flex items-center justify-between gap-4">
-              <div className="min-w-0 break-words">
-                <p className="font-medium">
-                  {item.name}
-                  {item.retired && (
-                    <span className="font-normal text-muted-foreground">
-                      {' '}
-                      · {t('shoes.retired')}
-                    </span>
-                  )}
-                </p>
-                <p className="text-xs text-muted-foreground">
-                  {t(`equipmentKinds.${item.kind}`)}
-                  {item.brand && ` · ${item.brand}`}
-                </p>
-              </div>
-              <Menu.Root>
-                <Menu.Trigger
-                  render={<Button size="icon-sm" variant="ghost" />}
-                  aria-label={t('equipment.actionsLabel', { name: item.name })}
-                >
-                  <EllipsisVertical aria-hidden="true" />
-                </Menu.Trigger>
-                <Menu.Portal>
-                  <Menu.Positioner align="end" sideOffset={4} className="z-50">
-                    <Menu.Popup className="min-w-40 rounded-md border bg-card p-1 text-card-foreground shadow-md outline-none">
-                      <Menu.Item
-                        className="cursor-default rounded-sm px-2 py-1.5 text-sm outline-none data-highlighted:bg-accent data-highlighted:text-accent-foreground data-disabled:opacity-50"
-                        disabled={setRetired.isPending}
-                        onClick={() => setRetired.mutate({ id: item.id, retired: !item.retired })}
+      {[false, true].map((retired) => {
+        const items = equipment.data?.filter((item) => item.retired === retired) ?? []
+        if (items.length === 0) return null
+        return (
+          <section
+            key={String(retired)}
+            className="mt-6"
+            aria-labelledby={retired ? 'retired-equipment-heading' : 'active-equipment-heading'}
+          >
+            <h3
+              id={retired ? 'retired-equipment-heading' : 'active-equipment-heading'}
+              className="text-base font-semibold"
+            >
+              {t(retired ? 'equipment.retiredHeading' : 'equipment.activeHeading')}
+            </h3>
+            <ul className="mt-2 divide-y">
+              {items.map((item) => (
+                <li key={item.id} className="py-3">
+                  <div className="flex items-center justify-between gap-4">
+                    <div className="min-w-0 break-words">
+                      <p className="font-medium">{item.name}</p>
+                      <p className="text-xs text-muted-foreground">
+                        {t(`equipmentKinds.${item.kind}`)}
+                        {item.brand && ` · ${item.brand}`}
+                      </p>
+                    </div>
+                    <Menu.Root>
+                      <Menu.Trigger
+                        render={<Button size="icon-sm" variant="ghost" />}
+                        aria-label={t('equipment.actionsLabel', { name: item.name })}
                       >
-                        {t(item.retired ? 'shoes.reactivate' : 'shoes.retire')}
-                      </Menu.Item>
-                      <Menu.Item
-                        className="cursor-default rounded-sm px-2 py-1.5 text-sm text-destructive outline-none data-highlighted:bg-destructive/10"
-                        onClick={() => {
-                          setDeleting(item)
-                          remove.reset()
-                          deleteDialog.current?.showModal()
-                        }}
-                      >
-                        {t('shoes.delete')}
-                      </Menu.Item>
-                    </Menu.Popup>
-                  </Menu.Positioner>
-                </Menu.Portal>
-              </Menu.Root>
-            </div>
-            <dl className="mt-2 flex gap-8 text-sm tabular-nums">
-              <div>
-                <dt className="text-xs text-muted-foreground">{t('equipment.distance')}</dt>
-                <dd>{km.format(item.distanceM / 1000)} km</dd>
-              </div>
-              <div>
-                <dt className="text-xs text-muted-foreground">{t('equipment.duration')}</dt>
-                <dd>{formatDuration(item.durationS)}</dd>
-              </div>
-            </dl>
-          </li>
-        ))}
-      </ul>
+                        <EllipsisVertical aria-hidden="true" />
+                      </Menu.Trigger>
+                      <Menu.Portal>
+                        <Menu.Positioner align="end" sideOffset={4} className="z-50">
+                          <Menu.Popup className="min-w-40 rounded-md border bg-card p-1 text-card-foreground shadow-md outline-none">
+                            <Menu.Item
+                              className="cursor-default rounded-sm px-2 py-1.5 text-sm outline-none data-highlighted:bg-accent data-highlighted:text-accent-foreground data-disabled:opacity-50"
+                              disabled={setRetired.isPending}
+                              onClick={() =>
+                                setRetired.mutate({ id: item.id, retired: !item.retired })
+                              }
+                            >
+                              {t(item.retired ? 'shoes.reactivate' : 'shoes.retire')}
+                            </Menu.Item>
+                            <Menu.Item
+                              className="cursor-default rounded-sm px-2 py-1.5 text-sm text-destructive outline-none data-highlighted:bg-destructive/10"
+                              onClick={() => {
+                                setDeleting(item)
+                                remove.reset()
+                                deleteDialog.current?.showModal()
+                              }}
+                            >
+                              {t('shoes.delete')}
+                            </Menu.Item>
+                          </Menu.Popup>
+                        </Menu.Positioner>
+                      </Menu.Portal>
+                    </Menu.Root>
+                  </div>
+                  <dl className="mt-2 flex gap-8 text-sm tabular-nums">
+                    <div>
+                      <dt className="text-xs text-muted-foreground">{t('equipment.distance')}</dt>
+                      <dd>{km.format(item.distanceM / 1000)} km</dd>
+                    </div>
+                    <div>
+                      <dt className="text-xs text-muted-foreground">{t('equipment.duration')}</dt>
+                      <dd>{formatDuration(item.durationS)}</dd>
+                    </div>
+                  </dl>
+                </li>
+              ))}
+            </ul>
+          </section>
+        )
+      })}
       <Modal
         ref={createDialog}
         aria-labelledby="create-equipment-title"

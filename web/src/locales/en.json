@@ -311,6 +311,8 @@
     "empty": "No activities with this tag."
   },
   "equipment": {
+    "activeHeading": "Active",
+    "retiredHeading": "Retired",
     "choose": "Choose equipment",
     "actionsLabel": "Actions for {{name}}",
     "title": "Equipment",
