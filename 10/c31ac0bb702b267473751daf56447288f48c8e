@@ -1,0 +1,140 @@
+web/src/router.tsx
+  s_e62aba47c8eb30::t_e71754072ea5f2 91-96,109
+web/src/components/privacy-place-map.tsx
+  s_e62aba47c8eb30::t_e71754072ea5f2 1-147
+web/src/components/activity-map.tsx
+  s_e62aba47c8eb30::t_e71754072ea5f2 1,3
+AGENTS.md
+  s_e62aba47c8eb30::t_35285e92546264 76
+  s_e62aba47c8eb30::t_e71754072ea5f2 50,62
+  s_e62aba47c8eb30::t_9b367b39f1084d 32,63
+api/Kuta.Api.Tests/WebRoutingTests.cs
+  s_e62aba47c8eb30::t_e71754072ea5f2 15,30-35
+  s_e62aba47c8eb30::t_b27dfc2acd5fab 36
+api/Kuta.Api.Tests/DeleteAccountTests.cs
+  s_e62aba47c8eb30::t_e71754072ea5f2 1-153
+api/Kuta.Api.Tests/DataExportTests.cs
+  s_e62aba47c8eb30::t_e71754072ea5f2 1-46,48-180,182-198
+  s_e62aba47c8eb30::t_e0d921d780f233 47,181
+supabase/templates/confirmation.html
+  s_e62aba47c8eb30::t_e71754072ea5f2 1-60
+web/features.html
+  s_e62aba47c8eb30::t_e71754072ea5f2 1-205
+api/Kuta.Api.Tests/ActivityAccessTests.cs
+  s_e62aba47c8eb30::t_e71754072ea5f2 30-33,62-63
+web/tests/geolocation.test.mjs
+  s_e62aba47c8eb30::t_e71754072ea5f2 1-56
+web/src/lib/api.ts
+  s_e62aba47c8eb30::t_e71754072ea5f2 52-62
+api/Kuta.Api/RawFileStore.cs
+  s_e62aba47c8eb30::t_e71754072ea5f2 46-51
+web/src/routes/activity.tsx
+  s_e62aba47c8eb30::t_e71754072ea5f2 27,48-50,52,63-64,96,98,100-101,103,173-201,253,329,331-339,341-388,390-391,394-424,427-447,473
+web/src/lib/map.ts
+  s_e62aba47c8eb30::t_e71754072ea5f2 1-7
+web/src/lib/privacy-circle.ts
+  s_e62aba47c8eb30::t_e71754072ea5f2 1-20
+web/tests/multisport.test.mjs
+  s_e62aba47c8eb30::t_e71754072ea5f2 4-26
+api/Kuta.Api/RoutePrivacy.cs
+  s_e62aba47c8eb30::t_e71754072ea5f2 1-49
+api/Kuta.Api.Tests/SocialTests.cs
+  s_e62aba47c8eb30::t_35285e92546264 87-91
+web/src/features.css
+  s_e62aba47c8eb30::t_e71754072ea5f2 1-142
+web/src/routes/privacy-places.tsx
+  s_e62aba47c8eb30::t_e71754072ea5f2 1-39
+web/tests/privacy-circle.test.mjs
+  s_e62aba47c8eb30::t_e71754072ea5f2 1-21
+web/src/components/footer.css
+  s_e62aba47c8eb30::t_e71754072ea5f2 1-67
+api/Kuta.Api.Tests/PrivacyPlacesTests.cs
+  s_e62aba47c8eb30::t_e71754072ea5f2 1-98
+web/tsconfig.node.json
+  s_e62aba47c8eb30::t_e71754072ea5f2 15-16
+web/src/lib/activity.ts
+  s_e62aba47c8eb30::t_e71754072ea5f2 8-25
+api/Kuta.Api/Migrations/014_privacy_places.sql
+  s_e62aba47c8eb30::t_e71754072ea5f2 1-11
+api/Kuta.Api/Program.cs
+  s_e62aba47c8eb30::t_e71754072ea5f2 232-233,241
+  s_e62aba47c8eb30::t_615444ca459a9a 244
+supabase/templates/recovery.html
+  s_e62aba47c8eb30::t_e71754072ea5f2 1-60
+web/src/theme.css
+  s_e62aba47c8eb30::t_e71754072ea5f2 3-5
+web/index.html
+  s_e62aba47c8eb30::t_e71754072ea5f2 41-43,64,87,96,100-102,105,111,183,186,223,235,248,264-265,276-277,280,283
+web/public/sitemap.xml
+  s_e62aba47c8eb30::t_e71754072ea5f2 4
+api/Kuta.Api/PrivacyPlaces.cs
+  s_e62aba47c8eb30::t_e71754072ea5f2 1-71
+api/Kuta.Api/SocialEndpoints.cs
+  s_e62aba47c8eb30::t_35285e92546264 128-136,141
+  s_e62aba47c8eb30::t_037acdc577afca 127
+web/src/components/layout.tsx
+  s_e62aba47c8eb30::t_e71754072ea5f2 1,95-106
+api/Kuta.Api.Tests/RoutePrivacyTests.cs
+  s_e62aba47c8eb30::t_e71754072ea5f2 1-98
+web/src/landing.css
+  s_e62aba47c8eb30::t_e71754072ea5f2 2,141-142,145-146,149-151,153-156,158-160,568,765-766,770-774
+  s_e62aba47c8eb30::t_374a1739d3c841 775
+api/Kuta.Api/MeEndpoints.cs
+  s_e62aba47c8eb30::t_e71754072ea5f2 3-4,21-29,92-106
+  s_e62aba47c8eb30::t_e26bcb1021f824 107-108
+web/src/components/footer.tsx
+  s_e62aba47c8eb30::t_e71754072ea5f2 1-36
+web/src/routes/settings.tsx
+  s_e62aba47c8eb30::t_e71754072ea5f2 4,30-33,70-77,92-116,136
+web/src/locales/en.json
+  s_e62aba47c8eb30::t_e71754072ea5f2 265-267,281-285,302-305,354,405-406,408-412,414-437
+  s_e62aba47c8eb30::t_5338c5c624bdee 258,407,413,438
+web/src/locales/sv.json
+  s_e62aba47c8eb30::t_e71754072ea5f2 265-267,281-285,302-305,354,405-406,408-412,414-437
+  s_e62aba47c8eb30::t_6d294b70f82e4c 258,407,413,438
+web/tests/footer.test.mjs
+  s_e62aba47c8eb30::t_e71754072ea5f2 1-43
+README.md
+  s_e62aba47c8eb30::t_e71754072ea5f2 7,106-108,115-116,118,120-129,135-141,143-144,216-221,228-233,380-393,467
+  s_e62aba47c8eb30::t_35285e92546264 54
+  s_e62aba47c8eb30::t_d385f619320ea8 17,117,119,130-134,142
+web/src/components/danger-zone.tsx
+  s_e62aba47c8eb30::t_e71754072ea5f2 1-137
+web/vite.config.ts
+  s_e62aba47c8eb30::t_e71754072ea5f2 1-4,38-39,51,63-70
+  s_e62aba47c8eb30::t_42b0156ad21e9e 94
+web/src/index.css
+  s_e62aba47c8eb30::t_e71754072ea5f2 4,53-58
+web/src/components/privacy-places.tsx
+  s_e62aba47c8eb30::t_e71754072ea5f2 1-315
+web/tests/activity.test.mjs
+  s_e62aba47c8eb30::t_e71754072ea5f2 12,16-31
+  s_e62aba47c8eb30::t_73e649173a08da 32
+api/Kuta.Api/ActivityEndpoints.cs
+  s_e62aba47c8eb30::t_e71754072ea5f2 97-98,246-249,251-253,257-276,278-285
+  s_e62aba47c8eb30::t_49c6511bde7c27 250,254-256,277,286-294
+web/src/lib/geolocation.ts
+  s_e62aba47c8eb30::t_e71754072ea5f2 1-50
+web/src/components/multisport-preview.tsx
+  s_e62aba47c8eb30::t_e71754072ea5f2 5,47-53
+api/Kuta.Api/DataExport.cs
+  s_e62aba47c8eb30::t_e71754072ea5f2 1-96
+web/privacy.html
+  s_e62aba47c8eb30::t_e71754072ea5f2 73-76,199-200,296-299,425-426,496
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.7.5",
+  "base_commit_sha": "10c31ac0bb702b267473751daf56447288f48c8e",
+  "prompts": {},
+  "sessions": {
+    "s_e62aba47c8eb30": {
+      "agent_id": {
+        "tool": "codex",
+        "id": "01a190aa-3f96-7643-bc96-975f5a5fb251",
+        "model": "gpt-6.1-sol"
+      },
+      "human_author": "Simon Aunér <simonauner@gmail.com>"
+    }
+  }
+}
