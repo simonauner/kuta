@@ -45,6 +45,10 @@ public static class DataExport
             {
                 await WriteJsonAsync(zip, "profile.json", profile, ct);
                 await WriteJsonAsync(zip, "equipment.json", await EquipmentEndpoints.LoadAsync(conn, userId), ct);
+                await WriteJsonAsync(zip, "follows.json", await conn.QueryAsync<ExportFollow>(new CommandDefinition("""
+                    select follower_id, following_id, accepted_at, created_at from follows
+                    where follower_id = @userId or following_id = @userId order by follower_id, following_id
+                    """, new { userId }, tx, cancellationToken: ct)), ct);
                 await WriteJsonAsync(zip, "privacy-places.json", await PrivacyPlaces.LoadAsync(conn, userId, ct, tx), ct);
                 foreach (var activity in activities)
                 {
@@ -85,6 +89,7 @@ public static class DataExport
         await JsonSerializer.SerializeAsync(entry, value, JsonSerializerOptions.Web, ct);
     }
 
+    private record ExportFollow(Guid FollowerId, Guid FollowingId, DateTime? AcceptedAt, DateTime CreatedAt);
     private record ExportProfile(Guid Id, string? Email, string DisplayName, DateTime CreatedAt, DateTime? HrConsentAt);
     private record ExportActivity(Guid Id, string Source, DateTime CreatedAt, string Privacy,
         string? StravaActivityId, string? RawFileKey);

@@ -1,10 +1,12 @@
 import { useTranslation } from 'react-i18next'
+import { ActivityFeed } from '@/components/activity-feed'
+
 export function FeedPage() {
   const { t } = useTranslation()
   return (
-    <section>
+    <section className="space-y-6">
       <h1 className="text-2xl font-semibold tracking-tight">{t('nav.feed')}</h1>
-      <p className="mt-2 text-muted-foreground">{t('feed.description')}</p>
+      <ActivityFeed />
     </section>
   )
 }

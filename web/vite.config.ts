@@ -91,7 +91,7 @@ export default defineConfig({
       workbox: {
         navigateFallback: '/app.html',
         navigateFallbackAllowlist: [
-          /^\/app(?:\/(?:activities|stats|profile(?:\/equipment)?|settings(?:\/privacy-places)?))?\/?(?:\?|$)/,
+          /^\/app(?:\/(?:activities|stats|profile|runners\/[0-9a-f-]{36}|settings(?:\/(?:equipment|followers|privacy-places))?))?\/?(?:\?|$)/,
         ],
       },
       includeAssets: [

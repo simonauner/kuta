@@ -14,7 +14,7 @@ Policyn är ett utkast inför Garminansökan. Verifierat underlag, beslut, förs
 
 React-appen öppnas på `/app`, med vyerna `/app/activities`, `/app/stats` samt `/app/profile` och `/app/settings`. `web/app.html` har `noindex`. Mejlets bekräftelselänk återvänder till `/app`. Vite bygger de tre HTML-filerna, och .NET serverar dem från samma origin. PWA:n startar på `/app` och använder bara appskalet som navigeringsfallback inom `/app`.
 
-Profil visar löparens namn och länkar till Utrustning på `/app/profile/equipment`. Kugghjulet öppnar Inställningar på `/app/settings`, med språkval, dolda platser, pulssamtycke, Strava-import, dataexport, e-postadress, utloggning och Danger zone för att radera alla pass eller kontot. Vanlig FIT-uppladdning och manuell registrering nås via Pass → Skapa ny aktivitet. Pulssamtycket kan ändras med samma checkbox både i filmodalen och under Inställningar. Checkboxen visas även när samtycket redan är givet.
+Profil visar löparens namn och egna pass med samma passkort och kartminiatyrer som andra löparprofiler, inklusive privata pass. Kugghjulet öppnar Inställningar på `/app/settings`, med länkar till Följare på `/app/settings/followers` och Utrustning på `/app/settings/equipment`, språkval, dolda platser, pulssamtycke, Strava-import, dataexport, e-postadress, utloggning och Danger zone för att radera alla pass eller kontot. Undersidorna visar hela hierarkin i brödsmulorna: Profil → Inställningar → Följare respektive Profil → Inställningar → Utrustning. Vanlig FIT-uppladdning och manuell registrering nås via Pass → Skapa ny aktivitet. Pulssamtycket kan ändras med samma checkbox både i filmodalen och under Inställningar. Checkboxen visas även när samtycket redan är givet.
 
 ## Språk och URL:er
 
@@ -23,6 +23,71 @@ React-appen använder `react-i18next` med svenska och engelska. Språkväljaren 
 Appens URL:er är `/app` (flöde), `/app/activities`, `/app/stats`, `/app/profile` och `/app/settings` på båda språken.
 
 Översättningar finns i `web/src/locales/sv.json` och `en.json`; lägg till samma nycklar i båda. API-felkoder översätts i webben, med ett generellt fel för okända koder. Mejlmallar och PWA-manifest är tills vidare svenska. Språkval och katalogernas täckning kontrolleras med `cd web && npm test` (Node enligt `.nvmrc`).
+
+## Följare och flöde
+
+Flödet på `/app` visar egna pass och pass från löpare du följer efter deras godkännande,
+nyaste först, 25 åt gången. **Inställningar → Följare** innehåller inkommande förfrågningar
+och listor över följare/följda. Det finns ingen användarkatalog eller namnsökning, varken i
+webben eller API:t. **Dela profil** på den egna profilen kopierar en direktlänk till
+`/app/runners/{id}` på aktuell origin, med bekräftelse och ett manuellt kopieringsfält om
+webbläsaren nekar clipboard-åtkomst. Mottagaren loggar in för att se profilen och kan skicka
+en följförfrågan därifrån. Länken ändrar inte passens synlighet eller följgodkännandet.
+Godkänn eller avböj förfrågningar, avbryt egna förfrågningar, sluta följa eller ta bort följare.
+Relationerna är riktade: ett godkännande innebär inte att båda automatiskt följer varandra.
+Namn i flödet och följarlistorna länkar till `/app/runners/{id}`. Profilsidan visar löparens
+namn, följstatus och de pass besökaren har läsåtkomst till, 25 åt gången. Där kan du också
+sluta följa, avbryta en förfrågan eller skicka en ny. Efter avföljning försvinner följarpassen;
+offentliga pass finns kvar på profilen. Egna privata pass visas bara på den egna profilen.
+
+Nya pass är privata. På **Redigera aktivitet → Synlighet** kan ägaren välja `private`
+(bara ägaren), `followers` (godkända följare) eller `public` (alla inloggade på Kuta med
+länken). Flödet är inget globalt upptäcktsflöde: offentliga pass från andra än dem du följer
+visas inte där. Privata pass blir aldrig synliga genom att en följförfrågan godkänns.
+Nekad läsning eller ändring ger 404. Bara ägaren kan redigera, dela upp, räkna om rekord
+eller radera pass. Befintliga listor, årsstatistik, utrustning och personliga rekord är egna.
+
+Delade pass visar beskrivning, taggar, sportdelar, träningsdata och passets bästa insatser.
+Puls (även tidsserier och varv), fullständiga GPS-tidsserier, klockmodell och utrustning
+skickas bara till ägaren. Flödets och profilens passkort visar kartminiatyrer från den sparade
+förenklade rutten. För andra än ägaren klipper PostGIS bort minst 500 meter runt originalets
+start- och slutpunkt samt ägarens sparade dolda platser med respektive radie, även vid återbesök; förenkling sker före klippning och separata delar
+förblir separata. Helt dolda eller saknade rutter ger ingen karta. Ägaren ser hela rutten.
+Kartorna använder samma OpenFreeMap-leverantör som passsidan och laddas bara nära skärmen;
+rullning och beröring styr sidan, inte miniatyrkartan. Titel och beskrivning är
+användartext; användaren behöver själv välja vad den delar där.
+
+API (alla kräver inloggning; skrivningar kräver CSRF):
+
+- `GET /api/runners/{id}` ger `{ id, displayName, status }`; `status` är `none`, `pending`
+  eller `accepted` för den egna utgående relationen. Okänd löpare ger 404.
+  `GET /api/runners` (även med `?q=`) ger 404; användare kan inte listas eller sökas.
+- `GET /api/runners/{id}/activities` ger `{ items, nextCursor }` för den löparens läsbara
+  pass med samma sidmarkör och skyddade kartminiatyrer som flödet. Inga privata pass från
+  andra, puls eller GPS-tidsserier ingår.
+- `GET /api/follows` ger `{ following, followers }`, inklusive väntande förfrågningar.
+- `POST /api/following/{id}` skickar en förfrågan, idempotent även efter godkännande.
+- `PUT /api/followers/{id}` godkänner en inkommande förfrågan.
+- `DELETE /api/following/{id}` avbryter en förfrågan eller slutar följa.
+- `DELETE /api/followers/{id}` avböjer eller tar bort en följare. Borttagning återkallar
+  läsåtkomst till följarpass vid nästa anrop; redan hämtade kopior kan inte återkallas.
+- `GET /api/feed` ger `{ items, nextCursor }`. Nästa sida använder `beforeStartedAt` och
+  `beforeId`, samma stabila markör som passlistan. Inga tidsserier eller puls ingår.
+  `routeGeoJson` innehåller en förenklad GeoJSON-sträng
+  (LineString/MultiLineString) för kartminiatyren, eller null. Delade rutter är klippta enligt
+  start-/slutzonerna ovan; egna rutter är fullständiga.
+- `PUT /api/activities/{id}` tar även `privacy`; utelämnat fält behåller synligheten.
+  Passdetaljer innehåller även `userId`, `displayName` och `privacy`.
+
+Migrering 014 skapar `follows` med unik riktad relation, förbud mot självföljning,
+kaskadradering och index för inkommande förfrågningar. RLS är aktiverat och Data API-grants
+förblir återkallade; BFF:ens SQL äger åtkomstkontrollerna. Läsregeln delas av flöde,
+passdetaljer och passets rekord. API-svar har `Cache-Control: no-store` för att undvika
+återanvändning efter ändrad åtkomst. Åtkomstmatris och flödets SQL-sidindelning testas direkt
+i lokal Postgres med två användare. HTTP-tester täcker kopplingen för följförfrågan →
+godkännande → delat pass → återkallelse, svarens dataskydd, ägarskap vid skrivning och
+validering av sidmarkör. Dessa
+kontroller behöver HTTP för att visa att rätt användare, statuskod och svar kopplas ihop.
 
 ## Passlistans sidindelning
 
@@ -49,10 +114,9 @@ annars förfluten tid. Tidsaxelns etikett följer appens valda språk.
 
 ## Dolda platser
 
-Pass är fortfarande bara åtkomliga för ägaren, även om databasens `privacy` har värdet
-`followers` eller `public`. Delning och följarrelationer är ännu inte implementerade.
+Passens läsåtkomst följer synligheten och godkända följrelationer enligt ovan.
 **Profil → Inställningar → Dolda platser** öppnar `/app/settings/privacy-places`, med
-brödsmulan Inställningar → Dolda platser, där användaren kan spara flera namngivna
+brödsmulan Profil → Inställningar → Dolda platser, där användaren kan spara flera namngivna
 platser, till exempel Hem och Arbetsplats. Kartpunkten väljs genom klick, kartans
 mittpunkt, webbläsarens platsåtkomst via **Använd min plats**, eller koordinatfält.
 Platsåtkomst begärs bara vid knapptryck och hämtar en enda aktuell position, med
@@ -63,16 +127,11 @@ Platser kan redigeras och tas bort. Bara ägaren kan läsa och ändra dem via
 Listan har `Cache-Control: no-store`. Migrering 014 skapar `privacy_places` med
 ägarkoppling, kaskadradering, koordinat-/radiekrav och RLS utan Data API-grants.
 
-API:ts detaljsvar använder `RoutePrivacy.ForViewer` med databasens ägare, inloggad
-mottagare och ägarens aktuella platser. Ägaren får originalet; för andra mottagare
-ersätts GPS-koordinater inom någon av platsernas cirklar med `null`, även vid återbesök
-mitt under passet. Ändringar gäller därför även äldre pass. Ingen automatisk zon
-läggs runt varje pass start eller slut. Utan sparade platser eller långt från dem
-förblir rutten synlig i sin helhet. Korta pass inuti ett område kan sakna synlig rutt.
-Saknade eller ogiltiga koordinater döljs också vid maskering.
-Glesa linjesegment som kan korsa en zon bryts konservativt genom att dölja båda ändarna;
-det kan dölja mer än vald radie. Kartan ritar separata linjer över sammanhängande synliga
-punkter och kopplar aldrig ihop dem över luckor.
+Delade kartminiatyrer i flöde och profiler klipps i PostGIS mot ägarens aktuella platser,
+med respektive radie, och minst 500 meter runt start och mål. Förenklingen sker före
+klippningen; separata linjer sammanfogas aldrig över skyddade områden. Det gäller även
+äldre pass. Ägaren får hela rutten, och delade detaljsvar utelämnar GPS-tidsserier helt.
+Sparade privata platsers namn och mittpunkter skickas aldrig till andra mottagare.
 
 Projektionen ändrar bara svarets koordinater. Sparad rutt, råfil, tidsserier, rekord,
 splits och totalsiffror behålls. Dolda platser är inte en garanti för anonymitet.
@@ -80,8 +139,7 @@ Namn och mittpunkter lämnas aldrig till andra användare. Kartbilderna kommer f
 OpenFreeMap, som ser vilket område användaren tittar på; namn och sparade platser
 skickas inte dit som data. Ingen extern adressökning eller automatisk platsåtkomst används; platsåtkomst kräver
 användarens knapptryck och webbläsarens behörighet.
-Innan delning införs måste dess åtkomstregler implementeras separat och alla nya
-rutt-/export-/kartändpunkter använda samma skydd; originalrutt och råfil får inte
+Alla nya rutt-/export-/kartändpunkter måste använda samma skydd; originalrutt och råfil får inte
 lämnas till andra mottagare. Ingen ny åtkomst följer av själva klippningen.
 
 ## Statistik över tid
@@ -211,7 +269,7 @@ kontrollera först att inget pass refererar till nyckeln.
 
 Aktiv utrustning visas före pensionerad. Inom grupperna behålls ordningen efter när utrustningen lades till.
 
-Lägg till utrustning i modalen under Profil → Utrustning och koppla den till manuella pass eller FIT-importer. Välj ”Redigera utrustning” i utrustningens meny för att ändra namn, märke och tidigare användning i samma modal. Passkopplingar och pensionsstatus behålls. Skor kan även skapas direkt med ”Skapa ny” vid skofältet; den nya skon väljs automatiskt utan att aktivitetsutkastet försvinner.
+Lägg till utrustning i modalen under Inställningar → Utrustning och koppla den till manuella pass eller FIT-importer. Välj ”Redigera utrustning” i utrustningens meny för att ändra namn, märke och tidigare användning i samma modal. Passkopplingar och pensionsstatus behålls. Skor kan även skapas direkt med ”Skapa ny” vid skofältet; den nya skon väljs automatiskt utan att aktivitetsutkastet försvinner.
 Kopplingarna kan också ändras på passsidan. Ett pass kan använda flera
 utrustningsdelar. Skor (`shoe`) är den första typen; nya typer läggs till i
 `EquipmentEndpoints.Kinds` och i båda språkfilernas `equipmentKinds`. Typväljaren i formuläret visas först när fler än en typ finns.

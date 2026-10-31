@@ -17,6 +17,12 @@ export function PrivacyPlacesPage() {
       <Breadcrumb aria-label={t('breadcrumbs')} className="mb-4">
         <BreadcrumbList>
           <BreadcrumbItem>
+            <BreadcrumbLink render={<Link to="/app/profile" activeOptions={{ exact: true }} />}>
+              {t('nav.profile')}
+            </BreadcrumbLink>
+          </BreadcrumbItem>
+          <BreadcrumbSeparator />
+          <BreadcrumbItem>
             <BreadcrumbLink render={<Link to="/app/settings" activeOptions={{ exact: true }} />}>
               {t('settings.title')}
             </BreadcrumbLink>

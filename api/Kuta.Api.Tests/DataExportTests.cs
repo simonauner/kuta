@@ -44,7 +44,7 @@ public class DataExportTests(KutaFactory factory) : IClassFixture<KutaFactory>
 
                 await using var archive = await DataExport.CreateAsync(conn, store, userId, ct);
                 using var zip = new ZipArchive(archive, ZipArchiveMode.Read, leaveOpen: true);
-                Assert.Equal(6, zip.Entries.Count);
+                Assert.Equal(7, zip.Entries.Count);
                 var places = await ReadJsonAsync(zip, "privacy-places.json", ct);
                 Assert.Equal(place.Id, Assert.Single(places.EnumerateArray()).GetProperty("id").GetGuid());
                 var profile = await ReadJsonAsync(zip, "profile.json", ct);
@@ -80,6 +80,30 @@ public class DataExportTests(KutaFactory factory) : IClassFixture<KutaFactory>
             await store.DeleteAsync(files, ct);
             await conn.ExecuteAsync("delete from auth.users where id = any(@users)", new { users });
         }
+    }
+
+    [Fact]
+    public async Task Export_includes_incoming_and_outgoing_follows_but_not_unrelated_relations()
+    {
+        var ct = TestContext.Current.CancellationToken;
+        await using var conn = await factory.Services.GetRequiredService<NpgsqlDataSource>().OpenConnectionAsync(ct);
+        var ids = Enumerable.Range(0, 4).Select(_ => Guid.NewGuid()).ToArray();
+        try
+        {
+            foreach (var id in ids) await CreateProfileAsync(conn, id);
+            await conn.ExecuteAsync("""
+                insert into follows (follower_id, following_id, accepted_at)
+                values (@owner, @following, null), (@follower, @owner, now()), (@following, @unrelated, now())
+                """, new { owner = ids[0], following = ids[1], follower = ids[2], unrelated = ids[3] });
+            await using var archive = await DataExport.CreateAsync(conn, factory.Services.GetRequiredService<RawFileStore>(), ids[0], ct);
+            using var zip = new ZipArchive(archive, ZipArchiveMode.Read, leaveOpen: true);
+            var follows = (await ReadJsonAsync(zip, "follows.json", ct)).EnumerateArray().ToArray();
+            Assert.Equal(2, follows.Length);
+            Assert.All(follows, f => Assert.True(f.GetProperty("followerId").GetGuid() == ids[0] || f.GetProperty("followingId").GetGuid() == ids[0]));
+            Assert.Contains(follows, f => f.GetProperty("acceptedAt").ValueKind == JsonValueKind.Null);
+            Assert.Contains(follows, f => f.GetProperty("acceptedAt").ValueKind == JsonValueKind.String);
+        }
+        finally { await conn.ExecuteAsync("delete from auth.users where id = any(@ids)", new { ids }); }
     }
 
     [Fact]
@@ -154,7 +178,7 @@ public class DataExportTests(KutaFactory factory) : IClassFixture<KutaFactory>
             Assert.Contains("kuta-export.zip", response.Content.Headers.ContentDisposition!.ToString());
             await using var stream = await response.Content.ReadAsStreamAsync(ct);
             using var zip = new ZipArchive(stream);
-            Assert.Equal(3, zip.Entries.Count);
+            Assert.Equal(4, zip.Entries.Count);
             Assert.Equal(email, (await ReadJsonAsync(zip, "profile.json", ct)).GetProperty("email").GetString());
         }
         finally { await conn.ExecuteAsync("delete from auth.users where email = @email", new { email }); }

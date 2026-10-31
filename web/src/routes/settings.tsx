@@ -47,6 +47,22 @@ export function SettingsPage() {
         </BreadcrumbList>
       </Breadcrumb>
       <h1 className="text-2xl font-semibold tracking-tight">{t('settings.title')}</h1>
+      <div className="mt-6 grid gap-3">
+        <Link
+          to="/app/settings/followers"
+          className="flex items-center justify-between rounded-lg border p-4 font-medium hover:bg-accent focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-ring"
+        >
+          {t('settings.followers')}
+          <span aria-hidden="true">→</span>
+        </Link>
+        <Link
+          to="/app/settings/equipment"
+          className="flex items-center justify-between rounded-lg border p-4 font-medium hover:bg-accent focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-ring"
+        >
+          {t('equipment.title')}
+          <span aria-hidden="true">→</span>
+        </Link>
+      </div>
       <div className="mt-6 flex">
         <LanguageSelect />
       </div>

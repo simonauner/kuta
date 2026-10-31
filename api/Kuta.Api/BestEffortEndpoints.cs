@@ -14,12 +14,12 @@ public static class BestEffortEndpoints
             await using var conn = await db.OpenConnectionAsync();
             var userId = user.GetUserId();
             if (!await conn.ExecuteScalarAsync<bool>(
-                    "select exists (select 1 from activities where id = @id and user_id = @userId)", new { id, userId }))
+                    $"select exists (select 1 from activities a where a.id = @id and {SocialEndpoints.CanRead})", new { id, userId }))
                 return Results.NotFound();
             return Results.Ok(await conn.QueryAsync<StoredBestEffort>(
                 """
                 select activity_id, distance_m, elapsed_s, start_offset_s, achieved_at
-                from best_efforts where activity_id = @id and user_id = @userId order by distance_m
+                from best_efforts where activity_id = @id order by distance_m
                 """, new { id, userId }));
         });
 
