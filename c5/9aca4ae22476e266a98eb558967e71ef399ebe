@@ -1,0 +1,19 @@
+web/src/routes/activity.tsx
+  s_3361be1ae5a579::t_ade245361dcfd3 120-131,141-145
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.7.5",
+  "base_commit_sha": "c59aca4ae22476e266a98eb558967e71ef399ebe",
+  "prompts": {},
+  "sessions": {
+    "s_3361be1ae5a579": {
+      "agent_id": {
+        "tool": "codex",
+        "id": "01a18fe5-9385-7b43-b83f-d437fa5a5ea0",
+        "model": "gpt-6.1-sol"
+      },
+      "human_author": "Simon Aunér <simonauner@gmail.com>"
+    }
+  }
+}
