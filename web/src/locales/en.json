@@ -395,7 +395,6 @@
     "save": "Save legs",
     "cancel": "Cancel",
     "restore": "Restore imported version",
-    "unavailable": "Splitting requires a continuous time and distance stream.",
     "selected": "Showing leg {{number}}: {{sport}}",
     "distanceBySport": "Distance by sport",
     "confirmRestore": "Restoring will remove the split. Do you want to continue?",

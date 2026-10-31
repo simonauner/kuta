@@ -87,8 +87,7 @@ export function MultisportEditor({
     )
   }
   if (!a.parts.length && !onChange) return null
-  if (!a.canSplit && !a.parts.length)
-    return <p className="mt-5 text-sm text-muted-foreground">{t('multisport.unavailable')}</p>
+  if (!a.canSplit && !a.parts.length) return null
   return (
     <section className="mt-6 space-y-3 rounded-lg border p-4" aria-label={t('multisport.title')}>
       <div className="flex flex-wrap items-center justify-between gap-2">
