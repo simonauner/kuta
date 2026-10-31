@@ -38,7 +38,8 @@ Passlistans `year=2024` begränsar både första och efterföljande sidor till d
 Årsväljaren visas när historiken innehåller flera år; ”Alla år” är standard. Valet sparas i
 appens URL (`/app/activities?year=2024`) och följer med till passsidan och tillbaka.
 
-Passsidans kilometersplits interpolerar tid och höjd vid varje kilometergräns mellan
+Passsidans kilometersplits visas både i en utfällbar panel ovanför kartan och under diagrammen.
+De interpolerar tid och höjd vid varje kilometergräns mellan
 mätpunkterna; snittpulsen vägs med tiden. Ingen sträcka eller tid läggs till utanför
 inspelningens uppmätta ändpunkter. Återställd distans eller icke stigande tid gör att
 splitstabellen utelämnas. En avslutande rest under 50 meter visas inte.

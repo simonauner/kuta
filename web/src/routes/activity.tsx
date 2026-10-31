@@ -44,6 +44,8 @@ export function ActivityPage() {
   const equipment = useQuery(equipmentQuery)
   const [lapsOpen, setLapsOpen] = useState(false)
   const lapsId = useId()
+  const [splitsOpen, setSplitsOpen] = useState(false)
+  const splitsId = useId()
   const activity = useQuery(activityQuery(activityId))
   const [selection, setSelection] = useState<{ id: string; part: ActivityPart | null } | null>(null)
   const selectedPart = selection?.id === activityId ? selection.part : null
@@ -169,6 +171,35 @@ export function ActivityPage() {
     temp !== null && [t('activity.avgTemp'), `${temp} °C`],
   ].filter((s): s is [string, string] => !!s)
 
+  const splitTable = view && (
+    <table className="w-full text-sm tabular-nums">
+      <thead className="text-left text-xs text-muted-foreground">
+        <tr>
+          <th className="py-1 font-normal">{t('activity.splitKm')}</th>
+          <th className="py-1 font-normal">{t('activity.splitPace')}</th>
+          <th className="py-1 font-normal">{t('activity.splitElevation')}</th>
+          {a.streams?.hr && <th className="py-1 font-normal">{t('activity.splitHr')}</th>}
+        </tr>
+      </thead>
+      <tbody className="divide-y">
+        {view.splits.map((s) => (
+          <tr key={s.km}>
+            <td className="py-1.5">
+              {s.distanceM < 950 ? number.format(s.distanceM / 1000) : s.km}
+            </td>
+            <td className="py-1.5">
+              {formatSportPace(a.sport, s.durationS, s.distanceM, i18n.resolvedLanguage)}
+            </td>
+            <td className="py-1.5">
+              {s.elevationM === null ? '–' : `${Math.round(s.elevationM)} m`}
+            </td>
+            {a.streams?.hr && <td className="py-1.5">{s.avgHr ?? '–'}</td>}
+          </tr>
+        ))}
+      </tbody>
+    </table>
+  )
+
   return (
     <section>
       <BackLink />
@@ -205,6 +236,7 @@ export function ActivityPage() {
         onPreview={(part) => {
           setSelection({ id: activityId, part })
           setLapsOpen(false)
+          setSplitsOpen(false)
         }}
       />
       {selectedPart && (
@@ -360,6 +392,42 @@ export function ActivityPage() {
         </div>
       )}
 
+      {view && view.splits.length > 0 && (
+        <div className="mt-8">
+          <Button
+            id={`${splitsId}-toggle`}
+            type="button"
+            variant="outline"
+            aria-expanded={splitsOpen}
+            aria-controls={splitsId}
+            onClick={() => setSplitsOpen((open) => !open)}
+          >
+            {t('activity.splits')}
+            <ChevronDown
+              aria-hidden="true"
+              className={`transition-transform duration-250 motion-reduce:transition-none ${splitsOpen ? 'rotate-180' : ''}`}
+            />
+          </Button>
+          <div
+            id={splitsId}
+            aria-hidden={!splitsOpen}
+            inert={!splitsOpen}
+            className={`grid transition-[grid-template-rows] duration-250 ease-out motion-reduce:transition-none ${splitsOpen ? 'grid-rows-[1fr]' : 'grid-rows-[0fr]'}`}
+          >
+            <div className="min-h-0 overflow-hidden">
+              <div
+                role="region"
+                aria-labelledby={`${splitsId}-toggle`}
+                tabIndex={splitsOpen ? 0 : -1}
+                className="mt-3 max-h-[min(16rem,25svh)] overflow-auto overscroll-contain rounded-lg border px-3 focus-visible:outline-2 focus-visible:outline-ring [&_thead]:sticky [&_thead]:top-0 [&_thead]:bg-background"
+              >
+                {splitTable}
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
+
       <div className="mt-8">
         {view && view.coordinates.length > 1 ? (
           <ActivityMap
@@ -382,32 +450,7 @@ export function ActivityPage() {
       {view && view.splits.length > 0 && (
         <div className="mt-8">
           <h2 className="mb-2 text-lg font-semibold">{t('activity.splits')}</h2>
-          <table className="w-full text-sm tabular-nums">
-            <thead className="text-left text-xs text-muted-foreground">
-              <tr>
-                <th className="py-1 font-normal">{t('activity.splitKm')}</th>
-                <th className="py-1 font-normal">{t('activity.splitPace')}</th>
-                <th className="py-1 font-normal">{t('activity.splitElevation')}</th>
-                {a.streams?.hr && <th className="py-1 font-normal">{t('activity.splitHr')}</th>}
-              </tr>
-            </thead>
-            <tbody className="divide-y">
-              {view.splits.map((s) => (
-                <tr key={s.km}>
-                  <td className="py-1.5">
-                    {s.distanceM < 950 ? number.format(s.distanceM / 1000) : s.km}
-                  </td>
-                  <td className="py-1.5">
-                    {formatSportPace(a.sport, s.durationS, s.distanceM, i18n.resolvedLanguage)}
-                  </td>
-                  <td className="py-1.5">
-                    {s.elevationM === null ? '–' : `${Math.round(s.elevationM)} m`}
-                  </td>
-                  {a.streams?.hr && <td className="py-1.5">{s.avgHr ?? '–'}</td>}
-                </tr>
-              ))}
-            </tbody>
-          </table>
+          {splitTable}
         </div>
       )}
     </section>
