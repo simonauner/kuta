@@ -149,6 +149,7 @@
     "network": "Kunde inte nå Kuta. Kontrollera anslutningen och försök igen.",
     "rateLimited": "För många försök. Försök igen om en stund.",
     "csrfFailed": "Säkerhetskontrollen misslyckades. Ladda om sidan.",
+    "internalError": "Ett oväntat fel inträffade. Försök igen om en stund.",
     "authUnavailable": "Inloggningen är tillfälligt otillgänglig. Försök igen om en stund.",
     "credentialsRequired": "Ange e-post och lösenord.",
     "weakPassword": "Lösenordet är för svagt. Använd minst 8 tecken.",

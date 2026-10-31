@@ -34,6 +34,16 @@ Passlistans `year=2024` begränsar både första och efterföljande sidor till d
 Årsväljaren visas när historiken innehåller flera år; ”Alla år” är standard. Valet sparas i
 appens URL (`/app/activities?year=2024`) och följer med till passsidan och tillbaka.
 
+## Applikationsloggar och integritet
+
+API:t ersätter .NET:s loggproviders med `PrivateLogProvider`. Den skriver bara fasta meddelanden för start, stopp och oväntade requestfel (500). Loggstate, scopes, kategorinamn, undantagsmeddelanden och stackspår renderas aldrig, även om loggnivån höjs. Start- och migreringsfel skrivs som fasta felmeddelanden; DbUp:s egen konsolloggning är avstängd. Samma skydd används lokalt och i drift.
+
+Inga request bodies, URL:er, querysträngar, headers, cookies, tokens, mejladresser, lösenord, puls, GPS-rutter, filnamn eller filinnehåll skrivs av applikationsloggningen. Automatiska HTTP-, databas- och ramverksloggar släpps inte igenom. Felsökning får därför börja med felstatus och syntetiska lokala reproduktioner.
+
+Nya logghändelser ska ha fasta meddelanden utan användarvärden och testas med känsliga syntetiska värden. Använd inte `Console.WriteLine`/stderr för dynamiska värden och lägg inte till andra loggproviders vid sidan av integritetsgränsen.
+
+Framtida loggmottagare får samla in den begränsade konsolutmatningen. En direkt SDK-integration som Sentry måste granskas separat: automatisk insamling av exceptions, requests, breadcrumbs, användarkontext och tracing passerar inte nödvändigtvis loggprovidern. Aktivera den inte utan en testad tillåtelselista för vad som får skickas. Detta skydd omfattar Kutas applikationsloggar, inte Flys egna proxy-/plattformloggar, Supabases loggar eller historiska loggar.
+
 ## Köra lokalt
 
 Kräver Docker, Supabase CLI, .NET SDK och nvm (Node-versionen står i `.nvmrc`). `global.json` väljer .NET SDK 10.0.402 eller senare stabil patch i 10.0.4xx-serien, både lokalt och i Dockerbygget. Allt startas med:

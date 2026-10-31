@@ -80,6 +80,10 @@ Kuta är en Strava-liknande löparapp: ladda upp pass från Garmin (FIT) eller l
 - **Data API är stängt:** migrering 003 återkallar `anon`/`authenticated` från allt i `public`, även framtida tabeller (default privileges). Lägg inte tillbaka grants; behövs direktåtkomst från webben senare, gör det medvetet med RLS-policies.
 - **Milen är 1609,344 m.** `best_efforts.distance_m = 1609` är bara en etikett; rekordmotorn räknar med exakt längd.
 
+## Loggning och integritet
+- Behåll `PrivateLogProvider` som API:ts enda loggprovider. Bara fasta tillåtna driftmeddelanden får skrivas; inga dynamiska värden, undantagsobjekt, scopes eller requestuppgifter. DbUp:s konsolloggning ska vara avstängd. Startfel ska också ge fasta meddelanden.
+- Nya logghändelser eller loggmottagare kräver test med syntetiska känsliga värden. Direkt integration av exempelvis Sentry måste även granska automatisk exception-, request-, breadcrumb- och trace-insamling; loggprovidern skyddar inte sådana sidokanaler. Se README för omfattning.
+
 ## Säkerhet (XSS/CSRF)
 - **CSRF:** sessionscookien är `SameSite=Lax` och alla skrivande `/api`-anrop kräver `X-CSRF-TOKEN`. GET-anrop får aldrig ändra data (undantagen är mejllänkarna `/api/auth/confirm` och `/api/auth/reset-password`, som verifierar engångstoken och skapar en session; själva lösenordsbytet kräver POST). Öppna inte CORS.
 - **XSS:** tokens ligger i HttpOnly-cookien och går inte att stjäla, men ett injicerat skript kan ändå anropa API:t som användaren. Förhindra XSS: rendera användardata som text i React, aldrig `dangerouslySetInnerHTML` med användardata, inga `javascript:`-länkar från användardata.

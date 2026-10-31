@@ -149,6 +149,7 @@
     "network": "Could not reach Kuta. Check your connection and try again.",
     "rateLimited": "Too many attempts. Please try again later.",
     "csrfFailed": "Security check failed. Reload the page.",
+    "internalError": "An unexpected error occurred. Please try again later.",
     "authUnavailable": "Login is temporarily unavailable. Please try again later.",
     "credentialsRequired": "Enter your email and password.",
     "weakPassword": "The password is too weak. Use at least 8 characters.",
