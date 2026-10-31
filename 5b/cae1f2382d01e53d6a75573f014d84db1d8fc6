@@ -8,6 +8,7 @@ api/Kuta.Api/StravaImport.cs
   s_eb96909e109727::t_d4dab3cb527029 137
 api/Kuta.Api/StravaImportEndpoint.cs
   s_eb96909e109727::t_a223caa273f86d 40,59,72,85
+  s_eb96909e109727::t_8d477a0a966f1a 43
 ---
 {
   "schema_version": "authorship/3.0.0",
