@@ -5,9 +5,8 @@ using Microsoft.AspNetCore.Authentication.Cookies;
 using Npgsql;
 
 public record UpdateMeRequest(string? DisplayName);
-public record Me(Guid Id, string? Email, string? DisplayName, bool HrConsent, string DefaultActivityPrivacy, string GoalPrivacy);
-public record Profile(string DisplayName, bool HrConsent, string DefaultActivityPrivacy, string GoalPrivacy);
-public record GoalPrivacyRequest(string? Privacy);
+public record Me(Guid Id, string? Email, string? DisplayName, bool HrConsent, string DefaultActivityPrivacy);
+public record Profile(string DisplayName, bool HrConsent, string DefaultActivityPrivacy);
 public record ActivityPrivacyRequest(string? Privacy, bool ApplyToAll = false);
 
 public static class MeEndpoints
@@ -75,21 +74,6 @@ public static class MeEndpoints
             return Results.Ok(await LoadAsync(conn, user));
         });
 
-        // Vem som ser målen på profilen; gäller alla mål direkt.
-        me.MapPut("/goal-privacy", async (GoalPrivacyRequest req, NpgsqlDataSource db, ClaimsPrincipal user,
-            CancellationToken ct) =>
-        {
-            if (!ActivityInput.IsValidPrivacy(req.Privacy))
-                return Results.BadRequest(new ApiError("Välj giltig synlighet.", "invalidPrivacy"));
-            await using var conn = await db.OpenConnectionAsync(ct);
-            var updated = await conn.ExecuteAsync(new CommandDefinition(
-                "update users set goal_privacy = @Privacy where id = @id",
-                new { id = user.GetUserId(), req.Privacy }, cancellationToken: ct));
-            return updated == 0
-                ? Results.Conflict(new ApiError("Välj ett namn först.", "nameRequired"))
-                : Results.Ok(await LoadAsync(conn, user));
-        });
-
         // Uttryckligt samtycke till att puls sparas (hälsodata). Första tidpunkten behålls.
         me.MapPut("/hr-consent", async (NpgsqlDataSource db, ClaimsPrincipal user) =>
         {
@@ -148,12 +132,11 @@ public static class MeEndpoints
 
     public static async Task<Profile?> LoadProfileAsync(NpgsqlConnection conn, Guid id) =>
         await conn.QuerySingleOrDefaultAsync<Profile>(
-            "select display_name, hr_consent_at is not null as hr_consent, default_activity_privacy, goal_privacy from users where id = @id", new { id });
+            "select display_name, hr_consent_at is not null as hr_consent, default_activity_privacy from users where id = @id", new { id });
 
     private static async Task<Me> LoadAsync(NpgsqlConnection conn, ClaimsPrincipal user)
     {
         var profile = await LoadProfileAsync(conn, user.GetUserId());
-        return new Me(user.GetUserId(), user.FindFirstValue(ClaimTypes.Email), profile?.DisplayName, profile?.HrConsent ?? false, profile?.DefaultActivityPrivacy ?? "private",
-            profile?.GoalPrivacy ?? "private");
+        return new Me(user.GetUserId(), user.FindFirstValue(ClaimTypes.Email), profile?.DisplayName, profile?.HrConsent ?? false, profile?.DefaultActivityPrivacy ?? "private");
     }
 }

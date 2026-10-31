@@ -14,10 +14,12 @@ import {
   goalMetrics,
   goalPeriodLabel,
   goalPeriods,
+  goalPrivacies,
   parseGoalInput,
   type Goal,
   type GoalMetric,
   type GoalPeriod,
+  type GoalPrivacy,
 } from '@/lib/goals'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
@@ -41,13 +43,21 @@ function useGoalText() {
       ...goalPeriodLabel(goal.period, goal.current.start, i18n.resolvedLanguage),
     })
   }
+  const privacyLabel = (privacy: GoalPrivacy) =>
+    t(
+      privacy === 'private'
+        ? 'social.private'
+        : privacy === 'followers'
+          ? 'social.followersVisibility'
+          : 'social.public',
+    )
   const groupLabel = (key: string | null) =>
     key === null ? t('activities.allSports') : sportGroupLabel(key, t)
-  return { t, i18n, amount, title, groupLabel }
+  return { t, i18n, amount, title, groupLabel, privacyLabel }
 }
 
-// Utan runnerId: egna mål, redigerbara via onSelect. Med runnerId: en annan löpares mål enligt dess synlighet
-// (tom lista när de är dolda), som visas utan redigering.
+// Utan runnerId: egna mål, redigerbara via onSelect. Med runnerId: löparens mål som besökaren får se enligt
+// varje måls synlighet, utan redigering.
 export function GoalList({
   onSelect,
   runnerId,
@@ -106,7 +116,7 @@ function GoalCard({
   iconSport: string | null
   onSelect?: () => void
 }) {
-  const { t, amount, title, groupLabel } = useGoalText()
+  const { t, amount, title, groupLabel, privacyLabel } = useGoalText()
   const reduceMotion = useReducedMotion()
   const { current, previous } = goal
   const fraction = goalFraction(current.value, goal.target)
@@ -138,6 +148,7 @@ function GoalCard({
             {groupLabel(goal.sportGroup)}
             {' · '}
             {goal.ended ? t('goals.ended') : t('goals.daysLeft', { count: daysLeft })}
+            {onSelect && ` · ${privacyLabel(goal.privacy)}`}
           </p>
         </div>
         {current.achieved && (
@@ -194,7 +205,7 @@ function GoalCard({
 }
 
 export function GoalDialog({ goal, onClose }: { goal: Goal | null; onClose: () => void }) {
-  const { t, i18n, title, groupLabel } = useGoalText()
+  const { t, i18n, title, groupLabel, privacyLabel } = useGoalText()
   const groups = useQuery(sportGroupsQuery)
   const queryClient = useQueryClient()
   const dialog = useRef<HTMLDialogElement>(null)
@@ -206,6 +217,7 @@ export function GoalDialog({ goal, onClose }: { goal: Goal | null; onClose: () =
   const [target, setTarget] = useState(goal ? goalInput(goal.metric, goal.target) : '')
   const [period, setPeriod] = useState<GoalPeriod>(goal?.period ?? 'week')
   const [recurring, setRecurring] = useState(goal?.recurring ?? true)
+  const [privacy, setPrivacy] = useState<GoalPrivacy>(goal?.privacy ?? 'private')
   const [confirmingDelete, setConfirmingDelete] = useState(false)
   const parsedTarget = parseGoalInput(metric, target)
 
@@ -220,6 +232,7 @@ export function GoalDialog({ goal, onClose }: { goal: Goal | null; onClose: () =
         period,
         target: parsedTarget,
         recurring,
+        privacy,
         timeZone: Intl.DateTimeFormat().resolvedOptions().timeZone,
       }),
     onSuccess: async () => {
@@ -344,6 +357,27 @@ export function GoalDialog({ goal, onClose }: { goal: Goal | null; onClose: () =
                 {goal && !goal.recurring ? t('goals.onceSaved') : t(`goals.onceCurrent.${period}`)}
               </option>
             </select>
+          </label>
+          <label className="col-span-2 space-y-2 text-sm font-medium">
+            {t('goals.visibility')}
+            <select
+              className={selectClass}
+              value={privacy}
+              aria-describedby="goal-visibility-help"
+              onChange={(e) => setPrivacy(e.currentTarget.value as GoalPrivacy)}
+            >
+              {goalPrivacies.map((value) => (
+                <option key={value} value={value}>
+                  {privacyLabel(value)}
+                </option>
+              ))}
+            </select>
+            <span
+              id="goal-visibility-help"
+              className="block text-xs font-normal text-muted-foreground"
+            >
+              {t('goals.visibilityHelp')}
+            </span>
           </label>
           {(save.error || remove.error) && (
             <p role="alert" className="col-span-2 text-sm text-destructive">

@@ -186,11 +186,11 @@ visar även förra periodens resultat när det nåddes och hur många perioder i
 (från två). Ett avslutat engångsmål visas nedtonat tills det tas bort. Klick på kortet öppnar
 redigering och borttagning i samma modal. Inga mål ger ingen sektion.
 
-**Profil → Inställningar → Målens synlighet** styr vem som ser målen: bara du (förval),
-godkända följare eller alla inloggade med länken. Valet sparas automatiskt och gäller alla mål
-direkt, utan val per mål. Den egna profilen och andra löpares profiler visar synliga mål med
-förlopp under rubriken Mål, utan redigering; dolda mål ger ingen sektion. Läsregeln är passens:
-ägaren, `public` för alla inloggade och `followers` bara vid godkänd följrelation.
+Varje mål har en egen synlighet i måldialogen: bara jag (förval), godkända följare eller alla
+inloggade med länken. Det finns ingen global inställning för mål. Egna målkort visar valet.
+Profiler visar de mål besökaren får se med förlopp under rubriken Mål, utan redigering; inga
+synliga mål ger ingen sektion. Läsregeln är passens: ägaren, `public` för alla inloggade och
+`followers` bara vid godkänd följrelation.
 
 Mål gäller [sportgrupper](#sportgrupper), inte exakta sporter, och dialogen visar vilka
 träningsformer den valda gruppen räknar.
@@ -209,24 +209,22 @@ API (inloggning krävs; skrivningar kräver CSRF; bara egna mål, andras ger 404
 - `GET /api/goals?timeZone=Europe%2FStockholm` ger målen med `current` och `previous`
   (`{ start, end, value, achieved }`, `end` exklusivt; `previous` är null för engångsmål och under startperioden),
   `streak` och `ended`.
-- `POST /api/goals` och `PUT /api/goals/{id}` tar `{ sportGroup, metric, period, target, recurring, timeZone }`.
+- `POST /api/goals` och `PUT /api/goals/{id}` tar `{ sportGroup, metric, period, target, recurring, timeZone, privacy }`.
+  Utelämnad `privacy` ger privat vid skapande och behåller valet vid redigering. Svaren har `privacy`.
   `sportGroup` är en gruppnyckel eller null = alla, `metric` är `distance`, `duration` eller `count`, `period` är `week`,
   `month` eller `year`, `target` i meter, sekunder eller hela pass (högst 100 000 000 m eller s, respektive
   10 000 pass). `timeZone` avgör startdatumet vid skapande. Ogiltiga värden ger `invalidGoal`.
 - `DELETE /api/goals/{id}`.
-- `GET /api/runners/{id}/goals?timeZone=…` ger samma målsvar för en löpare enligt dess
-  `goal_privacy`; dolda mål ger en tom lista och okänd löpare 404.
-- `PUT /api/me/goal-privacy` tar `{ privacy: "private" | "followers" | "public" }` och svarar
-  med `/api/me`, som har `goalPrivacy`. Ogiltigt värde ger `invalidPrivacy`.
+- `GET /api/runners/{id}/goals?timeZone=…` ger löparens mål som besökaren får se, filtrerade
+  per mål (ägaren ser alla); okänd löpare ger 404.
 
 Migrering 016 skapar `goals` med ägarkoppling, kaskadradering vid kontoradering och RLS utan
-Data API-grants; migrering 017 lägger till `users.goal_privacy`, som även ingår i exportens
-`profile.json`. Radering av alla pass behåller målen. Målen ingår i exportens `goals.json`.
+Data API-grants; migrering 017 lägger till `goals.privacy`, som även ingår i exportens `goals.json`. Radering av alla pass behåller målen. Målen ingår i exportens `goals.json`.
 Periodlogik, grupper och validering testas som enhetstester, summering per tidszon, sportgrupp, multisportdelar
 och ägarskap i lokal Postgres, och HTTP-testet täcker routing, statuskoder, svarskontrakt och
-att en annan användare varken ser eller ändrar målet. Synlighetsmatrisen (ägare, godkänd och
-väntande följare, okänd) testas i Postgres; ett HTTP-test visar att löparens mål döljs, att
-inställningen sparas och att målet sedan syns för en annan inloggad.
+att en annan användare varken ser eller ändrar målet. Synligheten per mål (ägare, godkänd och
+väntande följare, okänd, oförändrat val vid redigering) testas i Postgres; ett HTTP-test visar
+att en annan inloggad bara får löparens publika mål.
 
 ## Sportgrupper
 
@@ -464,7 +462,7 @@ till fältet; redan importerade dubbletter hoppas fortfarande över vid Strava-i
 - `profile.json`: id, e-postadress, visningsnamn, profilens skapandetid och tidpunkt för pulssamtycke.
 - `equipment.json`: all egen utrustning, även pensionerad, med startvärden och total användning.
 - `privacy-places.json`: egna dolda platser med namn, mittpunkt och radie. Listan ingår även utan pass.
-- `goals.json`: egna träningsmål med sportgrupp, typ, period, mål i SI-enheter, upprepning och startdatum.
+- `goals.json`: egna träningsmål med sportgrupp, typ, period, mål i SI-enheter, upprepning, startdatum och synlighet.
 - `activities/<id>.json`: källa, skapandetid, synlighet, Strava-ID, sökväg till råfilen (eller `null`), `activity` med samma passdetaljer som passsidan och `bestEfforts` med passets bästa insatser. Detaljerna innehåller beskrivning, taggar, utrustnings-ID:n, tidsserier, varv samt originaldelar och redigerade multisportdelar.
 - `raw/<id>.fit` eller `.gpx`: sparade råfiler med oförändrat innehåll. Manuella pass saknar råfil. Råfiler som inte sparats utan pulssamtycke, eller som raderats vid återkallat samtycke, kan inte exporteras. Gzip-filer från Strava har packats upp vid importen.
 
