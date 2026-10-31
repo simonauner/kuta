@@ -9,6 +9,7 @@ import { TagPicker } from '@/components/activity-tags'
 import { ErrorMessage } from '@/components/error-message'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
+import { meQuery } from '@/lib/auth'
 import { ApiError, api } from '@/lib/api'
 import { activityQuery } from '@/lib/activity-query'
 import { activityTitle, type ActivityDetail } from '@/lib/activity'
@@ -17,6 +18,7 @@ import { equipmentQuery, lastUsedShoeQuery } from '@/lib/equipment'
 export function EditActivityPage() {
   const { activityId } = useParams({ from: '/app/activities/$activityId/edit' })
   const activity = useQuery(activityQuery(activityId))
+  const { data: me } = useQuery(meQuery)
   const { t } = useTranslation()
   if (activity.isPending) return null
   if (activity.isError)
@@ -29,6 +31,7 @@ export function EditActivityPage() {
         )}
       </p>
     )
+  if (me?.id !== activity.data.userId) return <p role="alert">{t('activity.notFound')}</p>
   return <EditActivityForm key={activityId} activity={activity.data} />
 }
 
@@ -41,6 +44,7 @@ function EditActivityForm({ activity }: { activity: ActivityDetail }) {
   const [title, setTitle] = useState(activity.title ?? '')
   const [description, setDescription] = useState(activity.description ?? '')
   const [tags, setTags] = useState(activity.tags)
+  const [privacy, setPrivacy] = useState(activity.privacy)
   const [equipmentIds, setEquipmentIds] = useState(activity.equipmentIds)
   const destination = {
     to: '/app/activities/$activityId' as const,
@@ -50,6 +54,7 @@ function EditActivityForm({ activity }: { activity: ActivityDetail }) {
   const save = useMutation({
     mutationFn: (draft: MultisportDraft) =>
       api.send('PUT', `/api/activities/${activity.id}`, {
+        privacy,
         title,
         description,
         tags,
@@ -61,6 +66,7 @@ function EditActivityForm({ activity }: { activity: ActivityDetail }) {
       await Promise.all([
         queryClient.invalidateQueries({ queryKey: activityQuery(activity.id).queryKey }),
         queryClient.invalidateQueries({ queryKey: ['activities'] }),
+        queryClient.invalidateQueries({ queryKey: ['feed'] }),
         queryClient.invalidateQueries({ queryKey: ['records'] }),
         queryClient.invalidateQueries({ queryKey: equipmentQuery.queryKey }),
         queryClient.invalidateQueries({ queryKey: lastUsedShoeQuery.queryKey }),
@@ -99,6 +105,22 @@ function EditActivityForm({ activity }: { activity: ActivityDetail }) {
             disabled={save.isPending}
             className="w-full rounded-md border border-input bg-transparent px-3 py-2 text-base shadow-xs outline-none focus-visible:border-ring focus-visible:ring-[3px] focus-visible:ring-ring/50 md:text-sm dark:bg-input/30"
           />
+        </label>
+        <label className="block space-y-2 text-sm font-medium">
+          <span>{t('social.visibility')}</span>
+          <select
+            className="block w-full rounded-md border bg-background px-3 py-2"
+            value={privacy}
+            disabled={save.isPending}
+            onChange={(event) => setPrivacy(event.target.value as ActivityDetail['privacy'])}
+          >
+            <option value="private">{t('social.private')}</option>
+            <option value="followers">{t('social.followersVisibility')}</option>
+            <option value="public">{t('social.public')}</option>
+          </select>
+          <span className="block text-xs font-normal text-muted-foreground">
+            {t('social.sharingHint')}
+          </span>
         </label>
         <MultisportEditor
           activity={multisportView(activity, split)}

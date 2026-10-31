@@ -10,6 +10,7 @@ import { BackLink } from '@/components/back-link'
 import { MultisportEditor } from '@/components/multisport-editor'
 import { partStreams, sportNameKey, sportColors, type ActivityPart } from '@/lib/multisport'
 import { Button } from '@/components/ui/button'
+import { meQuery } from '@/lib/auth'
 import { equipmentQuery } from '@/lib/equipment'
 import { TagLabels } from '@/components/activity-tags'
 import { ActivityMap } from '@/components/activity-map'
@@ -41,6 +42,7 @@ export function ActivityPage() {
   const { activityId } = useParams({ from: '/app/activities/$activityId' })
   const { t, i18n } = useTranslation()
   const { year, tag } = useSearch({ from: '/app/activities/$activityId' })
+  const { data: me } = useQuery(meQuery)
   const equipment = useQuery(equipmentQuery)
   const [lapsOpen, setLapsOpen] = useState(false)
   const lapsId = useId()
@@ -171,7 +173,16 @@ export function ActivityPage() {
 
   return (
     <section>
-      <BackLink />
+      {original.userId === me?.id ? (
+        <BackLink />
+      ) : (
+        <Link
+          to="/app"
+          className="text-sm text-muted-foreground underline-offset-2 hover:underline"
+        >
+          ← {t('nav.feed')}
+        </Link>
+      )}
       <p className="mt-4 text-sm text-muted-foreground">{when.format(new Date(a.startedAt))}</p>
       <div className="mt-1 flex flex-wrap items-center justify-between gap-3">
         <h1 className="flex min-w-0 items-center gap-3 text-2xl font-semibold tracking-tight">
@@ -184,16 +195,23 @@ export function ActivityPage() {
             style={{ viewTransitionName: `activity-sport-${a.id}` }}
           />
         </h1>
-        <Button asChild size="sm" variant="outline" className="ml-auto">
-          <Link
-            to="/app/activities/$activityId/edit"
-            params={{ activityId: a.id }}
-            search={{ year, tag }}
-          >
-            {t('activity.edit')}
-          </Link>
-        </Button>
+        {original.userId === me?.id && (
+          <Button asChild size="sm" variant="outline" className="ml-auto">
+            <Link
+              to="/app/activities/$activityId/edit"
+              params={{ activityId: a.id }}
+              search={{ year, tag }}
+            >
+              {t('activity.edit')}
+            </Link>
+          </Button>
+        )}
       </div>
+      {original.userId !== me?.id && (
+        <p className="mt-3 text-sm text-muted-foreground">
+          {t('social.sharedDetail', { name: original.displayName })}
+        </p>
+      )}
       {a.device && <p className="mt-1 text-xs text-muted-foreground">{a.device}</p>}
 
       {a.description && (

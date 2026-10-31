@@ -7,9 +7,11 @@ import {
 import { Layout } from '@/components/layout'
 import { EditActivityPage } from '@/routes/edit-activity'
 import { ActivitiesPage } from '@/routes/activities'
+import { FollowersPage } from '@/routes/followers'
 import { FeedPage } from '@/routes/feed'
 import { NewActivityPage } from '@/routes/new-activity'
 import { EquipmentPage } from '@/routes/equipment'
+import { RunnerPage } from '@/routes/runner'
 import { ProfilePage } from '@/routes/profile'
 import { SettingsPage } from '@/routes/settings'
 import { StatsPage } from '@/routes/stats'
@@ -62,15 +64,27 @@ const profileRoute = createRoute({
   component: ProfilePage,
 })
 
+const runnerRoute = createRoute({
+  getParentRoute: () => rootRoute,
+  path: '/app/runners/$runnerId',
+  component: RunnerPage,
+})
+
 const settingsRoute = createRoute({
   getParentRoute: () => rootRoute,
   path: '/app/settings',
   component: SettingsPage,
 })
 
+const followersRoute = createRoute({
+  getParentRoute: () => rootRoute,
+  path: '/app/settings/followers',
+  component: FollowersPage,
+})
+
 const equipmentRoute = createRoute({
   getParentRoute: () => rootRoute,
-  path: '/app/profile/equipment',
+  path: '/app/settings/equipment',
   component: EquipmentPage,
 })
 
@@ -82,8 +96,10 @@ const routeTree = rootRoute.addChildren([
   editActivityRoute,
   statsRoute,
   profileRoute,
+  runnerRoute,
   equipmentRoute,
   settingsRoute,
+  followersRoute,
 ])
 
 export const router = createRouter({

@@ -23,6 +23,12 @@ export function EquipmentPage() {
           </BreadcrumbItem>
           <BreadcrumbSeparator />
           <BreadcrumbItem>
+            <BreadcrumbLink render={<Link to="/app/settings" activeOptions={{ exact: true }} />}>
+              {t('settings.title')}
+            </BreadcrumbLink>
+          </BreadcrumbItem>
+          <BreadcrumbSeparator />
+          <BreadcrumbItem>
             <BreadcrumbPage>{t('equipment.title')}</BreadcrumbPage>
           </BreadcrumbItem>
         </BreadcrumbList>

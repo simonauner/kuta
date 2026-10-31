@@ -121,6 +121,9 @@ export type ActivityLap = {
 }
 
 export type ActivityDetail = Activity & {
+  userId: string
+  displayName: string
+  privacy: 'private' | 'followers' | 'public'
   description: string | null
   movingS: number | null
   maxHr: number | null

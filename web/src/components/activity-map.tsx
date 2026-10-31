@@ -15,9 +15,11 @@ export function ActivityMap({
   coordinates,
   label,
   routes,
+  thumbnail = false,
 }: {
   coordinates: [number, number][]
   label: string
+  thumbnail?: boolean
   routes?: { coordinates: [number, number][]; color: string }[]
 }) {
   const container = useRef<HTMLDivElement>(null)
@@ -35,9 +37,10 @@ export function ActivityMap({
       fitBoundsOptions: { padding: 32 },
       attributionControl: { compact: true },
       // Scroll och ett finger flyttar sidan, inte kartan; zooma med Ctrl/Cmd + scroll eller två fingrar
-      cooperativeGestures: true,
+      cooperativeGestures: !thumbnail,
+      interactive: !thumbnail,
     })
-    map.addControl(new NavigationControl({ showCompass: false }))
+    if (!thumbnail) map.addControl(new NavigationControl({ showCompass: false }))
     map.on('load', () => {
       map.addSource('route', {
         type: 'geojson',
@@ -53,6 +56,13 @@ export function ActivityMap({
         },
       })
       map.addLayer({
+        id: 'route-outline',
+        type: 'line',
+        source: 'route',
+        layout: { 'line-join': 'round', 'line-cap': 'round' },
+        paint: { 'line-color': '#fff', 'line-width': 7, 'line-opacity': 0.9 },
+      })
+      map.addLayer({
         id: 'route',
         type: 'line',
         source: 'route',
@@ -61,14 +71,18 @@ export function ActivityMap({
       })
     })
     return () => map.remove()
-  }, [coordinates, routes])
+  }, [coordinates, routes, thumbnail])
 
   return (
     <div
       ref={container}
       role="img"
       aria-label={label}
-      className="h-72 max-h-[45svh] w-full overflow-hidden rounded-lg border sm:h-96"
+      className={
+        thumbnail
+          ? 'h-52 w-full overflow-hidden rounded-lg border sm:h-60'
+          : 'h-72 max-h-[45svh] w-full overflow-hidden rounded-lg border sm:h-96'
+      }
     />
   )
 }

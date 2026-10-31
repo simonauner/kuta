@@ -12,6 +12,7 @@ public class SecurityHeadersTests(KutaFactory factory) : IClassFixture<KutaFacto
         Assert.Equal("default-src 'none'; frame-ancestors 'none'", string.Join(",", response.Headers.GetValues("Content-Security-Policy")));
         Assert.Equal("nosniff", string.Join(",", response.Headers.GetValues("X-Content-Type-Options")));
         Assert.Equal("DENY", string.Join(",", response.Headers.GetValues("X-Frame-Options")));
+        Assert.True(response.Headers.CacheControl?.NoStore);
     }
 
     // Webben har sin CSP i HTML; headern lägger till frame-ancestors.

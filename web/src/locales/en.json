@@ -27,9 +27,6 @@
     "chartScale": "Scale: 0–{{max}}. All values are in the table below.",
     "method": "Time includes pauses. Pace is total time per kilometre for activities with distance and time. Lower pace means faster speed. Heart rate is weighted by activity duration, using only activities with saved heart rate. Missing values appear as –. All sports also combines pace and heart rate across sports. Months follow your device’s time zone."
   },
-  "profile": {
-    "description": "Your runner profile and equipment."
-  },
   "activities": {
     "year": "Year",
     "allYears": "All years",
@@ -257,7 +254,8 @@
     "invalidEquipmentInput": "Check the name, type and prior use.",
     "invalidActivityParts": "Check sports and boundaries. Legs must cover the entire recording without gaps or overlaps.",
     "invalidDescription": "The description can be at most 10,000 characters.",
-    "stravaImportInterrupted": "The import was interrupted. Saved activities are kept. Retry with the same file; duplicates are skipped."
+    "stravaImportInterrupted": "The import was interrupted. Saved activities are kept. Retry with the same file; duplicates are skipped.",
+    "invalidPrivacy": "Choose a valid visibility."
   },
   "home": "Kuta – home",
   "footer": {
@@ -280,7 +278,8 @@
     "account": "Account",
     "logout": "Log out",
     "importPreparing": "Uploading and reading the archive …",
-    "importProgress": "Processed {{processed}} of {{total}} activities"
+    "importProgress": "Processed {{processed}} of {{total}} activities",
+    "followers": "Followers"
   },
   "dangerZone": {
     "title": "Danger zone",
@@ -340,9 +339,9 @@
     "distance": "Total distance",
     "duration": "Total time (h:mm:ss)",
     "retired": "Retired",
-    "addInProfile": "Add it on your profile.",
     "loading": "Loading equipment…",
-    "choose": "Choose equipment"
+    "choose": "Choose equipment",
+    "addInSettings": "Add it in Settings."
   },
   "equipmentKinds": {
     "shoe": "Shoes"
@@ -389,5 +388,32 @@
     "distanceBySport": "Distance by sport",
     "confirmRestore": "Restoring will remove the split. Do you want to continue?",
     "restoreConfirm": "Restore"
+  },
+  "social": {
+    "follow": "Request to follow",
+    "pending": "Pending approval",
+    "approve": "Approve",
+    "decline": "Decline",
+    "cancel": "Cancel request",
+    "unfollow": "Unfollow",
+    "remove": "Remove follower",
+    "followers": "Followers and requests",
+    "following": "Following",
+    "noFollowers": "No followers or requests yet.",
+    "noFollowing": "You are not following anyone yet.",
+    "loading": "Loading …",
+    "visibility": "Visibility",
+    "private": "Only me",
+    "followersVisibility": "Approved followers",
+    "public": "Everyone on Kuta",
+    "sharingHint": "Shared activities show title, description and training data. Map previews hide at least 500 m around start and finish. Heart rate, the full GPS route and equipment remain visible only to you.",
+    "sharedDetail": "Shared by {{name}}. Heart rate, the full GPS route and equipment are visible only to the owner. The feed may show a map preview with start and finish hidden.",
+    "noActivities": "No activities to show.",
+    "runnerNotFound": "Runner not found.",
+    "shareProfile": "Share profile",
+    "profileLinkCopied": "Profile link copied.",
+    "profileLinkCopyFailed": "Could not copy the link. You can copy it from the field below.",
+    "profileLink": "Profile link",
+    "profileLinksHint": "To follow someone, open their shared profile link. You can copy your own link from your profile."
   }
 }

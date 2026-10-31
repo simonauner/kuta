@@ -116,6 +116,7 @@ static async Task<int> RunAsync(string[] args)
             var api = context.Request.Path.StartsWithSegments("/api");
             var headers = context.Response.Headers;
             headers.ContentSecurityPolicy = api ? "default-src 'none'; frame-ancestors 'none'" : "frame-ancestors 'none'";
+            if (api) headers.CacheControl = "no-store";
             headers.XContentTypeOptions = "nosniff";
             headers.XFrameOptions = "DENY";
             headers["Referrer-Policy"] = api ? "no-referrer" : "strict-origin-when-cross-origin";
@@ -230,13 +231,14 @@ static async Task<int> RunAsync(string[] args)
     api.MapMe();
 
     api.MapActivities();
+    api.MapSocial();
     api.MapEquipment();
     api.MapBestEfforts();
 
     app.MapFallbackToFile("/privacy", "privacy.html", staticFiles);
 
     // De publika sidorna är statiska; bara appens kända sökvägar får React-skalet.
-    foreach (var path in new[] { "/app", "/app/activities", "/app/activities/new", "/app/activities/{activityId:guid}", "/app/activities/{activityId:guid}/edit", "/app/stats", "/app/profile", "/app/profile/equipment", "/app/settings" })
+    foreach (var path in new[] { "/app", "/app/activities", "/app/activities/new", "/app/activities/{activityId:guid}", "/app/activities/{activityId:guid}/edit", "/app/stats", "/app/profile", "/app/settings/equipment", "/app/settings/followers", "/app/runners/{runnerId:guid}", "/app/settings" })
         app.MapFallbackToFile(path, "app.html", staticFiles);
 
     await app.RunAsync();

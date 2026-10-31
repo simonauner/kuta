@@ -26,14 +26,14 @@ public class WebRoutingTests
                 Assert.Contains("Privacy policy", html);
                 Assert.DoesNotContain("App shell", html);
             }
-            foreach (var path in new[] { "/app", "/app/", "/app/activities", "/app/activities/new", $"/app/activities/{Guid.NewGuid()}", $"/app/activities/{Guid.NewGuid()}/edit", "/app/stats", "/app/profile", "/app/profile/equipment", "/app/settings", "/app?confirm=failed", "/app?reset=password", "/app?reset=failed" })
+            foreach (var path in new[] { "/app", "/app/", "/app/activities", "/app/activities/new", $"/app/activities/{Guid.NewGuid()}", $"/app/activities/{Guid.NewGuid()}/edit", "/app/stats", "/app/profile", "/app/settings/equipment", "/app/settings/followers", $"/app/runners/{Guid.NewGuid()}", "/app/settings", "/app?confirm=failed", "/app?reset=password", "/app?reset=failed" })
             {
                 var html = await client.GetStringAsync(path, ct);
                 Assert.Contains("App shell", html);
                 Assert.Contains("noindex", html);
                 Assert.DoesNotContain("Public landing", html);
             }
-            foreach (var path in new[] { "/finns-inte", "/app/finns-inte", "/api/finns-inte", "/pass", "/statistik", "/profil", "/app/pass", "/app/statistik", "/app/profil", "/app/activities/finns-inte" })
+            foreach (var path in new[] { "/finns-inte", "/app/finns-inte", "/api/finns-inte", "/pass", "/statistik", "/profil", "/app/pass", "/app/statistik", "/app/profil", "/app/activities/finns-inte", "/app/runners/finns-inte", "/app/profile/equipment", "/app/settings/finns-inte" })
                 Assert.Equal(HttpStatusCode.NotFound, (await client.GetAsync(path, ct)).StatusCode);
         }
         finally

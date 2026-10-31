@@ -15,7 +15,7 @@ public record ActivitySummary(
 public record ActivityDetail(
     Guid Id, string Sport, string? Title, System.DateTime StartedAt, int DurationS, int? MovingS, double DistanceM,
     short? AvgHr, short? MaxHr, float? AvgSpeedMps, float? ElevationGainM, string? Device, ActivityStreams? Streams,
-    IEnumerable<ActivityLap> Laps, string[] Tags, Guid[] EquipmentIds, ActivityPart[] Parts, bool PartsEdited, bool CanSplit, string? Description, ActivityPart[] OriginalParts, string OriginalSport);
+    IEnumerable<ActivityLap> Laps, string[] Tags, Guid[] EquipmentIds, ActivityPart[] Parts, bool PartsEdited, bool CanSplit, string? Description, ActivityPart[] OriginalParts, string OriginalSport, Guid UserId, string DisplayName, string Privacy);
 
 // Det som formuläret förifylls med från en FIT-fil
 public record ActivityPreview(
@@ -31,7 +31,7 @@ public record ActivityLap(
     short LapIndex, int StartS, int DurationS, int? MovingS, double DistanceM, short? AvgHr, short? MaxHr,
     float? AscentM, float? DescentM, short? AvgCadence);
 
-public record ActivityUpdateRequest(string? Title, string? Description, string[] Tags, Guid[] EquipmentIds, MultisportRequest? Multisport = null, bool RestoreParts = false);
+public record ActivityUpdateRequest(string? Title, string? Description, string[] Tags, Guid[] EquipmentIds, MultisportRequest? Multisport = null, bool RestoreParts = false, string? Privacy = null);
 
 public static class ActivityEndpoints
 {
@@ -88,20 +88,20 @@ public static class ActivityEndpoints
                 sport, cancellationToken));
         });
 
-        // Ett eget pass med tidsserier för passsidan. Någon annans pass ger 404, som ett som inte finns.
+        // Shared activities use the same read rule as the feed; private activities still return 404.
         // shortcut: skickar alla mätpunkter (ett sexttimmarspass ≈ 1–2 MB JSON); glesa ut eller komprimera när det märks.
         activities.MapGet("/{id:guid}", async (Guid id, NpgsqlDataSource db, ClaimsPrincipal user,
             CancellationToken cancellationToken) =>
         {
             await using var conn = await db.OpenConnectionAsync(cancellationToken);
             await using var command = new NpgsqlCommand(
-                """
+                $"""
                 select a.id, a.sport, a.title, a.started_at, a.duration_s, a.moving_s, coalesce((select sum(p.distance_m) from activity_parts p where p.activity_id = a.id and p.original = not a.parts_edited), a.distance_m), a.avg_hr, a.max_hr,
                        a.avg_speed_mps, a.elevation_gain_m, a.device, s.t, s.dist, s.hr, s.speed, s.alt, s.lat, s.lon,
                        s.cadence, s.temp, a.tags,
-                       array(select equipment_id from activity_equipment where activity_id = a.id order by equipment_id) as equipment_ids, a.parts_edited, a.description, coalesce(a.original_sport, a.sport)
-                from activities a left join activity_streams s on s.activity_id = a.id
-                where a.id = @id and a.user_id = @userId
+                       array(select equipment_id from activity_equipment where activity_id = a.id order by equipment_id) as equipment_ids, a.parts_edited, a.description, coalesce(a.original_sport, a.sport), a.user_id, u.display_name, a.privacy
+                from activities a join users u on u.id = a.user_id left join activity_streams s on s.activity_id = a.id
+                where a.id = @id and {SocialEndpoints.CanRead}
                 """, conn);
             command.Parameters.AddWithValue("id", id);
             command.Parameters.AddWithValue("userId", user.GetUserId());
@@ -120,14 +120,20 @@ public static class ActivityEndpoints
                     reader.GetGuid(0), reader.GetString(1), Value<string>(2),
                     System.DateTime.SpecifyKind(reader.GetDateTime(3), DateTimeKind.Utc), reader.GetInt32(4),
                     Value<int?>(5), reader.GetDouble(6), Value<short?>(7), Value<short?>(8), Value<float?>(9),
-                    Value<float?>(10), Value<string>(11), streams, [], reader.GetFieldValue<string[]>(21), reader.GetFieldValue<Guid[]>(22), [], reader.GetBoolean(23), streams is not null && Multisport.CanSplit(streams.T, streams.Dist), Value<string>(24), [], reader.GetString(25));
+                    Value<float?>(10), Value<string>(11), streams, [], reader.GetFieldValue<string[]>(21), reader.GetFieldValue<Guid[]>(22), [], reader.GetBoolean(23), streams is not null && Multisport.CanSplit(streams.T, streams.Dist), Value<string>(24), [], reader.GetString(25), reader.GetGuid(26), reader.GetString(27), reader.GetString(28));
             }
             var laps = await conn.QueryAsync<ActivityLap>(
                 """
                 select lap_index, start_s, duration_s, moving_s, distance_m, avg_hr, max_hr, ascent_m, descent_m, avg_cadence
                 from activity_laps where activity_id = @id order by lap_index
                 """, new { id });
-            return Results.Ok(detail with { Laps = laps, Parts = await Multisport.LoadAsync(conn, id), OriginalParts = await Multisport.LoadAsync(conn, id, original: true) });
+            detail = detail with { Laps = laps, Parts = await Multisport.LoadAsync(conn, id), OriginalParts = await Multisport.LoadAsync(conn, id, original: true) };
+            // Full GPS streams and heart rate remain owner-only; feed map previews have separate privacy clipping.
+            if (detail.UserId != user.GetUserId())
+                detail = detail with { AvgHr = null, MaxHr = null, Device = null, EquipmentIds = [],
+                    Streams = detail.Streams is { } streams ? streams with { Hr = null, Lat = null, Lon = null } : null,
+                    Laps = detail.Laps.Select(l => l with { AvgHr = null, MaxHr = null }).ToArray() };
+            return Results.Ok(detail);
         });
 
         // Förhandsvisning för formuläret "Skapa ny aktivitet": tolkar filen utan att spara något.
@@ -218,6 +224,8 @@ public static class ActivityEndpoints
         activities.MapPut("/{id:guid}", async (Guid id, ActivityUpdateRequest req,
             NpgsqlDataSource db, ClaimsPrincipal user) =>
         {
+            if (req.Privacy is not null && req.Privacy is not ("private" or "followers" or "public"))
+                return Results.BadRequest(new ApiError("Välj giltig synlighet.", "invalidPrivacy"));
             if (req.Tags is null) return Results.BadRequest(new ApiError("Välj giltiga taggar.", "invalidTags"));
             if ((ActivityInput.ValidateTitle(req.Title) ?? ActivityInput.ValidateDescription(req.Description) ?? ActivityInput.ValidateTags(req.Tags)) is { } invalid) return Results.BadRequest(invalid);
             if (req.EquipmentIds is null) return Results.BadRequest(EquipmentEndpoints.InvalidEquipment);
@@ -237,8 +245,8 @@ public static class ActivityEndpoints
             await conn.ExecuteAsync("delete from activity_equipment where activity_id = @id and user_id = @userId",
                 new { id, userId }, tx);
             await EquipmentEndpoints.AttachAsync(conn, tx, id, userId, req.EquipmentIds);
-            await conn.ExecuteAsync("update activities set title = @title, description = @description, tags = @tags where id = @id and user_id = @userId",
-                new { id, userId, title = ActivityInput.NormalizeTitle(req.Title), description = ActivityInput.NormalizeDescription(req.Description), tags = ActivityInput.NormalizeTags(req.Tags) }, tx);
+            await conn.ExecuteAsync("update activities set title = @title, description = @description, tags = @tags, privacy = coalesce(@Privacy, privacy) where id = @id and user_id = @userId",
+                new { id, userId, req.Privacy, title = ActivityInput.NormalizeTitle(req.Title), description = ActivityInput.NormalizeDescription(req.Description), tags = ActivityInput.NormalizeTags(req.Tags) }, tx);
             await tx.CommitAsync();
             return Results.NoContent();
         });

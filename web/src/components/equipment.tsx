@@ -377,8 +377,8 @@ export function EquipmentPicker({
       {equipment.data?.length === 0 && (
         <p className="text-sm text-muted-foreground">
           {t('equipment.empty')}{' '}
-          <Link to="/app/profile/equipment" className="underline underline-offset-2">
-            {t('equipment.addInProfile')}
+          <Link to="/app/settings/equipment" className="underline underline-offset-2">
+            {t('equipment.addInSettings')}
           </Link>
         </p>
       )}
