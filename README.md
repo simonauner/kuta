@@ -426,6 +426,8 @@ Alla anrop kräver inloggning och ger bara den egna användarens data:
 | `GET /api/activities/{id}/best-efforts` | Passets bästa insatser, sorterade på distans; 404 för okänt eller annans pass. |
 | `GET /api/records` | Snabbaste insatsen per distans; vid lika tid väljs den tidigaste. |
 | `GET /api/records?year=2026` | Samma urval inom UTC-kalenderåret då insatsen började. |
+| `GET /api/records/trend?distanceM=5000&timeZone=Europe/Stockholm` | `months`: bästa insatsen per lokal kalendermånad (bara månader med insatser). `progression`: rekordhistoriken, varje insats som var strikt snabbare än alla tidigare; lika tid behåller det äldre rekordet. 400 för annan distans än etiketterna ovan eller ogiltig tidszon. |
+| `GET /api/records/predictions` | Loppprognos: `basis` (underlagets insats), `vdot` och `predictions` med `distanceM`/`elapsedS` för alla rekorddistanser. Tomt underlag ger `null` och en tom lista. |
 | `POST /api/activities/{id}/best-efforts/recalculate` | Ersätter passets insatser från sparade tidsserier; 204 vid framgång, annars 404 för okänt eller annans pass. Kräver `X-CSRF-TOKEN`. |
 
 Omberäkningen kan upprepas efter ändrad beräkningslogik och fungerar även utan
@@ -433,6 +435,15 @@ sparad råfil eller pulssamtycke. Kör den för befintliga pass som importerats 
 rekordmotorn infördes; de fylls inte automatiskt i vid migreringen. Pass utan
 distansström och andra sporter ger en tom lista. Person- och årsbästa beräknas från
 `best_efforts`, så borttagning av ett pass gör att nästa bästa insats tar över direkt.
+
+Prognosen (`RacePredictor`) använder Jack Daniels och Jimmy Gilberts formler: syreupptag
+vid farten och andel av maxkapaciteten under tiden ger VDOT, och samma VDOT ger
+likvärdiga tider på andra distanser (bisektion över tiden). Underlaget är insatsen med
+högst VDOT bland 5 km och längre de senaste 90 dagarna (lika VDOT: den senaste);
+kortare insatser ur intervallpass överskattar uthålligheten. VDOT över 90, över
+världsrekordnivå, behandlas som mätfel. Statistiksidan visar personbästa och årsbästa
+per distans, ett diagram med månadsbästa och rekordtrappa, rekordhistoriken som tabell
+och prognosen.
 
 Beräkningstesterna jämför också med en uttömmande referensberäkning på oregelbundna
 strömmar. Integrationstesterna använder syntetiska FIT-filer skapade med Garmins SDK

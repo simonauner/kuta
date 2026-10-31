@@ -32,6 +32,17 @@ public class BestEffortTests(KutaFactory factory) : IClassFixture<KutaFactory>
             Assert.Empty((await other.GetFromJsonAsync<StoredBestEffort[]>("/api/records?tag=race", ct))!);
             Assert.Equal(HttpStatusCode.BadRequest, (await owner.GetAsync("/api/records?tag=unknown", ct)).StatusCode);
 
+            var trend = (await owner.GetFromJsonAsync<RecordTrend>("/api/records/trend?distanceM=5000&timeZone=Europe/Stockholm", ct))!;
+            Assert.Equal(new[] { (2026, 1), (2027, 1) }, trend.Months.Select(m => (m.Year, m.Month)));
+            Assert.Equal(first.Id, Assert.Single(trend.Progression).ActivityId);
+            Assert.Equal(HttpStatusCode.BadRequest, (await owner.GetAsync("/api/records/trend?distanceM=3000", ct)).StatusCode);
+            Assert.Equal(HttpStatusCode.BadRequest,
+                (await owner.GetAsync("/api/records/trend?distanceM=5000&timeZone=Nowhere", ct)).StatusCode);
+            var predictions = (await owner.GetFromJsonAsync<RacePredictions>("/api/records/predictions", ct))!;
+            Assert.Null(predictions.Basis); // passen ligger utanför fönstret
+            Assert.Equal(HttpStatusCode.Unauthorized, (await anonymous.GetAsync("/api/records/trend?distanceM=5000", ct)).StatusCode);
+            Assert.Equal(HttpStatusCode.Unauthorized, (await anonymous.GetAsync("/api/records/predictions", ct)).StatusCode);
+
 
             var efforts = (await owner.GetFromJsonAsync<StoredBestEffort[]>($"/api/activities/{first.Id}/best-efforts", ct))!;
             Assert.Equal(new[] { 1000, 1609, 5000 }, efforts.Select(e => e.DistanceM));
