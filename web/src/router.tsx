@@ -74,6 +74,12 @@ const equipmentRoute = createRoute({
   component: EquipmentPage,
 })
 
+const privacyPlacesRoute = createRoute({
+  getParentRoute: () => rootRoute,
+  path: '/app/settings/privacy-places',
+  component: lazyRouteComponent(() => import('@/routes/privacy-places'), 'PrivacyPlacesPage'),
+})
+
 const routeTree = rootRoute.addChildren([
   feedRoute,
   activitiesRoute,
@@ -84,6 +90,7 @@ const routeTree = rootRoute.addChildren([
   profileRoute,
   equipmentRoute,
   settingsRoute,
+  privacyPlacesRoute,
 ])
 
 export const router = createRouter({

@@ -51,6 +51,14 @@ export function SettingsPage() {
         <LanguageSelect />
       </div>
 
+      <Link
+        to="/app/settings/privacy-places"
+        className="mt-8 flex items-center justify-between rounded-lg border p-4 font-medium hover:bg-accent focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-ring"
+      >
+        {t('privacyPlaces.title')}
+        <span aria-hidden="true">→</span>
+      </Link>
+
       <section aria-labelledby="health-heading" className="mt-8 border-t pt-6">
         <h2 id="health-heading" className="text-lg font-semibold">
           {t('settings.health')}

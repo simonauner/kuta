@@ -256,6 +256,7 @@ public static class ActivityEndpoints
         command.Parameters.AddWithValue("id", id);
         command.Parameters.AddWithValue("userId", userId);
         ActivityDetail detail;
+        Guid ownerId;
         await using (var reader = await command.ExecuteReaderAsync(cancellationToken))
         {
             if (!await reader.ReadAsync(cancellationToken)) return null;
@@ -266,13 +267,15 @@ public static class ActivityEndpoints
                 reader.GetFieldValue<int[]>(12), Value<float?[]>(13), Value<short?[]>(14), Value<float?[]>(15),
                 Value<float?[]>(16), Value<double?[]>(17), Value<double?[]>(18), Value<short?[]>(19),
                 Value<short?[]>(20));
-            streams = RoutePrivacy.ForViewer(streams, reader.GetGuid(26), userId);
+            ownerId = reader.GetGuid(26);
             detail = new ActivityDetail(
                 reader.GetGuid(0), reader.GetString(1), Value<string>(2),
                 System.DateTime.SpecifyKind(reader.GetDateTime(3), DateTimeKind.Utc), reader.GetInt32(4),
                 Value<int?>(5), reader.GetDouble(6), Value<short?>(7), Value<short?>(8), Value<float?>(9),
                 Value<float?>(10), Value<string>(11), streams, [], reader.GetFieldValue<string[]>(21), reader.GetFieldValue<Guid[]>(22), [], reader.GetBoolean(23), streams is not null && Multisport.CanSplit(streams.T, streams.Dist), Value<string>(24), [], reader.GetString(25));
         }
+        var places = ownerId == userId ? [] : await PrivacyPlaces.LoadAsync(conn, ownerId, cancellationToken, tx);
+        detail = detail with { Streams = RoutePrivacy.ForViewer(detail.Streams, ownerId, userId, places) };
         var laps = await conn.QueryAsync<ActivityLap>(
             """
             select lap_index, start_s, duration_s, moving_s, distance_m, avg_hr, max_hr, ascent_m, descent_m, avg_cadence

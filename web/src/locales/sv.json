@@ -257,7 +257,8 @@
     "invalidEquipmentInput": "Kontrollera namn, typ och tidigare användning.",
     "invalidActivityParts": "Kontrollera sporter och gränser. Delarna måste täcka hela inspelningen utan luckor eller överlapp.",
     "invalidDescription": "Beskrivningen får vara högst 10 000 tecken.",
-    "stravaImportInterrupted": "Importen avbröts. Redan sparade pass finns kvar. Försök igen med samma fil; dubbletter hoppas över."
+    "stravaImportInterrupted": "Importen avbröts. Redan sparade pass finns kvar. Försök igen med samma fil; dubbletter hoppas över.",
+    "invalidPrivacyPlace": "Ange ett namn, en giltig kartpunkt och en radie mellan 50 och 5 000 meter."
   },
   "home": "Kuta – startsida",
   "footer": {
@@ -280,7 +281,7 @@
     "importEquipmentResult": "Skor importerade: {{imported}}. Tidigare pass kompletterade med skor: {{linked}}.",
     "failedImports": "Strava-ID för pass som inte kunde importeras",
     "exportTitle": "Exportera data",
-    "exportHelp": "Ladda ner en ZIP med dina pass som JSON, inklusive mätserier, varv, taggar och utrustning, samt din profil och dina rekord. Sparade originalfiler följer med. Manuella pass saknar originalfil, och filer som inte sparats eller har raderats när pulssamtycket återkallats kan inte exporteras.",
+    "exportHelp": "Ladda ner en ZIP med dina pass som JSON, inklusive mätserier, varv, taggar och utrustning, samt din profil och dina rekord. Sparade originalfiler följer med. Manuella pass saknar originalfil, och filer som inte sparats eller har raderats när pulssamtycket återkallats kan inte exporteras. Dina dolda platser ingår också.",
     "export": "Ladda ner ZIP",
     "exporting": "Förbereder export …",
     "exportWait": "Det kan ta flera minuter. Låt sidan vara öppen tills nedladdningen börjar.",
@@ -400,5 +401,39 @@
     "distanceBySport": "Distans per sport",
     "confirmRestore": "Återställa kommer ta bort uppdelningen. Vill du fortsätta?",
     "restoreConfirm": "Återställ"
+  },
+  "privacyPlaces": {
+    "title": "Dolda platser",
+    "help": "Dölj ruttdelar nära till exempel hemmet och arbetsplatsen, även på äldre pass. Du ser alltid hela rutten. Delning är ännu inte tillgänglig.",
+    "add": "Lägg till plats",
+    "edit": "Redigera plats",
+    "delete": "Ta bort",
+    "editNamed": "Redigera {{name}}",
+    "deleteNamed": "Ta bort {{name}}",
+    "deleteHelp": "Området döljs inte längre för andra när delning blir tillgänglig, även på äldre pass. Övriga dolda platser behålls.",
+    "empty": "Inga dolda platser. Lägg till en plats för att skydda rutter i närheten.",
+    "name": "Namn",
+    "namePlaceholder": "Hem eller arbetsplats",
+    "radius": "Radie (meter, 50–5 000)",
+    "radiusValue": "{{radius}} m radie",
+    "latitude": "Latitud",
+    "longitude": "Longitud",
+    "map": "Välj en dold plats på kartan",
+    "mapHelp": "Klicka på kartan för att välja en plats, eller panorera med piltangenterna och använd kartans mittpunkt. Du kan också ange koordinater nedan.",
+    "useCenter": "Använd kartans mittpunkt",
+    "mapPrivacy": "Platserna är privata. Kartleverantören OpenFreeMap kan se området du tittar på.",
+    "save": "Spara plats",
+    "saving": "Sparar…",
+    "cancel": "Avbryt",
+    "deleting": "Tar bort…",
+    "loading": "Laddar platser…",
+    "loadingMap": "Laddar karta…",
+    "mapUnavailable": "Kartan kunde inte laddas. Du kan fortfarande ange koordinater nedan.",
+    "useLocation": "Använd min plats",
+    "locating": "Hämtar din plats…",
+    "locationDenied": "Platsåtkomst nekades. Tillåt platsåtkomst i webbläsaren eller välj en punkt på kartan.",
+    "locationUnavailable": "Din plats kunde inte hämtas. Försök igen eller välj en punkt på kartan.",
+    "locationTimeout": "Det tog för lång tid att hämta din plats. Försök igen eller välj en punkt på kartan.",
+    "locationUnsupported": "Platsåtkomst är inte tillgänglig i den här webbläsaren. Välj en punkt på kartan."
   }
 }

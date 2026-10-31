@@ -22,6 +22,7 @@ public class DataExportTests(KutaFactory factory) : IClassFixture<KutaFactory>
             foreach (var userId in users)
             {
                 await CreateProfileAsync(conn, userId);
+                var place = await PrivacyPlaces.CreateAsync(conn, userId, new PrivacyPlaceRequest("Synthetic home", 59, 18), ct);
                 var shoeId = await conn.ExecuteScalarAsync<Guid>("""
                     insert into equipment (user_id, name, kind) values (@userId, 'Synthetic shoe', 'shoe') returning id
                     """, new { userId });
@@ -43,7 +44,9 @@ public class DataExportTests(KutaFactory factory) : IClassFixture<KutaFactory>
 
                 await using var archive = await DataExport.CreateAsync(conn, store, userId, ct);
                 using var zip = new ZipArchive(archive, ZipArchiveMode.Read, leaveOpen: true);
-                Assert.Equal(5, zip.Entries.Count);
+                Assert.Equal(6, zip.Entries.Count);
+                var places = await ReadJsonAsync(zip, "privacy-places.json", ct);
+                Assert.Equal(place.Id, Assert.Single(places.EnumerateArray()).GetProperty("id").GetGuid());
                 var profile = await ReadJsonAsync(zip, "profile.json", ct);
                 Assert.Equal(userId, profile.GetProperty("id").GetGuid());
                 Assert.False(profile.TryGetProperty("password", out _));
@@ -151,7 +154,7 @@ public class DataExportTests(KutaFactory factory) : IClassFixture<KutaFactory>
             Assert.Contains("kuta-export.zip", response.Content.Headers.ContentDisposition!.ToString());
             await using var stream = await response.Content.ReadAsStreamAsync(ct);
             using var zip = new ZipArchive(stream);
-            Assert.Equal(2, zip.Entries.Count);
+            Assert.Equal(3, zip.Entries.Count);
             Assert.Equal(email, (await ReadJsonAsync(zip, "profile.json", ct)).GetProperty("email").GetString());
         }
         finally { await conn.ExecuteAsync("delete from auth.users where email = @email", new { email }); }

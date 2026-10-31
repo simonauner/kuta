@@ -14,7 +14,7 @@ Policyn är ett utkast inför Garminansökan. Verifierat underlag, beslut, förs
 
 React-appen öppnas på `/app`, med vyerna `/app/activities`, `/app/stats` samt `/app/profile` och `/app/settings`. `web/app.html` har `noindex`. Mejlets bekräftelselänk återvänder till `/app`. Vite bygger de tre HTML-filerna, och .NET serverar dem från samma origin. PWA:n startar på `/app` och använder bara appskalet som navigeringsfallback inom `/app`.
 
-Profil visar löparens namn och länkar till Utrustning på `/app/profile/equipment`. Kugghjulet öppnar Inställningar på `/app/settings`, med språkval, pulssamtycke, Strava-import, dataexport, e-postadress, utloggning och Danger zone för att radera alla pass eller kontot. Vanlig FIT-uppladdning och manuell registrering nås via Pass → Skapa ny aktivitet. Pulssamtycket kan ändras med samma checkbox både i filmodalen och under Inställningar. Checkboxen visas även när samtycket redan är givet.
+Profil visar löparens namn och länkar till Utrustning på `/app/profile/equipment`. Kugghjulet öppnar Inställningar på `/app/settings`, med språkval, dolda platser, pulssamtycke, Strava-import, dataexport, e-postadress, utloggning och Danger zone för att radera alla pass eller kontot. Vanlig FIT-uppladdning och manuell registrering nås via Pass → Skapa ny aktivitet. Pulssamtycket kan ändras med samma checkbox både i filmodalen och under Inställningar. Checkboxen visas även när samtycket redan är givet.
 
 ## Språk och URL:er
 
@@ -47,20 +47,39 @@ splitstabellen utelämnas. En avslutande rest under 50 meter visas inte.
 Diagram använder kilometer som x-axel när distansen ökar utan återställningar,
 annars förfluten tid. Tidsaxelns etikett följer appens valda språk.
 
-## Dolda start- och slutzoner
+## Dolda platser
 
 Pass är fortfarande bara åtkomliga för ägaren, även om databasens `privacy` har värdet
 `followers` eller `public`. Delning och följarrelationer är ännu inte implementerade.
-API:ts detaljsvar använder `RoutePrivacy.ForViewer` med databasens ägare och inloggad
-mottagare. Ägaren får originalet; för andra mottagare ersätts GPS-koordinater inom
-200 meter från första och sista giltiga GPS-punkten med `null`, även vid återbesök.
-Korta pass kan därför sakna synlig rutt. Saknade eller ogiltiga koordinater döljs också.
+**Profil → Inställningar → Dolda platser** öppnar `/app/settings/privacy-places`, med
+brödsmulan Inställningar → Dolda platser, där användaren kan spara flera namngivna
+platser, till exempel Hem och Arbetsplats. Kartpunkten väljs genom klick, kartans
+mittpunkt, webbläsarens platsåtkomst via **Använd min plats**, eller koordinatfält.
+Platsåtkomst begärs bara vid knapptryck och hämtar en enda aktuell position, med
+hög noggrannhet och 10 sekunders timeout. Punkten sparas först med Spara plats. Nekad/otillgänglig platsåtkomst och timeout visas
+på valt språk utan att tidigare koordinater skrivs över. Varje plats har en radie på 50–5 000 meter, förval 200.
+Platser kan redigeras och tas bort. Bara ägaren kan läsa och ändra dem via
+`GET`/`POST /api/me/privacy-places` och `PUT`/`DELETE /api/me/privacy-places/{id}`.
+Listan har `Cache-Control: no-store`. Migrering 014 skapar `privacy_places` med
+ägarkoppling, kaskadradering, koordinat-/radiekrav och RLS utan Data API-grants.
+
+API:ts detaljsvar använder `RoutePrivacy.ForViewer` med databasens ägare, inloggad
+mottagare och ägarens aktuella platser. Ägaren får originalet; för andra mottagare
+ersätts GPS-koordinater inom någon av platsernas cirklar med `null`, även vid återbesök
+mitt under passet. Ändringar gäller därför även äldre pass. Ingen automatisk zon
+läggs runt varje pass start eller slut. Utan sparade platser eller långt från dem
+förblir rutten synlig i sin helhet. Korta pass inuti ett område kan sakna synlig rutt.
+Saknade eller ogiltiga koordinater döljs också vid maskering.
 Glesa linjesegment som kan korsa en zon bryts konservativt genom att dölja båda ändarna;
-det kan dölja mer än 200 meter. Kartan ritar separata linjer över sammanhängande synliga
+det kan dölja mer än vald radie. Kartan ritar separata linjer över sammanhängande synliga
 punkter och kopplar aldrig ihop dem över luckor.
 
 Projektionen ändrar bara svarets koordinater. Sparad rutt, råfil, tidsserier, rekord,
-splits och totalsiffror behålls. Zonerna är per pass och inte en garanti för anonymitet.
+splits och totalsiffror behålls. Dolda platser är inte en garanti för anonymitet.
+Namn och mittpunkter lämnas aldrig till andra användare. Kartbilderna kommer från
+OpenFreeMap, som ser vilket område användaren tittar på; namn och sparade platser
+skickas inte dit som data. Ingen extern adressökning eller automatisk platsåtkomst används; platsåtkomst kräver
+användarens knapptryck och webbläsarens behörighet.
 Innan delning införs måste dess åtkomstregler implementeras separat och alla nya
 rutt-/export-/kartändpunkter använda samma skydd; originalrutt och råfil får inte
 lämnas till andra mottagare. Ingen ny åtkomst följer av själva klippningen.
@@ -306,10 +325,11 @@ till fältet; redan importerade dubbletter hoppas fortfarande över vid Strava-i
 
 - `profile.json`: id, e-postadress, visningsnamn, profilens skapandetid och tidpunkt för pulssamtycke.
 - `equipment.json`: all egen utrustning, även pensionerad, med startvärden och total användning.
+- `privacy-places.json`: egna dolda platser med namn, mittpunkt och radie. Listan ingår även utan pass.
 - `activities/<id>.json`: källa, skapandetid, synlighet, Strava-ID, sökväg till råfilen (eller `null`), `activity` med samma passdetaljer som passsidan och `bestEfforts` med passets bästa insatser. Detaljerna innehåller beskrivning, taggar, utrustnings-ID:n, tidsserier, varv samt originaldelar och redigerade multisportdelar.
 - `raw/<id>.fit` eller `.gpx`: sparade råfiler med oförändrat innehåll. Manuella pass saknar råfil. Råfiler som inte sparats utan pulssamtycke, eller som raderats vid återkallat samtycke, kan inte exporteras. Gzip-filer från Strava har packats upp vid importen.
 
-JSON använder lowerCamelCase, SI-enheter och UTC-tid. Lösenord, sessionscookies och tokens ingår inte. Ett konto utan pass får fortfarande profil och utrustningslista. Arkivet byggs färdigt på en tillfällig fil före HTTP-svaret; den raderas vid fel, avbrott eller när överföringen är klar. Profil och pass låses mot skrivning under bygget för att samtyckesåterkallelse eller passradering inte ska kunna ta bort en råfil mitt i exporten. Om en förväntad råfil saknas misslyckas exporten i stället för att tyst lämna bort den.
+JSON använder lowerCamelCase, SI-enheter och UTC-tid. Lösenord, sessionscookies och tokens ingår inte. Ett konto utan pass får fortfarande profil, utrustningslista och dolda platser. Arkivet byggs färdigt på en tillfällig fil före HTTP-svaret; den raderas vid fel, avbrott eller när överföringen är klar. Profil och pass låses mot skrivning under bygget för att samtyckesåterkallelse eller passradering inte ska kunna ta bort en råfil mitt i exporten. Om en förväntad råfil saknas misslyckas exporten i stället för att tyst lämna bort den.
 
 Exportens innehåll, åtkomst mellan två användare, råfilernas bytes och samordningen med återkallat samtycke testas på databas-/lagringsnivå. HTTP-testet verifierar den nya routens autentisering, ZIP-svar och cache-/nedladdningsheaders; det upprepar inte innehållstesterna.
 
