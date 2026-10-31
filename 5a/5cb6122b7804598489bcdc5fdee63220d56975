@@ -1,0 +1,24 @@
+web/tests/activity-query.test.mjs
+  s_8c5b5a4506a67c::t_535b2a482be85e 1-7,13-15,22-26,29-31
+  s_8c5b5a4506a67c::t_db33b3bf295439 8-12,16-21,27-28
+web/src/lib/activity-query.ts
+  s_8c5b5a4506a67c::t_535b2a482be85e 1-13
+web/src/components/heart-rate-consent.tsx
+  s_8c5b5a4506a67c::t_535b2a482be85e 8,21
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.7.5",
+  "base_commit_sha": "5a5cb6122b7804598489bcdc5fdee63220d56975",
+  "prompts": {},
+  "sessions": {
+    "s_8c5b5a4506a67c": {
+      "agent_id": {
+        "tool": "codex",
+        "id": "01a18f9d-3b73-77f0-8728-f7d72c039a56",
+        "model": "gpt-6.1-sol"
+      },
+      "human_author": "Simon Aunér <simonauner@gmail.com>"
+    }
+  }
+}
