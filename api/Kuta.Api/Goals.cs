@@ -178,24 +178,7 @@ public static class Goals
         // Samma effektiva värden som statistiken: redigerade delars distans, och gruppmål räknar matchande delar
         // av multisportpass. Utan grupp räknas varje pass en gång.
         var buckets = await conn.QueryAsync<GoalBucket>(new CommandDefinition($"""
-            with {SportGroups.Cte}, effective as (
-                select a.id, a.started_at, coalesce(m.sport_group, a.sport) as sport_group,
-                    a.duration_s::double precision as duration_s,
-                    coalesce((select sum(p.distance_m) from activity_parts p
-                        where p.activity_id = a.id and p.original = not a.parts_edited), a.distance_m) as distance_m,
-                    false as part
-                from activities a left join sport_groups m on m.sport = a.sport
-                where a.user_id = @userId
-                union all
-                select a.id, a.started_at, coalesce(pm.sport_group, p.sport),
-                    sum(p.end_s - p.start_s)::double precision, sum(p.distance_m), true
-                from activities a
-                join activity_parts p on p.activity_id = a.id and p.original = not a.parts_edited
-                left join sport_groups am on am.sport = a.sport
-                left join sport_groups pm on pm.sport = p.sport
-                where a.user_id = @userId and coalesce(pm.sport_group, p.sport) <> coalesce(am.sport_group, a.sport)
-                group by a.id, a.started_at, coalesce(pm.sport_group, p.sport)
-            )
+            with {SportGroups.Cte}, {SportGroups.EffectiveCte}
             select g.id as goal_id, b.period_start, b.value
             from goals g
             cross join lateral (

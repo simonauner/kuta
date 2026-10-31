@@ -90,6 +90,18 @@ public static class ActivityEndpoints
                 sportGroup, cancellationToken));
         });
 
+        activities.MapGet("/statistics/days", async (NpgsqlDataSource db, ClaimsPrincipal user, string? timeZone,
+            string? sportGroup, CancellationToken cancellationToken) =>
+        {
+            if (sportGroup is not null && !SportGroups.IsValid(sportGroup))
+                return Results.BadRequest(new ApiError("Välj en giltig träningsform.", "invalidSportGroup"));
+            timeZone ??= "UTC";
+            await using var conn = await db.OpenConnectionAsync(cancellationToken);
+            if (!await ActivityList.IsValidTimeZoneAsync(conn, timeZone, cancellationToken))
+                return Results.BadRequest(new ApiError("Tidszonen är ogiltig. Kontrollera enhetens inställningar.", "invalidTimeZone"));
+            return Results.Ok(await DailyTotals.ReadAsync(conn, user.GetUserId(), timeZone, sportGroup, cancellationToken));
+        });
+
         // Shared activities use the same read rule as the feed; private activities still return 404.
         // shortcut: skickar alla mätpunkter (ett sexttimmarspass ≈ 1–2 MB JSON); glesa ut eller komprimera när det märks.
         activities.MapGet("/{id:guid}", async (Guid id, NpgsqlDataSource db, ClaimsPrincipal user,
