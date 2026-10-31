@@ -264,7 +264,9 @@
   "footer": {
     "version": "Version {{version}}",
     "development": "development",
-    "privacy": "Privacy policy"
+    "privacy": "Privacy policy",
+    "openApp": "Open app",
+    "links": "Footer links"
   },
   "settings": {
     "title": "Settings",

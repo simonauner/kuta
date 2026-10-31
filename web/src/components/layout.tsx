@@ -1,3 +1,4 @@
+import { Footer } from '@/components/footer'
 import { LanguageSelect } from '@/components/language-select'
 import { useTranslation } from 'react-i18next'
 import { useQuery } from '@tanstack/react-query'
@@ -7,8 +8,6 @@ import { motion } from 'motion/react'
 import { meQuery } from '@/lib/auth'
 import { cn } from '@/lib/utils'
 import { AuthPage, ChooseNamePage, ResetPasswordPage } from '@/routes/auth'
-
-const copyrightYear = new Date().getFullYear()
 
 const tabs = [
   { to: '/app', label: 'nav.feed', icon: Home },
@@ -93,26 +92,18 @@ export function Layout() {
         </motion.div>
       </main>
 
-      <footer className="border-t pb-[calc(4rem+env(safe-area-inset-bottom))] md:pb-0">
-        <div className="mx-auto flex max-w-2xl flex-wrap items-start justify-between gap-2 px-4 py-5 text-xs text-muted-foreground">
-          <p>© {copyrightYear} Kuta</p>
-          <div className="flex flex-col items-start gap-2">
-            <a
-              href={i18n.resolvedLanguage === 'en' ? '/privacy#english' : '/privacy'}
-              className="underline underline-offset-4"
-            >
-              {t('footer.privacy')}
-            </a>
-            <p>
-              {t('footer.version', {
-                version: import.meta.env.DEV
-                  ? t('footer.development')
-                  : import.meta.env.VITE_APP_VERSION,
-              })}
-            </p>
-          </div>
-        </div>
-      </footer>
+      <Footer
+        variant="app"
+        language={i18n.resolvedLanguage}
+        labels={{
+          privacy: t('footer.privacy'),
+          openApp: t('footer.openApp'),
+          links: t('footer.links'),
+        }}
+        version={t('footer.version', {
+          version: import.meta.env.DEV ? t('footer.development') : import.meta.env.VITE_APP_VERSION,
+        })}
+      />
     </div>
   )
 }

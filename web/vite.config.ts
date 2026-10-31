@@ -1,3 +1,7 @@
+import { createElement } from 'react'
+import { renderToStaticMarkup } from 'react-dom/server'
+import { Footer } from './src/components/footer.tsx'
+import sv from './src/locales/sv.json' with { type: 'json' }
 import tailwindcss from '@tailwindcss/vite'
 import react from '@vitejs/plugin-react'
 import path from 'node:path'
@@ -56,6 +60,14 @@ export default defineConfig({
   },
   plugins: [
     react(),
+    {
+      name: 'public-footer',
+      transformIndexHtml: (html) =>
+        html.replace(
+          '<!--kuta-footer-->',
+          renderToStaticMarkup(createElement(Footer, { variant: 'public', labels: sv.footer })),
+        ),
+    },
     {
       name: 'app-html-routes',
       configureServer: configureHtmlRoutes,

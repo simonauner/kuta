@@ -264,7 +264,9 @@
   "footer": {
     "version": "Version {{version}}",
     "development": "utveckling",
-    "privacy": "Integritetspolicy"
+    "privacy": "Integritetspolicy",
+    "openApp": "Öppna appen",
+    "links": "Sidfotslänkar"
   },
   "settings": {
     "title": "Inställningar",

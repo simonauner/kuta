@@ -1,6 +1,7 @@
 @import 'tailwindcss';
 
 @import './theme.css';
+@import './components/footer.css';
 
 select {
   appearance: none;
@@ -49,6 +50,12 @@ select {
 }
 
 @layer base {
+  a[href],
+  button:not(:disabled):not([aria-disabled='true']),
+  [role='button']:not([aria-disabled='true']) {
+    cursor: pointer;
+  }
+
   html {
     scrollbar-gutter: stable;
   }
