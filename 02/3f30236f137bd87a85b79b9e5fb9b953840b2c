@@ -1,0 +1,19 @@
+web/src/routes/stats.tsx
+  s_d0ef567df64804::t_a3316c62cd4f38 160-168
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.7.5",
+  "base_commit_sha": "023f30236f137bd87a85b79b9e5fb9b953840b2c",
+  "prompts": {},
+  "sessions": {
+    "s_d0ef567df64804": {
+      "agent_id": {
+        "tool": "codex",
+        "id": "01a18fd0-df61-74a2-b47d-d2213727e1da",
+        "model": "gpt-6.1-sol"
+      },
+      "human_author": "Simon Aunér <simonauner@gmail.com>"
+    }
+  }
+}
