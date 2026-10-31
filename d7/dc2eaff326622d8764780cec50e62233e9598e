@@ -1,0 +1,19 @@
+.gitignore
+  s_a01b7fcbd4536c::t_a3ceb052b9ba90 14-16
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.7.5",
+  "base_commit_sha": "d7dc2eaff326622d8764780cec50e62233e9598e",
+  "prompts": {},
+  "sessions": {
+    "s_a01b7fcbd4536c": {
+      "agent_id": {
+        "tool": "codex",
+        "id": "01a190df-22fa-7870-9bdb-0d5d99e3665d",
+        "model": "gpt-6.1-sol"
+      },
+      "human_author": "Simon Aunér <simonauner@gmail.com>"
+    }
+  }
+}
