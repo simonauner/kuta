@@ -14,7 +14,6 @@
     "welcomeDescription": "Add an activity or bring your training history. This is where activities from you and runners you follow will appear.",
     "waitingTitle": "Your feed starts here",
     "waitingDescription": "No one you follow has shared an activity yet. Add one of your own while you wait.",
-    "addActivity": "Add an activity",
     "addActivityHelp": "Log it manually or upload a FIT file from your watch.",
     "stravaTitle": "Moving from Strava?",
     "stravaDescription": "Import your archive and keep your training history.",
@@ -35,7 +34,17 @@
     "empty": "No activities for the selected sport and year.",
     "noHeartRate": "No saved heart rate data during this period.",
     "chartScale": "Scale: 0–{{max}}. All values are in the table below.",
-    "method": "Time includes pauses. Pace is total time per kilometre for activities with distance and time. Lower pace means faster speed. Heart rate is weighted by activity duration, using only activities with saved heart rate. Missing values appear as –. All sports also combines pace and heart rate across sports. Months follow your device’s time zone."
+    "method": "Time includes pauses. Pace is total time per kilometre for activities with distance and time. Lower pace means faster speed. Heart rate is weighted by activity duration, using only activities with saved heart rate. Missing values appear as –. All sports also combines pace and heart rate across sports. Months follow your device’s time zone.",
+    "onboarding": {
+      "title": "Small steps. Big progress.",
+      "description": "Your first activity starts your training story. Add it manually or upload a file from your watch, and let the numbers tell your story.",
+      "volumeTitle": "See the work you put in",
+      "volumeDescription": "Track distance and training time, month by month.",
+      "compareTitle": "Find your perspective",
+      "compareDescription": "Compare your training years and see how far you have come.",
+      "recordsTitle": "Discover your records",
+      "recordsDescription": "Upload runs from your watch to find your fastest efforts."
+    }
   },
   "yearComparison": {
     "title": "Year over year",
@@ -106,7 +115,17 @@
     "hrNotSaved": "Heart rate is not saved. Change this before uploading in",
     "sport": "Sport",
     "allSports": "All sports",
-    "noMatches": "No activities match the filters."
+    "noMatches": "No activities match the filters.",
+    "onboarding": {
+      "title": "Your next adventure starts here.",
+      "description": "A quick loop or a long adventure? Keep your activities, memories and progress together here. Add your first activity manually or upload a file from your watch.",
+      "historyTitle": "Keep your activities together",
+      "historyDescription": "Save routes, notes and tags in your training diary.",
+      "importTitle": "Bring your history",
+      "importDescription": "Import your Strava archive or upload FIT files from your watch.",
+      "equipmentTitle": "Track your shoes",
+      "equipmentDescription": "Link shoes to your activities and see how far they have taken you."
+    }
   },
   "newActivity": {
     "title": "Create activity",
@@ -628,5 +647,21 @@
     "cross-country skiing": "Cross-country skiing",
     "paddling": "Paddling",
     "rowing": "Rowing"
+  },
+  "profile": {
+    "onboarding": {
+      "title": "Your training story starts with one activity.",
+      "description": "From your first loop to your next milestone, your activities belong here. Add an activity and start building your training story. You choose which activities to share.",
+      "identityTitle": "Your place on Kuta",
+      "identityDescription": "Your activities and visible goals come together on your profile.",
+      "connectionsTitle": "Find each other",
+      "connectionsDescription": "Share your profile link or ask a friend for theirs to start following each other.",
+      "privacyTitle": "You choose what to share",
+      "privacyDescription": "Choose who can see each activity and goal: only you, your followers or everyone on Kuta."
+    }
+  },
+  "onboarding": {
+    "eyebrow": "Your progress starts here",
+    "addActivity": "Add an activity"
   }
 }
