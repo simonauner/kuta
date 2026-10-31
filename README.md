@@ -194,7 +194,7 @@ Statistiksidan visar kondition, trötthet och form för löpning, och Pass visar
 konditionen ökar snabbt. Modellen är TrainingPeaks förenkling av Banisters impuls–respons-modell:
 
 - **Belastning per pass (rTSS):** `∫ v² dt / vT² / 36`, där `vT` är tröskelfarten. En timme i tröskelfart ger 100.
-  `activities.run_intensity` (migrering 018) lagrar `∫ v² dt` (m²/s) för passets löpning, eller bara löpdelarna i
+  `activities.run_intensity` (migrering 019) lagrar `∫ v² dt` (m²/s) för passets löpning, eller bara löpdelarna i
   ett multisportpass. Den räknas av `BestEfforts.ReplaceAsync`, alltså vid FIT- och Strava-import, uppdelning och
   omberäkning av rekord. Farten jämnas ut över minst 30 s, ett uppehåll över 10 s (autopaus) bildar ett eget
   avsnitt, och trasiga värden bryter strömmen. Pass utan distansström (manuella och äldre pass) uppskattas ur

@@ -5,6 +5,7 @@ import { TriangleAlert } from 'lucide-react'
 import { useTranslation } from 'react-i18next'
 import { ErrorMessage } from '@/components/error-message'
 import { Button } from '@/components/ui/button'
+import { FormField } from '@/components/ui/form-field'
 import { Input } from '@/components/ui/input'
 import { api } from '@/lib/api'
 import { formatDuration } from '@/lib/activity'
@@ -202,54 +203,57 @@ function ThresholdForm({ summary }: { summary: TrainingLoadSummary }) {
   const predicted = summary.predictedThresholdSpeedMS
   return (
     <form onSubmit={submit} className="mt-4 rounded-xl border bg-card p-4" noValidate>
-      <label htmlFor="threshold-pace" className="text-sm font-medium">
-        {t('trainingLoad.threshold')}
-      </label>
-      <p className="mt-1 text-xs text-muted-foreground">
-        {summary.thresholdSource === 'manual'
-          ? t('trainingLoad.thresholdManual')
-          : predicted
-            ? t('trainingLoad.thresholdPredicted', {
-                pace: formatDuration(paceSeconds(predicted)),
-              })
-            : t('trainingLoad.thresholdMissing')}
-      </p>
-      <div className="mt-3 flex flex-wrap items-center gap-2">
-        <Input
-          id="threshold-pace"
-          inputMode="numeric"
-          className="w-28"
-          placeholder={predicted ? formatDuration(paceSeconds(predicted)) : '4:30'}
-          value={text}
-          aria-invalid={invalid}
-          aria-describedby={invalid ? 'threshold-pace-error' : undefined}
-          onChange={(event) => setText(event.target.value)}
-        />
-        <span className="text-sm text-muted-foreground">/km</span>
-        <Button type="submit" size="sm" disabled={save.isPending}>
-          {t('trainingLoad.save')}
-        </Button>
-        {summary.thresholdSource === 'manual' && (
-          <Button
-            type="button"
-            size="sm"
-            variant="outline"
-            disabled={save.isPending}
-            onClick={() => {
-              setText('')
-              setInvalid(false)
-              save.mutate(null)
-            }}
-          >
-            {t('trainingLoad.useAutomatic')}
-          </Button>
+      <FormField label={t('trainingLoad.threshold')}>
+        {(id) => (
+          <>
+            <p id={`${id}-hint`} className="mb-3 text-xs text-muted-foreground">
+              {summary.thresholdSource === 'manual'
+                ? t('trainingLoad.thresholdManual')
+                : predicted
+                  ? t('trainingLoad.thresholdPredicted', {
+                      pace: formatDuration(paceSeconds(predicted)),
+                    })
+                  : t('trainingLoad.thresholdMissing')}
+            </p>
+            <div className="flex flex-wrap items-center gap-2">
+              <Input
+                id={id}
+                inputMode="numeric"
+                className="w-28"
+                placeholder={predicted ? formatDuration(paceSeconds(predicted)) : '4:30'}
+                value={text}
+                aria-invalid={invalid}
+                aria-describedby={invalid ? `${id}-hint ${id}-error` : `${id}-hint`}
+                onChange={(event) => setText(event.target.value)}
+              />
+              <span className="text-sm text-muted-foreground">/km</span>
+              <Button type="submit" size="sm" disabled={save.isPending}>
+                {t('trainingLoad.save')}
+              </Button>
+              {summary.thresholdSource === 'manual' && (
+                <Button
+                  type="button"
+                  size="sm"
+                  variant="outline"
+                  disabled={save.isPending}
+                  onClick={() => {
+                    setText('')
+                    setInvalid(false)
+                    save.mutate(null)
+                  }}
+                >
+                  {t('trainingLoad.useAutomatic')}
+                </Button>
+              )}
+            </div>
+            {invalid && (
+              <p id={`${id}-error`} role="alert" className="mt-2 text-sm text-destructive">
+                {t('errors.invalidThresholdSpeed')}
+              </p>
+            )}
+          </>
         )}
-      </div>
-      {invalid && (
-        <p id="threshold-pace-error" role="alert" className="mt-2 text-sm text-destructive">
-          {t('errors.invalidThresholdSpeed')}
-        </p>
-      )}
+      </FormField>
       {save.error && (
         <p role="alert" className="mt-2 text-sm text-destructive">
           <ErrorMessage error={save.error} />
