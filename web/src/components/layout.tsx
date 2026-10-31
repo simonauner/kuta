@@ -93,19 +93,21 @@ export function Layout() {
       <footer className="border-t pb-[calc(4rem+env(safe-area-inset-bottom))] md:pb-0">
         <div className="mx-auto flex max-w-2xl flex-wrap items-center justify-between gap-2 px-4 py-5 text-xs text-muted-foreground">
           <p>© {copyrightYear} Kuta</p>
-          <a
-            href={i18n.resolvedLanguage === 'en' ? '/privacy#english' : '/privacy'}
-            className="underline underline-offset-4"
-          >
-            {t('footer.privacy')}
-          </a>
-          <p>
-            {t('footer.version', {
-              version: import.meta.env.DEV
-                ? t('footer.development')
-                : import.meta.env.VITE_APP_VERSION,
-            })}
-          </p>
+          <div className="flex flex-col items-start gap-2">
+            <a
+              href={i18n.resolvedLanguage === 'en' ? '/privacy#english' : '/privacy'}
+              className="underline underline-offset-4"
+            >
+              {t('footer.privacy')}
+            </a>
+            <p>
+              {t('footer.version', {
+                version: import.meta.env.DEV
+                  ? t('footer.development')
+                  : import.meta.env.VITE_APP_VERSION,
+              })}
+            </p>
+          </div>
         </div>
       </footer>
     </div>
