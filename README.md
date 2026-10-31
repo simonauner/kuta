@@ -8,7 +8,11 @@ Löparapp med Garmin-import, statistik, rekord och socialt flöde. Se `AGENTS.md
 
 Logotypen ”Spåret” finns som fristående SVG i `web/public/brand/` (mörk och ljus variant). Bokstäverna är vektorkonturer och kräver ingen font. Symbolen i `web/public/favicon.svg` används också av PWA-manifestet. PNG-ikoner för PWA finns i `web/public/icons/` (192/512 samt maskable 512 med extra marginal). `web/public/apple-touch-icon.png` (180×180, heltäckande bakgrund) används av iOS, och `favicon-32.png` är PNG-fallback för webbläsare. Båda HTML-dokumenten länkar till ikonerna; PWA:n startar på `/app`. SVG-underlagen för hemskärmsikonerna finns i `web/public/brand/app-icon.svg` och `app-icon-maskable.svg`.
 
-React-appen öppnas på `/app`, med vyerna `/app/activities`, `/app/stats` och `/app/profile`. `web/app.html` har `noindex`. Mejlets bekräftelselänk återvänder till `/app`. Vite bygger båda HTML-filerna, och .NET serverar dem från samma origin. PWA:n startar på `/app` och använder bara appskalet som navigeringsfallback inom `/app`.
+`/privacy` är en publik, statisk integritetspolicy (`web/privacy.html`, extra stilar i `web/src/privacy.css`) med svenska och engelska i samma dokument. Engelska kan länkas direkt med `/privacy#english`. Båda språken är läsbara utan JavaScript; React-appens länkar använder dess valda språk. Startsidan och inloggningssidan länkar till policyn.
+
+Policyn är ett utkast inför Garminansökan. Kontaktadressen är `privacy@kutaapp.com` (fungerande inkorg bekräftad av Simon). Lagringstider är ännu inte beslutade. Före publicering: fastställ lagringstider och raderingsrutiner för sessionsrader, supportmejl, driftloggar och säkerhetskopior, och verifiera personuppgiftsbiträdesavtal samt faktiska tredjelandsöverföringar och skyddsåtgärder för leverantörerna. Ersätt utkaststexterna i båda språkversionerna med de verifierade uppgifterna. Garminanslutningen beskrivs som planerad tills den är implementerad. Uppdatera policyn när databehandlingen ändras.
+
+React-appen öppnas på `/app`, med vyerna `/app/activities`, `/app/stats` och `/app/profile`. `web/app.html` har `noindex`. Mejlets bekräftelselänk återvänder till `/app`. Vite bygger de tre HTML-filerna, och .NET serverar dem från samma origin. PWA:n startar på `/app` och använder bara appskalet som navigeringsfallback inom `/app`.
 
 ## Språk och URL:er
 

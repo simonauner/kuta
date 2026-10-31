@@ -29,6 +29,8 @@ function configureHtmlRoutes(server: ViteDevServer | PreviewServer) {
     const url = new URL(req.url ?? '/', 'http://localhost')
     if (url.pathname === '/app' || url.pathname.startsWith('/app/'))
       req.url = `/app.html${url.search}`
+    else if (url.pathname === '/privacy' || url.pathname === '/privacy/')
+      req.url = `/privacy.html${url.search}`
     next()
   })
 }
@@ -39,6 +41,7 @@ export default defineConfig({
     rolldownOptions: {
       input: {
         landing: path.resolve(import.meta.dirname, 'index.html'),
+        privacy: path.resolve(import.meta.dirname, 'privacy.html'),
         app: path.resolve(import.meta.dirname, 'app.html'),
       },
     },

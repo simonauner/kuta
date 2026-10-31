@@ -164,7 +164,8 @@
   "home": "Kuta – startsida",
   "footer": {
     "version": "Version {{version}}",
-    "development": "utveckling"
+    "development": "utveckling",
+    "privacy": "Integritetspolicy"
   },
   "dangerZone": {
     "title": "Danger zone",
