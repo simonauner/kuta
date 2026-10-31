@@ -2,8 +2,11 @@ public sealed record BestEffort(int DistanceM, double ElapsedS, double StartOffs
 
 public static class BestEffortCalculator
 {
-    private static readonly (int Label, double Meters)[] Distances =
+    public static readonly (int Label, double Meters)[] Distances =
         [(1000, 1000), (1609, 1609.344), (5000, 5000), (10000, 10000), (21097, 21097.5), (42195, 42195)];
+
+    public static double? Meters(int label) =>
+        Distances.FirstOrDefault(d => d.Label == label) is { Meters: > 0 } match ? match.Meters : null;
 
     public static IReadOnlyList<BestEffort> Calculate(int[] t, float?[]? dist)
     {

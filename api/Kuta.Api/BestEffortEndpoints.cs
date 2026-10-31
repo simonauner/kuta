@@ -70,6 +70,24 @@ public static class BestEffortEndpoints
                 order by distance_m, elapsed_s, achieved_at, activity_id
                 """, new { userId = user.GetUserId(), from, until, tags = tag is null ? Array.Empty<string>() : [tag] }));
         }).RequireAuthorization();
+
+        api.MapGet("/records/trend", async (int distanceM, string? timeZone, NpgsqlDataSource db, ClaimsPrincipal user,
+            CancellationToken ct) =>
+        {
+            if (BestEffortCalculator.Meters(distanceM) is null)
+                return Results.BadRequest(new ApiError("Välj en av rekorddistanserna.", "invalidRecordDistance"));
+            timeZone ??= "UTC";
+            await using var conn = await db.OpenConnectionAsync(ct);
+            if (!await ActivityList.IsValidTimeZoneAsync(conn, timeZone, ct))
+                return Results.BadRequest(new ApiError("Tidszonen är ogiltig. Kontrollera enhetens inställningar.", "invalidTimeZone"));
+            return Results.Ok(await RecordTrends.ReadAsync(conn, user.GetUserId(), distanceM, timeZone, ct));
+        }).RequireAuthorization();
+
+        api.MapGet("/records/predictions", async (NpgsqlDataSource db, ClaimsPrincipal user, CancellationToken ct) =>
+        {
+            await using var conn = await db.OpenConnectionAsync(ct);
+            return Results.Ok(await RecordTrends.PredictAsync(conn, user.GetUserId(), DateTime.UtcNow, ct));
+        }).RequireAuthorization();
     }
 
     private sealed record EffortActivity(string Sport, DateTime StartedAt);
