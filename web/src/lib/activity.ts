@@ -1,7 +1,7 @@
 import type { ActivityPart } from './multisport.ts'
 import type { TFunction } from 'i18next'
 import sv from '../locales/sv.json' with { type: 'json' }
-import { knownSport, sports, type Sport } from './sports.ts'
+import { knownSport, isCyclingSport, sports, type Sport } from './sports.ts'
 
 export type ActivityTag = keyof typeof import('@/locales/sv.json').tagNames
 
@@ -205,7 +205,7 @@ export function formatSportPace(
     durationS <= 0
   )
     return '–'
-  if (sport === 'cycling')
+  if (isCyclingSport(sport))
     return `${((distanceM / durationS) * 3.6).toLocaleString(locale, { maximumFractionDigits: 1 })} km/h`
   if (sport === 'swimming')
     return `${formatDuration(Math.round(durationS / (distanceM / 100)))} /100 m`

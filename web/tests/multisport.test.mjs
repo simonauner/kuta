@@ -1,5 +1,6 @@
 import assert from 'node:assert/strict'
 import { test } from 'node:test'
+import { isCyclingSport } from '../src/lib/sports.ts'
 import { partStreams } from '../src/lib/multisport.ts'
 import { formatSportPace, routeSegments } from '../src/lib/activity.ts'
 
@@ -49,6 +50,10 @@ test('cut endpoints interpolate channels and rebase time and distance for splits
 test('sport presentation uses meaningful units and omits aggregate multisport pace', () => {
   assert.equal(formatSportPace('swimming', 600, 1000, 'en'), '1:00 /100 m')
   assert.equal(formatSportPace('cycling', 3600, 20500, 'sv'), '20,5 km/h')
+  assert.equal(formatSportPace('gravel ride', 3600, 20500, 'sv'), '20,5 km/h')
+  assert.equal(isCyclingSport('mountain bike ride'), true)
+  assert.equal(isCyclingSport('running'), false)
+  assert.equal(isCyclingSport('unknown'), false)
   assert.equal(formatSportPace('running', 300, 1000, 'en'), '5:00 /km')
   assert.equal(formatSportPace('swimrun', 600, 1000, 'en'), '–')
   assert.equal(formatSportPace('swimming', 600, 0, 'en'), '–')
