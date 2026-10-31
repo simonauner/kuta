@@ -1,0 +1,33 @@
+web/src/components/danger-zone.tsx
+  s_bcec312a97abae::t_6a8d8aa00c8002 9,29
+web/src/components/goals.tsx
+  s_bcec312a97abae::t_6a8d8aa00c8002 9,228
+web/src/routes/edit-activity.tsx
+  s_bcec312a97abae::t_6a8d8aa00c8002 15,68
+web/src/components/strava-import.tsx
+  s_bcec312a97abae::t_6a8d8aa00c8002 8,33
+web/src/routes/new-activity.tsx
+  s_bcec312a97abae::t_6a8d8aa00c8002 33,149
+web/tests/activity-query.test.mjs
+  s_bcec312a97abae::t_6a8d8aa00c8002 4-8,37-75
+web/src/routes/activities.tsx
+  s_bcec312a97abae::t_6a8d8aa00c8002 5,78
+web/src/lib/activity-query.ts
+  s_bcec312a97abae::t_6a8d8aa00c8002 41-62
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.7.5",
+  "base_commit_sha": "0cf2add79960c34bcf9b2538ecaaee936e93dc34",
+  "prompts": {},
+  "sessions": {
+    "s_bcec312a97abae": {
+      "agent_id": {
+        "tool": "codex",
+        "id": "01a1942c-bbd4-7f93-9403-de2964ee138d",
+        "model": "gpt-6.1-sol"
+      },
+      "human_author": "Simon Aunér <simonauner@gmail.com>"
+    }
+  }
+}
