@@ -1,0 +1,41 @@
+web/src/locales/en.json
+  s_0c4b6e87907d31::t_47fb199f8329b4 689-692,694-714
+  s_0c4b6e87907d31::t_fcbba0e2be88ee 693
+web/src/routes/followers.tsx
+  s_0c4b6e87907d31::t_47fb199f8329b4 8-9,20-25,47-56
+web/src/routes/profile.tsx
+  s_0c4b6e87907d31::t_47fb199f8329b4 10,20,22
+web/src/components/supporter.tsx
+  s_0c4b6e87907d31::t_0fa7f2ddc5b460 2-3,6-13,15,19-27,29-30,32-33,42-194
+  s_0c4b6e87907d31::t_ab2af40d58346e 1,4-5,14,16-18,28,31,34-41
+web/src/components/record-award.tsx
+  s_0c4b6e87907d31::t_ab2af40d58346e 8-30,61
+web/src/components/activity-feed.tsx
+  s_0c4b6e87907d31::t_47fb199f8329b4 10,14,26,81,89
+web/src/routes/runner.tsx
+  s_0c4b6e87907d31::t_47fb199f8329b4 7,12,14-19,66,68
+web/src/routes/settings.tsx
+  s_0c4b6e87907d31::t_47fb199f8329b4 10,82
+  s_0c4b6e87907d31::t_911683c94374f2 83
+web/src/lib/auth.ts
+  s_0c4b6e87907d31::t_47fb199f8329b4 4-5,14-19
+web/src/locales/sv.json
+  s_0c4b6e87907d31::t_47fb199f8329b4 689-692,694-714
+  s_0c4b6e87907d31::t_fcbba0e2be88ee 693
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.7.5",
+  "base_commit_sha": "ffdf814c9c2d1bf054dd0fe90109446dc6a04c39",
+  "prompts": {},
+  "sessions": {
+    "s_0c4b6e87907d31": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "d61396c0-631b-4f33-9309-68151e06160f",
+        "model": "claude-opus-5-5"
+      },
+      "human_author": "Simon Aunér <simonauner@gmail.com>"
+    }
+  }
+}
