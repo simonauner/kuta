@@ -1,0 +1,71 @@
+web/src/routes/activity.tsx
+  s_35c9377f393986::t_c1028bf41e5778 18,22-27,67,251,391-424
+  s_35c9377f393986::t_07195ca8d7d171 253-254
+  s_35c9377f393986::t_b44b8ae18eeb94 243
+  s_35c9377f393986::t_46c6d58de16bf0 250,252,425
+api/Kuta.Api/BestEffortEndpoints.cs
+  s_35c9377f393986::t_70ce5bcd2c99d3 19
+AGENTS.md
+  s_35c9377f393986::t_8248d545307071 120
+api/Kuta.Api.Tests/BestEffortTests.cs
+  s_35c9377f393986::t_aa49c9c62f5403 47,50
+web/src/index.css
+  s_35c9377f393986::t_8248d545307071 69-71
+api/Kuta.Api/RecordTrends.cs
+  s_35c9377f393986::t_70ce5bcd2c99d3 7-8,12-29
+web/src/components/record-award.tsx
+  s_35c9377f393986::t_07195ca8d7d171 9,16-19
+  s_35c9377f393986::t_b533b7bce29089 36-53
+  s_35c9377f393986::t_696df2886ae329 2-3,6,14-15,27-30,32-35,54-63
+  s_35c9377f393986::t_b44b8ae18eeb94 1,8,10-12,21-25
+  s_35c9377f393986::t_d72359dd0227a0 20,31
+  s_35c9377f393986::t_742fb8b37fb38b 4-5,7,13,26,64-65
+README.md
+  s_35c9377f393986::t_b44b8ae18eeb94 477
+  s_35c9377f393986::t_9a9cd52c81554a 448-449,453,473,478-479
+  s_35c9377f393986::t_d72359dd0227a0 476
+  s_35c9377f393986::t_74dfc903872e38 474-475
+api/Kuta.Api.Tests/RecordTrendsTests.cs
+  s_35c9377f393986::t_2722875cf1f2cc 29-30
+  s_35c9377f393986::t_3d175fd826227c 43-56
+api/Kuta.Api.Tests/SocialTests.cs
+  s_35c9377f393986::t_aa49c9c62f5403 176
+web/src/components/record-award.css
+  s_35c9377f393986::t_2f3b7fb9355fcd 36-38
+  s_35c9377f393986::t_d72359dd0227a0 21-22
+  s_35c9377f393986::t_696df2886ae329 1-20,25-35,39
+  s_35c9377f393986::t_b44b8ae18eeb94 23-24
+web/src/routes/new-activity.tsx
+  s_35c9377f393986::t_f74b892d6ba461 150
+web/src/routes/activities.tsx
+  s_35c9377f393986::t_f74b892d6ba461 76
+web/src/components/strava-import.tsx
+  s_35c9377f393986::t_f74b892d6ba461 35
+web/src/locales/sv.json
+  s_35c9377f393986::t_742fb8b37fb38b 54
+  s_35c9377f393986::t_696df2886ae329 55-56
+web/src/locales/en.json
+  s_35c9377f393986::t_742fb8b37fb38b 54-56
+web/src/lib/records.ts
+  s_35c9377f393986::t_742fb8b37fb38b 9-12
+web/src/components/records.tsx
+  s_35c9377f393986::t_c1028bf41e5778 7
+  s_35c9377f393986::t_696df2886ae329 315-317,323-324
+  s_35c9377f393986::t_2f3b7fb9355fcd 318-322
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.7.5",
+  "base_commit_sha": "b4f686e0797fb26050bc13cb1450c0d2f8bf8590",
+  "prompts": {},
+  "sessions": {
+    "s_35c9377f393986": {
+      "agent_id": {
+        "tool": "codex",
+        "id": "01a19317-c4c5-71e2-b719-bfe8686f46c7",
+        "model": "gpt-6.1-sol"
+      },
+      "human_author": "Simon Aunér <simonauner@gmail.com>"
+    }
+  }
+}
