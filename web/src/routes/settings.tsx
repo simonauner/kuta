@@ -27,6 +27,10 @@ export function SettingsPage() {
     onSuccess: sessionChanged,
   })
 
+  const dataExport = useMutation({
+    mutationFn: () => api.download('/api/me/export', 'kuta-export.zip'),
+  })
+
   return (
     <section>
       <Breadcrumb aria-label={t('breadcrumbs')} className="mb-4">
@@ -59,6 +63,31 @@ export function SettingsPage() {
           {t('settings.strava')}
         </h2>
         <StravaImport />
+      </section>
+
+      <section aria-labelledby="export-heading" className="mt-8 border-t pt-6">
+        <h2 id="export-heading" className="text-lg font-semibold">
+          {t('settings.exportTitle')}
+        </h2>
+        <p className="mt-2 text-sm text-muted-foreground">{t('settings.exportHelp')}</p>
+        <Button
+          variant="outline"
+          className="mt-4"
+          disabled={dataExport.isPending}
+          onClick={() => dataExport.mutate()}
+        >
+          {t(dataExport.isPending ? 'settings.exporting' : 'settings.export')}
+        </Button>
+        {dataExport.isPending && (
+          <p role="status" className="mt-2 text-sm text-muted-foreground">
+            {t('settings.exportWait')}
+          </p>
+        )}
+        {dataExport.error && (
+          <p role="alert" className="mt-4 text-sm text-destructive">
+            <ErrorMessage error={dataExport.error} />
+          </p>
+        )}
       </section>
 
       <section aria-labelledby="account-heading" className="mt-8 border-t pt-6">
