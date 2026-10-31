@@ -1,0 +1,39 @@
+api/Kuta.Api.Tests/StravaImportTests.cs
+  s_c6d7efb590106b::t_78a5f84bc9ef6d 136,169,176,184
+  s_c6d7efb590106b::t_c74fb5776fee92 199,247-272,277-278
+web/src/locales/sv.json
+  s_c6d7efb590106b::t_dfb82ad4c152c0 192-193
+  s_c6d7efb590106b::t_c74fb5776fee92 172
+api/Kuta.Api/StravaImportEndpoint.cs
+  s_c6d7efb590106b::t_60dc9a7add336c 1,15-16,24,58-67,77-81,150-152
+  s_c6d7efb590106b::t_78a5f84bc9ef6d 5
+web/src/lib/api.ts
+  s_c6d7efb590106b::t_7554cb20d67ff8 31,43-47,52-77
+README.md
+  s_c6d7efb590106b::t_e3cddb49ba93c5 199,209
+web/src/components/strava-import.tsx
+  s_c6d7efb590106b::t_dfb82ad4c152c0 8,18-26,30,41,44,46-51,58-59,102-106,108-113,115-123
+  s_c6d7efb590106b::t_78a5f84bc9ef6d 114
+  s_c6d7efb590106b::t_248c0e6d71168a 40,45,52-57,107
+web/src/locales/en.json
+  s_c6d7efb590106b::t_c74fb5776fee92 172
+  s_c6d7efb590106b::t_dfb82ad4c152c0 192-193
+web/tests/api.test.mjs
+  s_c6d7efb590106b::t_04c4867e7ff302 122-173
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.7.5",
+  "base_commit_sha": "12a9ec7a06ba13afc20a875d277d827e309e9c45",
+  "prompts": {},
+  "sessions": {
+    "s_c6d7efb590106b": {
+      "agent_id": {
+        "tool": "codex",
+        "id": "01a18fa8-71fd-7c13-a458-5d63bfdffd73",
+        "model": "gpt-6.1-sol"
+      },
+      "human_author": "Simon Aunér <simonauner@gmail.com>"
+    }
+  }
+}
