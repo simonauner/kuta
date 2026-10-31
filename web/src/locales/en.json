@@ -64,6 +64,7 @@
     "trendEmpty": "No efforts over {{distance}} yet.",
     "trendChart": "Best time per month over {{distance}}. Faster times are higher.",
     "chartScale": "Fastest at the top: {{best}}, slowest at the bottom: {{worst}}.",
+    "chartScaleHint": "The scale follows personal bests. Monthly bests are shown within that range.",
     "legendMonth": "Best of the month",
     "legendRecord": "New personal best",
     "history": "Record history, {{distance}}",
