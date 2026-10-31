@@ -1,4 +1,5 @@
 import { FormField } from '@/components/ui/form-field'
+import { Heading } from '@/components/ui/heading'
 import { useState } from 'react'
 import { useQuery } from '@tanstack/react-query'
 import { Link } from '@tanstack/react-router'
@@ -77,12 +78,12 @@ export function RecordsSection({ year }: { year: number }) {
   return (
     <section className="mt-10" aria-labelledby="records-title">
       <div className="flex items-center justify-between gap-4">
-        <h2 id="records-title" className="text-xl font-semibold tracking-tight">
+        <Heading level={2} id="records-title">
           {t('records.title')}
-        </h2>
+        </Heading>
         <HelpPopover label={t('records.helpLabel')}>{t('records.help')}</HelpPopover>
       </div>
-      <p className="mt-2 text-sm text-muted-foreground">{t('records.description')}</p>
+      <p className="mt-2 text-body text-muted-foreground">{t('records.description')}</p>
 
       {allTime.error && <QueryError error={allTime.error} retry={() => void allTime.refetch()} />}
       {yearly.error && <QueryError error={yearly.error} retry={() => void yearly.refetch()} />}
@@ -138,9 +139,12 @@ export function RecordsSection({ year }: { year: number }) {
         ))}
 
       <div className="mt-6 rounded-xl border bg-card p-4">
+        <Heading level={3} className="mb-3">
+          {t('records.trend')}
+        </Heading>
         <FormField
           layout="inline"
-          label={t('records.trend')}
+          label={t('records.distance')}
           className="justify-between text-sm font-medium"
         >
           {(id) => (
@@ -165,7 +169,7 @@ export function RecordsSection({ year }: { year: number }) {
       </div>
 
       <div className="mt-6 rounded-xl border bg-card p-4">
-        <h3 className="text-sm font-medium">{t('records.predictions')}</h3>
+        <Heading level={3}>{t('records.predictions')}</Heading>
         {predictions.error && (
           <QueryError error={predictions.error} retry={() => void predictions.refetch()} />
         )}
@@ -174,7 +178,7 @@ export function RecordsSection({ year }: { year: number }) {
             <p className="mt-3 text-sm text-muted-foreground">{t('records.predictionsEmpty')}</p>
           ) : (
             <>
-              <p className="mt-2 text-sm text-muted-foreground">
+              <p className="mt-2 text-body text-muted-foreground">
                 {t('records.predictionsBasis', {
                   distance: distanceLabel(predictions.data.basis.distanceM),
                   time: formatDuration(predictions.data.basis.elapsedS),
@@ -204,7 +208,7 @@ export function RecordsSection({ year }: { year: number }) {
                   </div>
                 ))}
               </dl>
-              <p className="mt-4 text-xs leading-relaxed text-muted-foreground">
+              <p className="mt-4 text-metadata leading-relaxed text-muted-foreground">
                 {t('records.predictionsMethod')}
               </p>
             </>

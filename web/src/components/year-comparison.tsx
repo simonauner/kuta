@@ -1,4 +1,5 @@
 import { FormField } from '@/components/ui/form-field'
+import { Heading } from '@/components/ui/heading'
 import { useState } from 'react'
 import { useQuery } from '@tanstack/react-query'
 import { useTranslation } from 'react-i18next'
@@ -77,10 +78,10 @@ export function YearComparison({ year, sportGroup }: { year: number; sportGroup:
     <section className="mt-10" aria-labelledby="year-comparison-title">
       <div className="flex flex-wrap items-end justify-between gap-3">
         <div>
-          <h2 id="year-comparison-title" className="text-xl font-semibold tracking-tight">
+          <Heading level={2} id="year-comparison-title">
             {t('yearComparison.title')}
-          </h2>
-          <p className="mt-2 text-sm text-muted-foreground">{t('yearComparison.description')}</p>
+          </Heading>
+          <p className="mt-2 text-body text-muted-foreground">{t('yearComparison.description')}</p>
         </div>
         <FormField label={t('yearComparison.metric')} className="text-sm font-medium">
           {(id) => (
@@ -217,7 +218,7 @@ export function YearComparison({ year, sportGroup }: { year: number; sportGroup:
                 </tbody>
               </table>
             </div>
-            <p className="mt-4 text-xs leading-relaxed text-muted-foreground">
+            <p className="mt-4 text-metadata leading-relaxed text-muted-foreground">
               {t('yearComparison.method', { years: shownYears })}
             </p>
           </>
