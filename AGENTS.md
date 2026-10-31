@@ -81,7 +81,7 @@ Kuta är en Strava-liknande löparapp: ladda upp pass från Garmin (FIT) eller l
 - **Milen är 1609,344 m.** `best_efforts.distance_m = 1609` är bara en etikett; rekordmotorn räknar med exakt längd.
 
 ## Loggning och integritet
-- Behåll `PrivateLogProvider` som API:ts enda loggprovider. Bara fasta tillåtna driftmeddelanden får skrivas; inga dynamiska värden, undantagsobjekt, scopes eller requestuppgifter. DbUp:s konsolloggning ska vara avstängd. Startfel ska också ge fasta meddelanden.
+- Behåll `PrivateLogProvider` som API:ts enda loggprovider, även för start- och migreringsfel. Bara fasta händelser, granskade driftmått och projektionen i `LogException` får skrivas. Serialisera aldrig loggformatterare, godtyckligt state/scopes, råa undantag, felmeddelanden, absoluta källsökvägar eller requestuppgifter. Okända fält utelämnas. DbUp:s konsolloggning ska vara avstängd.
 - Nya logghändelser eller loggmottagare kräver test med syntetiska känsliga värden. Direkt integration av exempelvis Sentry måste även granska automatisk exception-, request-, breadcrumb- och trace-insamling; loggprovidern skyddar inte sådana sidokanaler. Se README för omfattning.
 
 ## Säkerhet (XSS/CSRF)

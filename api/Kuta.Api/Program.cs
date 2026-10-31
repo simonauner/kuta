@@ -1,3 +1,4 @@
+using System.Diagnostics;
 using System.Reflection;
 using System.Security.Claims;
 using System.Threading.RateLimiting;
@@ -6,6 +7,7 @@ using DbUp;
 using Microsoft.AspNetCore.Authentication.Cookies;
 using Microsoft.AspNetCore.DataProtection;
 using Microsoft.AspNetCore.DataProtection.KeyManagement;
+using Microsoft.AspNetCore.Diagnostics;
 using Microsoft.AspNetCore.HttpOverrides;
 using Microsoft.Extensions.Options;
 using Npgsql;
@@ -15,9 +17,9 @@ try
     return await RunAsync(args);
 }
 catch (HostAbortedException) { throw; } // WebApplicationFactory avbryter starten vid Build.
-catch (Exception)
+catch (Exception exception)
 {
-    Console.Error.WriteLine("Kuta startup failed.");
+    PrivateLogProvider.WriteFailure(Console.Error, PrivateLogProvider.StartupFailed, exception);
     return 1;
 }
 
@@ -25,7 +27,7 @@ static async Task<int> RunAsync(string[] args)
 {
     var builder = WebApplication.CreateBuilder(args);
 
-    // Ramverksloggar kan innehålla URL:er, tokens och undantag. Bara fasta driftmeddelanden får lämna processen.
+    // Ramverksloggar kan innehålla URL:er, tokens och undantag. Bara granskade diagnostikfält får lämna processen.
     builder.Logging.ClearProviders();
     builder.Logging.AddProvider(new PrivateLogProvider(Console.Out));
 
@@ -121,13 +123,28 @@ static async Task<int> RunAsync(string[] args)
         });
         return next(context);
     });
-    // Även Development ska hantera fel utan att skicka eller logga undantagsinnehåll.
+    // Yttre middleware ser även hanterade fel och fel efter att svaret har börjat skickas.
+    app.Use(async (context, next) =>
+    {
+        var started = Stopwatch.GetTimestamp();
+        Exception? failure = null;
+        try { await next(context); }
+        catch (Exception exception) { failure = exception; throw; }
+        finally
+        {
+            failure ??= context.Features.Get<IExceptionHandlerFeature>()?.Error;
+            if (failure is not null || context.Response.StatusCode >= 500)
+                diagnostics.Log(LogLevel.Error, PrivateLogProvider.RequestFailed,
+                    new PrivateLogProvider.RequestMetrics(context.Response.StatusCode, Stopwatch.GetElapsedTime(started).TotalMilliseconds),
+                    failure, (_, _) => "");
+        }
+    });
+    // Även Development ska ge neutrala felsvar utan undantagsinnehåll.
     app.UseExceptionHandler(new ExceptionHandlerOptions
     {
         SuppressDiagnosticsCallback = _ => true,
         ExceptionHandler = async context =>
         {
-            diagnostics.LogError(PrivateLogProvider.RequestFailed, "");
             context.Response.StatusCode = StatusCodes.Status500InternalServerError;
             await context.Response.WriteAsJsonAsync(new ApiError("Ett oväntat fel inträffade.", "internalError"));
         },
@@ -188,7 +205,7 @@ static async Task<int> RunAsync(string[] args)
     }
     if (!result.Successful)
     {
-        Console.Error.WriteLine("Kuta migration failed.");
+        PrivateLogProvider.WriteFailure(Console.Error, PrivateLogProvider.MigrationFailed, result.Error);
         return 1;
     }
 
