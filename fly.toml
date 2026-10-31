@@ -14,11 +14,11 @@ swap_size_mb = 512
   ForwardedHeaders__ForwardedForHeaderName = 'Fly-Client-IP'
   # kuta.fly.dev och www.kutaapp.com skickas vidare hit (Program.cs). DNS hos Hostup, certifikat hos Fly.
   CanonicalHost = 'kutaapp.com'
-  Supabase__Url = 'https://hrkqzqfyisvdyzfxzokf.supabase.co'
+  Supabase__Url = 'https://umjqrlkeuppyhxnlyuid.supabase.co'
   # Publik nyckel, inte hemlig.
-  Supabase__PublishableKey = 'sb_publishable_Df2B4jm1aXH1_uOy52EsXg_BmM8THXV'
+  Supabase__PublishableKey = 'sb_publishable_mBsMPoNqEW4GAZ1HQ5FbKQ_R1VkmE8_'
   # Råa FIT-filer i Supabase Storage via S3 (privat bucket); nyckeln ligger i 1Password (fly.secrets.tpl).
-  Storage__ServiceUrl = 'https://hrkqzqfyisvdyzfxzokf.storage.supabase.co/storage/v1/s3'
+  Storage__ServiceUrl = 'https://umjqrlkeuppyhxnlyuid.storage.supabase.co/storage/v1/s3'
   Storage__Region = 'eu-north-1'
   Storage__Bucket = 'fit-files'
 
