@@ -1,3 +1,4 @@
+import { FormField } from '@/components/ui/form-field'
 import { lazy, Suspense, useId, useRef, useState } from 'react'
 import { useTranslation } from 'react-i18next'
 import { AnimatePresence, motion, useReducedMotion } from 'motion/react'
@@ -101,24 +102,26 @@ export function MultisportEditor({
       {editing && (
         <>
           <p className="text-sm text-muted-foreground">{t('multisport.instructions')}</p>
-          <label className="flex items-center gap-3 text-sm">
-            {t('multisport.kind')}
-            <select
-              className="rounded-md border bg-background p-2"
-              value={kind}
-              disabled={disabled}
-              onChange={(e) => {
-                setKind(e.target.value)
-                onChange?.({ kind: e.target.value, parts })
-              }}
-            >
-              {multisportKinds.map((k) => (
-                <option key={k} value={k}>
-                  {t(sportNameKey(k))}
-                </option>
-              ))}
-            </select>
-          </label>
+          <FormField layout="inline" label={t('multisport.kind')} className="text-sm">
+            {(id) => (
+              <select
+                id={id}
+                className="rounded-md border bg-background p-2"
+                value={kind}
+                disabled={disabled}
+                onChange={(e) => {
+                  setKind(e.target.value)
+                  onChange?.({ kind: e.target.value, parts })
+                }}
+              >
+                {multisportKinds.map((k) => (
+                  <option key={k} value={k}>
+                    {t(sportNameKey(k))}
+                  </option>
+                ))}
+              </select>
+            )}
+          </FormField>
         </>
       )}
       {shown.length > 0 && (
@@ -160,20 +163,30 @@ export function MultisportEditor({
                     {formatDuration(p.endS - p.startS)}
                   </Button>
                   {editing && (
-                    <select
-                      aria-label={t('multisport.partSport', { number: i + 1 })}
-                      className="relative z-10 rounded-md border bg-background p-2 text-sm"
-                      value={p.sport}
-                      onChange={(e) =>
-                        update(parts.map((v, j) => (j === i ? { ...v, sport: e.target.value } : v)))
-                      }
+                    <FormField
+                      label={t('multisport.partSport', { number: i + 1 })}
+                      hideLabel
+                      className="relative z-10"
                     >
-                      {partSports.map((s) => (
-                        <option key={s} value={s}>
-                          {t(sportNameKey(s))}
-                        </option>
-                      ))}
-                    </select>
+                      {(id) => (
+                        <select
+                          id={id}
+                          className="relative z-10 rounded-md border bg-background p-2 text-sm"
+                          value={p.sport}
+                          onChange={(e) =>
+                            update(
+                              parts.map((v, j) => (j === i ? { ...v, sport: e.target.value } : v)),
+                            )
+                          }
+                        >
+                          {partSports.map((s) => (
+                            <option key={s} value={s}>
+                              {t(sportNameKey(s))}
+                            </option>
+                          ))}
+                        </select>
+                      )}
+                    </FormField>
                   )}
                 </div>
                 <p className="text-xs text-muted-foreground">
@@ -182,76 +195,90 @@ export function MultisportEditor({
                 {editing && (
                   <div className="pointer-events-none relative z-10 space-y-2 [&_button]:pointer-events-auto [&_input]:pointer-events-auto [&_label]:pointer-events-auto">
                     {i < parts.length - 1 && (
-                      <label className="flex flex-wrap items-center gap-2 text-sm">
-                        {t('multisport.boundary', { number: i + 1 })}
-                        <Input
-                          className="w-28"
-                          type="number"
-                          min={p.startS + 1}
-                          max={parts[i + 1].endS - 1}
-                          step="1"
-                          required
-                          key={p.endS}
-                          name={`endS-${i}`}
-                          defaultValue={p.endS}
-                          onBlur={(e) => {
-                            if (!e.currentTarget.checkValidity()) return
-                            const end = Number(e.target.value)
-                            if (
-                              !Number.isInteger(end) ||
-                              end <= p.startS ||
-                              end >= parts[i + 1].endS
-                            )
-                              return
-                            update(
-                              parts.map((v, j) =>
-                                j === i
-                                  ? { ...v, endS: end }
-                                  : j === i + 1
-                                    ? { ...v, startS: end }
-                                    : v,
-                              ),
-                            )
-                          }}
-                        />
-                        <input
-                          className="w-full"
-                          style={{ accentColor: sportColors[p.sport] ?? '#ae3ec9' }}
-                          type="range"
-                          aria-label={t('multisport.boundary', { number: i + 1 })}
-                          min={p.startS + 1}
-                          max={parts[i + 1].endS - 1}
-                          step="1"
-                          value={p.endS}
-                          onChange={(e) => {
-                            const end = Number(e.target.value)
-                            update(
-                              parts.map((v, j) =>
-                                j === i
-                                  ? { ...v, endS: end }
-                                  : j === i + 1
-                                    ? { ...v, startS: end }
-                                    : v,
-                              ),
-                            )
-                          }}
-                        />
-                      </label>
+                      <div className="space-y-2">
+                        <FormField
+                          layout="inline"
+                          label={t('multisport.boundary', { number: i + 1 })}
+                          className="text-sm"
+                        >
+                          {(id) => (
+                            <Input
+                              id={id}
+                              className="w-28"
+                              type="number"
+                              min={p.startS + 1}
+                              max={parts[i + 1].endS - 1}
+                              step="1"
+                              required
+                              key={p.endS}
+                              name={`endS-${i}`}
+                              defaultValue={p.endS}
+                              onBlur={(e) => {
+                                if (!e.currentTarget.checkValidity()) return
+                                const end = Number(e.target.value)
+                                if (
+                                  !Number.isInteger(end) ||
+                                  end <= p.startS ||
+                                  end >= parts[i + 1].endS
+                                )
+                                  return
+                                update(
+                                  parts.map((v, j) =>
+                                    j === i
+                                      ? { ...v, endS: end }
+                                      : j === i + 1
+                                        ? { ...v, startS: end }
+                                        : v,
+                                  ),
+                                )
+                              }}
+                            />
+                          )}
+                        </FormField>
+                        <FormField label={t('multisport.boundary', { number: i + 1 })} hideLabel>
+                          {(id) => (
+                            <input
+                              className="w-full"
+                              style={{ accentColor: sportColors[p.sport] ?? '#ae3ec9' }}
+                              type="range"
+                              id={id}
+                              min={p.startS + 1}
+                              max={parts[i + 1].endS - 1}
+                              step="1"
+                              value={p.endS}
+                              onChange={(e) => {
+                                const end = Number(e.target.value)
+                                update(
+                                  parts.map((v, j) =>
+                                    j === i
+                                      ? { ...v, endS: end }
+                                      : j === i + 1
+                                        ? { ...v, startS: end }
+                                        : v,
+                                  ),
+                                )
+                              }}
+                            />
+                          )}
+                        </FormField>
+                      </div>
                     )}
-                    <label className="flex items-center gap-2 text-sm">
-                      <input
-                        type="checkbox"
-                        checked={p.useEquipment}
-                        onChange={(e) =>
-                          update(
-                            parts.map((v, j) =>
-                              j === i ? { ...v, useEquipment: e.target.checked } : v,
-                            ),
-                          )
-                        }
-                      />
-                      {t('multisport.useEquipment')}
-                    </label>
+                    <FormField layout="choice" label={t('multisport.useEquipment')}>
+                      {(id) => (
+                        <input
+                          id={id}
+                          type="checkbox"
+                          checked={p.useEquipment}
+                          onChange={(e) =>
+                            update(
+                              parts.map((v, j) =>
+                                j === i ? { ...v, useEquipment: e.target.checked } : v,
+                              ),
+                            )
+                          }
+                        />
+                      )}
+                    </FormField>
                     <div className="flex flex-wrap gap-2">
                       <Button
                         type="button"

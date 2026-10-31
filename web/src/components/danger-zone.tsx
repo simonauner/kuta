@@ -1,3 +1,4 @@
+import { FormField } from '@/components/ui/form-field'
 import { Modal } from '@/components/ui/modal'
 import { useEffect, useRef, useState, type FormEvent } from 'react'
 import { useMutation, useQueryClient } from '@tanstack/react-query'
@@ -5,7 +6,6 @@ import { useTranslation } from 'react-i18next'
 import { ErrorMessage } from '@/components/error-message'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
-import { Label } from '@/components/ui/label'
 import { api } from '@/lib/api'
 import { useSessionChanged } from '@/lib/auth'
 
@@ -94,19 +94,19 @@ export function DangerZone() {
           {target === 'account' ? t('dangerZone.accountWarning') : t('dangerZone.warning')}
         </p>
         <form onSubmit={onSubmit} className="mt-5">
-          <Label htmlFor="delete-confirmation" className="block leading-relaxed">
-            {t('dangerZone.confirmLabel', { word })}
-          </Label>
-          <Input
-            id="delete-confirmation"
-            className="mt-2"
-            value={confirmation}
-            onChange={(event) => setConfirmation(event.target.value)}
-            disabled={remove.isPending}
-            autoComplete="off"
-            autoCapitalize="characters"
-            spellCheck={false}
-          />
+          <FormField label={t('dangerZone.confirmLabel', { word })}>
+            {(id) => (
+              <Input
+                id={id}
+                value={confirmation}
+                onChange={(event) => setConfirmation(event.target.value)}
+                disabled={remove.isPending}
+                autoComplete="off"
+                autoCapitalize="characters"
+                spellCheck={false}
+              />
+            )}
+          </FormField>
           {remove.error && (
             <p role="alert" className="mt-3 text-sm text-destructive">
               <ErrorMessage error={remove.error} />

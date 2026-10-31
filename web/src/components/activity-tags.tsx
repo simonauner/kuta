@@ -1,3 +1,4 @@
+import { FormField } from '@/components/ui/form-field'
 import { useQuery } from '@tanstack/react-query'
 import { useTranslation } from 'react-i18next'
 import { activityTagsQuery } from '@/lib/activity-query'
@@ -20,19 +21,25 @@ export function TagPicker({
       <legend className="mb-2 text-sm font-medium">{t('tags.label')}</legend>
       <div className="flex flex-wrap gap-3">
         {options.data?.map((tag) => (
-          <label
+          <FormField
             key={tag}
-            className="flex cursor-pointer items-center gap-2 rounded-md border px-3 py-2 text-sm"
+            layout="choice"
+            label={t(`tagNames.${tag}`)}
+            className="rounded-md border px-3 py-2 text-sm"
           >
-            <input
-              type="checkbox"
-              checked={value.includes(tag)}
-              onChange={(e) =>
-                onChange(e.currentTarget.checked ? [...value, tag] : value.filter((v) => v !== tag))
-              }
-            />
-            {t(`tagNames.${tag}`)}
-          </label>
+            {(id) => (
+              <input
+                id={id}
+                type="checkbox"
+                checked={value.includes(tag)}
+                onChange={(e) =>
+                  onChange(
+                    e.currentTarget.checked ? [...value, tag] : value.filter((v) => v !== tag),
+                  )
+                }
+              />
+            )}
+          </FormField>
         ))}
       </div>
       {options.error && (

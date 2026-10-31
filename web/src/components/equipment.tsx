@@ -1,3 +1,4 @@
+import { FormField } from '@/components/ui/form-field'
 import { Menu } from '@base-ui/react/menu'
 import { Select } from '@base-ui/react/select'
 import { Check, ChevronDown, EllipsisVertical } from 'lucide-react'
@@ -7,7 +8,6 @@ import { Link } from '@tanstack/react-router'
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
 import { useTranslation } from 'react-i18next'
 import { api } from '@/lib/api'
-import { cn } from '@/lib/utils'
 import { formatDuration, parseDuration } from '@/lib/activity'
 import { equipmentQuery, equipmentKindsQuery, type Equipment } from '@/lib/equipment'
 import { Button } from '@/components/ui/button'
@@ -226,62 +226,75 @@ export function EquipmentSection() {
         </h2>
         <form onSubmit={onSubmit}>
           <fieldset disabled={save.isPending} className="mt-5 grid grid-cols-2 gap-4">
-            <label className="col-span-2 space-y-2 text-sm font-medium">
-              {t('equipment.name')}
-              <Input
-                autoFocus
-                required
-                maxLength={100}
-                value={name}
-                onChange={(e) => setName(e.currentTarget.value)}
-              />
-            </label>
-            <label className={cn('space-y-2 text-sm font-medium', singleKind && 'col-span-2')}>
-              {t('equipment.brand')}
-              <Input
-                maxLength={100}
-                value={brand}
-                onChange={(e) => setBrand(e.currentTarget.value)}
-              />
-            </label>
+            <FormField label={t('equipment.name')} className="text-sm font-medium col-span-2">
+              {(id) => (
+                <Input
+                  id={id}
+                  autoFocus
+                  required
+                  maxLength={100}
+                  value={name}
+                  onChange={(e) => setName(e.currentTarget.value)}
+                />
+              )}
+            </FormField>
+            <FormField
+              label={t('equipment.brand')}
+              className={singleKind ? 'col-span-2 text-sm font-medium' : 'text-sm font-medium'}
+            >
+              {(id) => (
+                <Input
+                  id={id}
+                  maxLength={100}
+                  value={brand}
+                  onChange={(e) => setBrand(e.currentTarget.value)}
+                />
+              )}
+            </FormField>
             {kinds.data && kinds.data.length > 1 && (
-              <label className="space-y-2 text-sm font-medium">
-                {t('equipment.kind')}
-                <select
-                  className="h-9 w-full rounded-md border bg-background px-3"
-                  value={selectedKind}
-                  onChange={(e) => setKind(e.currentTarget.value)}
-                >
-                  {kinds.data?.map((value) => (
-                    <option key={value} value={value}>
-                      {t(`equipmentKinds.${value}`)}
-                    </option>
-                  ))}
-                </select>
-              </label>
+              <FormField label={t('equipment.kind')} className="text-sm font-medium">
+                {(id) => (
+                  <select
+                    id={id}
+                    className="h-9 w-full rounded-md border bg-background px-3"
+                    value={selectedKind}
+                    onChange={(e) => setKind(e.currentTarget.value)}
+                  >
+                    {kinds.data?.map((value) => (
+                      <option key={value} value={value}>
+                        {t(`equipmentKinds.${value}`)}
+                      </option>
+                    ))}
+                  </select>
+                )}
+              </FormField>
             )}
             <p className="col-span-2 text-xs text-muted-foreground">{t('equipment.initialHint')}</p>
-            <label className="space-y-2 text-sm font-medium">
-              {t('equipment.initialDistance')}
-              <Input
-                type="number"
-                inputMode="decimal"
-                min={0}
-                step="any"
-                value={distanceKm}
-                onChange={(e) => setDistanceKm(e.currentTarget.value)}
-              />
-            </label>
-            <label className="space-y-2 text-sm font-medium">
-              {t('equipment.initialDuration')}
-              <Input
-                pattern="\d+(:[0-5]\d){0,2}"
-                placeholder="0:00:00"
-                title={t('newActivity.durationHint')}
-                value={duration}
-                onChange={(e) => setDuration(e.currentTarget.value)}
-              />
-            </label>
+            <FormField label={t('equipment.initialDistance')} className="text-sm font-medium">
+              {(id) => (
+                <Input
+                  id={id}
+                  type="number"
+                  inputMode="decimal"
+                  min={0}
+                  step="any"
+                  value={distanceKm}
+                  onChange={(e) => setDistanceKm(e.currentTarget.value)}
+                />
+              )}
+            </FormField>
+            <FormField label={t('equipment.initialDuration')} className="text-sm font-medium">
+              {(id) => (
+                <Input
+                  id={id}
+                  pattern="\d+(:[0-5]\d){0,2}"
+                  placeholder="0:00:00"
+                  title={t('newActivity.durationHint')}
+                  value={duration}
+                  onChange={(e) => setDuration(e.currentTarget.value)}
+                />
+              )}
+            </FormField>
             {kinds.error && (
               <p role="alert" className="col-span-2 text-sm text-destructive">
                 <ErrorMessage error={kinds.error} />
@@ -383,67 +396,75 @@ export function EquipmentPicker({
         </p>
       )}
       {options.length > 3 ? (
-        <Select.Root
-          multiple
-          value={value}
-          onValueChange={onChange}
-          disabled={disabled}
-          items={options.map((item) => ({ value: item.id, label: label(item) }))}
-        >
-          <Select.Trigger
-            aria-label={t('equipment.title')}
-            className="flex min-h-9 w-full items-center justify-between gap-2 rounded-md border bg-background px-3 py-2 text-left text-sm outline-none focus-visible:ring-2 focus-visible:ring-ring disabled:opacity-50"
-          >
-            <Select.Value placeholder={t('equipment.choose')} className="min-w-0 break-words" />
-            <Select.Icon>
-              <ChevronDown className="size-4 shrink-0" aria-hidden="true" />
-            </Select.Icon>
-          </Select.Trigger>
-          <Select.Portal>
-            <Select.Positioner alignItemWithTrigger={false} sideOffset={4} className="z-50">
-              <Select.Popup className="max-h-[min(20rem,var(--available-height))] w-[var(--anchor-width)] overflow-y-auto rounded-md border bg-card p-1 text-card-foreground shadow-md outline-none">
-                <Select.List>
-                  {options.map((item) => (
-                    <Select.Item
-                      key={item.id}
-                      value={item.id}
-                      className="flex cursor-default items-center gap-2 rounded-sm px-2 py-2 text-sm outline-none data-highlighted:bg-accent data-highlighted:text-accent-foreground"
-                    >
-                      <span className="size-4 shrink-0">
-                        <Select.ItemIndicator>
-                          <Check className="size-4" aria-hidden="true" />
-                        </Select.ItemIndicator>
-                      </span>
-                      <Select.ItemText className="min-w-0 break-words">
-                        {label(item)}
-                      </Select.ItemText>
-                    </Select.Item>
-                  ))}
-                </Select.List>
-              </Select.Popup>
-            </Select.Positioner>
-          </Select.Portal>
-        </Select.Root>
+        <FormField label={t('equipment.title')} hideLabel>
+          {(id) => (
+            <Select.Root
+              multiple
+              value={value}
+              onValueChange={onChange}
+              disabled={disabled}
+              items={options.map((item) => ({ value: item.id, label: label(item) }))}
+            >
+              <Select.Trigger
+                id={id}
+                className="flex min-h-9 w-full items-center justify-between gap-2 rounded-md border bg-background px-3 py-2 text-left text-sm outline-none focus-visible:ring-2 focus-visible:ring-ring disabled:opacity-50"
+              >
+                <Select.Value placeholder={t('equipment.choose')} className="min-w-0 break-words" />
+                <Select.Icon>
+                  <ChevronDown className="size-4 shrink-0" aria-hidden="true" />
+                </Select.Icon>
+              </Select.Trigger>
+              <Select.Portal>
+                <Select.Positioner alignItemWithTrigger={false} sideOffset={4} className="z-50">
+                  <Select.Popup className="max-h-[min(20rem,var(--available-height))] w-[var(--anchor-width)] overflow-y-auto rounded-md border bg-card p-1 text-card-foreground shadow-md outline-none">
+                    <Select.List>
+                      {options.map((item) => (
+                        <Select.Item
+                          key={item.id}
+                          value={item.id}
+                          className="flex cursor-default items-center gap-2 rounded-sm px-2 py-2 text-sm outline-none data-highlighted:bg-accent data-highlighted:text-accent-foreground"
+                        >
+                          <span className="size-4 shrink-0">
+                            <Select.ItemIndicator>
+                              <Check className="size-4" aria-hidden="true" />
+                            </Select.ItemIndicator>
+                          </span>
+                          <Select.ItemText className="min-w-0 break-words">
+                            {label(item)}
+                          </Select.ItemText>
+                        </Select.Item>
+                      ))}
+                    </Select.List>
+                  </Select.Popup>
+                </Select.Positioner>
+              </Select.Portal>
+            </Select.Root>
+          )}
+        </FormField>
       ) : (
         <div className="flex flex-wrap gap-3">
           {options.map((item) => (
-            <label
+            <FormField
               key={item.id}
-              className="flex cursor-pointer items-center gap-2 rounded-md border px-3 py-2 text-sm"
+              layout="choice"
+              label={label(item)}
+              className="rounded-md border px-3 py-2 text-sm"
             >
-              <input
-                type="checkbox"
-                checked={value.includes(item.id)}
-                onChange={(e) =>
-                  onChange(
-                    e.currentTarget.checked
-                      ? [...value, item.id]
-                      : value.filter((id) => id !== item.id),
-                  )
-                }
-              />
-              {label(item)}
-            </label>
+              {(id) => (
+                <input
+                  id={id}
+                  type="checkbox"
+                  checked={value.includes(item.id)}
+                  onChange={(e) =>
+                    onChange(
+                      e.currentTarget.checked
+                        ? [...value, item.id]
+                        : value.filter((id) => id !== item.id),
+                    )
+                  }
+                />
+              )}
+            </FormField>
           ))}
         </div>
       )}

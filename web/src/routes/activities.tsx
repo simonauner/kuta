@@ -1,3 +1,4 @@
+import { FormField } from '@/components/ui/form-field'
 import { SportIcon } from '@/components/sport-icon'
 import { sports } from '@/lib/sports'
 import { TagLabels } from '@/components/activity-tags'
@@ -102,31 +103,30 @@ export function ActivitiesPage() {
         />
       )}
       {(availableYears.length > 1 || year !== undefined) && (
-        <div className="mt-6 flex items-center gap-3">
-          <label htmlFor="activity-year" className="text-sm font-medium">
-            {t('activities.year')}
-          </label>
-          <select
-            id="activity-year"
-            className="w-32 rounded-md border bg-background px-3 py-2 text-sm text-foreground"
-            value={year ?? ''}
-            onChange={(e) =>
-              void navigate({
-                search: { year: e.target.value ? Number(e.target.value) : undefined, tag, sport },
-              })
-            }
-          >
-            <option value="">{t('activities.allYears')}</option>
-            {year !== undefined && !availableYears.includes(year) && (
-              <option value={year}>{year}</option>
-            )}
-            {availableYears.map((value) => (
-              <option key={value} value={value}>
-                {value}
-              </option>
-            ))}
-          </select>
-        </div>
+        <FormField layout="inline" label={t('activities.year')} className="mt-6">
+          {(id) => (
+            <select
+              id={id}
+              className="w-32 rounded-md border bg-background px-3 py-2 text-sm text-foreground"
+              value={year ?? ''}
+              onChange={(e) =>
+                void navigate({
+                  search: { year: e.target.value ? Number(e.target.value) : undefined, tag, sport },
+                })
+              }
+            >
+              <option value="">{t('activities.allYears')}</option>
+              {year !== undefined && !availableYears.includes(year) && (
+                <option value={year}>{year}</option>
+              )}
+              {availableYears.map((value) => (
+                <option key={value} value={value}>
+                  {value}
+                </option>
+              ))}
+            </select>
+          )}
+        </FormField>
       )}
       {years.error && (
         <div role="alert" className="mt-4 text-sm text-destructive">
@@ -141,41 +141,44 @@ export function ActivitiesPage() {
           </Button>
         </div>
       )}
-      <label className="mt-5 flex items-center gap-3 text-sm">
-        {t('tags.label')}
-        <select
-          className="w-44 rounded-md border bg-background px-3 py-2"
-          value={tag ?? ''}
-          onChange={(e) =>
-            void navigate({ search: activitySearch({ year, tag: e.currentTarget.value, sport }) })
-          }
-        >
-          <option value="">{t('tags.all')}</option>
-          {tagOptions.data?.map((value) => (
-            <option key={value} value={value}>
-              {t(`tagNames.${value}`)}
-            </option>
-          ))}
-        </select>
-      </label>
-      <div className="mt-5 flex items-center gap-3 text-sm">
-        <label htmlFor="activity-sport">{t('activities.sport')}</label>
-        <select
-          id="activity-sport"
-          className="w-52 rounded-md border bg-background px-3 py-2"
-          value={sport ?? ''}
-          onChange={(e) =>
-            void navigate({ search: activitySearch({ year, tag, sport: e.currentTarget.value }) })
-          }
-        >
-          <option value="">{t('activities.allSports')}</option>
-          {sports.map((value) => (
-            <option key={value} value={value}>
-              {t(`newActivity.sports.${value}`)}
-            </option>
-          ))}
-        </select>
-      </div>
+      <FormField layout="inline" label={t('tags.label')} className="mt-5 text-sm">
+        {(id) => (
+          <select
+            id={id}
+            className="w-44 rounded-md border bg-background px-3 py-2"
+            value={tag ?? ''}
+            onChange={(e) =>
+              void navigate({ search: activitySearch({ year, tag: e.currentTarget.value, sport }) })
+            }
+          >
+            <option value="">{t('tags.all')}</option>
+            {tagOptions.data?.map((value) => (
+              <option key={value} value={value}>
+                {t(`tagNames.${value}`)}
+              </option>
+            ))}
+          </select>
+        )}
+      </FormField>
+      <FormField layout="inline" label={t('activities.sport')} className="mt-5 text-sm">
+        {(id) => (
+          <select
+            id={id}
+            className="w-52 rounded-md border bg-background px-3 py-2"
+            value={sport ?? ''}
+            onChange={(e) =>
+              void navigate({ search: activitySearch({ year, tag, sport: e.currentTarget.value }) })
+            }
+          >
+            <option value="">{t('activities.allSports')}</option>
+            {sports.map((value) => (
+              <option key={value} value={value}>
+                {t(`newActivity.sports.${value}`)}
+              </option>
+            ))}
+          </select>
+        )}
+      </FormField>
       {remove.error && (
         <p role="alert" className="mt-4 text-sm text-destructive">
           <ErrorMessage error={remove.error} />
