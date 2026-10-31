@@ -831,3 +831,9 @@ h3 {
     transition: none;
   }
 }
+
+.features-overview-link {
+  display: flex;
+  justify-content: flex-end;
+  margin-block: -20px 40px;
+}
