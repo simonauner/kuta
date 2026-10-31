@@ -376,6 +376,26 @@ h3 {
 .hero-product {
   width: 100%;
   margin: 0;
+  visibility: hidden;
+}
+.hero-product.is-ready {
+  visibility: visible;
+  animation: phone-fade-in-up 600ms ease-out both;
+}
+@keyframes phone-fade-in-up {
+  from {
+    opacity: 0;
+    transform: translateY(24px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+@media (prefers-reduced-motion: reduce) {
+  .hero-product.is-ready {
+    animation: none;
+  }
 }
 .hero-product .app-phone {
   width: 100%;

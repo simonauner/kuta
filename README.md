@@ -26,7 +26,7 @@ Appens URL:er är `/app` (flöde), `/app/activities`, `/app/stats`, `/app/profil
 
 ## Följare och flöde
 
-När flödet är tomt visas genvägar till ett första pass, Strava-importen i Inställningar och kopiering av den egna profillänken. Den som redan följer någon får en text om att inga pass har delats ännu. Välkomstvyn försvinner när flödet får innehåll.
+När flödet är tomt visas genvägar till ett första pass, Strava-importen i Inställningar och kopiering av den egna profillänken. Den som redan följer någon får en text om att inga pass har delats ännu. Välkomstvyn försvinner när flödet får innehåll. Pass, Statistik och den egna profilen har ett gemensamt tomläge med sidans egna tips när användaren saknar pass. Flödet behåller sin välkomstvy; båda använder samma knappar till nytt pass och Strava-import. Tomma filterresultat och andra löpares profiler visar fortsatt sina vanliga tomlägen.
 
 Flödet på `/app` visar egna pass och pass från löpare du följer efter deras godkännande,
 nyaste först, 25 åt gången. **Inställningar → Följare** innehåller inkommande förfrågningar
@@ -189,6 +189,32 @@ summor per lokal dag (`day`, `count`, `distanceM`, `durationS`) över hela den e
 bara dagar med pass. Summeringen följer målens regler (`SportGroups.EffectiveCte`): hela passet
 hör till startdagen, en grupp räknar matchande delar av multisportpass och utan grupp räknas
 varje pass en gång. Okänd grupp ger `invalidSportGroup` och ogiltig tidszon `invalidTimeZone`.
+
+## Träningsbelastning
+
+Statistiksidan visar kondition, trötthet och form för löpning, och Pass visar en varning högst upp när
+konditionen ökar snabbt. Modellen är TrainingPeaks förenkling av Banisters impuls–respons-modell:
+
+- **Belastning per pass (rTSS):** `∫ v² dt / vT² / 36`, där `vT` är tröskelfarten. En timme i tröskelfart ger 100.
+  `activities.run_intensity` (migrering 019) lagrar `∫ v² dt` (m²/s) för passets löpning, eller bara löpdelarna i
+  ett multisportpass. Den räknas av `BestEfforts.ReplaceAsync`, alltså vid FIT- och Strava-import, uppdelning och
+  omberäkning av rekord. Farten jämnas ut över minst 30 s, ett uppehåll över 10 s (autopaus) bildar ett eget
+  avsnitt, och trasiga värden bryter strömmen. Pass utan distansström (manuella och äldre pass) uppskattas ur
+  snittfarten, `distans² / tid`. Backar justeras inte.
+- **Tröskelfart:** `users.threshold_speed_m_s` om användaren angett den, annars farten som VDOT-prognosen räcker
+  till i en timme (`RacePredictor.ThresholdSpeed`). Utan någon av dem finns ingen belastning. Samma tröskel gäller
+  hela historiken.
+- **Kondition (CTL) och trötthet (ATL):** exponentiella medelvärden av daglig belastning med 42 respektive 7 dagar
+  (`x += (belastning − x) / N`), från första dagen med löpning till idag i webbläsarens tidszon. Form (TSB) är
+  kondition minus trötthet samma dag.
+- **Varning:** när konditionen har ökat mer än 7 på en vecka, och först efter mer än 42 dagars historik så att en ny
+  användare inte varnas medan konditionen byggs upp från noll. Texten är information, inte ett medicinskt råd.
+
+`GET /api/training-load?timeZone=Europe%2FStockholm` ger `thresholdSpeedMS`, `thresholdSource`
+(`manual`/`prediction`/`null`), `predictedThresholdSpeedMS`, `days` (de senaste 182 dagarna med `load`, `fitness`,
+`fatigue` och `form`), `rampPerWeek` och `warning`. `PUT /api/me/threshold-speed` med `{ "thresholdSpeedMS": 4 }`
+sparar en egen tröskelfart (1:40–60:00 per km, annars `invalidThresholdSpeed`), och `null` går tillbaka till
+prognosen. Tröskelfarten ingår i dataexportens `profile.json`. Bara egna pass räknas.
 
 ## Träningsmål
 

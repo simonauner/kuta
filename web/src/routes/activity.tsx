@@ -1,3 +1,4 @@
+import { SlowLoading } from '@/components/slow-loading'
 import { knownSport, sportIcons } from '@/lib/sports'
 import { SportIcon } from '@/components/sport-icon'
 import { useQuery } from '@tanstack/react-query'
@@ -351,25 +352,22 @@ export function ActivityPage() {
       {a.equipmentIds.length > 0 && (
         <div className="mt-5">
           <p className="text-metadata text-muted-foreground">{t('equipment.title')}</p>
-          <ul className="mt-2 flex flex-wrap gap-2">
-            {equipment.data
-              ?.filter((item) => a.equipmentIds.includes(item.id))
-              .map((item) => (
-                <li key={item.id} className="rounded-full bg-muted px-2 py-0.5 text-xs">
-                  {item.name}
-                </li>
-              ))}
-          </ul>
-          {equipment.isPending && (
-            <p role="status" className="text-sm text-muted-foreground">
-              {t('equipment.loading')}
-            </p>
-          )}
-          {equipment.error && (
-            <p role="alert" className="text-sm text-destructive">
-              <ErrorMessage error={equipment.error} />
-            </p>
-          )}
+          <SlowLoading loading={equipment.isPending}>
+            <ul className="mt-2 flex flex-wrap gap-2">
+              {equipment.data
+                ?.filter((item) => a.equipmentIds.includes(item.id))
+                .map((item) => (
+                  <li key={item.id} className="rounded-full bg-muted px-2 py-0.5 text-xs">
+                    {item.name}
+                  </li>
+                ))}
+            </ul>
+            {equipment.error && (
+              <p role="alert" className="text-sm text-destructive">
+                <ErrorMessage error={equipment.error} />
+              </p>
+            )}
+          </SlowLoading>
         </div>
       )}
       {a.tags.length > 0 && (

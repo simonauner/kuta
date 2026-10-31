@@ -29,7 +29,7 @@ test('only an empty home feed offers onboarding, with different copy when follow
     const { ActivityFeed } = await server.ssrLoadModule('/src/components/activity-feed.tsx')
     const i18n = createInstance()
     await i18n.init({ lng: 'sv', resources: { sv: { translation: sv } } })
-    const render = async ({ following = [], items = [], runnerId } = {}) => {
+    const render = async ({ following = [], items = [], runnerId, emptyState } = {}) => {
       const client = new QueryClient({ defaultOptions: { queries: { staleTime: Infinity } } })
       client.setQueryData(['me'], { id: 'me' })
       client.setQueryData(['follows'], { following, followers: [] })
@@ -37,7 +37,9 @@ test('only an empty home feed offers onboarding, with different copy when follow
         pages: [{ items, nextCursor: null }],
         pageParams: [null],
       })
-      const route = createRootRoute({ component: () => createElement(ActivityFeed, { runnerId }) })
+      const route = createRootRoute({
+        component: () => createElement(ActivityFeed, { runnerId, emptyState }),
+      })
       const router = createRouter({
         routeTree: route,
         history: createMemoryHistory({ initialEntries: ['/'] }),
@@ -66,6 +68,12 @@ test('only an empty home feed offers onboarding, with different copy when follow
     const profile = await render({ runnerId: 'friend' })
     assert.match(profile, /Inga pass/)
     assert.doesNotMatch(profile, /Kopiera min profillänk|Dags för ditt första pass/)
+    const ownProfile = await render({
+      runnerId: 'me',
+      emptyState: createElement('p', null, 'Own training story'),
+    })
+    assert.match(ownProfile, /Own training story/)
+    assert.doesNotMatch(ownProfile, /Inga pass|Dags för ditt första pass/)
     const populated = await render({
       items: [
         {

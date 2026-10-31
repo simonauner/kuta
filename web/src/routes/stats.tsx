@@ -5,12 +5,14 @@ import { useQuery } from '@tanstack/react-query'
 import { useTranslation } from 'react-i18next'
 import { ErrorMessage } from '@/components/error-message'
 import { RecordsSection } from '@/components/records'
+import { ActivitiesEmptyState } from '@/components/activities-empty-state'
 import { SlowLoading } from '@/components/slow-loading'
+import { TrainingLoadSection } from '@/components/training-load'
 import { YearComparison } from '@/components/year-comparison'
 import { Button } from '@/components/ui/button'
 import { api } from '@/lib/api'
 import { formatDuration } from '@/lib/activity'
-import { sportGroupsQuery } from '@/lib/activity-query'
+import { sportGroupsQuery, activityYearsQuery } from '@/lib/activity-query'
 import { sportGroupLabel } from '@/lib/sport-groups'
 
 type StatisticsMonth = {
@@ -34,11 +36,10 @@ export function StatsPage() {
   const sportGroups = useQuery(sportGroupsQuery)
   const [metric, setMetric] = useState<Metric>('distanceM')
   const timeZone = Intl.DateTimeFormat().resolvedOptions().timeZone
-  const years = useQuery({
-    queryKey: ['activities', 'years', timeZone],
-    queryFn: () => api.get<number[]>(`/api/activities/years?${new URLSearchParams({ timeZone })}`),
-  })
+  const years = useQuery(activityYearsQuery(timeZone))
+  const hasNoActivities = years.isSuccess && years.data.length === 0
   const statistics = useQuery({
+    enabled: !years.isPending && !hasNoActivities,
     queryKey: ['activities', 'statistics', timeZone, year, sportGroup],
     queryFn: () => {
       const params = new URLSearchParams({ timeZone, year: String(year) })
@@ -65,6 +66,18 @@ export function StatsPage() {
     return `${number.format(value)} bpm`
   }
   const selectClass = 'rounded-md border bg-background px-3 py-2 text-sm text-foreground'
+
+  if (years.isPending || hasNoActivities) {
+    return (
+      <section>
+        <Heading level={1}>{t('nav.stats')}</Heading>
+        <p className="mt-2 text-muted-foreground">{t('stats.description')}</p>
+        <SlowLoading loading={years.isPending}>
+          <ActivitiesEmptyState context="stats" />
+        </SlowLoading>
+      </section>
+    )
+  }
 
   return (
     <section>
@@ -256,6 +269,7 @@ export function StatsPage() {
           ))}
       </SlowLoading>
       <YearComparison year={year} sportGroup={sportGroup} />
+      <TrainingLoadSection />
       <RecordsSection year={year} />
     </section>
   )

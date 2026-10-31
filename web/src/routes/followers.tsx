@@ -1,3 +1,4 @@
+import { SlowLoading } from '@/components/slow-loading'
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
 import { Link } from '@tanstack/react-router'
 import { useTranslation } from 'react-i18next'
@@ -97,45 +98,46 @@ export function FollowersPage() {
       </Breadcrumb>
       <h1 className="text-2xl font-semibold tracking-tight">{t('settings.followers')}</h1>
       <p className="text-sm text-muted-foreground">{t('social.profileLinksHint')}</p>
-      {follows.isPending && <p role="status">{t('social.loading')}</p>}
-      {follows.error && (
-        <p role="alert">
-          <ErrorMessage error={follows.error} />
-          <Button variant="outline" onClick={() => void follows.refetch()}>
-            {t('activities.retry')}
-          </Button>
-        </p>
-      )}
-      {follows.data && (
-        <>
-          <section aria-labelledby="followers-heading" className="border-t pt-6">
-            <h2 id="followers-heading" className="text-lg font-semibold tracking-tight">
-              {t('social.followers')}
-            </h2>
-            {follows.data.followers.length === 0 && (
-              <p className="mt-2 text-sm text-muted-foreground">{t('social.noFollowers')}</p>
-            )}
-            {follows.data.followers.length > 0 && (
-              <ul className="mt-3 divide-y rounded-lg border">
-                {follows.data.followers.map((runner) => action(runner, true))}
-              </ul>
-            )}
-          </section>
-          <section aria-labelledby="following-heading" className="border-t pt-6">
-            <h2 id="following-heading" className="text-lg font-semibold tracking-tight">
-              {t('social.following')}
-            </h2>
-            {follows.data.following.length === 0 && (
-              <p className="mt-2 text-sm text-muted-foreground">{t('social.noFollowing')}</p>
-            )}
-            {follows.data.following.length > 0 && (
-              <ul className="mt-3 divide-y rounded-lg border">
-                {follows.data.following.map((runner) => action(runner, false))}
-              </ul>
-            )}
-          </section>
-        </>
-      )}
+      <SlowLoading loading={follows.isPending}>
+        {follows.error && (
+          <p role="alert">
+            <ErrorMessage error={follows.error} />
+            <Button variant="outline" onClick={() => void follows.refetch()}>
+              {t('activities.retry')}
+            </Button>
+          </p>
+        )}
+        {follows.data && (
+          <>
+            <section aria-labelledby="followers-heading" className="border-t pt-6">
+              <h2 id="followers-heading" className="text-lg font-semibold tracking-tight">
+                {t('social.followers')}
+              </h2>
+              {follows.data.followers.length === 0 && (
+                <p className="mt-2 text-sm text-muted-foreground">{t('social.noFollowers')}</p>
+              )}
+              {follows.data.followers.length > 0 && (
+                <ul className="mt-3 divide-y rounded-lg border">
+                  {follows.data.followers.map((runner) => action(runner, true))}
+                </ul>
+              )}
+            </section>
+            <section aria-labelledby="following-heading" className="border-t pt-6">
+              <h2 id="following-heading" className="text-lg font-semibold tracking-tight">
+                {t('social.following')}
+              </h2>
+              {follows.data.following.length === 0 && (
+                <p className="mt-2 text-sm text-muted-foreground">{t('social.noFollowing')}</p>
+              )}
+              {follows.data.following.length > 0 && (
+                <ul className="mt-3 divide-y rounded-lg border">
+                  {follows.data.following.map((runner) => action(runner, false))}
+                </ul>
+              )}
+            </section>
+          </>
+        )}
+      </SlowLoading>
       {change.error && (
         <p role="alert" className="mt-3 text-destructive">
           <ErrorMessage error={change.error} />

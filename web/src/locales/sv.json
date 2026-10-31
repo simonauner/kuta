@@ -7,14 +7,13 @@
     "main": "Huvudnavigering"
   },
   "language": "Språk",
-  "slowLoading": "Detta tar längre tid än väntat",
+  "slowLoading": "Detta tar ovanligt lång tid...",
   "connectionError": "Kunde inte nå Kuta. Kontrollera anslutningen och ladda om sidan.",
   "feed": {
     "welcomeTitle": "Dags för ditt första pass",
     "welcomeDescription": "Lägg till ett pass eller ta med din träningshistorik. Här samlas sedan pass från dig och löpare du följer.",
     "waitingTitle": "Här börjar ditt flöde",
     "waitingDescription": "Ingen du följer har delat något pass ännu. Lägg till ett eget pass medan du väntar.",
-    "addActivity": "Lägg till ett pass",
     "addActivityHelp": "Registrera manuellt eller ladda upp en FIT-fil från din klocka.",
     "stravaTitle": "Flyttar du från Strava?",
     "stravaDescription": "Importera ditt arkiv och behåll din träningshistorik.",
@@ -35,7 +34,17 @@
     "empty": "Inga pass för vald sport och år.",
     "noHeartRate": "Inga sparade pulsdata under perioden.",
     "chartScale": "Skala: 0–{{max}}. Alla värden finns i tabellen nedan.",
-    "method": "Tid inkluderar pauser. Tempo beräknas som total tid per kilometer för pass med distans och tid. Lägre tempo betyder snabbare fart. Snittpuls vägs med passens tid, endast för pass med sparad puls. Saknade värden visas som –. Alla sporter kombinerar även tempo och puls mellan sporter. Månader följer din enhets tidszon."
+    "method": "Tid inkluderar pauser. Tempo beräknas som total tid per kilometer för pass med distans och tid. Lägre tempo betyder snabbare fart. Snittpuls vägs med passens tid, endast för pass med sparad puls. Saknade värden visas som –. Alla sporter kombinerar även tempo och puls mellan sporter. Månader följer din enhets tidszon.",
+    "onboarding": {
+      "title": "Små steg. Stora framsteg.",
+      "description": "Ditt första pass är starten på din träningshistoria. Lägg till det manuellt eller ladda upp en fil från din klocka – så börjar siffrorna berätta din historia.",
+      "volumeTitle": "Se vad du lägger in",
+      "volumeDescription": "Följ distans och träningstid, månad för månad.",
+      "compareTitle": "Hitta ditt perspektiv",
+      "compareDescription": "Jämför dina träningsår och se hur långt du har kommit.",
+      "recordsTitle": "Upptäck dina rekord",
+      "recordsDescription": "Ladda upp löppass från klockan för att hitta dina snabbaste sträckor."
+    }
   },
   "yearComparison": {
     "title": "År för år",
@@ -53,6 +62,28 @@
     "fullYear": "Helår",
     "empty": "Inga pass för vald sport.",
     "method": "Diagrammet visar valt år och upp till {{years}} senaste år. Jämförelsen gäller samma månad och dag varje år, och förändringen jämför med året före. Tid inkluderar pauser, och hela passet räknas till dagen det startar i din enhets tidszon."
+  },
+  "trainingLoad": {
+    "title": "Träningsbelastning",
+    "description": "Kondition, trötthet och form ur dina löppass, beräknat med fart mot ditt tröskeltempo.",
+    "threshold": "Tröskeltempo",
+    "thresholdManual": "Du har angett tröskeltempot själv.",
+    "thresholdPredicted": "Automatiskt {{pace}} /km ur din prognos. Ange ett eget om du vet bättre.",
+    "thresholdMissing": "Ingen prognos än. Ange tröskeltempot, eller spring 5 km eller längre med distansdata.",
+    "save": "Spara",
+    "useAutomatic": "Använd automatiskt",
+    "empty": "Inga löppass att räkna belastning på än.",
+    "fitness": "Kondition",
+    "fatigue": "Trötthet",
+    "form": "Form",
+    "ramp": "Ökning per vecka",
+    "dailyLoad": "Daglig belastning",
+    "chartScale": "Skala: 0–{{max}}.",
+    "chart": "Kondition, trötthet och daglig belastning {{from}}–{{to}}.",
+    "method": "Ett pass i tröskeltempo i en timme ger belastningen 100; belastningen växer med farten i kvadrat. Farten jämnas ut över 30 sekunder och pauser räknas inte. Pass utan fil uppskattas ur snittfarten. Kondition är snittet av daglig belastning över cirka 42 dagar, trötthet över 7 dagar och form skillnaden. Tröskeltempot är farten du orkar hålla i en timme, härlett ur VDOT om du inte angett det själv, och gäller hela historiken. Backar justeras inte än. Bara löpning räknas.",
+    "warningTitle": "Belastningen ökar snabbt",
+    "warningText": "Konditionen har ökat med {{ramp}} på en vecka. En vanlig tumregel är högst cirka 7 per vecka; en lugnare period minskar risken för överbelastning.",
+    "warningLink": "Se träningsbelastning"
   },
   "records": {
     "helpLabel": "Hjälp om löprekord",
@@ -106,7 +137,17 @@
     "hrNotSaved": "Pulsdata sparas inte. Ändra före uppladdning i",
     "sport": "Träningsform",
     "allSports": "Alla träningsformer",
-    "noMatches": "Inga pass matchar filtren."
+    "noMatches": "Inga pass matchar filtren.",
+    "onboarding": {
+      "title": "Ditt nästa äventyr börjar här.",
+      "description": "En kort runda eller ett långt äventyr? Här samlar du dina pass, minnen och framsteg. Lägg till ditt första pass manuellt eller ladda upp en fil från din klocka.",
+      "historyTitle": "Samla dina pass",
+      "historyDescription": "Spara rundor, anteckningar och taggar i din träningsdagbok.",
+      "importTitle": "Ta med din historik",
+      "importDescription": "Importera ditt Strava-arkiv eller ladda upp FIT-filer från klockan.",
+      "equipmentTitle": "Följ dina skor",
+      "equipmentDescription": "Koppla skor till passen och se hur långt de har hängt med."
+    }
   },
   "newActivity": {
     "title": "Skapa ny aktivitet",
@@ -310,6 +351,7 @@
     "duplicateActivity": "Det här passet är redan uppladdat.",
     "invalidRecordYear": "Ange ett år mellan 1 och 9998.",
     "invalidRecordDistance": "Välj en av rekorddistanserna.",
+    "invalidThresholdSpeed": "Ange ett tröskeltempo mellan 1:40 och 60:00 per km.",
     "invalidFit": "Filen kunde inte läsas som ett pass från en FIT-fil.",
     "invalidTitle": "Titeln får vara högst 100 tecken.",
     "invalidActivity": "Kontrollera sport, datum, tid och distans.",
@@ -628,5 +670,21 @@
     "cross-country skiing": "Längdskidåkning",
     "paddling": "Paddling",
     "rowing": "Rodd"
+  },
+  "profile": {
+    "onboarding": {
+      "title": "Din träningshistoria börjar med ett pass.",
+      "description": "Här får dina pass en plats, från första rundan till nästa milstolpe. Lägg till ett pass och börja bygga din egen träningshistoria. Du väljer själv vilka pass du delar.",
+      "identityTitle": "Din plats på Kuta",
+      "identityDescription": "Dina pass och synliga mål samlas här på din profil.",
+      "connectionsTitle": "Hitta varandra",
+      "connectionsDescription": "Dela din profillänk eller be en vän om deras för att börja följa varandra.",
+      "privacyTitle": "Du väljer vad du delar",
+      "privacyDescription": "Bestäm för varje pass och mål om bara du, dina följare eller alla på Kuta får se det."
+    }
+  },
+  "onboarding": {
+    "eyebrow": "Här börjar din utveckling",
+    "addActivity": "Lägg till ett pass"
   }
 }
