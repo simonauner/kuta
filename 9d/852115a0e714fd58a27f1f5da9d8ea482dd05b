@@ -1,0 +1,47 @@
+api/Kuta.Api/ActivityEndpoints.cs
+  s_2b928969bd5fb6::t_5cba28215a76c2 97-98,244-246,262
+  s_2b928969bd5fb6::t_3ef3c44af000b5 247-261,263-280
+  s_2b928969bd5fb6::t_7c73834a379467 281-282
+web/src/locales/en.json
+  s_2b928969bd5fb6::t_8b2dbc81b962fc 280-284
+web/src/locales/sv.json
+  s_2b928969bd5fb6::t_8b2dbc81b962fc 280-284
+api/Kuta.Api/RawFileStore.cs
+  s_2b928969bd5fb6::t_5cba28215a76c2 46-51
+web/src/routes/settings.tsx
+  s_2b928969bd5fb6::t_8b2dbc81b962fc 30-33,68-90
+  s_2b928969bd5fb6::t_ef6bedefbb21ba 91-92
+api/Kuta.Api.Tests/DataExportTests.cs
+  s_2b928969bd5fb6::t_8c0fe6fab9eb21 124
+  s_2b928969bd5fb6::t_9933d88868ce12 1,99,109-123,125-129
+  s_2b928969bd5fb6::t_5960a076f97ac0 2-98,100-108,130-167
+AGENTS.md
+  s_2b928969bd5fb6::t_9933d88868ce12 32
+web/src/lib/api.ts
+  s_2b928969bd5fb6::t_8b2dbc81b962fc 52-62
+api/Kuta.Api/DataExport.cs
+  s_2b928969bd5fb6::t_3ef3c44af000b5 25-31
+  s_2b928969bd5fb6::t_465c4e806ca483 1-24,32-33,35-90
+  s_2b928969bd5fb6::t_4939e989966a51 34
+README.md
+  s_2b928969bd5fb6::t_9933d88868ce12 17,271-282
+  s_2b928969bd5fb6::t_64778e18c6d562 283
+api/Kuta.Api/Program.cs
+  s_2b928969bd5fb6::t_465c4e806ca483 231
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.7.5",
+  "base_commit_sha": "9d852115a0e714fd58a27f1f5da9d8ea482dd05b",
+  "prompts": {},
+  "sessions": {
+    "s_2b928969bd5fb6": {
+      "agent_id": {
+        "tool": "codex",
+        "id": "01a190a9-5d9b-7c13-b08e-0e528f7b35bb",
+        "model": "gpt-6.1-sol"
+      },
+      "human_author": "Simon Aunér <simonauner@gmail.com>"
+    }
+  }
+}
