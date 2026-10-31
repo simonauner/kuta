@@ -83,6 +83,30 @@ public static class BestEffortEndpoints
             return Results.Ok(await RecordTrends.ReadAsync(conn, user.GetUserId(), distanceM, timeZone, ct));
         }).RequireAuthorization();
 
+        api.MapGet("/training-load", async (string? timeZone, NpgsqlDataSource db, ClaimsPrincipal user,
+            CancellationToken ct) =>
+        {
+            timeZone ??= "UTC";
+            await using var conn = await db.OpenConnectionAsync(ct);
+            if (!await ActivityList.IsValidTimeZoneAsync(conn, timeZone, ct))
+                return Results.BadRequest(new ApiError("Tidszonen är ogiltig. Kontrollera enhetens inställningar.", "invalidTimeZone"));
+            return Results.Ok(await TrainingLoads.ReadAsync(conn, user.GetUserId(), timeZone, DateTime.UtcNow, ct));
+        }).RequireAuthorization();
+
+        api.MapPut("/me/threshold-speed", async (ThresholdSpeedRequest req, NpgsqlDataSource db, ClaimsPrincipal user,
+            CancellationToken ct) =>
+        {
+            if (req.ThresholdSpeedMS is { } speed && !(speed >= 1000d / 3600 && speed < 10))
+                return Results.BadRequest(new ApiError("Ange ett tröskeltempo mellan 1:40 och 60:00 per km.", "invalidThresholdSpeed"));
+            await using var conn = await db.OpenConnectionAsync(ct);
+            var updated = await conn.ExecuteAsync(new CommandDefinition(
+                "update users set threshold_speed_m_s = @speed where id = @id",
+                new { id = user.GetUserId(), speed = req.ThresholdSpeedMS }, cancellationToken: ct));
+            return updated == 0
+                ? Results.Conflict(new ApiError("Välj ett namn först.", "nameRequired"))
+                : Results.NoContent();
+        }).RequireAuthorization();
+
         api.MapGet("/records/predictions", async (NpgsqlDataSource db, ClaimsPrincipal user, CancellationToken ct) =>
         {
             await using var conn = await db.OpenConnectionAsync(ct);

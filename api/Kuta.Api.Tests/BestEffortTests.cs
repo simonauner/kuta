@@ -38,6 +38,18 @@ public class BestEffortTests(KutaFactory factory) : IClassFixture<KutaFactory>
             Assert.Equal(HttpStatusCode.BadRequest, (await owner.GetAsync("/api/records/trend?distanceM=3000", ct)).StatusCode);
             Assert.Equal(HttpStatusCode.BadRequest,
                 (await owner.GetAsync("/api/records/trend?distanceM=5000&timeZone=Nowhere", ct)).StatusCode);
+            Assert.Equal(HttpStatusCode.BadRequest, (await owner.PutAsJsonAsync("/api/me/threshold-speed",
+                new { thresholdSpeedMS = 12 }, ct)).StatusCode);
+            Assert.Equal(HttpStatusCode.NoContent, (await owner.PutAsJsonAsync("/api/me/threshold-speed",
+                new { thresholdSpeedMS = 4 }, ct)).StatusCode);
+            var load = (await owner.GetFromJsonAsync<TrainingLoadSummary>("/api/training-load?timeZone=Europe/Stockholm", ct))!;
+            Assert.Equal(("manual", 4d), (load.ThresholdSource, load.ThresholdSpeedMS!.Value));
+            // Historiken börjar vid nyår, så svaret är kapat till de senaste dagarna och innehåller passets belastning.
+            Assert.Equal(TrainingLoads.ShownDays, load.Days.Count);
+            Assert.True(load.Days[^1].Fitness > 0);
+            Assert.Null((await other.GetFromJsonAsync<TrainingLoadSummary>("/api/training-load", ct))!.ThresholdSpeedMS);
+            Assert.Equal(HttpStatusCode.BadRequest, (await owner.GetAsync("/api/training-load?timeZone=Nowhere", ct)).StatusCode);
+            Assert.Equal(HttpStatusCode.Unauthorized, (await anonymous.GetAsync("/api/training-load", ct)).StatusCode);
             var predictions = (await owner.GetFromJsonAsync<RacePredictions>("/api/records/predictions", ct))!;
             Assert.Null(predictions.Basis); // passen ligger utanför fönstret
             Assert.Equal(HttpStatusCode.Unauthorized, (await anonymous.GetAsync("/api/records/trend?distanceM=5000", ct)).StatusCode);
@@ -80,6 +92,9 @@ public class BestEffortTests(KutaFactory factory) : IClassFixture<KutaFactory>
             Assert.Equal(100d * 200 / 700, recalculated.StartOffsetS, precision: 8);
             Assert.Equal(start.AddSeconds(recalculated.StartOffsetS).Ticks / 10, recalculated.AchievedAt.Ticks / 10);
             Assert.Empty((await owner.GetFromJsonAsync<StoredBestEffort[]>("/api/records?year=2025", ct))!);
+            // Samma omberäkning sparar löpintensiteten bakom träningsbelastningen: 700²/100 + 500²/50 + 300²/150.
+            Assert.Equal(10500, await conn.ExecuteScalarAsync<double>(
+                "select run_intensity from activities where id = @id", new { id = first.Id }), precision: 6);
 
             owner.DefaultRequestHeaders.Remove("X-CSRF-TOKEN");
             Assert.Equal(HttpStatusCode.BadRequest,
@@ -109,6 +124,8 @@ public class BestEffortTests(KutaFactory factory) : IClassFixture<KutaFactory>
             await conn.ExecuteAsync("update activity_streams set dist = null where activity_id = @id", new { id = second.Id });
             Assert.Equal(HttpStatusCode.NoContent,
                 (await owner.PostAsync($"/api/activities/{second.Id}/best-efforts/recalculate", null, ct)).StatusCode);
+            Assert.Null(await conn.ExecuteScalarAsync<double?>(
+                "select run_intensity from activities where id = @id", new { id = second.Id }));
             Assert.Empty((await owner.GetFromJsonAsync<StoredBestEffort[]>("/api/records", ct))!);
             await conn.ExecuteAsync("""
                 delete from activity_streams where activity_id = @id
