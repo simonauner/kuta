@@ -320,6 +320,8 @@
     "empty": "Inga pass med den här taggen."
   },
   "equipment": {
+    "activeHeading": "Aktiva",
+    "retiredHeading": "Pensionerade",
     "actionsLabel": "Åtgärder för {{name}}",
     "title": "Utrustning",
     "description": "Total distans och tid från kopplade pass, inklusive tidigare användning. Tiden räknas inklusive pauser.",

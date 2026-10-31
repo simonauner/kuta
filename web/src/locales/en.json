@@ -320,6 +320,8 @@
     "empty": "No activities with this tag."
   },
   "equipment": {
+    "activeHeading": "Active",
+    "retiredHeading": "Retired",
     "actionsLabel": "Actions for {{name}}",
     "title": "Equipment",
     "description": "Total distance and time from linked activities, including prior use. Time includes pauses.",
