@@ -297,6 +297,10 @@
     "cancel": "Avbryt",
     "deleting": "Raderar …",
     "success": "Alla dina pass har raderats.",
+    "accountDescription": "Radera ditt konto och alla uppgifter som sparats i Kuta.",
+    "deleteAccount": "Radera konto",
+    "accountConfirmTitle": "Vill du verkligen radera ditt konto?",
+    "accountWarning": "Ditt konto, din profil, din utrustning, alla pass, rekord, pulsdata och originalfiler raderas permanent. Du loggas ut på alla enheter. Det går inte att ångra.",
     "words": [
       "FARTLEK",
       "INTERVALL",
