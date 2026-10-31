@@ -45,6 +45,7 @@ public static class DataExport
             {
                 await WriteJsonAsync(zip, "profile.json", profile, ct);
                 await WriteJsonAsync(zip, "equipment.json", await EquipmentEndpoints.LoadAsync(conn, userId), ct);
+                await WriteJsonAsync(zip, "privacy-places.json", await PrivacyPlaces.LoadAsync(conn, userId, ct, tx), ct);
                 foreach (var activity in activities)
                 {
                     ct.ThrowIfCancellationRequested();

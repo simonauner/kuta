@@ -33,7 +33,7 @@ public class WebRoutingTests
                 Assert.Contains("Available features", html);
                 Assert.DoesNotContain("App shell", html);
             }
-            foreach (var path in new[] { "/app", "/app/", "/app/activities", "/app/activities/new", $"/app/activities/{Guid.NewGuid()}", $"/app/activities/{Guid.NewGuid()}/edit", "/app/stats", "/app/profile", "/app/profile/equipment", "/app/settings", "/app?confirm=failed", "/app?reset=password", "/app?reset=failed" })
+            foreach (var path in new[] { "/app", "/app/", "/app/activities", "/app/activities/new", $"/app/activities/{Guid.NewGuid()}", $"/app/activities/{Guid.NewGuid()}/edit", "/app/stats", "/app/profile", "/app/profile/equipment", "/app/settings", "/app/settings/privacy-places", "/app?confirm=failed", "/app?reset=password", "/app?reset=failed" })
             {
                 var html = await client.GetStringAsync(path, ct);
                 Assert.Contains("App shell", html);

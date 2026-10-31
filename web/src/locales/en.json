@@ -257,7 +257,8 @@
     "invalidEquipmentInput": "Check the name, type and prior use.",
     "invalidActivityParts": "Check sports and boundaries. Legs must cover the entire recording without gaps or overlaps.",
     "invalidDescription": "The description can be at most 10,000 characters.",
-    "stravaImportInterrupted": "The import was interrupted. Saved activities are kept. Retry with the same file; duplicates are skipped."
+    "stravaImportInterrupted": "The import was interrupted. Saved activities are kept. Retry with the same file; duplicates are skipped.",
+    "invalidPrivacyPlace": "Enter a name, a valid map point and a radius between 50 and 5,000 meters."
   },
   "home": "Kuta – home",
   "footer": {
@@ -278,7 +279,7 @@
     "importEquipmentResult": "Shoes imported: {{imported}}. Existing activities linked to shoes: {{linked}}.",
     "failedImports": "Strava IDs of activities that could not be imported",
     "exportTitle": "Export data",
-    "exportHelp": "Download a ZIP with your activities as JSON, including streams, laps, tags and equipment, along with your profile and best efforts. Saved original files are included. Manual activities have no original file, and files that were not saved or were deleted when heart rate consent was withdrawn cannot be exported.",
+    "exportHelp": "Download a ZIP with your activities as JSON, including streams, laps, tags and equipment, along with your profile and best efforts. Saved original files are included. Manual activities have no original file, and files that were not saved or were deleted when heart rate consent was withdrawn cannot be exported. Your hidden places are also included.",
     "export": "Download ZIP",
     "exporting": "Preparing export…",
     "exportWait": "This may take several minutes. Keep this page open until the download starts.",
@@ -398,5 +399,39 @@
     "distanceBySport": "Distance by sport",
     "confirmRestore": "Restoring will remove the split. Do you want to continue?",
     "restoreConfirm": "Restore"
+  },
+  "privacyPlaces": {
+    "title": "Hidden places",
+    "help": "Hide route sections near places such as home and work, including on older activities. You always see the full route. Sharing is not available yet.",
+    "add": "Add place",
+    "edit": "Edit place",
+    "delete": "Delete",
+    "editNamed": "Edit {{name}}",
+    "deleteNamed": "Delete {{name}}",
+    "deleteHelp": "This area will no longer be hidden from others when sharing becomes available, including on older activities. Other hidden places remain.",
+    "empty": "No hidden places. Add a place to protect routes near it.",
+    "name": "Name",
+    "namePlaceholder": "Home or work",
+    "radius": "Radius (meters, 50–5,000)",
+    "radiusValue": "{{radius}} m radius",
+    "latitude": "Latitude",
+    "longitude": "Longitude",
+    "map": "Choose a hidden place on the map",
+    "mapHelp": "Click the map to choose a place, or pan with the arrow keys and use the map center. You can also enter coordinates below.",
+    "useCenter": "Use map center",
+    "mapPrivacy": "Places are private. The map provider OpenFreeMap can see the area you view.",
+    "save": "Save place",
+    "saving": "Saving…",
+    "cancel": "Cancel",
+    "deleting": "Deleting…",
+    "loading": "Loading places…",
+    "loadingMap": "Loading map…",
+    "mapUnavailable": "The map could not be loaded. You can still enter coordinates below.",
+    "useLocation": "Use my location",
+    "locating": "Finding your location…",
+    "locationDenied": "Location access was denied. Allow it in your browser or choose a point on the map.",
+    "locationUnavailable": "Your location could not be found. Try again or choose a point on the map.",
+    "locationTimeout": "Finding your location took too long. Try again or choose a point on the map.",
+    "locationUnsupported": "Location access is not available in this browser. Choose a point on the map."
   }
 }
