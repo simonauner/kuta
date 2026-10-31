@@ -1,0 +1,21 @@
+web/src/locales/en.json
+  s_c00ea9040aa9cc::t_55a09ec89b2b43 152
+web/src/locales/sv.json
+  s_c00ea9040aa9cc::t_55a09ec89b2b43 152
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.7.5",
+  "base_commit_sha": "de49981564760dbbbf8fbec21d2419956029fe30",
+  "prompts": {},
+  "sessions": {
+    "s_c00ea9040aa9cc": {
+      "agent_id": {
+        "tool": "codex",
+        "id": "01a18f8c-2fbb-71c0-99ae-757c0ace6644",
+        "model": "gpt-6.1-sol"
+      },
+      "human_author": "Simon Aunér <simonauner@gmail.com>"
+    }
+  }
+}
