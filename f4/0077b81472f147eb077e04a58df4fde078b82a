@@ -1,0 +1,23 @@
+api/Kuta.Api.Tests/ActivityStorageTests.cs
+  s_eb96909e109727::t_7d47e4d255ef80 8-52
+api/Kuta.Api/ActivityEndpoints.cs
+  s_eb96909e109727::t_f93b3acc7b5adf 227-228
+api/Kuta.Api/ActivityStorage.cs
+  s_eb96909e109727::t_645f492cf06883 7-23
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.7.5",
+  "base_commit_sha": "f40077b81472f147eb077e04a58df4fde078b82a",
+  "prompts": {},
+  "sessions": {
+    "s_eb96909e109727": {
+      "agent_id": {
+        "tool": "codex",
+        "id": "01a18f9d-1cbf-7ab1-9180-6319dde2cf0a",
+        "model": "gpt-6.1-sol"
+      },
+      "human_author": "Simon Aunér <simonauner@gmail.com>"
+    }
+  }
+}
