@@ -474,6 +474,7 @@
     "default": "Default visibility for new activities",
     "help": "Saved automatically. Applies to new manual activities, FIT uploads and Strava imports. Existing activities keep their visibility until you apply this choice to all.",
     "applyAll": "Apply to all activities",
+    "allMatch": "All your activities have the selected visibility.",
     "confirm": "Change every existing activity to “{{visibility}}”? This replaces individual visibility choices for all your activities.",
     "applying": "Applying…",
     "applied": "All your activities now use this visibility.",

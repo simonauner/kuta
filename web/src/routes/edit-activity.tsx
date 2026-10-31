@@ -64,6 +64,7 @@ function EditActivityForm({ activity }: { activity: ActivityDetail }) {
       }),
     onSuccess: async () => {
       await Promise.all([
+        queryClient.invalidateQueries({ queryKey: meQuery.queryKey }),
         queryClient.invalidateQueries({ queryKey: activityQuery(activity.id).queryKey }),
         queryClient.invalidateQueries({ queryKey: ['activities'] }),
         queryClient.invalidateQueries({ queryKey: ['feed'] }),

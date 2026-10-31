@@ -5,7 +5,7 @@ using Microsoft.AspNetCore.Authentication.Cookies;
 using Npgsql;
 
 public record UpdateMeRequest(string? DisplayName);
-public record Me(Guid Id, string? Email, string? DisplayName, bool HrConsent, string DefaultActivityPrivacy);
+public record Me(Guid Id, string? Email, string? DisplayName, bool HrConsent, string DefaultActivityPrivacy, bool AllActivitiesMatchDefaultPrivacy);
 public record Profile(string DisplayName, bool HrConsent, string DefaultActivityPrivacy);
 public record ActivityPrivacyRequest(string? Privacy, bool ApplyToAll = false);
 
@@ -137,6 +137,12 @@ public static class MeEndpoints
     private static async Task<Me> LoadAsync(NpgsqlConnection conn, ClaimsPrincipal user)
     {
         var profile = await LoadProfileAsync(conn, user.GetUserId());
-        return new Me(user.GetUserId(), user.FindFirstValue(ClaimTypes.Email), profile?.DisplayName, profile?.HrConsent ?? false, profile?.DefaultActivityPrivacy ?? "private");
+        var privacy = profile?.DefaultActivityPrivacy ?? "private";
+        var allMatch = await conn.ExecuteScalarAsync<bool>("""
+            select not exists (
+                select 1 from activities where user_id = @id and privacy <> @privacy
+            )
+            """, new { id = user.GetUserId(), privacy });
+        return new Me(user.GetUserId(), user.FindFirstValue(ClaimTypes.Email), profile?.DisplayName, profile?.HrConsent ?? false, privacy, allMatch);
     }
 }

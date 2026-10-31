@@ -27,9 +27,14 @@ export function DangerZone() {
       }
       await queryClient.invalidateQueries({
         predicate: (query) =>
-          ['activities', 'activity', 'records', 'equipment', 'equipmentLastUsedShoe'].includes(
-            String(query.queryKey[0]),
-          ),
+          [
+            'me',
+            'activities',
+            'activity',
+            'records',
+            'equipment',
+            'equipmentLastUsedShoe',
+          ].includes(String(query.queryKey[0])),
       })
       setWord(null)
     },
