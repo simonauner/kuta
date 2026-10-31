@@ -1,0 +1,42 @@
+api/Kuta.Api.Tests/ActivityListTests.cs
+  s_8b6915d520f192::t_59fd0505ff81b5 94-134
+  s_8b6915d520f192::t_2653734d8cee3e 42,45
+README.md
+  s_8b6915d520f192::t_59fd0505ff81b5 30-34
+api/Kuta.Api/ActivityList.cs
+  s_8b6915d520f192::t_2653734d8cee3e 12-22,24,28-31,36,59
+api/Kuta.Api.Tests/ActivityAccessTests.cs
+  s_8b6915d520f192::t_59fd0505ff81b5 35,53-56,64-68
+api/Kuta.Api/ActivityEndpoints.cs
+  s_8b6915d520f192::t_2653734d8cee3e 43,47-48,51,54-64
+web/src/components/back-link.tsx
+  s_8b6915d520f192::t_fb46fd749f8be9 1,6,10
+web/src/lib/activity.ts
+  s_8b6915d520f192::t_8e38409bf43c78 14-19
+web/src/locales/en.json
+  s_8b6915d520f192::t_2cd18b983c5342 22-23,145
+web/src/locales/sv.json
+  s_8b6915d520f192::t_2cd0edb3d51858 22-23,145
+web/src/router.tsx
+  s_8b6915d520f192::t_e179f49ae7448e 13,27,39
+web/src/routes/activities.tsx
+  s_8b6915d520f192::t_21d7a1af557282 3-4,16-17,20-21,33-38,40,44,68-105,146
+web/tests/activity.test.mjs
+  s_8b6915d520f192::t_988ef01cb14abf 4,175-181
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.7.5",
+  "base_commit_sha": "9dce89911392ea0b15e6806d706bb437599be608",
+  "prompts": {},
+  "sessions": {
+    "s_8b6915d520f192": {
+      "agent_id": {
+        "tool": "codex",
+        "id": "01a18f2a-67ba-7630-8dd9-d32eef3506ae",
+        "model": "gpt-6.1-sol"
+      },
+      "human_author": "Simon Aunér <simonauner@gmail.com>"
+    }
+  }
+}
