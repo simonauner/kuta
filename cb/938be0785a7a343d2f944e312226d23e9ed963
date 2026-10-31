@@ -1,0 +1,21 @@
+api/Kuta.Api.Tests/RecordTrendsTests.cs
+  s_35c9377f393986::t_3b4ea817b9006a 46-51,58-60
+api/Kuta.Api/RecordTrends.cs
+  s_35c9377f393986::t_3b4ea817b9006a 17-18,22-24,26-29
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.7.5",
+  "base_commit_sha": "cb938be0785a7a343d2f944e312226d23e9ed963",
+  "prompts": {},
+  "sessions": {
+    "s_35c9377f393986": {
+      "agent_id": {
+        "tool": "codex",
+        "id": "01a19317-c4c5-71e2-b719-bfe8686f46c7",
+        "model": "gpt-6.1-sol"
+      },
+      "human_author": "Simon Aunér <simonauner@gmail.com>"
+    }
+  }
+}
