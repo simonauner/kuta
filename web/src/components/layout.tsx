@@ -46,9 +46,12 @@ export function Layout() {
           <Link
             to="/app"
             activeOptions={{ exact: true }}
-            className="hidden rounded-md text-2xl font-semibold tracking-tight text-primary focus-visible:outline-2 focus-visible:outline-offset-4 focus-visible:outline-ring md:block"
+            className="hidden shrink-0 rounded-md focus-visible:outline-2 focus-visible:outline-offset-4 focus-visible:outline-ring md:block"
           >
-            Kuta
+            <picture>
+              <source media="(prefers-color-scheme: dark)" srcSet="/brand/logo-light.svg" />
+              <img src="/brand/logo.svg" alt="Kuta" width="96" height="32" className="h-8 w-auto" />
+            </picture>
           </Link>
           <nav aria-label={t('nav.main')} className="flex-1">
             <ul className="flex justify-around md:justify-end md:gap-1">
