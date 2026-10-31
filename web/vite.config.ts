@@ -72,7 +72,9 @@ export default defineConfig({
       // Bara appens navigeringar får appskalet; startsidan och API:t ska nå servern.
       workbox: {
         navigateFallback: '/app.html',
-        navigateFallbackAllowlist: [/^\/app(?:\/(?:activities|stats|profile))?\/?(?:\?|$)/],
+        navigateFallbackAllowlist: [
+          /^\/app(?:\/(?:activities|stats|profile(?:\/equipment)?))?\/?(?:\?|$)/,
+        ],
       },
       includeAssets: [
         'favicon.svg',

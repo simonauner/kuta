@@ -176,10 +176,11 @@ api.MapAuth();
 api.MapMe();
 
 api.MapActivities();
+api.MapShoes();
 api.MapBestEfforts();
 
 // Startsidan är statisk; bara appens kända sökvägar får React-skalet.
-foreach (var path in new[] { "/app", "/app/activities", "/app/activities/new", "/app/activities/{activityId:guid}", "/app/stats", "/app/profile" })
+foreach (var path in new[] { "/app", "/app/activities", "/app/activities/new", "/app/activities/{activityId:guid}", "/app/stats", "/app/profile", "/app/profile/equipment" })
     app.MapFallbackToFile(path, "app.html", staticFiles);
 
 app.Run();

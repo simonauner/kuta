@@ -1,7 +1,7 @@
 // Manuellt pass från formuläret "Skapa ny aktivitet". Tider i UTC, SI-enheter.
 public record ManualActivityRequest(
     string? Sport, string? Title, DateTimeOffset? StartedAt, int? DurationS, double? DistanceM,
-    float? ElevationGainM, short? AvgHr);
+    float? ElevationGainM, short? AvgHr, Guid? ShoeId = null);
 
 // Det löparen själv fyller i, kontrollerat innan det sparas
 public static class ActivityInput

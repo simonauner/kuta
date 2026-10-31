@@ -1,3 +1,4 @@
+import { Link } from '@tanstack/react-router'
 import { DeleteAllActivities } from '@/components/delete-all-activities'
 import { ErrorMessage } from '@/components/error-message'
 import { useTranslation } from 'react-i18next'
@@ -21,6 +22,13 @@ export function ProfilePage() {
       <h1 className="text-2xl font-semibold tracking-tight">{me?.displayName}</h1>
       <p className="mt-1 text-sm text-muted-foreground">{me?.email}</p>
       <p className="mt-6 text-muted-foreground">{t('profile.description')}</p>
+      <Link
+        to="/app/profile/equipment"
+        className="mt-6 flex items-center justify-between rounded-lg border p-4 font-medium hover:bg-accent focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-ring"
+      >
+        {t('equipment.title')}
+        <span aria-hidden="true">→</span>
+      </Link>
       <HeartRateConsent className="mt-6" />
       <Button
         variant="outline"

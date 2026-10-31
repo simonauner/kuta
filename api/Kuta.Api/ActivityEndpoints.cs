@@ -118,36 +118,41 @@ public static class ActivityEndpoints
             var profile = await MeEndpoints.LoadProfileAsync(conn, userId);
             if (profile is null) return Results.Conflict(new ApiError("Välj ett namn först.", "nameRequired"));
 
+            if (!await ShoeEndpoints.CanUseAsync(conn, userId, req.ShoeId))
+                return Results.BadRequest(ShoeEndpoints.UnavailableShoe);
+
             var title = ActivityInput.NormalizeTitle(req.Title);
             var startedAt = req.StartedAt!.Value.UtcDateTime;
             var avgHr = profile.HrConsent ? req.AvgHr : null; // puls bara med samtycke, som vid filuppladdning
             var id = await conn.ExecuteScalarAsync<Guid>(
                 """
                 insert into activities (user_id, source, sport, title, started_at, duration_s, distance_m, avg_hr,
-                                        avg_speed_mps, elevation_gain_m)
+                                        avg_speed_mps, elevation_gain_m, shoe_id)
                 values (@userId, 'manual', @Sport, @title, @startedAt, @DurationS, @DistanceM, @avgHr,
-                        @avgSpeedMps, @ElevationGainM)
+                        @avgSpeedMps, @ElevationGainM, @ShoeId)
                 returning id
                 """,
                 new
                 {
                     userId, req.Sport, title, startedAt, req.DurationS, req.DistanceM, avgHr,
-                    avgSpeedMps = (float)(req.DistanceM!.Value / req.DurationS!.Value), req.ElevationGainM,
+                    avgSpeedMps = (float)(req.DistanceM!.Value / req.DurationS!.Value), req.ElevationGainM, req.ShoeId,
                 });
             return Results.Created($"/api/activities/{id}", new ActivitySummary(
-                id, req.Sport!, title, startedAt, req.DurationS.Value, req.DistanceM.Value, avgHr, null));
+                id, req.Sport!, title, startedAt, req.DurationS.Value, req.DistanceM.Value, avgHr, req.ShoeId));
         });
 
         // Uppladdning av en FIT-fil: tolka den, spara råfilen (bara med pulssamtycke) och skriv passet med tidsserier
         // i en transaktion. Samma fil igen ger 409 (raw_file_sha256 är unik per användare).
-        // Titel och sport kan ändras i formuläret; mätvärdena kommer alltid från filen.
-        activities.MapPost("", async (IFormFile? file, [FromForm] string? title, [FromForm] string? sport,
+        // Titel, sport och sko kan ändras i formuläret; mätvärdena kommer alltid från filen.
+        activities.MapPost("", async (IFormFile? file, [FromForm] string? title, [FromForm] string? sport, [FromForm] Guid? shoeId,
             NpgsqlDataSource db, RawFileStore store, ClaimsPrincipal user, CancellationToken cancellationToken) =>
         {
             if ((ActivityInput.ValidateTitle(title) ?? ActivityInput.ValidateSport(sport)) is { } invalid)
                 return Results.BadRequest(invalid);
             var userId = user.GetUserId();
             await using var conn = await db.OpenConnectionAsync(cancellationToken);
+            if (!await ShoeEndpoints.CanUseAsync(conn, userId, shoeId))
+                return Results.BadRequest(ShoeEndpoints.UnavailableShoe);
             var (fit, error) = await ReadFitAsync(file, conn, userId, cancellationToken);
             if (fit is null) return error!;
             var (bytes, sha256, parsed, hrConsent) = fit;
@@ -170,16 +175,16 @@ public static class ActivityEndpoints
                     """
                     insert into activities (user_id, source, sport, title, started_at, duration_s, moving_s, distance_m,
                                             avg_hr, max_hr, avg_speed_mps, elevation_gain_m, route, device,
-                                            raw_file_key, raw_file_sha256)
+                                            raw_file_key, raw_file_sha256, shoe_id)
                     values (@userId, 'fit', @Sport, @title, @StartedAt, @DurationS, @MovingS, @DistanceM,
-                            @AvgHr, @MaxHr, @AvgSpeedMps, @ElevationGainM, @route::geography, @Device, @key, @sha256)
+                            @AvgHr, @MaxHr, @AvgSpeedMps, @ElevationGainM, @route::geography, @Device, @key, @sha256, @shoeId)
                     returning id
                     """,
                     new
                     {
                         userId, parsed.Sport, title, parsed.StartedAt, parsed.DurationS, parsed.MovingS, parsed.DistanceM,
                         parsed.AvgHr, parsed.MaxHr, parsed.AvgSpeedMps, parsed.ElevationGainM,
-                        route = (object?)parsed.Route ?? DBNull.Value, parsed.Device, key, sha256,
+                        route = (object?)parsed.Route ?? DBNull.Value, parsed.Device, key, sha256, shoeId,
                     }, tx);
             }
             catch (PostgresException e) when (e.SqlState == PostgresErrorCodes.UniqueViolation)
@@ -213,7 +218,7 @@ public static class ActivityEndpoints
             await tx.CommitAsync(cancellationToken);
 
             return Results.Created($"/api/activities/{id}", new ActivitySummary(
-                id, parsed.Sport, title, parsed.StartedAt, parsed.DurationS, parsed.DistanceM, parsed.AvgHr, null));
+                id, parsed.Sport, title, parsed.StartedAt, parsed.DurationS, parsed.DistanceM, parsed.AvgHr, shoeId));
         })
         // CSRF-token kontrolleras av filtret i AuthEndpoints (X-CSRF-TOKEN), inte av ramverkets formulärkontroll
         .DisableAntiforgery();

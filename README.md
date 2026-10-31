@@ -14,7 +14,7 @@ React-appen öppnas på `/app`, med vyerna `/app/activities`, `/app/stats` och `
 
 React-appen använder `react-i18next` med svenska och engelska. Språkväljaren finns både vid inloggning och i appen. Valet sparas lokalt i webbläsaren (`kuta.language`); utan sparat val prioriteras svenskt IP, sedan det första stödda språket i webbläsarens språklista, annars engelska. Bara uttryckliga val sparas. API:t bedömer svenska IPv4-/IPv6-nät med en lokal lista, utan externa IP-uppslag; källan och hur listan uppdateras finns i [Localization/README.md](api/Kuta.Api/Localization/README.md). Om uppslaget misslyckas eller tar mer än 1,5 sekunder används webbläsarens språk. Valet uppdaterar även HTML-dokumentets `lang`. Det synkas inte mellan enheter.
 
-Appens URL:er är `/app` (flöde), `/app/activities`, `/app/stats` och `/app/profile` på båda språken.
+Appens URL:er är `/app` (flöde), `/app/activities`, `/app/stats`, `/app/profile` och `/app/profile/equipment` på båda språken. Profil länkar till Utrustning, där skor läggs till, pensioneras eller raderas.
 
 Översättningar finns i `web/src/locales/sv.json` och `en.json`; lägg till samma nycklar i båda. API-felkoder översätts i webben, med ett generellt fel för okända koder. Mejlmallar och PWA-manifest är tills vidare svenska. Språkval och katalogernas täckning kontrolleras med `cd web && npm test` (Node enligt `.nvmrc`).
 

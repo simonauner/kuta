@@ -159,7 +159,9 @@
     "invalidActivity": "Check the sport, date, time and distance.",
     "passwordTooShort": "Use at least 8 characters in your password.",
     "passwordUnchanged": "Choose a different password from your current one.",
-    "recoveryExpired": "The reset link is invalid or has expired. Request a new link."
+    "recoveryExpired": "The reset link is invalid or has expired. Request a new link.",
+    "invalidShoe": "Enter a shoe name and use at most 100 characters per field.",
+    "unavailableShoe": "Choose one of your active shoes or no shoe."
   },
   "home": "Kuta – home",
   "footer": {
@@ -190,5 +192,28 @@
       "DISTANCE",
       "THRESHOLD"
     ]
+  },
+  "shoes": {
+    "title": "Shoes",
+    "name": "Shoe name",
+    "brand": "Brand (optional)",
+    "add": "Add shoe",
+    "retire": "Retire",
+    "retireLabel": "Retire {{name}}",
+    "retired": "Retired",
+    "empty": "No shoes yet.",
+    "none": "No shoe",
+    "manage": "Manage shoes under Equipment",
+    "loading": "Loading shoes …",
+    "delete": "Delete",
+    "deleteLabel": "Delete {{name}}",
+    "confirmDelete": "Delete {{name}}?",
+    "deleteWarning": "The shoe will be permanently deleted and removed from all your activities. Your activities will remain. This cannot be undone.",
+    "cancel": "Cancel",
+    "deleting": "Deleting …"
+  },
+  "breadcrumbs": "Breadcrumbs",
+  "equipment": {
+    "title": "Equipment"
   }
 }

@@ -18,6 +18,7 @@ import {
   type Activity,
 } from '@/lib/activity'
 import { meQuery } from '@/lib/auth'
+import { shoesQuery } from '@/lib/shoes'
 
 // Det API:t läser ur en FIT-fil, utan att spara något (POST /api/activities/preview)
 type ActivityPreview = {
@@ -34,13 +35,17 @@ const sportOptions = [...sports, 'other'] as const
 const knownSport = (sport: string) =>
   (sportOptions as readonly string[]).includes(sport) ? sport : 'other'
 
-// Ett pass skapas antingen helt manuellt eller från en FIT-fil som fyller i fälten. Från en fil går bara titel
-// och sport att ändra: mätvärdena hör ihop med tidsserierna (karta, diagram, splits, rekord).
+// Ett pass skapas antingen helt manuellt eller från en FIT-fil som fyller i fälten. Från en fil går titel,
+// sport och sko att ändra: mätvärdena hör ihop med tidsserierna (karta, diagram, splits, rekord).
 export function NewActivityPage() {
   const { t, i18n } = useTranslation()
   const navigate = useNavigate()
   const queryClient = useQueryClient()
   const { data: me } = useQuery(meQuery)
+  const shoes = useQuery(shoesQuery)
+  const [shoeChoice, setShoeChoice] = useState<string | null>(null)
+  const activeShoes = shoes.data?.shoes.filter((shoe) => !shoe.retired) ?? []
+  const shoeId = shoeChoice ?? shoes.data?.lastUsedShoeId ?? ''
   const uploadDialog = useRef<HTMLDialogElement>(null)
 
   const [pendingFile, setPendingFile] = useState<File | null>(null) // vald i modalen, inte använd än
@@ -76,10 +81,12 @@ export function NewActivityPage() {
         const form = new FormData()
         form.append('file', file)
         form.append('title', title)
+        if (shoeId) form.append('shoeId', shoeId)
         if (sport) form.append('sport', sport)
         return api.upload<Activity>('/api/activities', form)
       }
       return api.send<Activity>('POST', '/api/activities/manual', {
+        shoeId: shoeId || null,
         sport: selectedSport,
         title,
         startedAt: new Date(startedAt).toISOString(),
@@ -90,7 +97,10 @@ export function NewActivityPage() {
       })
     },
     onSuccess: async (activity) => {
-      await queryClient.invalidateQueries({ queryKey: ['activities'] })
+      await Promise.all([
+        queryClient.invalidateQueries({ queryKey: ['activities'] }),
+        queryClient.invalidateQueries({ queryKey: shoesQuery.queryKey }),
+      ])
       await navigate({ to: '/app/activities/$activityId', params: { activityId: activity.id } })
     },
   })
@@ -192,6 +202,35 @@ export function NewActivityPage() {
               </select>
             )}
           </Field>
+          <Field label={t('shoes.title')}>
+            {(id) => (
+              <select
+                id={id}
+                value={shoeId}
+                onChange={(e) => setShoeChoice(e.currentTarget.value)}
+                disabled={shoes.isPending || !!shoes.error}
+                className="h-9 w-full rounded-md border border-input bg-transparent px-3 text-base shadow-xs outline-none focus-visible:border-ring focus-visible:ring-[3px] focus-visible:ring-ring/50 md:text-sm dark:bg-input/30"
+              >
+                <option value="">{t('shoes.none')}</option>
+                {activeShoes.map((shoe) => (
+                  <option key={shoe.id} value={shoe.id}>
+                    {shoe.name}
+                    {shoe.brand ? ` (${shoe.brand})` : ''}
+                  </option>
+                ))}
+              </select>
+            )}
+          </Field>
+          <p className="col-span-2 text-sm text-muted-foreground">
+            <Link to="/app/profile/equipment" className="underline underline-offset-2">
+              {t('shoes.manage')}
+            </Link>
+          </p>
+          {shoes.error && (
+            <p role="alert" className="col-span-2 text-sm text-destructive">
+              <ErrorMessage error={shoes.error} />
+            </p>
+          )}
           <Field label={t('newActivity.startedAt')}>
             {(id) => (
               <Input
@@ -275,7 +314,13 @@ export function NewActivityPage() {
 
         <Button
           type="submit"
-          disabled={save.isPending || (locked && !fromFile) || preview.isFetching}
+          disabled={
+            save.isPending ||
+            shoes.isPending ||
+            !!shoes.error ||
+            (locked && !fromFile) ||
+            preview.isFetching
+          }
         >
           {save.isPending ? t('newActivity.saving') : t('newActivity.save')}
         </Button>

@@ -159,7 +159,9 @@
     "invalidActivity": "Kontrollera sport, datum, tid och distans.",
     "passwordTooShort": "Använd minst 8 tecken i lösenordet.",
     "passwordUnchanged": "Välj ett annat lösenord än ditt nuvarande.",
-    "recoveryExpired": "Återställningslänken är ogiltig eller har gått ut. Begär en ny länk."
+    "recoveryExpired": "Återställningslänken är ogiltig eller har gått ut. Begär en ny länk.",
+    "invalidShoe": "Ange skons namn och högst 100 tecken per fält.",
+    "unavailableShoe": "Välj en av dina aktiva skor eller ingen sko."
   },
   "home": "Kuta – startsida",
   "footer": {
@@ -190,5 +192,28 @@
       "DISTANS",
       "TRÖSKEL"
     ]
+  },
+  "shoes": {
+    "title": "Skor",
+    "name": "Namn på skon",
+    "brand": "Märke (valfritt)",
+    "add": "Lägg till sko",
+    "retire": "Pensionera",
+    "retireLabel": "Pensionera {{name}}",
+    "retired": "Pensionerad",
+    "empty": "Du har inga skor än.",
+    "none": "Ingen sko",
+    "manage": "Hantera skor under Utrustning",
+    "loading": "Hämtar skor …",
+    "delete": "Radera",
+    "deleteLabel": "Radera {{name}}",
+    "confirmDelete": "Radera {{name}}?",
+    "deleteWarning": "Skon raderas permanent och kopplas bort från alla dina pass. Passen behålls. Det går inte att ångra.",
+    "cancel": "Avbryt",
+    "deleting": "Raderar …"
+  },
+  "breadcrumbs": "Brödsmulor",
+  "equipment": {
+    "title": "Utrustning"
   }
 }
