@@ -1,3 +1,4 @@
+import { EquipmentNameFields } from '@/components/equipment-name-fields'
 import { FormField } from '@/components/ui/form-field'
 import {
   multisportKinds,
@@ -445,30 +446,14 @@ export function NewActivityPage() {
           }}
           className="mt-5 space-y-4"
         >
-          <FormField label={t('shoes.name')}>
-            {(id) => (
-              <Input
-                id={id}
-                autoFocus
-                required
-                maxLength={100}
-                disabled={addShoe.isPending}
-                value={shoeName}
-                onChange={(event) => setShoeName(event.currentTarget.value)}
-              />
-            )}
-          </FormField>
-          <FormField label={t('shoes.brand')}>
-            {(id) => (
-              <Input
-                id={id}
-                maxLength={100}
-                disabled={addShoe.isPending}
-                value={shoeBrand}
-                onChange={(event) => setShoeBrand(event.currentTarget.value)}
-              />
-            )}
-          </FormField>
+          <EquipmentNameFields
+            name={shoeName}
+            brand={shoeBrand}
+            onNameChange={setShoeName}
+            onBrandChange={setShoeBrand}
+            nameLabel={t('shoes.name')}
+            disabled={addShoe.isPending}
+          />
           {addShoe.error && (
             <p role="alert" className="text-sm text-destructive">
               <ErrorMessage error={addShoe.error} />

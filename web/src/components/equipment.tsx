@@ -1,3 +1,4 @@
+import { EquipmentNameFields } from '@/components/equipment-name-fields'
 import { SlowLoading } from '@/components/slow-loading'
 import { FormField } from '@/components/ui/form-field'
 import { Menu } from '@base-ui/react/menu'
@@ -227,31 +228,13 @@ export function EquipmentSection() {
         </h2>
         <form onSubmit={onSubmit}>
           <fieldset disabled={save.isPending} className="mt-5 grid grid-cols-2 gap-4">
-            <FormField label={t('equipment.name')} className="text-sm font-medium col-span-2">
-              {(id) => (
-                <Input
-                  id={id}
-                  autoFocus
-                  required
-                  maxLength={100}
-                  value={name}
-                  onChange={(e) => setName(e.currentTarget.value)}
-                />
-              )}
-            </FormField>
-            <FormField
-              label={t('equipment.brand')}
-              className={singleKind ? 'col-span-2 text-sm font-medium' : 'text-sm font-medium'}
-            >
-              {(id) => (
-                <Input
-                  id={id}
-                  maxLength={100}
-                  value={brand}
-                  onChange={(e) => setBrand(e.currentTarget.value)}
-                />
-              )}
-            </FormField>
+            <EquipmentNameFields
+              name={name}
+              brand={brand}
+              onNameChange={setName}
+              onBrandChange={setBrand}
+              brandClassName={singleKind ? 'col-span-2 text-sm font-medium' : 'text-sm font-medium'}
+            />
             {kinds.data && kinds.data.length > 1 && (
               <FormField label={t('equipment.kind')} className="text-sm font-medium">
                 {(id) => (
