@@ -119,24 +119,18 @@ export function ActivityPage() {
     <section>
       <BackLink />
       <p className="mt-4 text-sm text-muted-foreground">{when.format(new Date(a.startedAt))}</p>
-      <h1 className="mt-1 flex items-center gap-3 text-2xl font-semibold tracking-tight">
-        <span className="inline-block" style={{ viewTransitionName: `activity-title-${a.id}` }}>
-          {activityTitle(a, t)}
-        </span>
-        <SportIcon
-          sport={a.sport}
-          className="size-9"
-          style={{ viewTransitionName: `activity-sport-${a.id}` }}
-        />
-      </h1>
-      {a.device && <p className="mt-1 text-xs text-muted-foreground">{a.device}</p>}
-
-      {a.description && (
-        <p className="mt-4 whitespace-pre-wrap text-sm wrap-anywhere">{a.description}</p>
-      )}
-
-      <div className="mt-4">
-        <Button asChild size="sm" variant="outline">
+      <div className="mt-1 flex flex-wrap items-center justify-between gap-3">
+        <h1 className="flex min-w-0 items-center gap-3 text-2xl font-semibold tracking-tight">
+          <span className="wrap-anywhere" style={{ viewTransitionName: `activity-title-${a.id}` }}>
+            {activityTitle(a, t)}
+          </span>
+          <SportIcon
+            sport={a.sport}
+            className="size-9 shrink-0"
+            style={{ viewTransitionName: `activity-sport-${a.id}` }}
+          />
+        </h1>
+        <Button asChild size="sm" variant="outline" className="ml-auto">
           <Link
             to="/app/activities/$activityId/edit"
             params={{ activityId: a.id }}
@@ -146,6 +140,11 @@ export function ActivityPage() {
           </Link>
         </Button>
       </div>
+      {a.device && <p className="mt-1 text-xs text-muted-foreground">{a.device}</p>}
+
+      {a.description && (
+        <p className="mt-4 whitespace-pre-wrap text-sm wrap-anywhere">{a.description}</p>
+      )}
       {a.equipmentIds.length > 0 && (
         <div className="mt-5">
           <h2 className="text-sm font-medium">{t('equipment.title')}</h2>
