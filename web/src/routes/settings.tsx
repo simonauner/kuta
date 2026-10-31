@@ -86,7 +86,7 @@ export function SettingsPage() {
       </section>
 
       <section aria-labelledby="import-heading" className="mt-8 border-t pt-6">
-        <h2 id="import-heading" className="text-lg font-semibold">
+        <h2 id="import-heading" className="scroll-mt-24 text-lg font-semibold">
           {t('settings.strava')}
         </h2>
         <StravaImport />

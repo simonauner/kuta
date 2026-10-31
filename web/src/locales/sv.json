@@ -10,7 +10,17 @@
   "slowLoading": "Detta tar längre tid än väntat",
   "connectionError": "Kunde inte nå Kuta. Kontrollera anslutningen och ladda om sidan.",
   "feed": {
-    "description": "Här dyker pass från dig och de du följer upp."
+    "welcomeTitle": "Dags för ditt första pass",
+    "welcomeDescription": "Lägg till ett pass eller ta med din träningshistorik. Här samlas sedan pass från dig och löpare du följer.",
+    "waitingTitle": "Här börjar ditt flöde",
+    "waitingDescription": "Ingen du följer har delat något pass ännu. Lägg till ett eget pass medan du väntar.",
+    "addActivity": "Lägg till ett pass",
+    "addActivityHelp": "Registrera manuellt eller ladda upp en FIT-fil från din klocka.",
+    "stravaTitle": "Flyttar du från Strava?",
+    "stravaDescription": "Importera ditt arkiv och behåll din träningshistorik.",
+    "socialTitle": "Träna tillsammans",
+    "socialDescription": "Be en kompis dela sin profillänk för att börja följa dem, eller dela din egen.",
+    "copyProfileLink": "Kopiera min profillänk"
   },
   "stats": {
     "description": "Följ din träningsmängd, distans, tempo och puls över tid.",

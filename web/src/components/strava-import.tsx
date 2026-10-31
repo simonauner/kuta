@@ -32,9 +32,14 @@ export function StravaImport() {
   const refreshImportedData = () =>
     queryClient.invalidateQueries({
       predicate: ({ queryKey }) =>
-        ['activities', 'activity', 'records', 'equipment', 'equipmentLastUsedShoe'].includes(
-          String(queryKey[0]),
-        ),
+        [
+          'activities',
+          'activity',
+          'records',
+          'feed',
+          'equipment',
+          'equipmentLastUsedShoe',
+        ].includes(String(queryKey[0])),
     })
   const upload = useMutation({
     mutationFn: async (file: File): Promise<StravaImportResult> => {

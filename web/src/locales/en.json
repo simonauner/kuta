@@ -10,7 +10,17 @@
   "slowLoading": "This is taking longer than expected",
   "connectionError": "Could not reach Kuta. Check your connection and reload the page.",
   "feed": {
-    "description": "Activities from you and the people you follow will appear here."
+    "welcomeTitle": "Time for your first activity",
+    "welcomeDescription": "Add an activity or bring your training history. This is where activities from you and runners you follow will appear.",
+    "waitingTitle": "Your feed starts here",
+    "waitingDescription": "No one you follow has shared an activity yet. Add one of your own while you wait.",
+    "addActivity": "Add an activity",
+    "addActivityHelp": "Log it manually or upload a FIT file from your watch.",
+    "stravaTitle": "Moving from Strava?",
+    "stravaDescription": "Import your archive and keep your training history.",
+    "socialTitle": "Train together",
+    "socialDescription": "Ask a friend to share their profile link so you can follow them, or share your own.",
+    "copyProfileLink": "Copy my profile link"
   },
   "stats": {
     "description": "Track your training volume, distance, pace and heart rate over time.",
