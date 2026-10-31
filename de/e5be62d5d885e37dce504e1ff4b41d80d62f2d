@@ -1,0 +1,57 @@
+api/Kuta.Api/StravaImportEndpoint.cs
+  s_cb71bef9c40aff::t_d5f0cfd4d4cdd9 1,5,15-16,24,58-67,77-81,136,148-150
+api/Kuta.Api/ActivityInput.cs
+  s_cb71bef9c40aff::t_d5f0cfd4d4cdd9 4,18-26,40
+api/Kuta.Api.Tests/ActivityInputTests.cs
+  s_cb71bef9c40aff::t_d5f0cfd4d4cdd9 22-32
+web/src/lib/api.ts
+  s_cb71bef9c40aff::t_d5f0cfd4d4cdd9 31,43-47,52-77
+api/Kuta.Api/StravaImport.cs
+  s_cb71bef9c40aff::t_d5f0cfd4d4cdd9 8,52-54,65-66
+README.md
+  s_cb71bef9c40aff::t_d5f0cfd4d4cdd9 229-234,237,241,249
+web/src/lib/activity.ts
+  s_cb71bef9c40aff::t_d5f0cfd4d4cdd9 123
+api/Kuta.Api/ActivityStorage.cs
+  s_cb71bef9c40aff::t_d5f0cfd4d4cdd9 43,45,50,62,75,77,82
+web/src/components/strava-import.tsx
+  s_cb71bef9c40aff::t_d5f0cfd4d4cdd9 8,18-26,30,40-41,44-59,102-123
+api/Kuta.Api/Migrations/012_activity_description.sql
+  s_cb71bef9c40aff::t_d5f0cfd4d4cdd9 1-2
+web/src/locales/sv.json
+  s_cb71bef9c40aff::t_d5f0cfd4d4cdd9 38,224,231,251-252
+web/src/routes/activity.tsx
+  s_cb71bef9c40aff::t_d5f0cfd4d4cdd9 129-132
+web/tests/api.test.mjs
+  s_cb71bef9c40aff::t_d5f0cfd4d4cdd9 122-173
+api/Kuta.Api.Tests/StravaImportTests.cs
+  s_cb71bef9c40aff::t_d5f0cfd4d4cdd9 62-66,68,72-84,236,252-255,273,280,288,303,351-376,381-382,399,418-420
+  s_cb71bef9c40aff::t_6fbce100e24bb9 67,69-71
+web/src/routes/new-activity.tsx
+  s_cb71bef9c40aff::t_d5f0cfd4d4cdd9 38,79,109,120,147,223-231
+  s_cb71bef9c40aff::t_1b956d99631bb4 232-234
+AGENTS.md
+  s_cb71bef9c40aff::t_d5f0cfd4d4cdd9 52,65
+api/Kuta.Api/ActivityEndpoints.cs
+  s_cb71bef9c40aff::t_d5f0cfd4d4cdd9 17,86,107,152,159,173
+api/Kuta.Api.Tests/FitUploadTests.cs
+  s_cb71bef9c40aff::t_d5f0cfd4d4cdd9 38,46,169,177,203,210
+web/src/locales/en.json
+  s_cb71bef9c40aff::t_d5f0cfd4d4cdd9 38,224,231,251-252
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.7.5",
+  "base_commit_sha": "dee5be62d5d885e37dce504e1ff4b41d80d62f2d",
+  "prompts": {},
+  "sessions": {
+    "s_cb71bef9c40aff": {
+      "agent_id": {
+        "tool": "codex",
+        "id": "01a18fad-4033-7fd2-a7ad-b411535e756f",
+        "model": "gpt-6.1-sol"
+      },
+      "human_author": "Simon Aunér <simonauner@gmail.com>"
+    }
+  }
+}
