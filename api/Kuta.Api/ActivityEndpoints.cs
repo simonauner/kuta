@@ -38,20 +38,20 @@ public static class ActivityEndpoints
     {
         var activities = api.MapGroup("/activities").RequireAuthorization();
 
-        // Inloggad användares senaste pass
-        activities.MapGet("", async (NpgsqlDataSource db, ClaimsPrincipal user) =>
+        // Inloggad användares pass, 25 åt gången med stabila rubriker för hela perioderna.
+        activities.MapGet("", async (NpgsqlDataSource db, ClaimsPrincipal user, string? timeZone,
+            DateTimeOffset? beforeStartedAt, Guid? beforeId, CancellationToken cancellationToken) =>
         {
-            await using var conn = await db.OpenConnectionAsync();
-            var rows = await conn.QueryAsync<ActivitySummary>(
-                """
-                select id, sport, title, started_at, duration_s, distance_m, avg_hr, shoe_id
-                from activities
-                where user_id = @userId
-                order by started_at desc
-                limit 50
-                """,
-                new { userId = user.GetUserId() });
-            return Results.Ok(rows);
+            if (beforeStartedAt.HasValue != beforeId.HasValue)
+                return Results.BadRequest(new ApiError("Sidmarkören är ogiltig. Ladda om sidan.", "invalidActivityPage"));
+            timeZone ??= "UTC";
+            await using var conn = await db.OpenConnectionAsync(cancellationToken);
+            if (!await conn.ExecuteScalarAsync<bool>(new CommandDefinition(
+                "select exists (select 1 from pg_timezone_names where name = @timeZone)",
+                new { timeZone }, cancellationToken: cancellationToken)))
+                return Results.BadRequest(new ApiError("Tidszonen är ogiltig. Kontrollera enhetens inställningar.", "invalidTimeZone"));
+            return Results.Ok(await ActivityList.ReadAsync(conn, user.GetUserId(), timeZone,
+                beforeStartedAt, beforeId, cancellationToken));
         });
 
         // Ett eget pass med tidsserier för passsidan. Någon annans pass ger 404, som ett som inte finns.

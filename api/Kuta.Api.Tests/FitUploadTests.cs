@@ -32,7 +32,7 @@ public class FitUploadTests(KutaFactory factory) : IClassFixture<KutaFactory>
             Assert.Equal((1800d, 600, "Garmin Fenix 5s", JsonValueKind.Null), (previewed.GetProperty("distanceM").GetDouble(),
                 previewed.GetProperty("durationS").GetInt32(), previewed.GetProperty("device").GetString(),
                 previewed.GetProperty("avgHr").ValueKind));
-            Assert.Empty((await client.GetFromJsonAsync<JsonElement[]>("/api/activities", ct))!);
+            Assert.Empty((await client.GetFromJsonAsync<ActivityPage>("/api/activities", ct))!.Items);
 
             // Utan samtycke: passet sparas, men varken puls eller råfil (som innehåller puls). Titeln från formuläret följer med.
             var upload = await Upload(client, morning, ct, title: " Morgonrunda ");
@@ -86,13 +86,13 @@ public class FitUploadTests(KutaFactory factory) : IClassFixture<KutaFactory>
                 """, new { runner }));
             Assert.Equal(0, await StoredFiles(conn, runner));
 
-            var list = await client.GetFromJsonAsync<JsonElement[]>("/api/activities", ct);
-            Assert.Equal(2, list!.Length);
+            var list = await client.GetFromJsonAsync<ActivityPage>("/api/activities", ct);
+            Assert.Equal(2, list!.Items.Count);
 
             // En annan användare ser inte passen
             var otherClient = factory.CreateClient();
             await SignUpAsync(otherClient, other, "Någon annan", ct);
-            Assert.Empty((await otherClient.GetFromJsonAsync<JsonElement[]>("/api/activities", ct))!);
+            Assert.Empty((await otherClient.GetFromJsonAsync<ActivityPage>("/api/activities", ct))!.Items);
         }
         finally
         {

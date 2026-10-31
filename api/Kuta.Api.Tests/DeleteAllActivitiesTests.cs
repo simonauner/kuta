@@ -38,14 +38,14 @@ public class DeleteAllActivitiesTests(KutaFactory factory) : IClassFixture<KutaF
             Assert.Equal(62, await conn.ExecuteScalarAsync<int>("select count(*) from activities where user_id = @ownerId", new { ownerId }));
             await TestSession.UseCsrfToken(owner, ct);
             Assert.Equal(HttpStatusCode.NoContent, (await owner.DeleteAsync("/api/activities", ct)).StatusCode);
-            Assert.Empty((await owner.GetFromJsonAsync<ActivitySummary[]>("/api/activities", ct))!);
+            Assert.Empty((await owner.GetFromJsonAsync<ActivityPage>("/api/activities", ct))!.Items);
             Assert.Empty((await owner.GetFromJsonAsync<StoredBestEffort[]>("/api/records", ct))!);
             Assert.Equal(0, await conn.ExecuteScalarAsync<int>("""
                 select (select count(*) from activity_streams where activity_id = any(@ids))
                      + (select count(*) from best_efforts where activity_id = any(@ids))
                 """, new { ids = new[] { first.Id, second.Id } }));
             Assert.Equal(0, await Files(ownerId));
-            Assert.Equal(otherRun.Id, Assert.Single((await other.GetFromJsonAsync<ActivitySummary[]>("/api/activities", ct))!).Id);
+            Assert.Equal(otherRun.Id, Assert.Single((await other.GetFromJsonAsync<ActivityPage>("/api/activities", ct))!.Items).Id);
             Assert.NotEmpty((await other.GetFromJsonAsync<StoredBestEffort[]>("/api/records", ct))!);
             Assert.Equal(HttpStatusCode.OK, (await other.GetAsync($"/api/activities/{otherRun.Id}", ct)).StatusCode);
             Assert.Equal(1, await Files(otherId));
