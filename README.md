@@ -38,6 +38,11 @@ Passlistans `year=2024` begränsar både första och efterföljande sidor till d
 Årsväljaren visas när historiken innehåller flera år; ”Alla år” är standard. Valet sparas i
 appens URL (`/app/activities?year=2024`) och följer med till passsidan och tillbaka.
 
+Passsidans kilometersplits interpolerar tid och höjd vid varje kilometergräns mellan
+mätpunkterna; snittpulsen vägs med tiden. Ingen sträcka eller tid läggs till utanför
+inspelningens uppmätta ändpunkter. Återställd distans eller icke stigande tid gör att
+splitstabellen utelämnas. En avslutande rest under 50 meter visas inte.
+
 ## Köra lokalt
 
 Kräver Docker, Supabase CLI, .NET SDK och nvm (Node-versionen står i `.nvmrc`). `global.json` väljer .NET SDK 10.0.402 eller senare stabil patch i 10.0.4xx-serien, både lokalt och i Dockerbygget. Allt startas med:
