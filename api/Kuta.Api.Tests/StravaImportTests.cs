@@ -138,7 +138,7 @@ public class StravaUploadTests(KutaFactory factory) : IClassFixture<KutaFactory>
 
             var otherClient = factory.CreateClient();
             await CreateRunner(otherClient, conn, other, ct);
-            Assert.Empty((await otherClient.GetFromJsonAsync<JsonElement[]>("/api/activities", ct))!);
+            Assert.Empty((await otherClient.GetFromJsonAsync<ActivityPage>("/api/activities", ct))!.Items);
             foreach (var row in rows)
             {
                 Assert.Equal(HttpStatusCode.NotFound, (await otherClient.GetAsync($"/api/activities/{row.Id}", ct)).StatusCode);

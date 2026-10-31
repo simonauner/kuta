@@ -18,6 +18,9 @@
     "description": "Din löparprofil."
   },
   "activities": {
+    "retry": "Försök igen",
+    "loading": "Hämtar pass …",
+    "loadOlder": "Visa äldre pass",
     "week": "v. {{week}}",
     "hrSaved": "Pulsdata sparas. Ändra i",
     "empty": "Inga pass än.",
@@ -137,6 +140,8 @@
     "recoverySent": "Om adressen har ett konto får du ett mejl med en länk för att återställa lösenordet."
   },
   "errors": {
+    "invalidTimeZone": "Tidszonen är ogiltig. Kontrollera enhetens inställningar.",
+    "invalidActivityPage": "Sidmarkören är ogiltig. Ladda om sidan.",
     "generic": "Något gick fel. Försök igen.",
     "network": "Kunde inte nå Kuta. Kontrollera anslutningen och försök igen.",
     "rateLimited": "För många försök. Försök igen om en stund.",

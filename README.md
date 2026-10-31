@@ -20,6 +20,15 @@ Appens URL:er är `/app` (flöde), `/app/activities`, `/app/stats`, `/app/profil
 
 Översättningar finns i `web/src/locales/sv.json` och `en.json`; lägg till samma nycklar i båda. API-felkoder översätts i webben, med ett generellt fel för okända koder. Mejlmallar och PWA-manifest är tills vidare svenska. Språkval och katalogernas täckning kontrolleras med `cd web && npm test` (Node enligt `.nvmrc`).
 
+## Passlistans sidindelning
+
+`GET /api/activities?timeZone=Europe%2FStockholm` ger `{ items, nextCursor }`, högst 25 pass
+sorterade på `startedAt` och `id` fallande. Nästa sida hämtas med `beforeStartedAt` och `beforeId`
+från `nextCursor`; null betyder att historiken är slut. Utelämnad tidszon ger UTC, webben skickar
+webbläsarens IANA-tidszon. Listans `showMonth` och `showWeek` anger om fler egna pass finns i
+samma lokala år respektive månad, även utanför sidan. Därmed ändras inte rubriknivåerna när
+”Visa äldre pass” fyller på listan. Inga tidsserier eller rutter ingår i listsvaren.
+
 ## Köra lokalt
 
 Kräver Docker, Supabase CLI, .NET SDK och nvm (Node-versionen står i `.nvmrc`). `global.json` väljer .NET SDK 10.0.402 eller senare stabil patch i 10.0.4xx-serien, både lokalt och i Dockerbygget. Allt startas med:
@@ -125,7 +134,7 @@ Importen behåller passnamn, sport, starttid (UTC), distans i meter, tid och til
 
 Alla importerade pass är privata. Puls och de enskilda råfilerna sparas bara med samtycke; ZIP-arkivet sparas inte som råfil. Återkallat samtycke raderar puls och råfiler även från importerade pass. Importen fyller inte på puls i redan importerade pass: ta bort och importera dem igen om de först laddades upp utan samtycke.
 
-Efteråt visas antal importerade pass och dubbletter samt Strava-ID för pass som misslyckats (till exempel en saknad, trasig eller ej stödd aktivitetsfil). Tidigare sparade pass behålls om ett senare pass misslyckas eller anslutningen bryts. Kör samma export igen för att fortsätta; Strava-ID och identiska aktivitetsfiler förhindrar dubbletter inom kontot. De senaste 50 passen visas i passlistan.
+Efteråt visas antal importerade pass och dubbletter samt Strava-ID för pass som misslyckats (till exempel en saknad, trasig eller ej stödd aktivitetsfil). Tidigare sparade pass behålls om ett senare pass misslyckas eller anslutningen bryts. Kör samma export igen för att fortsätta; Strava-ID och identiska aktivitetsfiler förhindrar dubbletter inom kontot. Passlistan visar 25 pass åt gången; resten nås med Visa fler.
 
 API: `POST /api/activities/import/strava`, multipart-fält `file`, med inloggning och CSRF-token. Svar: `{ imported, duplicates, failedActivityIds }`. Högst 20 000 pass, 100 000 ZIP-poster, 20 MB per uppackad fil och totalt 1 GiB uppackade aktivitetsfiler per anrop. Enskilda fel hindrar inte andra pass; ett ogiltigt CSV-manifest avvisar hela arkivet före lagring.
 

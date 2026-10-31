@@ -18,6 +18,9 @@
     "description": "Your runner profile."
   },
   "activities": {
+    "retry": "Try again",
+    "loading": "Loading activities…",
+    "loadOlder": "Show older activities",
     "week": "Week {{week}}",
     "hrSaved": "Heart rate is saved. Change this in",
     "empty": "No activities yet.",
@@ -137,6 +140,8 @@
     "recoverySent": "If this address has an account, you will receive an email with a link to reset your password."
   },
   "errors": {
+    "invalidTimeZone": "The time zone is invalid. Check your device settings.",
+    "invalidActivityPage": "The page cursor is invalid. Reload the page.",
     "generic": "Something went wrong. Please try again.",
     "network": "Could not reach Kuta. Check your connection and try again.",
     "rateLimited": "Too many attempts. Please try again later.",

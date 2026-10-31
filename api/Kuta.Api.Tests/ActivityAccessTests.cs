@@ -43,11 +43,26 @@ public class ActivityAccessTests(WebApplicationFactory<Program> factory) : IClas
                 client.DefaultRequestHeaders.Add("Cookie", string.Join("; ",
                     http.Response.Headers.SetCookie.Select(cookie => cookie!.Split(';')[0])));
 
-                var activities = await client.GetFromJsonAsync<ActivitySummary[]>("/api/activities", ct);
+                var activities = await client.GetFromJsonAsync<ActivityPage>("/api/activities", ct);
 
-                var activity = Assert.Single(activities!);
+                var activity = Assert.Single(activities!.Items);
                 Assert.Equal(activityIds[i], activity.Id);
                 Assert.Equal($"Private run {i}", activity.Title);
+                Assert.Null(activities.NextCursor);
+                Assert.False(activity.ShowMonth);
+                Assert.False(activity.ShowWeek);
+                var older = await client.GetFromJsonAsync<ActivityPage>(
+                    $"/api/activities?timeZone=Europe%2FStockholm&beforeStartedAt={Uri.EscapeDataString(activity.StartedAt.ToString("O"))}&beforeId={activity.Id}", ct);
+                Assert.Empty(older!.Items);
+                if (i == 0)
+                {
+                    var missingId = await client.GetAsync("/api/activities?beforeStartedAt=2026-01-01T00:00:00Z", ct);
+                    Assert.Equal(HttpStatusCode.BadRequest, missingId.StatusCode);
+                    Assert.Equal("invalidActivityPage", (await missingId.Content.ReadFromJsonAsync<ApiError>(ct))!.Code);
+                    var invalidZone = await client.GetAsync("/api/activities?timeZone=NotAZone", ct);
+                    Assert.Equal(HttpStatusCode.BadRequest, invalidZone.StatusCode);
+                    Assert.Equal("invalidTimeZone", (await invalidZone.Content.ReadFromJsonAsync<ApiError>(ct))!.Code);
+                }
             }
         }
         finally
