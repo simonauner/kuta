@@ -1,6 +1,7 @@
 import { queryOptions, type QueryClient } from '@tanstack/react-query'
 import { ApiError, api } from './api.ts'
 import type { ActivityDetail, ActivityTag } from './activity.ts'
+import type { SportGroup } from './sport-groups.ts'
 
 export async function clearHeartRateQueries(queryClient: QueryClient) {
   const filter = {
@@ -22,5 +23,11 @@ export const activityQuery = (activityId: string) =>
 export const activityTagsQuery = {
   queryKey: ['activityTags'],
   queryFn: () => api.get<ActivityTag[]>('/api/activity-tags'),
+  staleTime: Infinity,
+}
+
+export const sportGroupsQuery = {
+  queryKey: ['sportGroups'],
+  queryFn: () => api.get<SportGroup[]>('/api/activities/sport-groups'),
   staleTime: Infinity,
 }

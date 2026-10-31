@@ -6,9 +6,9 @@ import {
   goalFraction,
   goalInput,
   goalPeriodLabel,
-  isNamedSportGroup,
   parseGoalInput,
 } from '../src/lib/goals.ts'
+import { isNamedSportGroup, sportGroupMembers } from '../src/lib/sport-groups.ts'
 
 test('form values convert between km, minutes or whole sessions and SI targets', () => {
   assert.equal(parseGoalInput('distance', '10,5'), 10_500)
@@ -54,4 +54,12 @@ test('groups with several sports have their own names; single sports use the spo
   assert.equal(isNamedSportGroup('cross-country skiing'), true)
   assert.equal(isNamedSportGroup('weight training'), false)
   assert.equal(isNamedSportGroup('toString'), false)
+  const t = (key) => key
+  assert.deepEqual(
+    sportGroupMembers(
+      { key: 'cross-country skiing', sports: ['nordic ski', 'crosscountryskiing'] },
+      t,
+    ),
+    ['newActivity.sports.nordic ski'],
+  )
 })

@@ -76,13 +76,13 @@ public class ActivityAccessTests(KutaFactory factory) : IClassFixture<KutaFactor
                 Assert.Empty((await client.GetFromJsonAsync<ActivityDetail>($"/api/activities/{activity.Id}", ct))!.Tags);
 
                 var statistics = await client.GetFromJsonAsync<ActivityStatisticsMonth[]>(
-                    $"/api/activities/statistics?year={activity.StartedAt.Year}&sport=running&timeZone=UTC", ct);
+                    $"/api/activities/statistics?year={activity.StartedAt.Year}&sportGroup=running&timeZone=UTC", ct);
                 Assert.Equal(12, statistics!.Length);
                 Assert.Equal(1, statistics.Sum(m => m.Count));
                 Assert.Equal(5000, statistics.Sum(m => m.DistanceM));
                 if (i == 0)
                 {
-                    foreach (var query in new[] { "year=0", "year=2026&sport=unknown", "year=2026&timeZone=NotAZone" })
+                    foreach (var query in new[] { "year=0", "year=2026&sportGroup=trail%20run", "year=2026&timeZone=NotAZone" })
                         Assert.Equal(HttpStatusCode.BadRequest, (await client.GetAsync($"/api/activities/statistics?{query}", ct)).StatusCode);
                 }
 

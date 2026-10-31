@@ -28,13 +28,13 @@ public class GoalsTests(KutaFactory factory) : IClassFixture<KutaFactory>
     [Fact]
     public void Sport_groups_join_variants_and_every_activity_sport_belongs_to_exactly_one_selectable_group()
     {
-        Assert.Equal("running", ActivitySports.GroupOf("trail run"));
-        Assert.Equal("cycling", ActivitySports.GroupOf("gravel ride"));
-        Assert.Equal("cross-country skiing", ActivitySports.GroupOf("crosscountryskiing"));
-        Assert.Equal("weight training", ActivitySports.GroupOf("weight training"));
+        Assert.Equal("running", SportGroups.GroupOf("trail run"));
+        Assert.Equal("cycling", SportGroups.GroupOf("gravel ride"));
+        Assert.Equal("cross-country skiing", SportGroups.GroupOf("crosscountryskiing"));
+        Assert.Equal("weight training", SportGroups.GroupOf("weight training"));
         foreach (var sport in ActivityInput.Sports)
-            Assert.Single(Goals.SportGroups, g => g.Sports.Contains(sport));
-        Assert.Equal(Goals.SportGroups.Length, Goals.SportGroups.Select(g => g.Key).Distinct().Count());
+            Assert.Single(SportGroups.All, g => g.Sports.Contains(sport));
+        Assert.Equal(SportGroups.All.Length, SportGroups.All.Select(g => g.Key).Distinct().Count());
     }
 
     [Fact]
@@ -180,7 +180,7 @@ public class GoalsTests(KutaFactory factory) : IClassFixture<KutaFactory>
             await TestSession.CreateRunnerAsync(factory, owner, conn, emails[0], "Owner", ct);
             await TestSession.CreateRunnerAsync(factory, other, conn, emails[1], "Other", ct);
             Assert.Equal(HttpStatusCode.Unauthorized, (await anonymous.GetAsync(path, ct)).StatusCode);
-            var groups = await owner.GetFromJsonAsync<GoalSportGroup[]>($"{path}/sport-groups", ct);
+            var groups = await owner.GetFromJsonAsync<SportGroup[]>("/api/activities/sport-groups", ct);
             Assert.Contains("trail run", groups!.Single(g => g.Key == "running").Sports);
             var request = new GoalRequest("running", "distance", "week", 10_000, true, "Europe/Stockholm");
             using var created = await owner.PostAsJsonAsync(path, request, ct);

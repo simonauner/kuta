@@ -74,18 +74,20 @@ public static class ActivityEndpoints
             return Results.Ok(await ActivityList.ReadYearsAsync(conn, user.GetUserId(), timeZone, cancellationToken));
         });
 
+        activities.MapGet("/sport-groups", () => Results.Ok(SportGroups.All));
         activities.MapGet("/statistics", async (NpgsqlDataSource db, ClaimsPrincipal user, int year,
-            string? timeZone, string? sport, CancellationToken cancellationToken) =>
+            string? timeZone, string? sportGroup, CancellationToken cancellationToken) =>
         {
             if (year is < 1 or > 9998)
                 return Results.BadRequest(new ApiError("Ange ett år mellan 1 och 9998.", "invalidActivityYear"));
-            if (ActivityInput.ValidateSport(sport) is { } invalid) return Results.BadRequest(invalid);
+            if (sportGroup is not null && !SportGroups.IsValid(sportGroup))
+                return Results.BadRequest(new ApiError("Välj en giltig träningsform.", "invalidSportGroup"));
             timeZone ??= "UTC";
             await using var conn = await db.OpenConnectionAsync(cancellationToken);
             if (!await ActivityList.IsValidTimeZoneAsync(conn, timeZone, cancellationToken))
                 return Results.BadRequest(new ApiError("Tidszonen är ogiltig. Kontrollera enhetens inställningar.", "invalidTimeZone"));
             return Results.Ok(await ActivityStatistics.ReadAsync(conn, user.GetUserId(), year, timeZone,
-                sport, cancellationToken));
+                sportGroup, cancellationToken));
         });
 
         // Shared activities use the same read rule as the feed; private activities still return 404.

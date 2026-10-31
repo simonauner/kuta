@@ -4,7 +4,8 @@ import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
 import { useTranslation } from 'react-i18next'
 import { api } from '@/lib/api'
 import { cn } from '@/lib/utils'
-import { knownSport, sports } from '@/lib/sports'
+import { sportGroupsQuery } from '@/lib/activity-query'
+import { sportGroupLabel, sportGroupMembers } from '@/lib/sport-groups'
 import {
   formatGoalAmount,
   goalDaysLeft,
@@ -13,10 +14,8 @@ import {
   goalMetrics,
   goalPeriodLabel,
   goalPeriods,
-  isNamedSportGroup,
   parseGoalInput,
   type Goal,
-  type GoalSportGroup,
   type GoalMetric,
   type GoalPeriod,
 } from '@/lib/goals'
@@ -28,12 +27,6 @@ import { SportIcon } from '@/components/sport-icon'
 
 // Under 'activities' så att nya, ändrade och raderade pass också uppdaterar målen.
 const goalsQueryKey = (timeZone: string) => ['activities', 'goals', timeZone]
-const sportGroupsQuery = {
-  queryKey: ['goalSportGroups'],
-  queryFn: () => api.get<GoalSportGroup[]>('/api/goals/sport-groups'),
-  staleTime: Infinity,
-}
-
 function useGoalText() {
   const { t, i18n } = useTranslation()
   const amount = (metric: GoalMetric, value: number) =>
@@ -49,11 +42,7 @@ function useGoalText() {
     })
   }
   const groupLabel = (key: string | null) =>
-    key === null
-      ? t('activities.allSports')
-      : isNamedSportGroup(key)
-        ? t(`goals.sportGroups.${key}`)
-        : t(`newActivity.sports.${knownSport(key)}`)
+    key === null ? t('activities.allSports') : sportGroupLabel(key, t)
   return { t, i18n, amount, title, groupLabel }
 }
 
@@ -192,11 +181,9 @@ export function GoalDialog({ goal, onClose }: { goal: Goal | null; onClose: () =
   const queryClient = useQueryClient()
   const dialog = useRef<HTMLDialogElement>(null)
   const [sportGroup, setSportGroup] = useState(goal ? (goal.sportGroup ?? '') : 'running')
-  // Visa vilka träningsformer en grupp räknar; namn som webben inte känner till (Garmins råa namn) utelämnas.
-  const included = groups.data
-    ?.find((g) => g.key === sportGroup)
-    ?.sports.filter((value) => (sports as readonly string[]).includes(value))
-    .map((value) => t(`newActivity.sports.${knownSport(value)}`))
+  // Visa vilka träningsformer en grupp räknar.
+  const selectedGroup = groups.data?.find((g) => g.key === sportGroup)
+  const included = selectedGroup && sportGroupMembers(selectedGroup, t)
   const [metric, setMetric] = useState<GoalMetric>(goal?.metric ?? 'distance')
   const [target, setTarget] = useState(goal ? goalInput(goal.metric, goal.target) : '')
   const [period, setPeriod] = useState<GoalPeriod>(goal?.period ?? 'week')

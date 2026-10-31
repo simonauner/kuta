@@ -257,7 +257,8 @@
     "stravaImportInterrupted": "The import was interrupted. Saved activities are kept. Retry with the same file; duplicates are skipped.",
     "invalidPrivacyPlace": "Enter a name, a valid map point and a radius between 50 and 5,000 meters.",
     "invalidPrivacy": "Choose a valid visibility.",
-    "invalidGoal": "Check the sport, measure, period and goal."
+    "invalidGoal": "Check the sport, measure, period and goal.",
+    "invalidSportGroup": "Choose a valid sport."
   },
   "home": "Kuta – home",
   "footer": {
@@ -545,15 +546,15 @@
     "confirmDelete": "Delete this goal? This can't be undone.",
     "deleteConfirmed": "Delete",
     "deleting": "Deleting…",
-    "sportGroups": {
-      "running": "Running",
-      "cycling": "Cycling",
-      "swimming": "Swimming",
-      "walking": "Walking and hiking",
-      "cross-country skiing": "Cross-country skiing",
-      "paddling": "Paddling",
-      "rowing": "Rowing"
-    },
     "includes": "Includes {{sports}}."
+  },
+  "sportGroups": {
+    "running": "Running",
+    "cycling": "Cycling",
+    "swimming": "Swimming",
+    "walking": "Walking and hiking",
+    "cross-country skiing": "Cross-country skiing",
+    "paddling": "Paddling",
+    "rowing": "Rowing"
   }
 }

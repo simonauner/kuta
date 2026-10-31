@@ -257,7 +257,8 @@
     "stravaImportInterrupted": "Importen avbröts. Redan sparade pass finns kvar. Försök igen med samma fil; dubbletter hoppas över.",
     "invalidPrivacyPlace": "Ange ett namn, en giltig kartpunkt och en radie mellan 50 och 5 000 meter.",
     "invalidPrivacy": "Välj giltig synlighet.",
-    "invalidGoal": "Kontrollera sport, typ, period och mål."
+    "invalidGoal": "Kontrollera sport, typ, period och mål.",
+    "invalidSportGroup": "Välj en giltig träningsform."
   },
   "home": "Kuta – startsida",
   "footer": {
@@ -545,15 +546,15 @@
     "confirmDelete": "Ta bort målet? Det går inte att ångra.",
     "deleteConfirmed": "Ta bort",
     "deleting": "Tar bort…",
-    "sportGroups": {
-      "running": "Löpning",
-      "cycling": "Cykling",
-      "swimming": "Simning",
-      "walking": "Gång och vandring",
-      "cross-country skiing": "Längdskidåkning",
-      "paddling": "Paddling",
-      "rowing": "Rodd"
-    },
     "includes": "Räknar {{sports}}."
+  },
+  "sportGroups": {
+    "running": "Löpning",
+    "cycling": "Cykling",
+    "swimming": "Simning",
+    "walking": "Gång och vandring",
+    "cross-country skiing": "Längdskidåkning",
+    "paddling": "Paddling",
+    "rowing": "Rodd"
   }
 }

@@ -161,17 +161,17 @@ lämnas till andra mottagare. Ingen ny åtkomst följer av själva klippningen.
 ## Statistik över tid
 
 `/app/stats` visar årsstatistik med månadsdiagram och tabell för distans, träningstid,
-snittempo och snittpuls samt antal pass. Välj år och sport; löpning och innevarande år är
-förval. Årsväljaren innehåller hela den egna historiken. Tomma månader har noll mängd,
+snittempo och snittpuls samt antal pass. Välj år och sportgrupp (se [Sportgrupper](#sportgrupper));
+löpning och innevarande år är förval. Årsväljaren innehåller hela den egna historiken. Tomma månader har noll mängd,
 men saknat tempo och puls visas som `–`.
 
-`GET /api/activities/statistics?year=2026&sport=running&timeZone=Europe%2FStockholm`
-ger tolv månadsrader för den inloggade användaren. År krävs (1–9998), utelämnad sport
-betyder alla sporter och utelämnad tidszon UTC. Summeringen sker i Postgres över hela
+`GET /api/activities/statistics?year=2026&sportGroup=running&timeZone=Europe%2FStockholm`
+ger tolv månadsrader för den inloggade användaren. År krävs (1–9998), utelämnad sportgrupp
+betyder alla sporter (okänd grupp ger `invalidSportGroup`) och utelämnad tidszon UTC. Summeringen sker i Postgres över hela
 året, oberoende av passlistans sidindelning, utan att skicka tidsserier eller rutter till webben.
 Tid inkluderar pauser. Tempo är summan av tid delad med summan av distans för pass med
 positiv tid och distans (sekunder per kilometer). Snittpuls tidsvägs bara över pass med
-positiv tid och sparad puls. Alla sporter kombinerar även tempo och puls mellan sporter; samlade multisportpass ingår inte i snittempot. Vid sportfilter räknas motsvarande delar av multisportpass, med puls från delens mätpunkter. Totalvyn räknar varje pass en gång.
+positiv tid och sparad puls. Alla sporter kombinerar även tempo och puls mellan sporter; samlade multisportpass ingår inte i snittempot. Vid gruppfilter räknas hela pass i gruppen och motsvarande delar av multisportpass i andra grupper, med puls från delens mätpunkter. Totalvyn räknar varje pass en gång.
 Månader och årsgränser följer webbläsarens tidszon, och hela passet tillhör startmånaden.
 Statistikcachen uppdateras vid skapande, import och radering av pass och rensas när
 pulssamtycke återkallas.
@@ -186,13 +186,8 @@ visar även förra periodens resultat när det nåddes och hur många perioder i
 (från två). Ett avslutat engångsmål visas nedtonat tills det tas bort. Klick på kortet öppnar
 redigering och borttagning i samma modal. Inga mål ger ingen sektion.
 
-Mål gäller sportgrupper, inte exakta sporter: Löpning räknar löpning, terränglöpning och virtuell
-löpning; Cykling alla cykeltyper inklusive virtuell; Gång och vandring även snöskovandring;
-Längdskidåkning även topptur och rullskidor; Paddling kanot, kajak och SUP; Rodd även virtuell rodd.
-Simning i bassäng och öppet vatten är samma sport (`swimming`), eftersom Garmin anger vattentypen
-som undertyp och Strava inte skiljer dem åt. Övriga sporter är egna grupper. Grupperna definieras i
-`ActivitySports.Groups`, även med Garmins råa sportnamn (exempelvis `crosscountryskiing`), och
-dialogen visar vilka träningsformer den valda gruppen räknar.
+Mål gäller [sportgrupper](#sportgrupper), inte exakta sporter, och dialogen visar vilka
+träningsformer den valda gruppen räknar.
 
 Summeringen följer statistikens regler: hela passet hör till perioden där det startar, tid
 inkluderar pauser, redigerade multisportdelars distans används och ett gruppmål räknar
@@ -208,7 +203,6 @@ API (inloggning krävs; skrivningar kräver CSRF; bara egna mål, andras ger 404
 - `GET /api/goals?timeZone=Europe%2FStockholm` ger målen med `current` och `previous`
   (`{ start, end, value, achieved }`, `end` exklusivt; `previous` är null för engångsmål och under startperioden),
   `streak` och `ended`.
-- `GET /api/goals/sport-groups` ger valbara grupper `{ key, sports }`.
 - `POST /api/goals` och `PUT /api/goals/{id}` tar `{ sportGroup, metric, period, target, recurring, timeZone }`.
   `sportGroup` är en gruppnyckel eller null = alla, `metric` är `distance`, `duration` eller `count`, `period` är `week`,
   `month` eller `year`, `target` i meter, sekunder eller hela pass (högst 100 000 000 m eller s, respektive
@@ -220,6 +214,18 @@ Data API-grants. Radering av alla pass behåller målen. Målen ingår i exporte
 Periodlogik, grupper och validering testas som enhetstester, summering per tidszon, sportgrupp, multisportdelar
 och ägarskap i lokal Postgres, och HTTP-testet täcker routing, statuskoder, svarskontrakt och
 att en annan användare varken ser eller ändrar målet.
+
+## Sportgrupper
+
+Mål och statistik räknar grupper av träningsformer, inte exakta sporter: Löpning räknar löpning,
+terränglöpning och virtuell löpning; Cykling alla cykeltyper inklusive virtuell; Gång och
+vandring även snöskovandring; Längdskidåkning även topptur och rullskidor; Paddling kanot, kajak
+och SUP; Rodd även virtuell rodd. Simning i bassäng och öppet vatten är samma sport (`swimming`),
+eftersom Garmin anger vattentypen som undertyp och Strava inte skiljer dem åt. Övriga sporter är
+egna grupper med sportens nyckel. Grupperna definieras bara i `SportGroups.cs`, även med Garmins
+råa sportnamn (exempelvis `crosscountryskiing`); `GET /api/activities/sport-groups` ger
+`[{ key, sports }]` och webben namnger grupperna under `sportGroups` i språkfilerna. Passlistans
+sportfilter och passens egna sport är oförändrade.
 
 ## Applikationsloggar och integritet
 

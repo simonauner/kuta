@@ -3,7 +3,7 @@ using Dapper;
 using Npgsql;
 
 // Mål i SI-enheter: distance i meter, duration i sekunder, count i antal pass.
-// SportGroup är en grupp ur Goals.SportGroups (t.ex. "running" med terräng och virtuell löpning); null = alla.
+// SportGroup är en nyckel ur SportGroups.All (t.ex. "running" med terräng och virtuell löpning); null = alla.
 public record GoalRequest(string? SportGroup, string? Metric, string? Period, double? Target, bool Recurring = false,
     string? TimeZone = null);
 public record StoredGoal(Guid Id, string? SportGroup, string Metric, string Period, double Target, bool Recurring, DateOnly StartsOn);
@@ -11,26 +11,14 @@ public record GoalPeriodProgress(DateOnly Start, DateOnly End, double Value, boo
 public record GoalProgress(Guid Id, string? SportGroup, string Metric, string Period, double Target, bool Recurring,
     DateOnly StartsOn, bool Ended, GoalPeriodProgress Current, GoalPeriodProgress? Previous, int Streak);
 
-public record GoalSportGroup(string Key, string[] Sports);
-
 public static class Goals
 {
-    // Valbara grupper: de definierade grupperna först, sedan övriga sporter som egna grupper.
-    public static readonly GoalSportGroup[] SportGroups =
-    [
-        .. ActivitySports.Groups.Select(g => new GoalSportGroup(g.Key, g.Sports)),
-        .. ActivityInput.Sports.Where(sport => ActivitySports.GroupOf(sport) == sport
-            && !ActivitySports.Groups.Any(g => g.Key == sport)).Select(sport => new GoalSportGroup(sport, [sport])),
-    ];
-    static readonly string[] MappedSports = ActivitySports.Groups.SelectMany(g => g.Sports).ToArray();
-    static readonly string[] MappedGroups = ActivitySports.Groups.SelectMany(g => g.Sports.Select(_ => g.Key)).ToArray();
-
     public static readonly string[] Metrics = ["distance", "duration", "count"];
     public static readonly string[] Periods = ["week", "month", "year"];
     static readonly ApiError InvalidGoal = new("Kontrollera sport, typ, period och mål.", "invalidGoal");
 
     public static ApiError? Validate(GoalRequest req) =>
-        (req.SportGroup is not null && !SportGroups.Any(g => g.Key == req.SportGroup))
+        (req.SportGroup is not null && !SportGroups.IsValid(req.SportGroup))
         || req.Metric is null || !Metrics.Contains(req.Metric) || req.Period is null || !Periods.Contains(req.Period)
         || req.Target is not { } target || !double.IsFinite(target) || target <= 0
         || target > (req.Metric == "count" ? 10_000 : 100_000_000)
@@ -96,7 +84,6 @@ public static class Goals
     public static void MapGoals(this RouteGroupBuilder api)
     {
         var goals = api.MapGroup("/goals").RequireAuthorization();
-        goals.MapGet("/sport-groups", () => Results.Ok(SportGroups));
         goals.MapGet("", async (string? timeZone, NpgsqlDataSource db, ClaimsPrincipal user, CancellationToken ct) =>
         {
             timeZone ??= "UTC";
@@ -167,10 +154,8 @@ public static class Goals
             "select (@now at time zone @timeZone)::date", new { now, timeZone }, cancellationToken: ct));
         // Samma effektiva värden som statistiken: redigerade delars distans, och gruppmål räknar matchande delar
         // av multisportpass. Utan grupp räknas varje pass en gång.
-        var buckets = await conn.QueryAsync<GoalBucket>(new CommandDefinition("""
-            with sport_groups as (
-                select * from unnest(@mappedSports::text[], @mappedGroups::text[]) as m(sport, sport_group)
-            ), effective as (
+        var buckets = await conn.QueryAsync<GoalBucket>(new CommandDefinition($"""
+            with {SportGroups.Cte}, effective as (
                 select a.id, a.started_at, coalesce(m.sport_group, a.sport) as sport_group,
                     a.duration_s::double precision as duration_s,
                     coalesce((select sum(p.distance_m) from activity_parts p
@@ -201,7 +186,7 @@ public static class Goals
                 group by 1
             ) b
             where g.user_id = @userId
-            """, new { userId, timeZone, mappedSports = MappedSports, mappedGroups = MappedGroups }, cancellationToken: ct));
+            """, new { userId, timeZone, groupedSports = SportGroups.GroupedSports, sportGroupKeys = SportGroups.GroupKeys }, cancellationToken: ct));
         var byGoal = buckets.ToLookup(b => b.GoalId);
         return goals.Select(goal => Evaluate(goal, today,
             byGoal[goal.Id].ToDictionary(b => b.PeriodStart, b => b.Value))).ToArray();

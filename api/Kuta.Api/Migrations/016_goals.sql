@@ -1,7 +1,7 @@
 create table goals (
     id uuid primary key default gen_random_uuid(),
     user_id uuid not null references users(id) on delete cascade,
-    sport_group text, -- ActivitySports.Groups eller en enskild sport; null = alla
+    sport_group text, -- nyckel ur SportGroups.All; null = alla
     metric text not null check (metric in ('distance', 'duration', 'count')),
     period text not null check (period in ('week', 'month', 'year')),
     target double precision not null check (target > 0 and target < 'Infinity'::float8),

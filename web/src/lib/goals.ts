@@ -1,5 +1,4 @@
 import { isoWeek } from './activity.ts'
-import sv from '../locales/sv.json' with { type: 'json' }
 
 // Som API:t: mål i SI-enheter (meter, sekunder) eller antal pass. sportGroup null = alla träningsformer.
 export const goalMetrics = ['distance', 'duration', 'count'] as const
@@ -19,15 +18,6 @@ export type Goal = {
   current: GoalPeriodProgress
   previous: GoalPeriodProgress | null
   streak: number
-}
-
-// Från /api/goals/sport-groups: grupper som löpning (med terräng och virtuell löpning) och övriga sporter var för sig.
-export type GoalSportGroup = { key: string; sports: string[] }
-export type NamedSportGroup = keyof typeof sv.goals.sportGroups
-
-// Grupper med flera sporter har egna namn; övriga grupper heter som sin sport.
-export function isNamedSportGroup(key: string): key is NamedSportGroup {
-  return Object.hasOwn(sv.goals.sportGroups, key)
 }
 
 export function goalFraction(value: number, target: number) {

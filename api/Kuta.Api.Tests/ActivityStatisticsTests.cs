@@ -32,7 +32,8 @@ public class ActivityStatisticsTests(KutaFactory factory) : IClassFixture<KutaFa
                 (@userId, 'manual', 'cycling', '2026-01-22T12:00:00Z', 3600, 30000, 180),
                 (@otherId, 'manual', 'running', '2026-01-20T12:00:00Z', 9000, 90000, 200),
                 (@userId, 'manual', 'running', '2026-12-31T23:30:00Z', 900, 3000, null),
-                (@userId, 'manual', 'running', '2026-03-01T12:00:00Z', 900, 3000, null)
+                (@userId, 'manual', 'running', '2026-03-01T12:00:00Z', 900, 3000, null),
+                (@userId, 'manual', 'trail run', '2026-03-02T12:00:00Z', 1200, 3000, null)
                 """, new { userId, otherId });
             var months = await ActivityStatistics.ReadAsync(conn, userId, 2026, "Europe/Stockholm", "running", ct);
             Assert.Equal(Enumerable.Range(1, 12), months.Select(m => m.Month));
@@ -44,7 +45,8 @@ public class ActivityStatisticsTests(KutaFactory factory) : IClassFixture<KutaFa
             Assert.Equal(150, january.AvgHr);
             Assert.Equal(0, months[1].Count);
             Assert.Null(months[1].AvgHr);
-            Assert.Equal(300, months[2].PaceSPerKm);
+            // Löpgruppen räknar även terränglöpning.
+            Assert.Equal((2, 350d), (months[2].Count, months[2].PaceSPerKm));
             Assert.Null(months[2].AvgHr);
             Assert.Equal(0, months[11].Count);
             var all = await ActivityStatistics.ReadAsync(conn, userId, 2026, "Europe/Stockholm", null, ct);
