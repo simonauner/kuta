@@ -9,8 +9,26 @@ import {
   groupActivities,
   parseDuration,
   splits,
+  routeSegments,
   toDateTimeLocal,
 } from '../src/lib/activity.ts'
+
+test('route lines stop at hidden, missing or invalid coordinates', () => {
+  const streams = {
+    t: [0, 1, 2, 3, 4, 5, 6, 7],
+    lat: [null, 59, 60, null, 61, 62, NaN, 63],
+    lon: [null, 17, 18, 19, null, 20, 21, 22],
+  }
+  assert.deepEqual(routeSegments(streams), [
+    [
+      [17, 59],
+      [18, 60],
+    ],
+    [[20, 62]],
+    [[22, 63]],
+  ])
+  assert.deepEqual(routeSegments({ t: [0], lat: null, lon: null }), [])
+})
 
 // 2,502 km på 834 s: 3 m/s, en mätpunkt per sekund, höjden stiger 1 m per 100 m, puls 150.
 function run({ seconds = 834, gapAt = null } = {}) {

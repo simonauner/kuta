@@ -228,12 +228,14 @@ static async Task<int> RunAsync(string[] args)
     api.MapAntiforgery();
     api.MapAuth();
     api.MapMe();
+    api.MapDataExport();
 
     api.MapActivities();
     api.MapEquipment();
     api.MapBestEfforts();
 
     app.MapFallbackToFile("/privacy", "privacy.html", staticFiles);
+    app.MapFallbackToFile("/features", "features.html", staticFiles);
 
     // De publika sidorna är statiska; bara appens kända sökvägar får React-skalet.
     foreach (var path in new[] { "/app", "/app/activities", "/app/activities/new", "/app/activities/{activityId:guid}", "/app/activities/{activityId:guid}/edit", "/app/stats", "/app/profile", "/app/profile/equipment", "/app/settings" })

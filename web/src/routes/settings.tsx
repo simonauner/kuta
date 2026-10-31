@@ -1,7 +1,7 @@
 import { useMutation, useQuery } from '@tanstack/react-query'
 import { Link } from '@tanstack/react-router'
 import { useTranslation } from 'react-i18next'
-import { DeleteAllActivities } from '@/components/delete-all-activities'
+import { DangerZone } from '@/components/danger-zone'
 import { ErrorMessage } from '@/components/error-message'
 import { HeartRateConsent } from '@/components/heart-rate-consent'
 import { LanguageSelect } from '@/components/language-select'
@@ -25,6 +25,10 @@ export function SettingsPage() {
   const logout = useMutation({
     mutationFn: () => api.send('POST', '/api/auth/logout'),
     onSuccess: sessionChanged,
+  })
+
+  const dataExport = useMutation({
+    mutationFn: () => api.download('/api/me/export', 'kuta-export.zip'),
   })
 
   return (
@@ -61,6 +65,31 @@ export function SettingsPage() {
         <StravaImport />
       </section>
 
+      <section aria-labelledby="export-heading" className="mt-8 border-t pt-6">
+        <h2 id="export-heading" className="text-lg font-semibold">
+          {t('settings.exportTitle')}
+        </h2>
+        <p className="mt-2 text-sm text-muted-foreground">{t('settings.exportHelp')}</p>
+        <Button
+          variant="outline"
+          className="mt-4"
+          disabled={dataExport.isPending}
+          onClick={() => dataExport.mutate()}
+        >
+          {t(dataExport.isPending ? 'settings.exporting' : 'settings.export')}
+        </Button>
+        {dataExport.isPending && (
+          <p role="status" className="mt-2 text-sm text-muted-foreground">
+            {t('settings.exportWait')}
+          </p>
+        )}
+        {dataExport.error && (
+          <p role="alert" className="mt-4 text-sm text-destructive">
+            <ErrorMessage error={dataExport.error} />
+          </p>
+        )}
+      </section>
+
       <section aria-labelledby="account-heading" className="mt-8 border-t pt-6">
         <h2 id="account-heading" className="text-lg font-semibold">
           {t('settings.account')}
@@ -80,7 +109,7 @@ export function SettingsPage() {
           </p>
         )}
       </section>
-      <DeleteAllActivities />
+      <DangerZone />
     </section>
   )
 }
