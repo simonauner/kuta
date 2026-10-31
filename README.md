@@ -38,6 +38,25 @@ Passlistans `year=2024` begränsar både första och efterföljande sidor till d
 Årsväljaren visas när historiken innehåller flera år; ”Alla år” är standard. Valet sparas i
 appens URL (`/app/activities?year=2024`) och följer med till passsidan och tillbaka.
 
+Passsidans kilometersplits interpolerar tid och höjd vid varje kilometergräns mellan
+mätpunkterna; snittpulsen vägs med tiden. Ingen sträcka eller tid läggs till utanför
+inspelningens uppmätta ändpunkter. Återställd distans eller icke stigande tid gör att
+splitstabellen utelämnas. En avslutande rest under 50 meter visas inte.
+Diagram använder kilometer som x-axel när distansen ökar utan återställningar,
+annars förfluten tid. Tidsaxelns etikett följer appens valda språk.
+
+## Applikationsloggar och integritet
+
+API:t ersätter .NET:s loggproviders med `PrivateLogProvider`. Den skriver JSON med fasta händelser och operationer för start, stopp, requestfel, startfel och migreringsfel. Requestfel har även HTTP-status och tidsåtgång i millisekunder. Loggformatterare, godtyckligt loggstate, scopes och kategorinamn används aldrig, även om loggnivån höjs. DbUp:s egen konsolloggning är avstängd. Samma skydd används lokalt och i drift.
+
+Undantag projiceras till en begränsad modell: typnamn, metodernas typ- och metodnamn samt relativa källkodssökvägar och radnummer från debugsymboler. Bara källfiler under projektets build-rot får en sökväg; saknade symboler eller externa filer ger ingen fil- eller radinformation. Dynamiska metoder och typnamn från dynamiska assemblies utelämnas eller ersätts med en fast etikett. Generiska typer visas utan konkreta typargument. Felkedjor, inklusive alla grenar i `AggregateException`, begränsas till totalt åtta undantag och högst 32 stack frames per undantag. Undantagsmeddelanden, formaterade stackspår, `Data`, `Source`, `HelpLink` och andra godtyckliga egenskaper serialiseras aldrig. Om metadata inte kan läsas används en fast reservetikett.
+
+Inga request bodies, URL:er, querysträngar, headers, cookies, tokens, mejladresser, lösenord, puls, GPS-rutter eller uppladdade filers namn/innehåll skrivs av applikationsloggningen. Automatiska HTTP-, databas- och ramverksloggar släpps inte igenom. Felsökning använder feltyp, kodposition och driftmått; råa felmeddelanden får undersökas med syntetiska lokala reproduktioner.
+
+Nya logghändelser ska använda granskade strukturerade fält utan användarvärden och testas med känsliga syntetiska värden. Okända fält utelämnas som standard. Använd inte `Console.WriteLine`/stderr för dynamiska värden, serialisera inte råa undantag och lägg inte till andra loggproviders vid sidan av integritetsgränsen. Regex-maskning av fritext är inte en garanti mot personuppgifter.
+
+Framtida loggmottagare får samla in den begränsade konsolutmatningen. En direkt SDK-integration som Sentry måste granskas separat: automatisk insamling av exceptions, requests, breadcrumbs, användarkontext och tracing passerar inte nödvändigtvis loggprovidern. Aktivera den inte utan en testad tillåtelselista för vad som får skickas. Detta skydd omfattar Kutas applikationsloggar, inte Flys egna proxy-/plattformloggar, Supabases loggar eller historiska loggar.
+
 ## Köra lokalt
 
 Kräver Docker, Supabase CLI, .NET SDK och nvm (Node-versionen står i `.nvmrc`). `global.json` väljer .NET SDK 10.0.402 eller senare stabil patch i 10.0.4xx-serien, både lokalt och i Dockerbygget. Allt startas med:
@@ -81,25 +100,31 @@ Frontendkontroller med Node-versionen i `.nvmrc`: kör `npm ci` i `web/`, sedan
 `npm run format:check`, `npm run lint`, `npm test` och `npm run build`.
 `npm run format` formaterar webbfilerna med Prettier. API-klientens tester använder
 Nodes inbyggda testverktyg och mockade nätverksanrop; de kräver inte Supabase.
-GitHub Actions kör frontendkontrollerna vid ändringar i `web/` och bygger API:t och
-testprojektet vid ändringar i `api/` eller `supabase/`, på pull requests och push till
-`main`. Respektive workflow och verktygskonfiguration (`.nvmrc` respektive
-`global.json`) startar också motsvarande kontroller. `Dockerfile` och `.dockerignore`
-startar båda. Ändringar i enbart `.md`-filer startar inget av dessa workflows, även
-under `web/` eller `api/`. Backendtester mot lokal Supabase körs fortfarande lokalt
-enligt ovan; backend-workflowet kontrollerar enbart att projekten bygger.
+GitHub Actions kör frontendkontrollerna i `.github/workflows/frontend.yml` vid
+ändringar i `web/`, `.nvmrc` eller workflowfilen. API-jobbet i
+`.github/workflows/api.yml` bygger och kör hela `api/Kuta.Api.Tests` i Release vid
+ändringar i `api/`, `supabase/`, `global.json` eller workflowfilen. Båda körs på
+pull requests och push till `main`; `Dockerfile` och `.dockerignore` startar båda.
+Ändringar i enbart `.md`-filer startar inget av dessa workflows.
 
-API-jobbet i `.github/workflows/api.yml` kör hela `api/Kuta.Api.Tests` vid ändringar
-i API:t, Supabase-konfigurationen, `global.json`, `Dockerfile` eller själva jobbet,
-både på pull requests och push till `main`. Det installerar .NET enligt `global.json`
-och Supabase CLI 2.72.7, startar en tillfällig lokal Supabase med Auth, Mailpit och
-Storage, läser dess lokala nycklar och väntar på auth efter omstart innan testerna
-körs. Testerna körs sekventiellt (`-- --parallel none`) så att testservrarna inte
-försöker migrera den tomma databasen samtidigt. Inga produktionshemligheter
-eller hostade tjänster används. Supabase stoppas även om testerna misslyckas.
+API-jobbet installerar .NET enligt `global.json` och Supabase CLI 2.72.7, startar
+en tillfällig lokal Supabase med Auth, Mailpit och Storage, läser dess lokala
+nycklar och väntar på auth efter omstart innan testerna körs. Testerna körs
+sekventiellt (`-- --parallel none`). Inga produktionshemligheter eller hostade
+tjänster används. Supabase stoppas även om testerna misslyckas.
 
 Footern visar copyright och webbens byggnummer (`ÅÅÅÅMMDD.ttmmss`, UTC), som sätts
 automatiskt av Vite vid bygget, även i Docker. I utvecklingsläge visas `Version utveckling`.
+
+## Råfiler vid misslyckad import
+
+Om uppladdning eller databascommit misslyckas släpps transaktionen innan en ny
+anslutning kontrollerar om råfilen används av ett sparat pass. Kontrollen håller
+profilens lås, så en samtidig import inte kan återanvända filnyckeln medan den
+städas. Ett förlorat commitsvar får därmed inte radera råfilen för ett sparat pass.
+Om databasen inte kan bekräfta utfallet lämnas filen kvar och felet loggas av
+API:t. En sådan fil kan behöva städas manuellt när databasen åter är tillgänglig;
+kontrollera först att inget pass refererar till nyckeln.
 
 ## Utrustning och användning
 
@@ -143,6 +168,8 @@ passet eller kopplingarna ändras. API:t använder SI-enheter; webben visar kilo
 Ett pass kan ha flera taggar: `race` (Lopp), `workout` (Intervaller/kvalitet),
 `long_run` (Långpass) och `easy` (Lugnt). Välj dem vid manuell registrering eller
 FIT-uppladdning, ändra dem på passsidan och filtrera passlistan efter en tagg.
+Listans taggfilter sparas i URL:en (`/app/activities?tag=race`), kan kombineras
+med `year` och följer med till pass, skapandeformulär och tillbaka till listan.
 
 `activities.tags` är `text[]`, med tom array som standard och GIN-index.
 API:t validerar mot `ActivityInput.Tags` och tar bort dubbletter; databasen har
@@ -206,7 +233,7 @@ Skor importeras före passen och kopplas med `Gear`-ID från `activities.csv`. N
 
 Efteråt visas antal importerade pass, skor, kompletterade skokopplingar och dubbletter samt Strava-ID för pass som misslyckats (till exempel en saknad, trasig eller ej stödd aktivitetsfil). Tidigare sparade pass behålls om ett senare pass misslyckas eller anslutningen bryts. Kör samma export igen för att fortsätta; Strava-ID och identiska aktivitetsfiler förhindrar dubbletter inom kontot. Passlistan visar 25 pass åt gången; resten nås med Visa fler.
 
-API: `POST /api/activities/import/strava`, multipart-fält `file`, med inloggning och CSRF-token. Svar: en NDJSON-ström (`application/x-ndjson`) i samma anrop med `{ processed, total, imported, duplicates, failed, result }`. Status skickas vid start och därefter högst fyra gånger per sekund mellan passen. Sista meddelandet har `result: { imported, duplicates, failedActivityIds, equipmentImported, equipmentLinked }`; tidigare meddelanden har `result: null`. En ström utan slutresultat räknas som avbruten import. Valideringsfel före importen returneras fortfarande som vanliga JSON-felsvar. Högst 20 000 pass, 100 000 ZIP-poster, 20 MB per uppackad fil och totalt 1 GiB uppackade aktivitetsfiler per anrop. Enskilda fel hindrar inte andra pass; ett ogiltigt CSV-manifest avvisar hela arkivet före lagring.
+API: `POST /api/activities/import/strava`, multipart-fält `file`, med inloggning och CSRF-token. Svar: en NDJSON-ström (`application/x-ndjson`) i samma anrop med `{ processed, total, imported, duplicates, failed, result }`. Status skickas vid start och därefter högst fyra gånger per sekund mellan passen. Sista meddelandet har `result: { imported, duplicates, failedActivityIds, equipmentImported, equipmentLinked }`; tidigare meddelanden har `result: null`. En ström utan slutresultat räknas som avbruten import. Valideringsfel före importen returneras fortfarande som vanliga JSON-felsvar. Högst 20 000 pass, 100 000 ZIP-poster, 20 MB per uppackad fil och totalt 1 GiB uppackade aktivitetsfiler per anrop, inklusive lästa byte från filer som avvisas. Budgeten räknas under läsningen; när den tar slut hoppas resterande pass över och rapporteras som misslyckade. Enskilda fel hindrar inte andra pass; ett ogiltigt CSV-manifest avvisar hela arkivet före lagring.
 
 ## Driftsättning (Fly.io)
 
@@ -270,11 +297,10 @@ Arbetsunderlag för `web/privacy.html`, kontrollerat 2026-10-31. Skilj uppgifter
 
 ### Vad koden visar om loggar och sessioner
 
-Granskat: `api/Kuta.Api/Program.cs`, `appsettings.json`, `SupabaseAuthClient.cs`, `SupabaseCookieSession.cs`, `ActivityStorage.cs`, `RawFileStore.cs`, auth-/aktivitetsendpoints och `web/src/lib/api.ts`.
+Granskat: `api/Kuta.Api/Program.cs`, `PrivateLogProvider.cs`, `LogException.cs`, `appsettings.json`, `SupabaseAuthClient.cs`, `SupabaseCookieSession.cs`, `ActivityStorage.cs`, `RawFileStore.cs`, auth-/aktivitetsendpoints och `web/src/lib/api.ts`.
 
-- Ingen egen loggning av e-postadresser, lösenord, puls, GPS-rutter eller uppladdade filers innehåll hittades. Ingen generell HTTP-body-loggning eller extern felrapportering är konfigurerad i den granskade koden.
-- Standardnivån är `Information`, med `Microsoft.AspNetCore` på `Warning`. `AddHttpClient<SupabaseAuthClient>()` använder .NET:s HTTP-klientloggning, som kan skriva metod, adress, status och tidsåtgång. Auth-anropens uppgifter skickas i body/headers, inte i användarspecifika utgående URL:er. Detta är ingen garanti för att alla felmeddelanden är fria från personuppgifter.
-- Ohanterade undantag kan ge felmeddelanden, stackspår och tekniska identifierare. DbUp skriver migrationsstatus till konsolen och migrationsfel via `Console.Error`. Faktiskt innehåll i hostade loggar och eventuella driftöverstyrningar är inte kontrollerade.
+- Kutas applikationsloggning är begränsad till granskade strukturerade driftfält och rensad undantagsmetadata; se [Applikationsloggar och integritet](#applikationsloggar-och-integritet) för tillåtna fält och testade gränser. Automatisk HTTP-klientloggning och DbUp:s konsolloggning släpps inte igenom. Ingen generell HTTP-body-loggning eller extern felrapportering är konfigurerad.
+- Detta beskriver repots kod. Faktiskt innehåll i hostade loggar, historiska loggar och eventuella driftöverstyrningar är inte kontrollerade; kodändringen måste driftsättas för att gälla nya loggar i drift.
 - Besökarens IP skickas avsiktligt till Supabase Auth med `Sb-Forwarded-For` för rate limiting. Supabases egna auth-loggar kan innehålla användar-id, IP, user-agent, tidpunkt och händelse; de är separata från Kutas loggning ([Auth Audit Logs](https://supabase.com/docs/guides/auth/audit-logs)).
 - `user_sessions` sparar användar-id, slumpat sessions-id, skapandetid, utgångstid och avslutstid. Utloggning sätter `ended_at`; automatisk städning saknas. Inloggningens 30 dagars inaktivitet/180 dagars maxgräns är inte en lagringstid för raderna.
 - Filnycklar innehåller användar-id och filhash. Sådana identifierare kan finnas i leverantörernas lagringsloggar även utan att själva filinnehållet loggas.

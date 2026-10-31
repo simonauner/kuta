@@ -3,6 +3,7 @@ import { test } from 'node:test'
 import {
   activitySearch,
   activityTitle,
+  chartAxis,
   formatDuration,
   formatPace,
   groupActivities,
@@ -11,7 +12,7 @@ import {
   toDateTimeLocal,
 } from '../src/lib/activity.ts'
 
-// 2,5 km på 750 s: 3 m/s, en mätpunkt per sekund, höjden stiger 1 m per 100 m, puls 150.
+// 2,502 km på 834 s: 3 m/s, en mätpunkt per sekund, höjden stiger 1 m per 100 m, puls 150.
 function run({ seconds = 834, gapAt = null } = {}) {
   const t = Array.from({ length: seconds + 1 }, (_, i) => i)
   return {
@@ -28,15 +29,11 @@ function run({ seconds = 834, gapAt = null } = {}) {
 test('splits per full kilometre plus the remainder', () => {
   const result = splits(run())
   assert.deepEqual(
-    result.map((s) => [s.km, s.distanceM, s.durationS]),
-    [
-      // Varje split börjar där förra slutade: vid första punkten över gränsen
-      [1, 1002, 334],
-      [2, 999, 333],
-      [3, 501, 167],
-    ],
+    result.map((s) => s.distanceM),
+    [1000, 1000, 502],
   )
-  assert.equal(result[0].elevationM, 10.02)
+  for (const split of result) assert.ok(Math.abs(split.durationS - split.distanceM / 3) < 1e-9)
+  assert.equal(result[0].elevationM, 10)
   assert.equal(result[0].avgHr, 150)
 })
 
@@ -48,8 +45,54 @@ test('a few metres after the last kilometre are noise, not a split', () => {
 })
 
 test('missing distance points are skipped, and no distance means no splits', () => {
-  assert.equal(splits(run({ gapAt: 334 }))[0].durationS, 335)
+  assert.ok(Math.abs(splits(run({ gapAt: 334 }))[0].durationS - 1000 / 3) < 1e-9)
   assert.deepEqual(splits({ ...run(), dist: null }), [])
+})
+
+test('sparse points interpolate every crossed kilometre and its measurements', () => {
+  const result = splits({
+    ...run(),
+    t: [0, 900, 1200],
+    dist: [0, 3000, 4000],
+    alt: [10, 40, 30],
+    hr: [140, 160, 150],
+  })
+  assert.deepEqual(
+    result.map((s) => [s.km, s.distanceM, s.durationS, s.elevationM, s.avgHr]),
+    [
+      [1, 1000, 300, 10, 143],
+      [2, 1000, 300, 10, 150],
+      [3, 1000, 300, 10, 157],
+      [4, 1000, 300, -10, 155],
+    ],
+  )
+})
+
+test('splits use measured endpoints and reject distance or time resets', () => {
+  const stream = {
+    ...run(),
+    t: [0, 60, 360, 660, 700],
+    dist: [null, 500, 1500, 2500, null],
+    alt: null,
+    hr: null,
+  }
+  assert.deepEqual(
+    splits(stream).map((s) => [s.distanceM, s.durationS]),
+    [
+      [500, 150],
+      [1000, 300],
+      [500, 150],
+    ],
+  )
+  assert.deepEqual(splits({ ...stream, dist: [0, 1000, 0, 1000, 2000] }), [])
+  assert.deepEqual(splits({ ...stream, t: [0, 60, 30, 90, 120] }), [])
+})
+
+test('charts use elapsed time without usable distance and kilometres otherwise', () => {
+  const stream = { ...run(), t: [0, 300, 600, 900], dist: [0, 1000, null, 2000] }
+  assert.deepEqual(chartAxis(stream), { values: [0, 1, 1, 2], elapsedTime: false })
+  for (const dist of [null, [0, 0, null, 0], [null, 1000, 1000, 1000], [0, 1000, 0, 2000]])
+    assert.deepEqual(chartAxis({ ...stream, dist }), { values: stream.t, elapsedTime: true })
 })
 
 test('durations and paces', () => {
@@ -178,4 +221,11 @@ test('activity search keeps a valid year and defaults to all years for invalid v
   for (const year of [1, 9998]) assert.deepEqual(activitySearch({ year }), { year })
   for (const year of [undefined, '', null, true, [2024], {}, 'older', 0, 9999, 2024.5])
     assert.deepEqual(activitySearch({ year }), {})
+})
+
+test('activity search preserves supported tags alongside the year', () => {
+  for (const tag of ['race', 'workout', 'long_run', 'easy'])
+    assert.deepEqual(activitySearch({ year: '2026', tag }), { year: 2026, tag })
+  for (const tag of ['', 'unknown', '__proto__', 'toString', ['race'], true, null])
+    assert.deepEqual(activitySearch({ tag }), {})
 })

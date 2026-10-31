@@ -8,7 +8,12 @@ import { useTranslation } from 'react-i18next'
 import { api } from '@/lib/api'
 import { cn } from '@/lib/utils'
 import { formatDuration, parseDuration } from '@/lib/activity'
-import { equipmentQuery, equipmentKindsQuery, type Equipment } from '@/lib/equipment'
+import {
+  equipmentQuery,
+  equipmentKindsQuery,
+  lastUsedShoeQuery,
+  type Equipment,
+} from '@/lib/equipment'
 import { activityQuery } from '@/lib/activity-query'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
@@ -310,10 +315,12 @@ export function EquipmentSection() {
 
 export function EquipmentPicker({
   value,
+  initialIds,
   onChange,
   disabled = false,
 }: {
   value: string[]
+  initialIds: string[]
   onChange: (ids: string[]) => void
   disabled?: boolean
 }) {
@@ -337,7 +344,9 @@ export function EquipmentPicker({
       )}
       <div className="flex flex-wrap gap-3">
         {equipment.data
-          ?.filter((item) => !item.retired || value.includes(item.id))
+          ?.filter(
+            (item) => !item.retired || value.includes(item.id) || initialIds.includes(item.id),
+          )
           .map((item) => (
             <label
               key={item.id}
@@ -386,6 +395,7 @@ export function ActivityEquipmentEditor({
         queryClient.invalidateQueries({ queryKey: activityQuery(activityId).queryKey }),
         queryClient.invalidateQueries({ queryKey: ['activities'] }),
         queryClient.invalidateQueries({ queryKey: equipmentQuery.queryKey }),
+        queryClient.invalidateQueries({ queryKey: lastUsedShoeQuery.queryKey }),
       ]),
   })
   const changed = ids.length !== initialIds.length || ids.some((id) => !initialIds.includes(id))
@@ -399,6 +409,7 @@ export function ActivityEquipmentEditor({
     >
       <EquipmentPicker
         value={ids}
+        initialIds={initialIds}
         onChange={(value) => {
           setIds(value)
           save.reset()

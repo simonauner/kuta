@@ -113,8 +113,51 @@ public class StravaParserTests
         }
         memory.Position = 0;
         using var archive = new ZipArchive(memory);
-        Assert.Throws<InvalidDataException>(() => StravaImport.ReadFile(archive.Entries[0]));
+        Assert.Throws<InvalidDataException>(() => StravaImport.ReadFile(archive.Entries[0], new StravaImport.ExpansionBudget(long.MaxValue), TestContext.Current.CancellationToken));
     }
+
+    [Fact]
+    public void Rejected_gzip_files_still_consume_the_shared_archive_budget()
+    {
+        using var memory = new MemoryStream();
+        using (var zip = new ZipArchive(memory, ZipArchiveMode.Create, true))
+        {
+            using var entry = zip.CreateEntry("oversized.fit.gz").Open();
+            using var gzip = new GZipStream(entry, CompressionLevel.Fastest);
+            gzip.Write(new byte[StravaImport.MaxFileBytes + 1]);
+        }
+        memory.Position = 0;
+        using var archive = new ZipArchive(memory);
+        var budget = new StravaImport.ExpansionBudget(StravaImport.MaxFileBytes + 10);
+        Assert.Throws<InvalidDataException>(() => StravaImport.ReadFile(archive.Entries[0], budget, TestContext.Current.CancellationToken));
+        Assert.False(budget.Exhausted);
+        Assert.Throws<InvalidDataException>(() => StravaImport.ReadFile(archive.Entries[0], budget, TestContext.Current.CancellationToken));
+        Assert.True(budget.Exhausted);
+    }
+
+    [Fact]
+    public void Plain_files_share_the_budget_and_exactly_the_limit_is_allowed()
+    {
+        using var memory = new MemoryStream();
+        using (var zip = new ZipArchive(memory, ZipArchiveMode.Create, true))
+        {
+            using var entry = zip.CreateEntry("sample.fit").Open();
+            entry.Write(new byte[10]);
+        }
+        memory.Position = 0;
+        using var archive = new ZipArchive(memory);
+        var budget = new StravaImport.ExpansionBudget(20);
+        Assert.Equal(10, StravaImport.ReadFile(archive.Entries[0], budget, TestContext.Current.CancellationToken).Length);
+        Assert.False(budget.Exhausted);
+        Assert.Equal(10, StravaImport.ReadFile(archive.Entries[0], budget, TestContext.Current.CancellationToken).Length);
+        Assert.True(budget.Exhausted);
+        Assert.Throws<InvalidDataException>(() => StravaImport.ReadFile(archive.Entries[0], budget, TestContext.Current.CancellationToken));
+        using var cancelled = new CancellationTokenSource();
+        cancelled.Cancel();
+        Assert.Throws<OperationCanceledException>(() => StravaImport.ReadFile(archive.Entries[0],
+            new StravaImport.ExpansionBudget(20), cancelled.Token));
+    }
+
 }
 
 public class StravaUploadTests(KutaFactory factory) : IClassFixture<KutaFactory>
