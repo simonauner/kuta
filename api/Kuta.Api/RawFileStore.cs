@@ -43,6 +43,12 @@ public sealed class RawFileStore
         }, cancellationToken);
     }
 
+    public async Task CopyToAsync(string key, Stream destination, CancellationToken cancellationToken)
+    {
+        using var response = await client.GetObjectAsync(bucket, key, cancellationToken);
+        await response.ResponseStream.CopyToAsync(destination, cancellationToken);
+    }
+
     public async Task DeleteAsync(IEnumerable<string> keys, CancellationToken cancellationToken)
     {
         foreach (var key in keys)

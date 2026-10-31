@@ -94,41 +94,8 @@ public static class ActivityEndpoints
             CancellationToken cancellationToken) =>
         {
             await using var conn = await db.OpenConnectionAsync(cancellationToken);
-            await using var command = new NpgsqlCommand(
-                """
-                select a.id, a.sport, a.title, a.started_at, a.duration_s, a.moving_s, coalesce((select sum(p.distance_m) from activity_parts p where p.activity_id = a.id and p.original = not a.parts_edited), a.distance_m), a.avg_hr, a.max_hr,
-                       a.avg_speed_mps, a.elevation_gain_m, a.device, s.t, s.dist, s.hr, s.speed, s.alt, s.lat, s.lon,
-                       s.cadence, s.temp, a.tags,
-                       array(select equipment_id from activity_equipment where activity_id = a.id order by equipment_id) as equipment_ids, a.parts_edited, a.description, coalesce(a.original_sport, a.sport), a.user_id
-                from activities a left join activity_streams s on s.activity_id = a.id
-                where a.id = @id and a.user_id = @userId
-                """, conn);
-            command.Parameters.AddWithValue("id", id);
-            command.Parameters.AddWithValue("userId", user.GetUserId());
-            ActivityDetail detail;
-            await using (var reader = await command.ExecuteReaderAsync(cancellationToken))
-            {
-                if (!await reader.ReadAsync(cancellationToken)) return Results.NotFound();
-
-                // Läses för hand: Dapper/Npgsql klarar inte null-element i arrayer utan typen float?[] osv.
-                T? Value<T>(int i) => reader.IsDBNull(i) ? default : reader.GetFieldValue<T>(i);
-                var streams = reader.IsDBNull(12) ? null : new ActivityStreams(
-                    reader.GetFieldValue<int[]>(12), Value<float?[]>(13), Value<short?[]>(14), Value<float?[]>(15),
-                    Value<float?[]>(16), Value<double?[]>(17), Value<double?[]>(18), Value<short?[]>(19),
-                    Value<short?[]>(20));
-                streams = RoutePrivacy.ForViewer(streams, reader.GetGuid(26), user.GetUserId());
-                detail = new ActivityDetail(
-                    reader.GetGuid(0), reader.GetString(1), Value<string>(2),
-                    System.DateTime.SpecifyKind(reader.GetDateTime(3), DateTimeKind.Utc), reader.GetInt32(4),
-                    Value<int?>(5), reader.GetDouble(6), Value<short?>(7), Value<short?>(8), Value<float?>(9),
-                    Value<float?>(10), Value<string>(11), streams, [], reader.GetFieldValue<string[]>(21), reader.GetFieldValue<Guid[]>(22), [], reader.GetBoolean(23), streams is not null && Multisport.CanSplit(streams.T, streams.Dist), Value<string>(24), [], reader.GetString(25));
-            }
-            var laps = await conn.QueryAsync<ActivityLap>(
-                """
-                select lap_index, start_s, duration_s, moving_s, distance_m, avg_hr, max_hr, ascent_m, descent_m, avg_cadence
-                from activity_laps where activity_id = @id order by lap_index
-                """, new { id });
-            return Results.Ok(detail with { Laps = laps, Parts = await Multisport.LoadAsync(conn, id), OriginalParts = await Multisport.LoadAsync(conn, id, original: true) });
+            var detail = await ReadDetailAsync(conn, user.GetUserId(), id, cancellationToken);
+            return detail is null ? Results.NotFound() : Results.Ok(detail);
         });
 
         // Förhandsvisning för formuläret "Skapa ny aktivitet": tolkar filen utan att spara något.
@@ -272,6 +239,46 @@ public static class ActivityEndpoints
             return await ActivityStorage.DeleteAsync(conn, store, user.GetUserId(), id, cancellationToken)
                 ? Results.NoContent() : Results.NotFound();
         });
+    }
+
+    public static async Task<ActivityDetail?> ReadDetailAsync(NpgsqlConnection conn, Guid userId, Guid id,
+        CancellationToken cancellationToken, NpgsqlTransaction? tx = null)
+    {
+        await using var command = new NpgsqlCommand(
+            """
+            select a.id, a.sport, a.title, a.started_at, a.duration_s, a.moving_s, coalesce((select sum(p.distance_m) from activity_parts p where p.activity_id = a.id and p.original = not a.parts_edited), a.distance_m), a.avg_hr, a.max_hr,
+                   a.avg_speed_mps, a.elevation_gain_m, a.device, s.t, s.dist, s.hr, s.speed, s.alt, s.lat, s.lon,
+                   s.cadence, s.temp, a.tags,
+                   array(select equipment_id from activity_equipment where activity_id = a.id order by equipment_id) as equipment_ids, a.parts_edited, a.description, coalesce(a.original_sport, a.sport), a.user_id
+            from activities a left join activity_streams s on s.activity_id = a.id
+            where a.id = @id and a.user_id = @userId
+            """, conn, tx);
+        command.Parameters.AddWithValue("id", id);
+        command.Parameters.AddWithValue("userId", userId);
+        ActivityDetail detail;
+        await using (var reader = await command.ExecuteReaderAsync(cancellationToken))
+        {
+            if (!await reader.ReadAsync(cancellationToken)) return null;
+
+            // Läses för hand: Dapper/Npgsql klarar inte null-element i arrayer utan typen float?[] osv.
+            T? Value<T>(int i) => reader.IsDBNull(i) ? default : reader.GetFieldValue<T>(i);
+            var streams = reader.IsDBNull(12) ? null : new ActivityStreams(
+                reader.GetFieldValue<int[]>(12), Value<float?[]>(13), Value<short?[]>(14), Value<float?[]>(15),
+                Value<float?[]>(16), Value<double?[]>(17), Value<double?[]>(18), Value<short?[]>(19),
+                Value<short?[]>(20));
+            streams = RoutePrivacy.ForViewer(streams, reader.GetGuid(26), userId);
+            detail = new ActivityDetail(
+                reader.GetGuid(0), reader.GetString(1), Value<string>(2),
+                System.DateTime.SpecifyKind(reader.GetDateTime(3), DateTimeKind.Utc), reader.GetInt32(4),
+                Value<int?>(5), reader.GetDouble(6), Value<short?>(7), Value<short?>(8), Value<float?>(9),
+                Value<float?>(10), Value<string>(11), streams, [], reader.GetFieldValue<string[]>(21), reader.GetFieldValue<Guid[]>(22), [], reader.GetBoolean(23), streams is not null && Multisport.CanSplit(streams.T, streams.Dist), Value<string>(24), [], reader.GetString(25));
+        }
+        var laps = await conn.QueryAsync<ActivityLap>(
+            """
+            select lap_index, start_s, duration_s, moving_s, distance_m, avg_hr, max_hr, ascent_m, descent_m, avg_cadence
+            from activity_laps where activity_id = @id order by lap_index
+            """, new { id }, tx);
+        return detail with { Laps = laps, Parts = await Multisport.LoadAsync(conn, id, tx), OriginalParts = await Multisport.LoadAsync(conn, id, tx, original: true) };
     }
 
     private record OwnedActivity(Guid Id, string? RawFileKey);

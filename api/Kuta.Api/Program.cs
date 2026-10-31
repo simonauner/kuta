@@ -228,6 +228,7 @@ static async Task<int> RunAsync(string[] args)
     api.MapAntiforgery();
     api.MapAuth();
     api.MapMe();
+    api.MapDataExport();
 
     api.MapActivities();
     api.MapEquipment();

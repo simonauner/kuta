@@ -49,6 +49,17 @@ async function request<T>(path: string, init?: RequestInit): Promise<T> {
 }
 
 export const api = {
+  download: async (path: string, filename: string) => {
+    const res = await response(path)
+    const url = URL.createObjectURL(await res.blob())
+    const link = document.createElement('a')
+    link.href = url
+    link.download = filename
+    document.body.append(link)
+    link.click()
+    link.remove()
+    setTimeout(() => URL.revokeObjectURL(url), 1000)
+  },
   uploadStream: async <T>(path: string, form: FormData, onMessage: (message: T) => void) => {
     const res = await response(path, {
       method: 'POST',

@@ -14,7 +14,7 @@ Policyn är ett utkast inför Garminansökan. Verifierat underlag, beslut, förs
 
 React-appen öppnas på `/app`, med vyerna `/app/activities`, `/app/stats` samt `/app/profile` och `/app/settings`. `web/app.html` har `noindex`. Mejlets bekräftelselänk återvänder till `/app`. Vite bygger de tre HTML-filerna, och .NET serverar dem från samma origin. PWA:n startar på `/app` och använder bara appskalet som navigeringsfallback inom `/app`.
 
-Profil visar löparens namn och länkar till Utrustning på `/app/profile/equipment`. Kugghjulet öppnar Inställningar på `/app/settings`, med språkval, pulssamtycke, Strava-import, e-postadress, utloggning och Danger zone för att radera alla pass eller kontot. Vanlig FIT-uppladdning och manuell registrering nås via Pass → Skapa ny aktivitet. Pulssamtycket kan ändras med samma checkbox både i filmodalen och under Inställningar. Checkboxen visas även när samtycket redan är givet.
+Profil visar löparens namn och länkar till Utrustning på `/app/profile/equipment`. Kugghjulet öppnar Inställningar på `/app/settings`, med språkval, pulssamtycke, Strava-import, dataexport, e-postadress, utloggning och Danger zone för att radera alla pass eller kontot. Vanlig FIT-uppladdning och manuell registrering nås via Pass → Skapa ny aktivitet. Pulssamtycket kan ändras med samma checkbox både i filmodalen och under Inställningar. Checkboxen visas även när samtycket redan är givet.
 
 ## Språk och URL:er
 
@@ -291,6 +291,19 @@ skickas i JSON för manuella pass och som formulärfält vid FIT-uppladdning.
 Tom text sparas som null. Beskrivningen behålls när en FIT-fil väljs i formuläret
 och visas som vanlig text med radbrytningar på passsidan. Migrering 012 lägger
 till fältet; redan importerade dubbletter hoppas fortfarande över vid Strava-import.
+
+## Exportera data
+
+Öppna **Profil → Inställningar → Exportera data → Ladda ner ZIP**. Låt sidan vara öppen medan arkivet förbereds. `GET /api/me/export` kräver inloggning och hämtar bara det egna kontots data, oberoende av filter och sidindelning i passlistan. Svaret är en nedladdningsbar `kuta-export.zip` med `Cache-Control: no-store`.
+
+- `profile.json`: id, e-postadress, visningsnamn, profilens skapandetid och tidpunkt för pulssamtycke.
+- `equipment.json`: all egen utrustning, även pensionerad, med startvärden och total användning.
+- `activities/<id>.json`: källa, skapandetid, synlighet, Strava-ID, sökväg till råfilen (eller `null`), `activity` med samma passdetaljer som passsidan och `bestEfforts` med passets bästa insatser. Detaljerna innehåller beskrivning, taggar, utrustnings-ID:n, tidsserier, varv samt originaldelar och redigerade multisportdelar.
+- `raw/<id>.fit` eller `.gpx`: sparade råfiler med oförändrat innehåll. Manuella pass saknar råfil. Råfiler som inte sparats utan pulssamtycke, eller som raderats vid återkallat samtycke, kan inte exporteras. Gzip-filer från Strava har packats upp vid importen.
+
+JSON använder lowerCamelCase, SI-enheter och UTC-tid. Lösenord, sessionscookies och tokens ingår inte. Ett konto utan pass får fortfarande profil och utrustningslista. Arkivet byggs färdigt på en tillfällig fil före HTTP-svaret; den raderas vid fel, avbrott eller när överföringen är klar. Profil och pass låses mot skrivning under bygget för att samtyckesåterkallelse eller passradering inte ska kunna ta bort en råfil mitt i exporten. Om en förväntad råfil saknas misslyckas exporten i stället för att tyst lämna bort den.
+
+Exportens innehåll, åtkomst mellan två användare, råfilernas bytes och samordningen med återkallat samtycke testas på databas-/lagringsnivå. HTTP-testet verifierar den nya routens autentisering, ZIP-svar och cache-/nedladdningsheaders; det upprepar inte innehållstesterna.
 
 ## Importera en Strava-export
 
