@@ -78,4 +78,24 @@ public static class ActivitySports
         StravaNames.GetValueOrDefault(Normalize(value), value.ToLowerInvariant());
 
     public static bool IsRunning(string sport) => sport is "running" or "trail run" or "virtual run";
+
+    // Sporter som räknas tillsammans i mål. Nycklarna är egna gruppnamn; sporter utan grupp är sin egen grupp.
+    // Garmin anger terräng och öppet vatten som undertyper, så FIT-pass har redan "running" och "swimming";
+    // de övriga namnen kommer från Strava och från Garmins sportnamn (Sport-enumen i gemener).
+    public static readonly (string Key, string[] Sports)[] Groups =
+    [
+        ("running", ["running", "trail run", "virtual run"]),
+        ("cycling", ["cycling", "mountain bike ride", "gravel ride", "e-bike ride", "e-mountain bike ride",
+            "virtual ride", "velomobile", "handcycle", "ebiking"]),
+        ("swimming", ["swimming"]),
+        ("walking", ["walking", "hiking", "snowshoe"]),
+        ("cross-country skiing", ["nordic ski", "backcountry ski", "roller ski", "crosscountryskiing"]),
+        ("paddling", ["canoe", "kayaking", "stand up paddling", "paddling", "standuppaddleboarding"]),
+        ("rowing", ["rowing", "virtual rowing"]),
+    ];
+
+    static readonly Dictionary<string, string> GroupBySport =
+        Groups.SelectMany(g => g.Sports.Select(sport => (sport, g.Key))).ToDictionary(x => x.sport, x => x.Key);
+
+    public static string GroupOf(string sport) => GroupBySport.GetValueOrDefault(sport, sport);
 }

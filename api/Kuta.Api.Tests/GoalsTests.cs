@@ -13,14 +13,28 @@ public class GoalsTests(KutaFactory factory) : IClassFixture<KutaFactory>
     {
         var valid = new GoalRequest(null, "distance", "week", 100_000_000);
         Assert.Null(Goals.Validate(valid));
-        Assert.Null(Goals.Validate(valid with { Sport = "running", Metric = "count", Period = "year", Target = 10_000 }));
+        Assert.Null(Goals.Validate(valid with { SportGroup = "running", Metric = "count", Period = "year", Target = 10_000 }));
+        Assert.Null(Goals.Validate(valid with { SportGroup = "cross-country skiing" }));
+        Assert.Null(Goals.Validate(valid with { SportGroup = "weight training" }));
         Assert.Null(Goals.Validate(valid with { Metric = "duration", Period = "month", Target = 0.5 }));
         foreach (var invalid in new[] {
-            valid with { Sport = "unknown" }, valid with { Metric = null }, valid with { Metric = "pace" },
+            valid with { SportGroup = "unknown" }, valid with { SportGroup = "trail run" }, valid with { Metric = null }, valid with { Metric = "pace" },
             valid with { Period = "day" }, valid with { Target = null }, valid with { Target = 0 },
             valid with { Target = double.NaN }, valid with { Target = 100_000_001 },
             valid with { Metric = "count", Target = 1.5 }, valid with { Metric = "count", Target = 10_001 } })
             Assert.Equal("invalidGoal", Goals.Validate(invalid)!.Code);
+    }
+
+    [Fact]
+    public void Sport_groups_join_variants_and_every_activity_sport_belongs_to_exactly_one_selectable_group()
+    {
+        Assert.Equal("running", ActivitySports.GroupOf("trail run"));
+        Assert.Equal("cycling", ActivitySports.GroupOf("gravel ride"));
+        Assert.Equal("cross-country skiing", ActivitySports.GroupOf("crosscountryskiing"));
+        Assert.Equal("weight training", ActivitySports.GroupOf("weight training"));
+        foreach (var sport in ActivityInput.Sports)
+            Assert.Single(Goals.SportGroups, g => g.Sports.Contains(sport));
+        Assert.Equal(Goals.SportGroups.Length, Goals.SportGroups.Select(g => g.Key).Distinct().Count());
     }
 
     [Fact]
@@ -96,6 +110,7 @@ public class GoalsTests(KutaFactory factory) : IClassFixture<KutaFactory>
                 (@owner, 'manual', 'running', '2026-03-08T23:30:00Z', 1200, 3000),
                 (@owner, 'manual', 'running', '2026-03-09T10:00:00Z', 1800, 5000),
                 (@owner, 'manual', 'cycling', '2026-03-10T10:00:00Z', 2400, 20000),
+                (@owner, 'manual', 'trail run', '2026-03-10T16:00:00Z', 300, 500),
                 (@other, 'manual', 'running', '2026-03-09T10:00:00Z', 9000, 50000);
                 with triathlon as (
                     insert into activities (user_id, source, sport, started_at, duration_s, distance_m)
@@ -114,19 +129,19 @@ public class GoalsTests(KutaFactory factory) : IClassFixture<KutaFactory>
 
             var stockholm = (await Goals.LoadAsync(conn, owner, "Europe/Stockholm", now, ct)).ToDictionary(g => g.Id);
             Assert.Equal(new DateOnly(2026, 2, 17), stockholm[running].StartsOn);
-            // 5 + 3 (måndag 00:30 lokal tid) + 4 km löpdel av triathlon; andra sporter och användare räknas inte.
-            Assert.Equal((new DateOnly(2026, 3, 9), 12_000d, true), (stockholm[running].Current.Start, stockholm[running].Current.Value, stockholm[running].Current.Achieved));
+            // 5 + 3 (måndag 00:30 lokal tid) + 0,5 terräng + 4 km löpdel av triathlon; cykling och andra användare räknas inte.
+            Assert.Equal((new DateOnly(2026, 3, 9), 12_500d, true), (stockholm[running].Current.Start, stockholm[running].Current.Value, stockholm[running].Current.Achieved));
             Assert.Equal(10_000, stockholm[running].Previous!.Value);
             Assert.Equal(3, stockholm[running].Streak);
             // Utan sport räknas triathlonpasset en gång.
-            Assert.Equal(4, stockholm[sessions].Current.Value);
+            Assert.Equal(5, stockholm[sessions].Current.Value);
             // Skapat på onsdagen: veckans tidigare pass räknas, men inte förra veckan.
             Assert.Null(stockholm[sessions].Previous);
             Assert.Equal(1, stockholm[sessions].Streak);
             Assert.Equal((true, 0d), (stockholm[oneTime].Ended, stockholm[oneTime].Current.Value));
 
             var utc = (await Goals.LoadAsync(conn, owner, "UTC", now, ct)).ToDictionary(g => g.Id);
-            Assert.Equal((9_000d, 13_000d, 2), (utc[running].Current.Value, utc[running].Previous!.Value, utc[running].Streak));
+            Assert.Equal((9_500d, 13_000d, 2), (utc[running].Current.Value, utc[running].Previous!.Value, utc[running].Streak));
 
             Assert.Empty(await Goals.LoadAsync(conn, other, "UTC", now, ct));
             var update = new GoalRequest("running", "duration", "week", 4200, true);
@@ -134,7 +149,7 @@ public class GoalsTests(KutaFactory factory) : IClassFixture<KutaFactory>
             Assert.False(await Goals.DeleteAsync(conn, other, running, ct));
             Assert.True(await Goals.UpdateAsync(conn, owner, running, update, ct));
             var duration = (await Goals.LoadAsync(conn, owner, "Europe/Stockholm", now, ct)).Single(g => g.Id == running);
-            Assert.Equal((4200d, true, new DateOnly(2026, 2, 17)), (duration.Current.Value, duration.Current.Achieved, duration.StartsOn));
+            Assert.Equal((4500d, true, new DateOnly(2026, 2, 17)), (duration.Current.Value, duration.Current.Achieved, duration.StartsOn));
             Assert.True(await Goals.DeleteAsync(conn, owner, sessions, ct));
 
             var invalid = await Assert.ThrowsAsync<PostgresException>(() =>
@@ -165,6 +180,8 @@ public class GoalsTests(KutaFactory factory) : IClassFixture<KutaFactory>
             await TestSession.CreateRunnerAsync(factory, owner, conn, emails[0], "Owner", ct);
             await TestSession.CreateRunnerAsync(factory, other, conn, emails[1], "Other", ct);
             Assert.Equal(HttpStatusCode.Unauthorized, (await anonymous.GetAsync(path, ct)).StatusCode);
+            var groups = await owner.GetFromJsonAsync<GoalSportGroup[]>($"{path}/sport-groups", ct);
+            Assert.Contains("trail run", groups!.Single(g => g.Key == "running").Sports);
             var request = new GoalRequest("running", "distance", "week", 10_000, true, "Europe/Stockholm");
             using var created = await owner.PostAsJsonAsync(path, request, ct);
             Assert.Equal(HttpStatusCode.Created, created.StatusCode);
@@ -172,7 +189,7 @@ public class GoalsTests(KutaFactory factory) : IClassFixture<KutaFactory>
 
             var goal = Assert.Single((await owner.GetFromJsonAsync<JsonElement>(list, ct)).EnumerateArray());
             Assert.Equal(id, goal.GetProperty("id").GetGuid());
-            Assert.Equal("distance", goal.GetProperty("metric").GetString());
+            Assert.Equal(("running", "distance"), (goal.GetProperty("sportGroup").GetString(), goal.GetProperty("metric").GetString()));
             Assert.Equal(0, goal.GetProperty("current").GetProperty("value").GetDouble());
             Assert.False(goal.GetProperty("current").GetProperty("achieved").GetBoolean());
             Assert.Equal(JsonValueKind.Null, goal.GetProperty("previous").ValueKind);

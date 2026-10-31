@@ -13,8 +13,10 @@ import {
   goalMetrics,
   goalPeriodLabel,
   goalPeriods,
+  isNamedSportGroup,
   parseGoalInput,
   type Goal,
+  type GoalSportGroup,
   type GoalMetric,
   type GoalPeriod,
 } from '@/lib/goals'
@@ -26,6 +28,11 @@ import { SportIcon } from '@/components/sport-icon'
 
 // Under 'activities' så att nya, ändrade och raderade pass också uppdaterar målen.
 const goalsQueryKey = (timeZone: string) => ['activities', 'goals', timeZone]
+const sportGroupsQuery = {
+  queryKey: ['goalSportGroups'],
+  queryFn: () => api.get<GoalSportGroup[]>('/api/goals/sport-groups'),
+  staleTime: Infinity,
+}
 
 function useGoalText() {
   const { t, i18n } = useTranslation()
@@ -41,7 +48,13 @@ function useGoalText() {
       ...goalPeriodLabel(goal.period, goal.current.start, i18n.resolvedLanguage),
     })
   }
-  return { t, amount, title }
+  const groupLabel = (key: string | null) =>
+    key === null
+      ? t('activities.allSports')
+      : isNamedSportGroup(key)
+        ? t(`goals.sportGroups.${key}`)
+        : t(`newActivity.sports.${knownSport(key)}`)
+  return { t, i18n, amount, title, groupLabel }
 }
 
 export function GoalList({ onSelect }: { onSelect: (goal: Goal) => void }) {
@@ -50,6 +63,7 @@ export function GoalList({ onSelect }: { onSelect: (goal: Goal) => void }) {
     queryKey: goalsQueryKey(timeZone),
     queryFn: () => api.get<Goal[]>(`/api/goals?${new URLSearchParams({ timeZone })}`),
   })
+  const groups = useQuery(sportGroupsQuery)
   const { t } = useTranslation()
   if (goals.error)
     return (
@@ -66,7 +80,14 @@ export function GoalList({ onSelect }: { onSelect: (goal: Goal) => void }) {
       <ul className="grid gap-3 sm:grid-cols-2">
         {goals.data.map((goal) => (
           <li key={goal.id}>
-            <GoalCard goal={goal} onSelect={() => onSelect(goal)} />
+            <GoalCard
+              goal={goal}
+              iconSport={
+                goal.sportGroup &&
+                (groups.data?.find((g) => g.key === goal.sportGroup)?.sports[0] ?? goal.sportGroup)
+              }
+              onSelect={() => onSelect(goal)}
+            />
           </li>
         ))}
       </ul>
@@ -74,8 +95,16 @@ export function GoalList({ onSelect }: { onSelect: (goal: Goal) => void }) {
   )
 }
 
-function GoalCard({ goal, onSelect }: { goal: Goal; onSelect: () => void }) {
-  const { t, amount, title } = useGoalText()
+function GoalCard({
+  goal,
+  iconSport,
+  onSelect,
+}: {
+  goal: Goal
+  iconSport: string | null
+  onSelect: () => void
+}) {
+  const { t, amount, title, groupLabel } = useGoalText()
   const reduceMotion = useReducedMotion()
   const { current, previous } = goal
   const fraction = goalFraction(current.value, goal.target)
@@ -95,13 +124,11 @@ function GoalCard({ goal, onSelect }: { goal: Goal; onSelect: () => void }) {
       <div className="flex items-start justify-between gap-3">
         <div className="min-w-0">
           <p className="flex items-center gap-2 font-medium">
-            {goal.sport && <SportIcon sport={goal.sport} />}
+            {iconSport && <SportIcon sport={iconSport} />}
             <span className="break-words">{goalTitle}</span>
           </p>
           <p className="mt-0.5 text-xs text-muted-foreground">
-            {goal.sport
-              ? t(`newActivity.sports.${knownSport(goal.sport)}`)
-              : t('activities.allSports')}
+            {groupLabel(goal.sportGroup)}
             {' · '}
             {goal.ended ? t('goals.ended') : t('goals.daysLeft', { count: daysLeft })}
           </p>
@@ -160,10 +187,16 @@ function GoalCard({ goal, onSelect }: { goal: Goal; onSelect: () => void }) {
 }
 
 export function GoalDialog({ goal, onClose }: { goal: Goal | null; onClose: () => void }) {
-  const { t, title } = useGoalText()
+  const { t, i18n, title, groupLabel } = useGoalText()
+  const groups = useQuery(sportGroupsQuery)
   const queryClient = useQueryClient()
   const dialog = useRef<HTMLDialogElement>(null)
-  const [sport, setSport] = useState(goal ? (goal.sport ?? '') : 'running')
+  const [sportGroup, setSportGroup] = useState(goal ? (goal.sportGroup ?? '') : 'running')
+  // Visa vilka träningsformer en grupp räknar; namn som webben inte känner till (Garmins råa namn) utelämnas.
+  const included = groups.data
+    ?.find((g) => g.key === sportGroup)
+    ?.sports.filter((value) => (sports as readonly string[]).includes(value))
+    .map((value) => t(`newActivity.sports.${knownSport(value)}`))
   const [metric, setMetric] = useState<GoalMetric>(goal?.metric ?? 'distance')
   const [target, setTarget] = useState(goal ? goalInput(goal.metric, goal.target) : '')
   const [period, setPeriod] = useState<GoalPeriod>(goal?.period ?? 'week')
@@ -177,7 +210,7 @@ export function GoalDialog({ goal, onClose }: { goal: Goal | null; onClose: () =
   const save = useMutation({
     mutationFn: () =>
       api.send(goal ? 'PUT' : 'POST', goal ? `/api/goals/${goal.id}` : '/api/goals', {
-        sport: sport || null,
+        sportGroup: sportGroup || null,
         metric,
         period,
         target: parsedTarget,
@@ -223,17 +256,37 @@ export function GoalDialog({ goal, onClose }: { goal: Goal | null; onClose: () =
             {t('activities.sport')}
             <select
               className={selectClass}
-              value={sport}
-              onChange={(e) => setSport(e.currentTarget.value)}
+              value={sportGroup}
+              aria-describedby={included && included.length > 1 ? 'goal-sport-included' : undefined}
+              onChange={(e) => setSportGroup(e.currentTarget.value)}
             >
-              <option value="">{t('activities.allSports')}</option>
-              {sports.map((value) => (
-                <option key={value} value={value}>
-                  {t(`newActivity.sports.${value}`)}
-                </option>
-              ))}
+              <option value="">{groupLabel(null)}</option>
+              {(groups.data ?? (sportGroup ? [{ key: sportGroup, sports: [] }] : [])).map(
+                ({ key }) => (
+                  <option key={key} value={key}>
+                    {groupLabel(key)}
+                  </option>
+                ),
+              )}
             </select>
+            {included && included.length > 1 && (
+              <span
+                id="goal-sport-included"
+                className="block text-xs font-normal text-muted-foreground"
+              >
+                {t('goals.includes', {
+                  sports: new Intl.ListFormat(i18n.resolvedLanguage, {
+                    type: 'conjunction',
+                  }).format(included),
+                })}
+              </span>
+            )}
           </label>
+          {groups.error && (
+            <p role="alert" className="col-span-2 text-sm text-destructive">
+              <ErrorMessage error={groups.error} />
+            </p>
+          )}
           <label className="space-y-2 text-sm font-medium">
             {t('goals.metric')}
             <select

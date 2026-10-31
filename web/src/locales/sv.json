@@ -544,6 +544,16 @@
     "delete": "Ta bort mål",
     "confirmDelete": "Ta bort målet? Det går inte att ångra.",
     "deleteConfirmed": "Ta bort",
-    "deleting": "Tar bort…"
+    "deleting": "Tar bort…",
+    "sportGroups": {
+      "running": "Löpning",
+      "cycling": "Cykling",
+      "swimming": "Simning",
+      "walking": "Gång och vandring",
+      "cross-country skiing": "Längdskidåkning",
+      "paddling": "Paddling",
+      "rowing": "Rodd"
+    },
+    "includes": "Räknar {{sports}}."
   }
 }

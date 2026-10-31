@@ -544,6 +544,16 @@
     "delete": "Delete goal",
     "confirmDelete": "Delete this goal? This can't be undone.",
     "deleteConfirmed": "Delete",
-    "deleting": "Deleting…"
+    "deleting": "Deleting…",
+    "sportGroups": {
+      "running": "Running",
+      "cycling": "Cycling",
+      "swimming": "Swimming",
+      "walking": "Walking and hiking",
+      "cross-country skiing": "Cross-country skiing",
+      "paddling": "Paddling",
+      "rowing": "Rowing"
+    },
+    "includes": "Includes {{sports}}."
   }
 }

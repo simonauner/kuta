@@ -6,6 +6,7 @@ import {
   goalFraction,
   goalInput,
   goalPeriodLabel,
+  isNamedSportGroup,
   parseGoalInput,
 } from '../src/lib/goals.ts'
 
@@ -46,4 +47,11 @@ test('period labels name ISO weeks, months and years; days left include today', 
   assert.equal(goalDaysLeft('2026-11-02', new Date(2026, 9, 31, 23, 30)), 2)
   assert.equal(goalDaysLeft('2026-11-01', new Date(2026, 9, 31, 0, 5)), 1)
   assert.equal(goalDaysLeft('2026-10-01', new Date(2026, 9, 31)), 0)
+})
+
+test('groups with several sports have their own names; single sports use the sport name', () => {
+  assert.equal(isNamedSportGroup('running'), true)
+  assert.equal(isNamedSportGroup('cross-country skiing'), true)
+  assert.equal(isNamedSportGroup('weight training'), false)
+  assert.equal(isNamedSportGroup('toString'), false)
 })

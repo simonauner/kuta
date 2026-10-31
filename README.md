@@ -179,16 +179,24 @@ pulssamtycke återkallas.
 ## Träningsmål
 
 **Pass → Nytt mål** skapar ett mål: distans (km), tid (minuter) eller antal pass per vecka,
-månad eller år, för en träningsform eller alla. Målet upprepas varje period eller gäller en gång,
+månad eller år, för en grupp av träningsformer eller alla. Målet upprepas varje period eller gäller en gång,
 för perioden då det skapas (exempelvis 1 000 km i år). Pågående mål visas som kort med
 förloppsstapel ovanför passlistan; ett uppnått mål får ”Hurra! Målet är nått”. Upprepade mål
 visar även förra periodens resultat när det nåddes och hur många perioder i rad målet nåtts
 (från två). Ett avslutat engångsmål visas nedtonat tills det tas bort. Klick på kortet öppnar
 redigering och borttagning i samma modal. Inga mål ger ingen sektion.
 
+Mål gäller sportgrupper, inte exakta sporter: Löpning räknar löpning, terränglöpning och virtuell
+löpning; Cykling alla cykeltyper inklusive virtuell; Gång och vandring även snöskovandring;
+Längdskidåkning även topptur och rullskidor; Paddling kanot, kajak och SUP; Rodd även virtuell rodd.
+Simning i bassäng och öppet vatten är samma sport (`swimming`), eftersom Garmin anger vattentypen
+som undertyp och Strava inte skiljer dem åt. Övriga sporter är egna grupper. Grupperna definieras i
+`ActivitySports.Groups`, även med Garmins råa sportnamn (exempelvis `crosscountryskiing`), och
+dialogen visar vilka träningsformer den valda gruppen räknar.
+
 Summeringen följer statistikens regler: hela passet hör till perioden där det startar, tid
-inkluderar pauser, redigerade multisportdelars distans används och ett sportspecifikt mål räknar
-matchande delar av multisportpass. Utan sport räknas varje pass en gång. Veckor börjar på
+inkluderar pauser, redigerade multisportdelars distans används och ett gruppmål räknar
+matchande delar av multisportpass. Utan grupp räknas varje pass en gång. Veckor börjar på
 måndag och perioder följer webbläsarens tidszon. Ett mål räknas från början av perioden då det
 skapas, även pass före skapandet (ett årsmål i oktober räknar från 1 januari), men aldrig
 tidigare perioder. Ett nytt upprepat mål visar därför förra perioden och raden först från nästa
@@ -200,15 +208,16 @@ API (inloggning krävs; skrivningar kräver CSRF; bara egna mål, andras ger 404
 - `GET /api/goals?timeZone=Europe%2FStockholm` ger målen med `current` och `previous`
   (`{ start, end, value, achieved }`, `end` exklusivt; `previous` är null för engångsmål och under startperioden),
   `streak` och `ended`.
-- `POST /api/goals` och `PUT /api/goals/{id}` tar `{ sport, metric, period, target, recurring, timeZone }`.
-  `sport` null = alla, `metric` är `distance`, `duration` eller `count`, `period` är `week`,
+- `GET /api/goals/sport-groups` ger valbara grupper `{ key, sports }`.
+- `POST /api/goals` och `PUT /api/goals/{id}` tar `{ sportGroup, metric, period, target, recurring, timeZone }`.
+  `sportGroup` är en gruppnyckel eller null = alla, `metric` är `distance`, `duration` eller `count`, `period` är `week`,
   `month` eller `year`, `target` i meter, sekunder eller hela pass (högst 100 000 000 m eller s, respektive
   10 000 pass). `timeZone` avgör startdatumet vid skapande. Ogiltiga värden ger `invalidGoal`.
 - `DELETE /api/goals/{id}`.
 
 Migrering 016 skapar `goals` med ägarkoppling, kaskadradering vid kontoradering och RLS utan
 Data API-grants. Radering av alla pass behåller målen. Målen ingår i exportens `goals.json`.
-Periodlogik och validering testas som enhetstester, summering per tidszon, sport, multisportdelar
+Periodlogik, grupper och validering testas som enhetstester, summering per tidszon, sportgrupp, multisportdelar
 och ägarskap i lokal Postgres, och HTTP-testet täcker routing, statuskoder, svarskontrakt och
 att en annan användare varken ser eller ändrar målet.
 
@@ -436,7 +445,7 @@ till fältet; redan importerade dubbletter hoppas fortfarande över vid Strava-i
 - `profile.json`: id, e-postadress, visningsnamn, profilens skapandetid och tidpunkt för pulssamtycke.
 - `equipment.json`: all egen utrustning, även pensionerad, med startvärden och total användning.
 - `privacy-places.json`: egna dolda platser med namn, mittpunkt och radie. Listan ingår även utan pass.
-- `goals.json`: egna träningsmål med sport, typ, period, mål i SI-enheter, upprepning och startdatum.
+- `goals.json`: egna träningsmål med sportgrupp, typ, period, mål i SI-enheter, upprepning och startdatum.
 - `activities/<id>.json`: källa, skapandetid, synlighet, Strava-ID, sökväg till råfilen (eller `null`), `activity` med samma passdetaljer som passsidan och `bestEfforts` med passets bästa insatser. Detaljerna innehåller beskrivning, taggar, utrustnings-ID:n, tidsserier, varv samt originaldelar och redigerade multisportdelar.
 - `raw/<id>.fit` eller `.gpx`: sparade råfiler med oförändrat innehåll. Manuella pass saknar råfil. Råfiler som inte sparats utan pulssamtycke, eller som raderats vid återkallat samtycke, kan inte exporteras. Gzip-filer från Strava har packats upp vid importen.
 
