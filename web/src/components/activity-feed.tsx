@@ -7,9 +7,11 @@ import { Link } from '@tanstack/react-router'
 import { useTranslation } from 'react-i18next'
 import { ErrorMessage } from '@/components/error-message'
 import { SportIcon } from '@/components/sport-icon'
+import { SupporterBadge } from '@/components/supporter'
 import { Button } from '@/components/ui/button'
 import { api } from '@/lib/api'
 import { activityTitle, formatDuration, type ActivityCursor } from '@/lib/activity'
+import type { SupporterTier } from '@/lib/auth'
 
 type FeedItem = {
   id: string
@@ -21,6 +23,7 @@ type FeedItem = {
   durationS: number
   distanceM: number
   routeGeoJson: string | null
+  supporterTier: SupporterTier | null
 }
 type FeedPage = { items: FeedItem[]; nextCursor: ActivityCursor | null }
 
@@ -75,7 +78,7 @@ export function ActivityFeed({
           .flatMap((page) => page.items)
           .map((activity) => (
             <li key={activity.id} className="rounded-lg border p-4">
-              <div className="flex items-center justify-between gap-3 text-sm text-muted-foreground">
+              <div className="flex items-center gap-1.5 text-sm text-muted-foreground">
                 <Link
                   to="/app/runners/$runnerId"
                   params={{ runnerId: activity.userId }}
@@ -83,6 +86,7 @@ export function ActivityFeed({
                 >
                   {activity.displayName}
                 </Link>
+                <SupporterBadge tier={activity.supporterTier} />
               </div>
               <Link
                 to="/app/activities/$activityId"

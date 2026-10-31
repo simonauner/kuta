@@ -7,6 +7,7 @@ import { ErrorMessage } from '@/components/error-message'
 import { HeartRateConsent } from '@/components/heart-rate-consent'
 import { LanguageSelect } from '@/components/language-select'
 import { StravaImport } from '@/components/strava-import'
+import { SupporterSection } from '@/components/supporter'
 import {
   Breadcrumb,
   BreadcrumbItem,
@@ -77,6 +78,8 @@ export function SettingsPage() {
       </Link>
 
       <ActivityPrivacy />
+
+      <SupporterSection />
 
       <section aria-labelledby="health-heading" className="mt-8 border-t pt-6">
         <h2 id="health-heading" className="text-lg font-semibold">
