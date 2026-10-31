@@ -1,0 +1,60 @@
+web/src/components/layout.tsx
+  s_c00ea9040aa9cc::t_2111ab788d4f44 49,51-54,88
+web/src/lib/slow-loading.ts
+  s_c00ea9040aa9cc::t_2111ab788d4f44 1-14
+web/src/router.tsx
+  s_c00ea9040aa9cc::t_2111ab788d4f44 35
+web/src/routes/activity.tsx
+  s_c00ea9040aa9cc::t_2111ab788d4f44 15,68,215
+web/public/favicon.svg
+  s_c00ea9040aa9cc::t_2111ab788d4f44 1
+web/src/components/activity-charts.tsx
+  s_c00ea9040aa9cc::t_2111ab788d4f44 2,5,16-17,19,26,36-41,44,60,74
+web/src/components/back-link.tsx
+  s_c00ea9040aa9cc::t_2111ab788d4f44 6,10
+README.md
+  s_c00ea9040aa9cc::t_1f80c7993a1794 41-47
+  s_c00ea9040aa9cc::t_2111ab788d4f44 165-166
+web/src/locales/sv.json
+  s_c00ea9040aa9cc::t_2111ab788d4f44 10,80
+web/src/lib/activity-query.ts
+  s_c00ea9040aa9cc::t_2111ab788d4f44 1-13
+web/src/components/slow-loading.tsx
+  s_c00ea9040aa9cc::t_2111ab788d4f44 1-21
+web/src/locales/en.json
+  s_c00ea9040aa9cc::t_2111ab788d4f44 10,80
+web/src/components/heart-rate-consent.tsx
+  s_c00ea9040aa9cc::t_2111ab788d4f44 8,21
+web/src/components/delete-all-activities.tsx
+  s_c00ea9040aa9cc::t_2111ab788d4f44 23-25
+web/src/routes/new-activity.tsx
+  s_c00ea9040aa9cc::t_2111ab788d4f44 3,46,135-139
+web/tests/activity-query.test.mjs
+  s_c00ea9040aa9cc::t_2111ab788d4f44 1-31
+web/src/lib/activity.ts
+  s_c00ea9040aa9cc::t_2111ab788d4f44 2,19-22,25-29,92-103,200,204-205,207-219,222-225,227-230,233-264
+web/tests/activity.test.mjs
+  s_c00ea9040aa9cc::t_2111ab788d4f44 6,15,32-33,35-36,48,52-97,225-231
+web/src/components/equipment.tsx
+  s_c00ea9040aa9cc::t_2111ab788d4f44 11-16,318,323,347-349,398,412
+web/tests/slow-loading.test.mjs
+  s_c00ea9040aa9cc::t_2111ab788d4f44 1-49
+web/src/routes/activities.tsx
+  s_c00ea9040aa9cc::t_2111ab788d4f44 2,5,13,25,68,77-79,89,92-94,125-129,145-201,203-226
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.7.5",
+  "base_commit_sha": "de373d081acb3ddc2cc0b58eb9272b3403955d1e",
+  "prompts": {},
+  "sessions": {
+    "s_c00ea9040aa9cc": {
+      "agent_id": {
+        "tool": "codex",
+        "id": "01a18f8c-2fbb-71c0-99ae-757c0ace6644",
+        "model": "gpt-6.1-sol"
+      },
+      "human_author": "Simon Aunér <simonauner@gmail.com>"
+    }
+  }
+}
