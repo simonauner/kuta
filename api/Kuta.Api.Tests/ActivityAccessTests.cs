@@ -2,12 +2,11 @@ using System.Net;
 using System.Net.Http.Json;
 using Dapper;
 using Microsoft.AspNetCore.Http;
-using Microsoft.AspNetCore.Mvc.Testing;
 using Microsoft.Extensions.DependencyInjection;
 using Npgsql;
 using Xunit;
 
-public class ActivityAccessTests(WebApplicationFactory<Program> factory) : IClassFixture<WebApplicationFactory<Program>>
+public class ActivityAccessTests(KutaFactory factory) : IClassFixture<KutaFactory>
 {
     [Fact]
     public async Task Each_user_can_read_only_their_own_private_activities()
@@ -39,7 +38,7 @@ public class ActivityAccessTests(WebApplicationFactory<Program> factory) : IClas
                 await SupabaseCookieSession.SignInAsync(http, new AuthSession(userIds[i],
                     $"private-activity-{userIds[i]:N}@example.com", "synthetic-access", "synthetic-refresh",
                     DateTimeOffset.UtcNow.AddHours(1)), ct);
-                using var client = factory.CreateClient(new WebApplicationFactoryClientOptions { HandleCookies = false });
+                using var client = factory.CreateClient();
                 client.DefaultRequestHeaders.Add("Cookie", string.Join("; ",
                     http.Response.Headers.SetCookie.Select(cookie => cookie!.Split(';')[0])));
 
@@ -48,6 +47,26 @@ public class ActivityAccessTests(WebApplicationFactory<Program> factory) : IClas
                 var activity = Assert.Single(activities!.Items);
                 Assert.Equal(activityIds[i], activity.Id);
                 Assert.Equal($"Private run {i}", activity.Title);
+                Assert.Empty(activity.Tags);
+                await TestSession.UseCsrfToken(client, ct);
+                Assert.Equal(HttpStatusCode.NoContent, (await client.PutAsJsonAsync(
+                    $"/api/activities/{activity.Id}/tags", new { tags = new[] { "race", "workout", "race" } }, ct)).StatusCode);
+                var detail = await client.GetFromJsonAsync<ActivityDetail>($"/api/activities/{activity.Id}", ct);
+                Assert.Equal(new[] { "race", "workout" }, detail!.Tags);
+                Assert.Equal(activity.Id, Assert.Single((await client.GetFromJsonAsync<ActivityPage>(
+                    "/api/activities?tag=race", ct))!.Items).Id);
+                Assert.Empty((await client.GetFromJsonAsync<ActivityPage>("/api/activities?tag=easy", ct))!.Items);
+                Assert.Equal(HttpStatusCode.NotFound, (await client.GetAsync(
+                    $"/api/activities/{activityIds[1 - i]}", ct)).StatusCode);
+                Assert.Equal(HttpStatusCode.NotFound, (await client.PutAsJsonAsync(
+                    $"/api/activities/{activityIds[1 - i]}/tags", new { tags = new[] { "easy" } }, ct)).StatusCode);
+                Assert.Equal(HttpStatusCode.BadRequest, (await client.PutAsJsonAsync(
+                    $"/api/activities/{activity.Id}/tags", new { tags = (string[]?)null }, ct)).StatusCode);
+                Assert.Equal(HttpStatusCode.BadRequest, (await client.GetAsync("/api/activities?tag=unknown", ct)).StatusCode);
+                Assert.Equal(HttpStatusCode.NoContent, (await client.PutAsJsonAsync(
+                    $"/api/activities/{activity.Id}/tags", new { tags = Array.Empty<string>() }, ct)).StatusCode);
+                Assert.Empty((await client.GetFromJsonAsync<ActivityDetail>($"/api/activities/{activity.Id}", ct))!.Tags);
+
                 Assert.Null(activities.NextCursor);
                 Assert.False(activity.ShowMonth);
                 Assert.False(activity.ShowWeek);

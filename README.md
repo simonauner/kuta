@@ -92,6 +92,59 @@ eller hostade tjänster används. Supabase stoppas även om testerna misslyckas.
 Footern visar copyright och webbens byggnummer (`ÅÅÅÅMMDD.ttmmss`, UTC), som sätts
 automatiskt av Vite vid bygget, även i Docker. I utvecklingsläge visas `Version utveckling`.
 
+## Utrustning och användning
+
+Lägg till utrustning på profilen och koppla den till manuella pass eller FIT-importer.
+Kopplingarna kan också ändras på passsidan. Ett pass kan använda flera
+utrustningsdelar. Skor (`shoe`) är den första typen; nya typer läggs till i
+`EquipmentEndpoints.Kinds` och i båda språkfilernas `equipmentKinds`.
+
+Migrering 009 gör om `shoes` till `equipment` och bevarar befintliga skor,
+startdistanser och passkopplingar. `activity_equipment` kopplar pass och utrustning;
+sammansatta främmande nycklar kräver samma ägare på båda sidor.
+
+`distanceM` och `durationS` är startvärdena plus summan av de kopplade passens
+`distance_m` och `duration_s` (förfluten tid inklusive pauser). Samma pass räknas
+högst en gång per utrustning. Totalerna beräknas vid läsning, så ändrade kopplingar
+och raderade pass slår igenom direkt. Radering av alla pass behåller utrustningen
+och dess startvärden. Tidigare användning ska bara avse sådant som inte redan
+finns i kopplade Kuta-pass, annars räknas den dubbelt.
+
+Alla anrop kräver inloggning; skrivningar kräver `X-CSRF-TOKEN`:
+
+| Anrop | Resultat |
+|---|---|
+| `GET /api/equipment` | Egen utrustning med startvärden och total användning. |
+| `GET /api/equipment/kinds` | Tillåtna typer. |
+| `POST /api/equipment` | Skapar utrustning med `name`, `kind`, valfritt `brand`, `initialDistanceM` och `initialDurationS`. Båda startvärdena är 0 om de utelämnas. |
+| `PUT /api/activities/{id}/equipment` | Ersätter kopplingarna med `{"equipmentIds":["uuid"]}`; tom lista kopplar bort alla. Annans eller okänt pass ger 404. |
+
+Vid skapande av pass skickas `equipmentIds` som JSON-array (manuellt) eller
+upprepade formulärfält (FIT). Okänd eller annans utrustning avvisas utan att
+passet eller kopplingarna ändras. API:t använder SI-enheter; webben visar kilometer.
+
+## Taggar på aktiviteter
+
+Ett pass kan ha flera taggar: `race` (Lopp), `workout` (Intervaller/kvalitet),
+`long_run` (Långpass) och `easy` (Lugnt). Välj dem vid manuell registrering eller
+FIT-uppladdning, ändra dem på passsidan och filtrera passlistan efter en tagg.
+
+`activities.tags` är `text[]`, med tom array som standard och GIN-index.
+API:t validerar mot `ActivityInput.Tags` och tar bort dubbletter; databasen har
+avsiktligt ingen lista över tillåtna nycklar. Webben hämtar alternativen från
+`GET /api/activity-tags`. En ny tagg kräver en nyckel i kodlistan och en översättning
+i vardera `tagNames` i svenska och engelska språkfilen, ingen ny migrering.
+
+Alla anrop kräver inloggning och gäller bara egna pass. Skapande tar `tags` som
+JSON-array för manuella pass eller upprepade formulärfält för FIT. Ändra med
+`PUT /api/activities/{id}/tags`, exempelvis `{"tags":["race","workout"]}`; tom array
+tar bort alla taggar. Skrivningar kräver `X-CSRF-TOKEN`.
+`GET /api/activities?tag=race` filtrerar före sidindelningen på 25 pass. Sidmarkörer och periodrubriker gäller det filtrerade urvalet.
+`GET /api/records?tag=race&year=2026` ger bästa insatsen per distans i lopp under
+UTC-året; utelämnat år ger personbästa i lopp. Filtren använder
+`tags @> ARRAY['race']`, som stöds av GIN-indexet. Ändrade taggar slår igenom i
+rekordurvalet direkt, utan omberäkning av insatserna.
+
 ## Bästa insatser och rekord
 
 FIT- och Strava-importen räknar bästa insats för löpning över 1 km, 1 mile, 5 km, 10 km,

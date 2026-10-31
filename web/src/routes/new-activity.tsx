@@ -2,6 +2,9 @@ import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
 import { useNavigate } from '@tanstack/react-router'
 import { useId, useRef, useState, type FormEvent, type ReactNode } from 'react'
 import { useTranslation } from 'react-i18next'
+import { EquipmentPicker } from '@/components/equipment'
+import { equipmentQuery } from '@/lib/equipment'
+import { TagPicker } from '@/components/activity-tags'
 import { BackLink } from '@/components/back-link'
 import { ErrorMessage } from '@/components/error-message'
 import { HeartRateConsent } from '@/components/heart-rate-consent'
@@ -16,6 +19,7 @@ import {
   sports,
   toDateTimeLocal,
   type Activity,
+  type ActivityTag,
 } from '@/lib/activity'
 import { meQuery } from '@/lib/auth'
 
@@ -46,6 +50,8 @@ export function NewActivityPage() {
   const [pendingFile, setPendingFile] = useState<File | null>(null) // vald i modalen, inte använd än
   const [dialogKey, setDialogKey] = useState(0)
   const [file, setFile] = useState<File | null>(null)
+  const [equipmentIds, setEquipmentIds] = useState<string[]>([])
+  const [tags, setTags] = useState<ActivityTag[]>([])
   const [title, setTitle] = useState('')
   const [sport, setSport] = useState<string | null>(null) // null = som filen (eller löpning)
   const [initialStartedAt] = useState(() => toDateTimeLocal(new Date()))
@@ -76,11 +82,15 @@ export function NewActivityPage() {
         const form = new FormData()
         form.append('file', file)
         form.append('title', title)
+        tags.forEach((tag) => form.append('tags', tag))
+        equipmentIds.forEach((id) => form.append('equipmentIds', id))
         if (sport) form.append('sport', sport)
         return api.upload<Activity>('/api/activities', form)
       }
       return api.send<Activity>('POST', '/api/activities/manual', {
         sport: selectedSport,
+        tags,
+        equipmentIds,
         title,
         startedAt: new Date(startedAt).toISOString(),
         durationS: parseDuration(duration),
@@ -90,7 +100,10 @@ export function NewActivityPage() {
       })
     },
     onSuccess: async (activity) => {
-      await queryClient.invalidateQueries({ queryKey: ['activities'] })
+      await Promise.all([
+        queryClient.invalidateQueries({ queryKey: ['activities'] }),
+        queryClient.invalidateQueries({ queryKey: equipmentQuery.queryKey }),
+      ])
       await navigate({ to: '/app/activities/$activityId', params: { activityId: activity.id } })
     },
   })
@@ -265,6 +278,12 @@ export function NewActivityPage() {
             </Field>
           )}
         </div>
+        <EquipmentPicker
+          value={equipmentIds}
+          onChange={setEquipmentIds}
+          disabled={save.isPending}
+        />
+        <TagPicker value={tags} onChange={setTags} disabled={save.isPending} />
         {fromFile && (
           <p className="text-xs text-muted-foreground">
             {fromFile.device

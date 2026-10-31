@@ -15,7 +15,7 @@
     "description": "Distance, pace, heart rate and personal bests over time."
   },
   "profile": {
-    "description": "Your runner profile."
+    "description": "Your runner profile and equipment."
   },
   "activities": {
     "retry": "Try again",
@@ -166,7 +166,10 @@
     "passwordUnchanged": "Choose a different password from your current one.",
     "recoveryExpired": "The reset link is invalid or has expired. Request a new link.",
     "stravaArchiveRequired": "Choose a Strava ZIP export (up to 500 MB).",
-    "invalidStravaArchive": "The ZIP file does not contain a valid Strava activities.csv."
+    "invalidStravaArchive": "The ZIP file does not contain a valid Strava activities.csv.",
+    "invalidTags": "Choose valid tags.",
+    "invalidEquipment": "Choose valid equipment that belongs to you.",
+    "invalidEquipmentInput": "Check the name, type and prior use."
   },
   "home": "Kuta – home",
   "footer": {
@@ -212,5 +215,40 @@
       "DISTANCE",
       "THRESHOLD"
     ]
+  },
+  "tagNames": {
+    "race": "Race",
+    "workout": "Intervals/quality",
+    "long_run": "Long run",
+    "easy": "Easy"
+  },
+  "tags": {
+    "label": "Tags",
+    "save": "Save tags",
+    "all": "All activities",
+    "empty": "No activities with this tag."
+  },
+  "equipment": {
+    "title": "Equipment",
+    "description": "Total distance and time from linked activities, including prior use. Time includes pauses.",
+    "empty": "You have no equipment yet.",
+    "add": "Add equipment",
+    "cancel": "Cancel",
+    "save": "Save equipment",
+    "saveLinks": "Save equipment",
+    "name": "Name",
+    "brand": "Brand (optional)",
+    "kind": "Type",
+    "initialDistance": "Prior distance (km)",
+    "initialDuration": "Prior time (h:mm:ss)",
+    "initialHint": "Already used this equipment? Enter use that is not already in your Kuta activities. Leave blank for new equipment.",
+    "distance": "Total distance",
+    "duration": "Total time (h:mm:ss)",
+    "retired": "Retired",
+    "addInProfile": "Add it on your profile.",
+    "loading": "Loading equipment…"
+  },
+  "equipmentKinds": {
+    "shoe": "Shoes"
   }
 }

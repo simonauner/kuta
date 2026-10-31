@@ -91,6 +91,40 @@ public class ActivityListTests(WebApplicationFactory<Program> factory) : IClassF
         finally { await conn.ExecuteAsync("delete from auth.users where id = any(@ids)", new { ids = new[] { userId, otherId } }); }
     }
 
+    [Fact]
+    public async Task Tag_filter_applies_before_pagination_and_heading_counts()
+    {
+        var ct = TestContext.Current.CancellationToken;
+        await using var conn = await factory.Services.GetRequiredService<NpgsqlDataSource>().OpenConnectionAsync(ct);
+        var userId = await Runner(conn);
+        try
+        {
+            await conn.ExecuteAsync("""
+                insert into activities (user_id, source, started_at, duration_s, distance_m, tags)
+                select @userId, 'manual', '2026-10-30T12:00:00Z', 1800, 5000, array['race']
+                from generate_series(1, 26);
+                insert into activities (user_id, source, started_at, duration_s, distance_m, tags)
+                values (@userId, 'manual', '2027-01-01T12:00:00Z', 1800, 5000, array['race']),
+                       (@userId, 'manual', '2027-01-02T12:00:00Z', 1800, 5000, array['easy']);
+                insert into activities (user_id, source, started_at, duration_s, distance_m)
+                select @userId, 'manual', '2028-01-01T12:00:00Z', 1800, 5000 from generate_series(1, 30)
+                """, new { userId });
+            var first = await ActivityList.ReadAsync(conn, userId, "UTC", ct: ct, tag: "race");
+            Assert.Equal(25, first.Items.Count);
+            Assert.False(first.Items[0].ShowMonth);
+            Assert.False(first.Items[0].ShowWeek);
+            Assert.All(first.Items.Skip(1), a => { Assert.True(a.ShowMonth); Assert.True(a.ShowWeek); });
+            var cursor = Assert.IsType<ActivityCursor>(first.NextCursor);
+            var second = await ActivityList.ReadAsync(conn, userId, "UTC", cursor.StartedAt, cursor.Id, ct, "race");
+            Assert.Equal(2, second.Items.Count);
+            Assert.Null(second.NextCursor);
+            var all = first.Items.Concat(second.Items).ToArray();
+            Assert.Equal(27, all.Select(a => a.Id).Distinct().Count());
+            Assert.All(all, a => Assert.Equal("race", Assert.Single(a.Tags)));
+        }
+        finally { await conn.ExecuteAsync("delete from auth.users where id = @userId", new { userId }); }
+    }
+
     private static async Task<Guid> Runner(NpgsqlConnection conn)
     {
         var id = Guid.NewGuid();
