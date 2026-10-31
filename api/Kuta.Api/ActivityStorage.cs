@@ -11,6 +11,8 @@ public static class ActivityStorage
     {
         var hash = bytes is null ? null : SHA256.HashData(bytes);
         await using var tx = await conn.BeginTransactionAsync(ct);
+        if (!await EquipmentEndpoints.OwnsAsync(conn, tx, userId, equipmentIds ?? []))
+            throw new InvalidEquipmentException();
         var consent = await conn.QuerySingleAsync<bool>(
             "select hr_consent_at is not null from users where id = @userId for update", new { userId }, tx);
         if (!consent) parsed = parsed.WithoutHeartRate();

@@ -127,6 +127,85 @@ public class EquipmentTests(KutaFactory factory) : IClassFixture<KutaFactory>
         finally { await conn.ExecuteAsync("delete from auth.users where id = any(@ids)", new { ids = new[] { ownerId, otherId } }); }
     }
 
+    [Fact]
+    public async Task Active_equipment_is_listed_before_older_retired_equipment()
+    {
+        var ct = TestContext.Current.CancellationToken;
+        await using var conn = await factory.Services.GetRequiredService<NpgsqlDataSource>().OpenConnectionAsync(ct);
+        await using var tx = await conn.BeginTransactionAsync(ct);
+        var ownerId = Guid.NewGuid();
+        await AddRunner(conn, ownerId);
+        var retired = await AddEquipment(conn, ownerId, "Retired", 0, 0);
+        var first = await AddEquipment(conn, ownerId, "First active", 0, 0);
+        var second = await AddEquipment(conn, ownerId, "Second active", 0, 0);
+        await conn.ExecuteAsync("update equipment set retired = true, created_at = now() - interval '2 days' where id = @retired", new { retired });
+        await conn.ExecuteAsync("update equipment set created_at = now() - interval '1 day' where id = @first", new { first });
+
+        var equipment = await EquipmentEndpoints.LoadAsync(conn, ownerId);
+        Assert.Equal(new[] { first, second, retired }, equipment.Select(e => e.Id));
+    }
+
+    [Fact]
+    public async Task Retirement_reactivation_and_deletion_are_private_and_preserve_activities_and_last_used_selection()
+    {
+        var ct = TestContext.Current.CancellationToken;
+        await using var conn = await factory.Services.GetRequiredService<NpgsqlDataSource>().OpenConnectionAsync(ct);
+        var ownerId = Guid.NewGuid();
+        var otherId = Guid.NewGuid();
+        try
+        {
+            await AddRunner(conn, ownerId);
+            await AddRunner(conn, otherId);
+            using var owner = await Client(ownerId, ct);
+            using var other = await Client(otherId, ct);
+            Assert.Null((await owner.GetFromJsonAsync<LastUsedShoe>("/api/equipment/last-used-shoe", ct))!.Id);
+            var first = await AddEquipment(conn, ownerId, "Older shoe", 0, 0);
+            var second = await AddEquipment(conn, ownerId, "Latest shoe", 0, 0);
+            var foreign = await AddEquipment(conn, otherId, "Private shoe", 0, 0);
+            var oldRun = await AddActivity(conn, ownerId, 5000, 1800);
+            var recentRun = await AddActivity(conn, ownerId, 3000, 900);
+            var foreignRun = await AddActivity(conn, otherId, 1000, 600);
+            await conn.ExecuteAsync("update activities set started_at = now() - interval '1 day' where id = @oldRun", new { oldRun });
+            await using (var tx = await conn.BeginTransactionAsync(ct))
+            {
+                await EquipmentEndpoints.AttachAsync(conn, tx, oldRun, ownerId, [first]);
+                await EquipmentEndpoints.AttachAsync(conn, tx, recentRun, ownerId, [second]);
+                await EquipmentEndpoints.AttachAsync(conn, tx, foreignRun, otherId, [foreign]);
+                await tx.CommitAsync(ct);
+            }
+            Assert.Equal(second, (await owner.GetFromJsonAsync<LastUsedShoe>("/api/equipment/last-used-shoe", ct))!.Id);
+            Assert.Equal(foreign, (await other.GetFromJsonAsync<LastUsedShoe>("/api/equipment/last-used-shoe", ct))!.Id);
+            Assert.Equal(HttpStatusCode.NotFound, (await other.PutAsync($"/api/equipment/{second}/retire", null, ct)).StatusCode);
+            Assert.Equal(HttpStatusCode.NotFound, (await other.DeleteAsync($"/api/equipment/{second}", ct)).StatusCode);
+            Assert.Equal(HttpStatusCode.NoContent, (await owner.PutAsync($"/api/equipment/{second}/retire", null, ct)).StatusCode);
+            Assert.Equal(HttpStatusCode.NotFound, (await other.DeleteAsync($"/api/equipment/{second}/retire", ct)).StatusCode);
+            Assert.True((await EquipmentEndpoints.LoadAsync(conn, ownerId)).Single(e => e.Id == second).Retired);
+            Assert.Equal(first, (await owner.GetFromJsonAsync<LastUsedShoe>("/api/equipment/last-used-shoe", ct))!.Id);
+            await using (var tx = await conn.BeginTransactionAsync(ct))
+            {
+                Assert.False(await EquipmentEndpoints.OwnsAsync(conn, tx, ownerId, [second]));
+                Assert.True(await EquipmentEndpoints.OwnsAsync(conn, tx, ownerId, [second], allowRetired: true));
+                await tx.RollbackAsync(ct);
+            }
+            Assert.Equal(HttpStatusCode.NoContent, (await owner.DeleteAsync($"/api/equipment/{second}/retire", ct)).StatusCode);
+            Assert.False((await EquipmentEndpoints.LoadAsync(conn, ownerId)).Single(e => e.Id == second).Retired);
+            Assert.Equal(second, (await owner.GetFromJsonAsync<LastUsedShoe>("/api/equipment/last-used-shoe", ct))!.Id);
+            await using (var tx = await conn.BeginTransactionAsync(ct))
+            {
+                Assert.True(await EquipmentEndpoints.OwnsAsync(conn, tx, ownerId, [second]));
+                await tx.RollbackAsync(ct);
+            }
+            Assert.Equal(second, Assert.Single((await owner.GetFromJsonAsync<ActivityDetail>($"/api/activities/{recentRun}", ct))!.EquipmentIds));
+            Assert.Equal(HttpStatusCode.NoContent, (await owner.DeleteAsync($"/api/equipment/{second}", ct)).StatusCode);
+            Assert.Empty((await owner.GetFromJsonAsync<ActivityDetail>($"/api/activities/{recentRun}", ct))!.EquipmentIds);
+            Assert.DoesNotContain(await EquipmentEndpoints.LoadAsync(conn, ownerId), e => e.Id == second);
+            Assert.Equal(HttpStatusCode.NotFound, (await owner.DeleteAsync($"/api/equipment/{second}", ct)).StatusCode);
+            Assert.Equal(HttpStatusCode.NotFound, (await other.GetAsync($"/api/activities/{recentRun}", ct)).StatusCode);
+            Assert.Equal(HttpStatusCode.NotFound, (await other.DeleteAsync($"/api/activities/{recentRun}", ct)).StatusCode);
+        }
+        finally { await conn.ExecuteAsync("delete from auth.users where id = any(@ids)", new { ids = new[] {ownerId, otherId} }); }
+    }
+
     private static async Task AddRunner(NpgsqlConnection conn, Guid id)
     {
         await conn.ExecuteAsync("insert into auth.users (id, email) values (@id, @email)", new { id, email = $"equipment-{id:N}@example.com" });

@@ -233,6 +233,7 @@
     "empty": "No activities with this tag."
   },
   "equipment": {
+    "actionsLabel": "Actions for {{name}}",
     "title": "Equipment",
     "description": "Total distance and time from linked activities, including prior use. Time includes pauses.",
     "empty": "You have no equipment yet.",
@@ -254,5 +255,27 @@
   },
   "equipmentKinds": {
     "shoe": "Shoes"
-  }
+  },
+  "shoes": {
+    "title": "Shoes",
+    "name": "Shoe name",
+    "brand": "Brand (optional)",
+    "add": "Add shoe",
+    "retire": "Retire",
+    "retireLabel": "Retire {{name}}",
+    "retired": "Retired",
+    "empty": "No shoes yet.",
+    "none": "No shoe",
+    "loading": "Loading shoes …",
+    "delete": "Delete",
+    "deleteLabel": "Delete {{name}}",
+    "confirmDelete": "Delete {{name}}?",
+    "deleteWarning": "The shoe will be permanently deleted and removed from all your activities. Your activities will remain. This cannot be undone.",
+    "cancel": "Cancel",
+    "deleting": "Deleting …",
+    "createNew": "Create new",
+    "reactivate": "Reactivate",
+    "reactivateLabel": "Reactivate {{name}}"
+  },
+  "breadcrumbs": "Breadcrumbs"
 }

@@ -19,7 +19,7 @@ public class WebRoutingTests
                 .WithWebHostBuilder(b => b.UseWebRoot(webRoot));
             using var client = factory.CreateClient(new WebApplicationFactoryClientOptions { AllowAutoRedirect = false });
             Assert.Contains("Public landing", await client.GetStringAsync("/", ct));
-            foreach (var path in new[] { "/app", "/app/", "/app/activities", "/app/activities/new", $"/app/activities/{Guid.NewGuid()}", "/app/stats", "/app/profile", "/app/settings", "/app?confirm=failed", "/app?reset=password", "/app?reset=failed" })
+            foreach (var path in new[] { "/app", "/app/", "/app/activities", "/app/activities/new", $"/app/activities/{Guid.NewGuid()}", "/app/stats", "/app/profile", "/app/profile/equipment", "/app/settings", "/app?confirm=failed", "/app?reset=password", "/app?reset=failed" })
             {
                 var html = await client.GetStringAsync(path, ct);
                 Assert.Contains("App shell", html);

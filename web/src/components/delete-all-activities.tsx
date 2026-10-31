@@ -1,3 +1,4 @@
+import { Modal } from '@/components/ui/modal'
 import { useEffect, useRef, useState, type FormEvent } from 'react'
 import { useMutation, useQueryClient } from '@tanstack/react-query'
 import { useTranslation } from 'react-i18next'
@@ -54,7 +55,7 @@ export function DeleteAllActivities() {
       <Button variant="destructive" className="mt-4" onClick={openDialog}>
         {t('dangerZone.delete')}
       </Button>
-      <dialog
+      <Modal
         ref={dialog}
         aria-labelledby="delete-all-title"
         aria-describedby="delete-all-warning"
@@ -62,7 +63,6 @@ export function DeleteAllActivities() {
           event.preventDefault()
           if (!remove.isPending) setWord(null)
         }}
-        className="fixed inset-0 m-auto max-h-[calc(100dvh-2rem)] w-[calc(100%-2rem)] max-w-md overflow-y-auto rounded-xl border bg-background p-6 text-foreground shadow-xl backdrop:bg-black/70"
       >
         <h2 id="delete-all-title" className="text-xl font-semibold">
           {t('dangerZone.confirmTitle')}
@@ -104,7 +104,7 @@ export function DeleteAllActivities() {
             </Button>
           </div>
         </form>
-      </dialog>
+      </Modal>
       {remove.isSuccess && (
         <p role="status" className="mt-3 text-sm">
           {t('dangerZone.success')}
