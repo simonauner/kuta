@@ -8,6 +8,8 @@ on:
       - 'global.json'
       - '.github/workflows/api.yml'
       - 'Dockerfile'
+      - '.dockerignore'
+      - '!**/*.md'
   push:
     branches: [main]
     paths:
@@ -16,6 +18,8 @@ on:
       - 'global.json'
       - '.github/workflows/api.yml'
       - 'Dockerfile'
+      - '.dockerignore'
+      - '!**/*.md'
 
 permissions:
   contents: read
@@ -59,8 +63,7 @@ jobs:
             -H "apikey: $(jq -r '.PUBLISHABLE_KEY' <<< "$local_config")" \
             "http://127.0.0.1:$((KUTA_PORTS + 21))/auth/v1/health" > /dev/null
       - name: Run API tests
-        # Test servers migrate the same fresh database on first startup.
-        run: dotnet test --project api/Kuta.Api.Tests -- --parallel none
+        run: dotnet test --project api/Kuta.Api.Tests --configuration Release -- --parallel none
       - name: Stop local Supabase
         if: always()
         run: supabase stop

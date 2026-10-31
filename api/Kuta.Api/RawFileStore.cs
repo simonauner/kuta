@@ -1,3 +1,4 @@
+using System.Net;
 using Amazon.Runtime;
 using Amazon.S3;
 using Amazon.S3.Model;
@@ -45,6 +46,9 @@ public sealed class RawFileStore
     public async Task DeleteAsync(IEnumerable<string> keys, CancellationToken cancellationToken)
     {
         foreach (var key in keys)
-            await client.DeleteObjectAsync(bucket, key, cancellationToken);
+        {
+            try { await client.DeleteObjectAsync(bucket, key, cancellationToken); }
+            catch (AmazonS3Exception e) when (e.StatusCode == HttpStatusCode.NotFound) { }
+        }
     }
 }

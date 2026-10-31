@@ -100,25 +100,31 @@ Frontendkontroller med Node-versionen i `.nvmrc`: kör `npm ci` i `web/`, sedan
 `npm run format:check`, `npm run lint`, `npm test` och `npm run build`.
 `npm run format` formaterar webbfilerna med Prettier. API-klientens tester använder
 Nodes inbyggda testverktyg och mockade nätverksanrop; de kräver inte Supabase.
-GitHub Actions kör frontendkontrollerna vid ändringar i `web/` och bygger API:t och
-testprojektet vid ändringar i `api/` eller `supabase/`, på pull requests och push till
-`main`. Respektive workflow och verktygskonfiguration (`.nvmrc` respektive
-`global.json`) startar också motsvarande kontroller. `Dockerfile` och `.dockerignore`
-startar båda. Ändringar i enbart `.md`-filer startar inget av dessa workflows, även
-under `web/` eller `api/`. Backendtester mot lokal Supabase körs fortfarande lokalt
-enligt ovan; backend-workflowet kontrollerar enbart att projekten bygger.
+GitHub Actions kör frontendkontrollerna i `.github/workflows/frontend.yml` vid
+ändringar i `web/`, `.nvmrc` eller workflowfilen. API-jobbet i
+`.github/workflows/api.yml` bygger och kör hela `api/Kuta.Api.Tests` i Release vid
+ändringar i `api/`, `supabase/`, `global.json` eller workflowfilen. Båda körs på
+pull requests och push till `main`; `Dockerfile` och `.dockerignore` startar båda.
+Ändringar i enbart `.md`-filer startar inget av dessa workflows.
 
-API-jobbet i `.github/workflows/api.yml` kör hela `api/Kuta.Api.Tests` vid ändringar
-i API:t, Supabase-konfigurationen, `global.json`, `Dockerfile` eller själva jobbet,
-både på pull requests och push till `main`. Det installerar .NET enligt `global.json`
-och Supabase CLI 2.72.7, startar en tillfällig lokal Supabase med Auth, Mailpit och
-Storage, läser dess lokala nycklar och väntar på auth efter omstart innan testerna
-körs. Testerna körs sekventiellt (`-- --parallel none`) så att testservrarna inte
-försöker migrera den tomma databasen samtidigt. Inga produktionshemligheter
-eller hostade tjänster används. Supabase stoppas även om testerna misslyckas.
+API-jobbet installerar .NET enligt `global.json` och Supabase CLI 2.72.7, startar
+en tillfällig lokal Supabase med Auth, Mailpit och Storage, läser dess lokala
+nycklar och väntar på auth efter omstart innan testerna körs. Testerna körs
+sekventiellt (`-- --parallel none`). Inga produktionshemligheter eller hostade
+tjänster används. Supabase stoppas även om testerna misslyckas.
 
 Footern visar copyright och webbens byggnummer (`ÅÅÅÅMMDD.ttmmss`, UTC), som sätts
 automatiskt av Vite vid bygget, även i Docker. I utvecklingsläge visas `Version utveckling`.
+
+## Råfiler vid misslyckad import
+
+Om uppladdning eller databascommit misslyckas släpps transaktionen innan en ny
+anslutning kontrollerar om råfilen används av ett sparat pass. Kontrollen håller
+profilens lås, så en samtidig import inte kan återanvända filnyckeln medan den
+städas. Ett förlorat commitsvar får därmed inte radera råfilen för ett sparat pass.
+Om databasen inte kan bekräfta utfallet lämnas filen kvar och felet loggas av
+API:t. En sådan fil kan behöva städas manuellt när databasen åter är tillgänglig;
+kontrollera först att inget pass refererar till nyckeln.
 
 ## Utrustning och användning
 
@@ -227,7 +233,7 @@ Skor importeras före passen och kopplas med `Gear`-ID från `activities.csv`. N
 
 Efteråt visas antal importerade pass, skor, kompletterade skokopplingar och dubbletter samt Strava-ID för pass som misslyckats (till exempel en saknad, trasig eller ej stödd aktivitetsfil). Tidigare sparade pass behålls om ett senare pass misslyckas eller anslutningen bryts. Kör samma export igen för att fortsätta; Strava-ID och identiska aktivitetsfiler förhindrar dubbletter inom kontot. Passlistan visar 25 pass åt gången; resten nås med Visa fler.
 
-API: `POST /api/activities/import/strava`, multipart-fält `file`, med inloggning och CSRF-token. Svar: `{ imported, duplicates, failedActivityIds }`. Högst 20 000 pass, 100 000 ZIP-poster, 20 MB per uppackad fil och totalt 1 GiB uppackade aktivitetsfiler per anrop. Enskilda fel hindrar inte andra pass; ett ogiltigt CSV-manifest avvisar hela arkivet före lagring.
+API: `POST /api/activities/import/strava`, multipart-fält `file`, med inloggning och CSRF-token. Svar: `{ imported, duplicates, failedActivityIds }`. Högst 20 000 pass, 100 000 ZIP-poster, 20 MB per uppackad fil och totalt 1 GiB uppackade aktivitetsfiler per anrop, inklusive lästa byte från filer som avvisas. Budgeten räknas under läsningen; när den tar slut hoppas resterande pass över och rapporteras som misslyckade. Enskilda fel hindrar inte andra pass; ett ogiltigt CSV-manifest avvisar hela arkivet före lagring.
 
 ## Driftsättning (Fly.io)
 
