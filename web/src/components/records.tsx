@@ -5,6 +5,7 @@ import { Link } from '@tanstack/react-router'
 import { useTranslation } from 'react-i18next'
 import { HelpPopover } from '@/components/help-popover'
 import { ErrorMessage } from '@/components/error-message'
+import { RecordAward } from '@/components/record-award'
 import { Button } from '@/components/ui/button'
 import { api } from '@/lib/api'
 import { formatDuration, formatPace } from '@/lib/activity'
@@ -316,7 +317,16 @@ function RecordTrendView({ trend, distanceLabel }: { trend: RecordTrend; distanc
               return (
                 <tr key={`${effort.activityId}-${effort.achievedAt}`}>
                   <th scope="row" className="py-2 pr-3 text-left font-normal">
-                    {date.format(new Date(effort.achievedAt))}
+                    <span className="inline-flex items-center gap-2">
+                      <RecordAward status={i === 0 ? 'current' : 'previous'} />
+                      <Link
+                        to="/app/activities/$activityId"
+                        params={{ activityId: effort.activityId }}
+                        className="underline-offset-2 hover:underline"
+                      >
+                        {date.format(new Date(effort.achievedAt))}
+                      </Link>
+                    </span>
                   </th>
                   <td className="px-2">
                     <EffortLink effort={effort} />

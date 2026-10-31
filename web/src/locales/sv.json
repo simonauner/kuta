@@ -53,6 +53,9 @@
     "empty": "Inga rekord än. Rekord räknas ur löppass som laddats upp från en fil med distansdata.",
     "distance": "Distans",
     "personalBest": "Personbästa",
+    "activityRecords": "Rekord på passet",
+    "currentBest": "Nuvarande personbäst",
+    "previousBest": "Tidigare personbäst",
     "yearBest": "Bästa {{year}}",
     "distances": {
       "1000": "1 km",

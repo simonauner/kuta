@@ -445,11 +445,12 @@ eller 42195. Motorn använder exakt 1609,344 m för milen och 21097,5 m för hal
 `elapsedS` och `startOffsetS` är sekunder med decimaler. `achievedAt` är insatsens
 starttid i UTC (passets starttid plus `startOffsetS`).
 
-Alla anrop kräver inloggning och ger bara den egna användarens data:
+Alla anrop kräver inloggning. Rekord och historik gäller den egna användaren;
+passets bästa insatser följer passets läsregel:
 
 | Anrop | Resultat |
 |---|---|
-| `GET /api/activities/{id}/best-efforts` | Passets bästa insatser, sorterade på distans; 404 för okänt eller annans pass. |
+| `GET /api/activities/{id}/best-efforts` | Passets bästa insatser, sorterade på distans; 404 för okänt eller oläsbart pass. `recordStatus` är `current` (nuvarande personbästa), `previous` (tidigare personbästa) eller `null`. För andra än ägaren är status alltid `null`, så privata pass inte kan påverka synlig rekordstatus. |
 | `GET /api/records` | Snabbaste insatsen per distans; vid lika tid väljs den tidigaste. |
 | `GET /api/records?year=2026` | Samma urval inom UTC-kalenderåret då insatsen började. |
 | `GET /api/records/trend?distanceM=5000&timeZone=Europe/Stockholm` | `months`: bästa insatsen per lokal kalendermånad (bara månader med insatser). `progression`: rekordhistoriken, varje insats som var strikt snabbare än alla tidigare; lika tid behåller det äldre rekordet. 400 för annan distans än etiketterna ovan eller ogiltig tidszon. |
@@ -471,7 +472,13 @@ högst VDOT bland 5 km och längre de senaste 90 dagarna (lika VDOT: den senaste
 kortare insatser ur intervallpass överskattar uthålligheten. VDOT över 90, över
 världsrekordnivå, behandlas som mätfel. Statistiksidan visar personbästa och årsbästa
 per distans, ett diagram med månadsbästa och rekordtrappa, rekordhistoriken som tabell
-och prognosen.
+och prognosen. Passidan visar en separat lista över personbästa som sattes på passet,
+med en trofé i guld och medaljer i silver med metallisk glans för nuvarande respektive tidigare
+rekord. Status visas i tooltips som öppnas med mus, tangentbord eller tryck. Samma märkning visas
+vid bästa insatser; en ljusgrå rosett i kontur markerar årsbästa när insatsen inte är ett personbästa.
+Personbästamärkningen visas också
+vid passlänkarna i rekordhistoriken. Status följer insatsernas tidpunkt, oberoende av
+importordning, och räknas från nu sparade insatser även efter radering eller omberäkning.
 
 Beräkningstesterna jämför också med en uttömmande referensberäkning på oregelbundna
 strömmar. Integrationstesterna använder syntetiska FIT-filer skapade med Garmins SDK

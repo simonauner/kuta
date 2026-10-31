@@ -32,7 +32,7 @@ export function StravaImport() {
   const refreshImportedData = () =>
     queryClient.invalidateQueries({
       predicate: ({ queryKey }) =>
-        ['activities', 'activity', 'equipment', 'equipmentLastUsedShoe'].includes(
+        ['activities', 'activity', 'records', 'equipment', 'equipmentLastUsedShoe'].includes(
           String(queryKey[0]),
         ),
     })

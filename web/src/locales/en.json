@@ -53,6 +53,9 @@
     "empty": "No records yet. Records come from runs uploaded from a file with distance data.",
     "distance": "Distance",
     "personalBest": "Personal best",
+    "activityRecords": "Records set on this activity",
+    "currentBest": "Current personal best",
+    "previousBest": "Previous personal best",
     "yearBest": "Best {{year}}",
     "distances": {
       "1000": "1 km",
