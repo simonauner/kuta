@@ -43,9 +43,10 @@ export function ActivityPage() {
   const { t, i18n } = useTranslation()
   const { year, tag } = useSearch({ from: '/app/activities/$activityId' })
   const equipment = useQuery(equipmentQuery)
-  const [lapsOpen, setLapsOpen] = useState(false)
+  const [openPanel, setOpenPanel] = useState<'laps' | 'splits' | null>(null)
+  const lapsOpen = openPanel === 'laps'
+  const splitsOpen = openPanel === 'splits'
   const lapsId = useId()
-  const [splitsOpen, setSplitsOpen] = useState(false)
   const splitsId = useId()
   const activity = useQuery(activityQuery(activityId))
   const [selection, setSelection] = useState<{ id: string; part: ActivityPart | null } | null>(null)
@@ -231,8 +232,7 @@ export function ActivityPage() {
         activity={original}
         onPreview={(part) => {
           setSelection({ id: activityId, part })
-          setLapsOpen(false)
-          setSplitsOpen(false)
+          setOpenPanel(null)
         }}
       />
       {selectedPart && (
@@ -308,119 +308,125 @@ export function ActivityPage() {
         ))}
       </dl>
 
-      {!mixed && a.laps.length > 0 && (
+      {((!mixed && a.laps.length > 0) || (view && view.splits.length > 0)) && (
         <div className="mt-8">
-          <Button
-            id={`${lapsId}-toggle`}
-            type="button"
-            variant="outline"
-            aria-expanded={lapsOpen}
-            aria-controls={lapsId}
-            onClick={() => setLapsOpen((open) => !open)}
-          >
-            {t('activity.tab.laps')}
-            <ChevronDown
-              aria-hidden="true"
-              className={`transition-transform duration-250 motion-reduce:transition-none ${lapsOpen ? 'rotate-180' : ''}`}
-            />
-          </Button>
-          <div
-            id={lapsId}
-            aria-hidden={!lapsOpen}
-            inert={!lapsOpen}
-            className={`grid transition-[grid-template-rows] duration-250 ease-out motion-reduce:transition-none ${lapsOpen ? 'grid-rows-[1fr]' : 'grid-rows-[0fr]'}`}
-          >
-            <div className="min-h-0 overflow-hidden">
-              <div
-                role="region"
-                aria-labelledby={`${lapsId}-toggle`}
-                tabIndex={lapsOpen ? 0 : -1}
-                className="mt-3 max-h-[min(16rem,25svh)] overflow-auto overscroll-contain rounded-lg border px-3 focus-visible:outline-2 focus-visible:outline-ring"
+          <div className="flex gap-2">
+            {!mixed && a.laps.length > 0 && (
+              <Button
+                id={`${lapsId}-toggle`}
+                type="button"
+                variant="outline"
+                aria-expanded={lapsOpen}
+                aria-controls={lapsId}
+                onClick={() => setOpenPanel((open) => (open === 'laps' ? null : 'laps'))}
               >
-                <table className="w-full text-sm whitespace-nowrap tabular-nums [&_td]:pr-4 [&_th]:pr-4">
-                  <thead className="sticky top-0 bg-background text-left text-xs text-muted-foreground">
-                    <tr>
-                      <th className="py-1 font-normal">{t('activity.lap')}</th>
-                      <th className="py-1 font-normal">{t('activity.distance')}</th>
-                      <th className="py-1 font-normal">{t('activity.time')}</th>
-                      <th className="py-1 font-normal">{t('activity.pace')}</th>
-                      <th className="py-1 font-normal">{t('activity.splitElevation')}</th>
-                      {a.laps.some((l) => l.avgHr !== null) && (
-                        <th className="py-1 font-normal">{t('activity.splitHr')}</th>
-                      )}
-                      {a.laps.some((l) => l.avgCadence !== null) && (
-                        <th className="py-1 font-normal">{t('activity.cadence')}</th>
-                      )}
-                    </tr>
-                  </thead>
-                  <tbody className="divide-y">
-                    {a.laps.map((l) => (
-                      <tr key={l.lapIndex}>
-                        <td className="py-1.5">{l.lapIndex + 1}</td>
-                        <td className="py-1.5">{number.format(l.distanceM / 1000)} km</td>
-                        <td className="py-1.5">{formatDuration(l.movingS ?? l.durationS)}</td>
-                        <td className="py-1.5">
-                          {formatSportPace(
-                            a.sport,
-                            l.movingS ?? l.durationS,
-                            l.distanceM,
-                            i18n.resolvedLanguage,
-                          )}
-                        </td>
-                        <td className="py-1.5">
-                          {l.ascentM === null && l.descentM === null
-                            ? '–'
-                            : `${Math.round((l.ascentM ?? 0) - (l.descentM ?? 0))} m`}
-                        </td>
-                        {a.laps.some((x) => x.avgHr !== null) && (
-                          <td className="py-1.5">{l.avgHr ?? '–'}</td>
+                {t('activity.tab.laps')}
+                <ChevronDown
+                  aria-hidden="true"
+                  className={`transition-transform duration-250 motion-reduce:transition-none ${lapsOpen ? 'rotate-180' : ''}`}
+                />
+              </Button>
+            )}
+            {view && view.splits.length > 0 && (
+              <Button
+                id={`${splitsId}-toggle`}
+                type="button"
+                variant="outline"
+                aria-expanded={splitsOpen}
+                aria-controls={splitsId}
+                onClick={() => setOpenPanel((open) => (open === 'splits' ? null : 'splits'))}
+              >
+                {t('activity.splits')}
+                <ChevronDown
+                  aria-hidden="true"
+                  className={`transition-transform duration-250 motion-reduce:transition-none ${splitsOpen ? 'rotate-180' : ''}`}
+                />
+              </Button>
+            )}
+          </div>
+          {!mixed && a.laps.length > 0 && (
+            <div
+              id={lapsId}
+              aria-hidden={!lapsOpen}
+              inert={!lapsOpen}
+              className={`grid transition-[grid-template-rows] duration-250 ease-out motion-reduce:transition-none ${lapsOpen ? 'grid-rows-[1fr]' : 'grid-rows-[0fr]'}`}
+            >
+              <div className="min-h-0 overflow-hidden">
+                <div
+                  role="region"
+                  aria-labelledby={`${lapsId}-toggle`}
+                  tabIndex={lapsOpen ? 0 : -1}
+                  className="mt-3 max-h-[min(16rem,25svh)] overflow-auto overscroll-contain rounded-lg border px-3 focus-visible:outline-2 focus-visible:outline-ring"
+                >
+                  <table className="w-full text-sm whitespace-nowrap tabular-nums [&_td]:pr-4 [&_th]:pr-4">
+                    <thead className="sticky top-0 bg-background text-left text-xs text-muted-foreground">
+                      <tr>
+                        <th className="py-1 font-normal">{t('activity.lap')}</th>
+                        <th className="py-1 font-normal">{t('activity.distance')}</th>
+                        <th className="py-1 font-normal">{t('activity.time')}</th>
+                        <th className="py-1 font-normal">{t('activity.pace')}</th>
+                        <th className="py-1 font-normal">{t('activity.splitElevation')}</th>
+                        {a.laps.some((l) => l.avgHr !== null) && (
+                          <th className="py-1 font-normal">{t('activity.splitHr')}</th>
                         )}
-                        {a.laps.some((x) => x.avgCadence !== null) && (
-                          <td className="py-1.5">{l.avgCadence ?? '–'}</td>
+                        {a.laps.some((l) => l.avgCadence !== null) && (
+                          <th className="py-1 font-normal">{t('activity.cadence')}</th>
                         )}
                       </tr>
-                    ))}
-                  </tbody>
-                </table>
+                    </thead>
+                    <tbody className="divide-y">
+                      {a.laps.map((l) => (
+                        <tr key={l.lapIndex}>
+                          <td className="py-1.5">{l.lapIndex + 1}</td>
+                          <td className="py-1.5">{number.format(l.distanceM / 1000)} km</td>
+                          <td className="py-1.5">{formatDuration(l.movingS ?? l.durationS)}</td>
+                          <td className="py-1.5">
+                            {formatSportPace(
+                              a.sport,
+                              l.movingS ?? l.durationS,
+                              l.distanceM,
+                              i18n.resolvedLanguage,
+                            )}
+                          </td>
+                          <td className="py-1.5">
+                            {l.ascentM === null && l.descentM === null
+                              ? '–'
+                              : `${Math.round((l.ascentM ?? 0) - (l.descentM ?? 0))} m`}
+                          </td>
+                          {a.laps.some((x) => x.avgHr !== null) && (
+                            <td className="py-1.5">{l.avgHr ?? '–'}</td>
+                          )}
+                          {a.laps.some((x) => x.avgCadence !== null) && (
+                            <td className="py-1.5">{l.avgCadence ?? '–'}</td>
+                          )}
+                        </tr>
+                      ))}
+                    </tbody>
+                  </table>
+                </div>
               </div>
             </div>
-          </div>
-        </div>
-      )}
+          )}
 
-      {view && view.splits.length > 0 && (
-        <div className="mt-8">
-          <Button
-            id={`${splitsId}-toggle`}
-            type="button"
-            variant="outline"
-            aria-expanded={splitsOpen}
-            aria-controls={splitsId}
-            onClick={() => setSplitsOpen((open) => !open)}
-          >
-            {t('activity.splits')}
-            <ChevronDown
-              aria-hidden="true"
-              className={`transition-transform duration-250 motion-reduce:transition-none ${splitsOpen ? 'rotate-180' : ''}`}
-            />
-          </Button>
-          <div
-            id={splitsId}
-            aria-hidden={!splitsOpen}
-            inert={!splitsOpen}
-            className={`grid transition-[grid-template-rows] duration-250 ease-out motion-reduce:transition-none ${splitsOpen ? 'grid-rows-[1fr]' : 'grid-rows-[0fr]'}`}
-          >
-            <div className="min-h-0 overflow-hidden">
-              <div
-                role="region"
-                aria-labelledby={`${splitsId}-toggle`}
-                tabIndex={splitsOpen ? 0 : -1}
-                className="mt-3 max-h-[min(16rem,25svh)] overflow-auto overscroll-contain rounded-lg border px-3 focus-visible:outline-2 focus-visible:outline-ring [&_thead]:sticky [&_thead]:top-0 [&_thead]:bg-background"
-              >
-                {splitTable}
+          {view && view.splits.length > 0 && (
+            <div
+              id={splitsId}
+              aria-hidden={!splitsOpen}
+              inert={!splitsOpen}
+              className={`grid transition-[grid-template-rows] duration-250 ease-out motion-reduce:transition-none ${splitsOpen ? 'grid-rows-[1fr]' : 'grid-rows-[0fr]'}`}
+            >
+              <div className="min-h-0 overflow-hidden">
+                <div
+                  role="region"
+                  aria-labelledby={`${splitsId}-toggle`}
+                  tabIndex={splitsOpen ? 0 : -1}
+                  className="mt-3 max-h-[min(16rem,25svh)] overflow-auto overscroll-contain rounded-lg border px-3 focus-visible:outline-2 focus-visible:outline-ring [&_thead]:sticky [&_thead]:top-0 [&_thead]:bg-background"
+                >
+                  {splitTable}
+                </div>
               </div>
             </div>
-          </div>
+          )}
         </div>
       )}
 
