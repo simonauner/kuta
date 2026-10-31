@@ -1,9 +1,10 @@
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
-import { Link, useNavigate } from '@tanstack/react-router'
+import { useNavigate } from '@tanstack/react-router'
 import { useId, useRef, useState, type FormEvent, type ReactNode } from 'react'
 import { useTranslation } from 'react-i18next'
 import { BackLink } from '@/components/back-link'
 import { ErrorMessage } from '@/components/error-message'
+import { HeartRateConsent } from '@/components/heart-rate-consent'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
@@ -313,12 +314,7 @@ export function NewActivityPage() {
           accept=".fit"
           onChange={(e) => setPendingFile(e.currentTarget.files?.[0] ?? null)}
         />
-        <p className="mt-2 text-xs text-muted-foreground">
-          {t(me?.hrConsent ? 'activities.hrSaved' : 'activities.hrNotSaved')}{' '}
-          <Link to="/app/settings" className="underline underline-offset-2">
-            {t('settings.title')}
-          </Link>
-        </p>
+        <HeartRateConsent className="mt-4" />
         <div className="mt-6 flex flex-wrap justify-end gap-3">
           <Button type="button" variant="outline" onClick={() => uploadDialog.current?.close()}>
             {t('newActivity.cancel')}
