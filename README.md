@@ -38,6 +38,13 @@ Passlistans `year=2024` begränsar både första och efterföljande sidor till d
 Årsväljaren visas när historiken innehåller flera år; ”Alla år” är standard. Valet sparas i
 appens URL (`/app/activities?year=2024`) och följer med till passsidan och tillbaka.
 
+Passsidans kilometersplits interpolerar tid och höjd vid varje kilometergräns mellan
+mätpunkterna; snittpulsen vägs med tiden. Ingen sträcka eller tid läggs till utanför
+inspelningens uppmätta ändpunkter. Återställd distans eller icke stigande tid gör att
+splitstabellen utelämnas. En avslutande rest under 50 meter visas inte.
+Diagram använder kilometer som x-axel när distansen ökar utan återställningar,
+annars förfluten tid. Tidsaxelns etikett följer appens valda språk.
+
 ## Applikationsloggar och integritet
 
 API:t ersätter .NET:s loggproviders med `PrivateLogProvider`. Den skriver JSON med fasta händelser och operationer för start, stopp, requestfel, startfel och migreringsfel. Requestfel har även HTTP-status och tidsåtgång i millisekunder. Loggformatterare, godtyckligt loggstate, scopes och kategorinamn används aldrig, även om loggnivån höjs. DbUp:s egen konsolloggning är avstängd. Samma skydd används lokalt och i drift.
@@ -155,6 +162,8 @@ passet eller kopplingarna ändras. API:t använder SI-enheter; webben visar kilo
 Ett pass kan ha flera taggar: `race` (Lopp), `workout` (Intervaller/kvalitet),
 `long_run` (Långpass) och `easy` (Lugnt). Välj dem vid manuell registrering eller
 FIT-uppladdning, ändra dem på passsidan och filtrera passlistan efter en tagg.
+Listans taggfilter sparas i URL:en (`/app/activities?tag=race`), kan kombineras
+med `year` och följer med till pass, skapandeformulär och tillbaka till listan.
 
 `activities.tags` är `text[]`, med tom array som standard och GIN-index.
 API:t validerar mot `ActivityInput.Tags` och tar bort dubbletter; databasen har

@@ -1,7 +1,8 @@
 import { useEffect, useRef } from 'react'
+import { useTranslation } from 'react-i18next'
 import uPlot from 'uplot'
 import 'uplot/dist/uPlot.min.css'
-import { formatDuration } from '@/lib/activity'
+import { formatDuration, type ChartAxis } from '@/lib/activity'
 
 export type ChartSeries = {
   label: string
@@ -12,21 +13,17 @@ export type ChartSeries = {
   fill?: boolean
 }
 
-// uPlot (canvas) klarar tiotusentals mätpunkter; ett diagram per kanal med gemensam x-axel (km) och synkad markör.
-export function ActivityCharts({
-  distanceKm,
-  series,
-}: {
-  distanceKm: number[]
-  series: ChartSeries[]
-}) {
+// Ett diagram per kanal med gemensam x-axel och synkad markör.
+export function ActivityCharts({ axis, series }: { axis: ChartAxis; series: ChartSeries[] }) {
   const container = useRef<HTMLDivElement>(null)
+  const { t } = useTranslation()
 
   useEffect(() => {
     const element = container.current
     if (!element) return
     const sync = uPlot.sync('activity')
     const width = element.clientWidth
+    const axisColor = getComputedStyle(element).color
     const charts = series.map((s) => {
       const chart = new uPlot(
         {
@@ -36,10 +33,15 @@ export function ActivityCharts({
           cursor: { sync: { key: sync.key }, drag: { x: false, y: false } },
           scales: { x: { time: false }, y: s.pace ? { dir: -1 } : {} },
           axes: [
-            { values: (_, ticks) => ticks.map((v) => `${v} km`), stroke: 'currentColor' },
+            {
+              label: axis.elapsedTime ? t('activity.chartTime') : undefined,
+              values: (_, ticks) =>
+                ticks.map((v) => (axis.elapsedTime ? formatDuration(Math.round(v)) : `${v} km`)),
+              stroke: axisColor,
+            },
             {
               label: s.label,
-              stroke: 'currentColor',
+              stroke: axisColor,
               size: 64,
               values: s.pace ? (_, ticks) => ticks.map((v) => formatDuration(v)) : undefined,
             },
@@ -55,7 +57,7 @@ export function ActivityCharts({
             },
           ],
         },
-        [distanceKm, s.values],
+        [axis.values, s.values],
         element,
       )
       return chart
@@ -69,7 +71,7 @@ export function ActivityCharts({
       resize.disconnect()
       charts.forEach((c) => c.destroy())
     }
-  }, [distanceKm, series])
+  }, [axis, series, t])
 
   return <div ref={container} className="space-y-2 text-xs text-muted-foreground" />
 }

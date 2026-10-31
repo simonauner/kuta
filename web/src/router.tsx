@@ -32,6 +32,7 @@ const activitiesRoute = createRoute({
 const newActivityRoute = createRoute({
   getParentRoute: () => rootRoute,
   path: '/app/activities/new',
+  validateSearch: activitySearch,
   component: NewActivityPage,
 })
 // Passsidan laddas först när den öppnas: kartan (MapLibre) och diagrammen är tunga

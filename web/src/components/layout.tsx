@@ -46,9 +46,12 @@ export function Layout() {
           <Link
             to="/app"
             activeOptions={{ exact: true }}
-            className="hidden rounded-md text-2xl font-semibold tracking-tight text-primary focus-visible:outline-2 focus-visible:outline-offset-4 focus-visible:outline-ring md:block"
+            className="hidden shrink-0 rounded-md focus-visible:outline-2 focus-visible:outline-offset-4 focus-visible:outline-ring md:block"
           >
-            Kuta
+            <picture>
+              <source media="(prefers-color-scheme: dark)" srcSet="/brand/logo-light.svg" />
+              <img src="/brand/logo.svg" alt="Kuta" width="96" height="32" className="h-8 w-auto" />
+            </picture>
           </Link>
           <nav aria-label={t('nav.main')} className="flex-1">
             <ul className="flex justify-around md:justify-end md:gap-1">
@@ -82,7 +85,7 @@ export function Layout() {
       <main className="mx-auto w-full max-w-2xl flex-1 px-4 pb-8 pt-6">
         <motion.div
           key={pathname}
-          initial={pathname.startsWith('/app/activities') ? false : { opacity: 0, y: 8 }}
+          initial={pathname.startsWith('/app/activities/') ? false : { opacity: 0, y: 8 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.18, ease: 'easeOut' }}
         >
