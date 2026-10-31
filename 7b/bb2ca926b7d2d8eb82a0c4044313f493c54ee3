@@ -1,0 +1,20 @@
+web/src/components/equipment.tsx
+  s_8c5b5a4506a67c::t_79905ebd8ac66a 318,323,347,349,412
+  s_8c5b5a4506a67c::t_5e55d9a60d6c40 348
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.7.5",
+  "base_commit_sha": "7bbb2ca926b7d2d8eb82a0c4044313f493c54ee3",
+  "prompts": {},
+  "sessions": {
+    "s_8c5b5a4506a67c": {
+      "agent_id": {
+        "tool": "codex",
+        "id": "01a18f9d-3b73-77f0-8728-f7d72c039a56",
+        "model": "gpt-6.1-sol"
+      },
+      "human_author": "Simon Aunér <simonauner@gmail.com>"
+    }
+  }
+}
