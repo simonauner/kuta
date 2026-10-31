@@ -3,6 +3,7 @@ import { test } from 'node:test'
 import {
   activitySearch,
   activityTitle,
+  chartAxis,
   formatDuration,
   formatPace,
   groupActivities,
@@ -85,6 +86,13 @@ test('splits use measured endpoints and reject distance or time resets', () => {
   )
   assert.deepEqual(splits({ ...stream, dist: [0, 1000, 0, 1000, 2000] }), [])
   assert.deepEqual(splits({ ...stream, t: [0, 60, 30, 90, 120] }), [])
+})
+
+test('charts use elapsed time without usable distance and kilometres otherwise', () => {
+  const stream = { ...run(), t: [0, 300, 600, 900], dist: [0, 1000, null, 2000] }
+  assert.deepEqual(chartAxis(stream), { values: [0, 1, 1, 2], elapsedTime: false })
+  for (const dist of [null, [0, 0, null, 0], [null, 1000, 1000, 1000], [0, 1000, 0, 2000]])
+    assert.deepEqual(chartAxis({ ...stream, dist }), { values: stream.t, elapsedTime: true })
 })
 
 test('durations and paces', () => {

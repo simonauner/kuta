@@ -77,6 +77,7 @@
     "splitHr": "HR",
     "charts": "Charts",
     "chartElevation": "Elevation (m)",
+    "chartTime": "Elapsed time",
     "chartPace": "Pace (min/km)",
     "chartHr": "Heart rate (bpm)",
     "chartCadence": "Cadence",

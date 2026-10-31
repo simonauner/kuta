@@ -42,6 +42,8 @@ Passsidans kilometersplits interpolerar tid och höjd vid varje kilometergräns 
 mätpunkterna; snittpulsen vägs med tiden. Ingen sträcka eller tid läggs till utanför
 inspelningens uppmätta ändpunkter. Återställd distans eller icke stigande tid gör att
 splitstabellen utelämnas. En avslutande rest under 50 meter visas inte.
+Diagram använder kilometer som x-axel när distansen ökar utan återställningar,
+annars förfluten tid. Tidsaxelns etikett följer appens valda språk.
 
 ## Köra lokalt
 

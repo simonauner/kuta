@@ -81,6 +81,18 @@ export type ActivityStreams = {
   temp: (number | null)[] | null
 }
 
+export type ChartAxis = { values: number[]; elapsedTime: boolean }
+
+export function chartAxis(streams: ActivityStreams): ChartAxis {
+  let last = streams.dist?.find((d) => d !== null) ?? 0
+  const values = (streams.dist ?? []).map((d) => (last = d ?? last) / 1000)
+  const increasing = values.some((d) => d > values[0])
+  const invalid = values.some((d, i) => !Number.isFinite(d) || (i > 0 && d < values[i - 1]))
+  return increasing && !invalid
+    ? { values, elapsedTime: false }
+    : { values: streams.t, elapsedTime: true }
+}
+
 // Varv som klockan registrerade (manuellt eller autolap); startS = sekunder från passets start
 export type ActivityLap = {
   lapIndex: number

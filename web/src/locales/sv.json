@@ -77,6 +77,7 @@
     "splitHr": "Puls",
     "charts": "Diagram",
     "chartElevation": "Höjd (m)",
+    "chartTime": "Förfluten tid",
     "chartPace": "Tempo (min/km)",
     "chartHr": "Puls (bpm)",
     "chartCadence": "Kadens",
