@@ -8,6 +8,7 @@ export type Me = {
   displayName: string | null
   hrConsent: boolean
   defaultActivityPrivacy: 'private' | 'followers' | 'public'
+  allActivitiesMatchDefaultPrivacy: boolean
 }
 
 // null = inte inloggad

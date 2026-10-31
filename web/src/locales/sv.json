@@ -492,6 +492,7 @@
     "default": "Standardsynlighet för nya pass",
     "help": "Sparas automatiskt. Gäller nya manuella pass, FIT-uppladdningar och Strava-importer. Befintliga pass behåller sin synlighet tills du tillämpar valet på alla.",
     "applyAll": "Tillämpa på alla pass",
+    "allMatch": "Alla dina pass har den valda synligheten.",
     "confirm": "Ändra alla befintliga pass till ”{{visibility}}”? Detta ersätter de individuella synlighetsvalen för alla dina pass.",
     "applying": "Tillämpar…",
     "applied": "Alla dina pass har nu denna synlighet.",

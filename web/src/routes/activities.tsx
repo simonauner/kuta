@@ -72,6 +72,7 @@ export function ActivitiesPage() {
     onSuccess: () =>
       Promise.all([
         queryClient.invalidateQueries({ queryKey: ['activities'] }),
+        queryClient.invalidateQueries({ queryKey: ['me'] }),
         queryClient.invalidateQueries({ queryKey: equipmentQuery.queryKey }),
         queryClient.invalidateQueries({ queryKey: lastUsedShoeQuery.queryKey }),
       ]),
