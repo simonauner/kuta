@@ -1,8 +1,8 @@
 @import './theme.css';
+@import './components/footer.css';
 
 :root {
   --link-accent: oklch(0.52 0.17 35);
-  font-family: Arial, Helvetica, sans-serif;
   color: var(--foreground);
   background: var(--background);
   font-synthesis: none;
@@ -74,18 +74,6 @@ figure {
   font-size: 13px;
   font-weight: 600;
 }
-.login-link {
-  background: var(--primary);
-  color: var(--primary-foreground);
-  border-radius: 99px;
-  padding: 13px 22px;
-}
-.login-link span {
-  margin-left: 20px;
-}
-.data-link span {
-  color: var(--link-accent);
-}
 .hero {
   width: min(1392px, calc(100% - 40px));
   margin: 0 auto;
@@ -150,24 +138,26 @@ h1 em {
   line-height: 1.65;
   color: oklch(0.94 0 0);
 }
-.button {
+.button,
+.login-link {
   display: inline-flex;
   align-items: center;
-  justify-content: space-between;
-  gap: 32px;
+  justify-content: center;
+  gap: 8px;
   background: var(--primary);
   color: var(--primary-foreground);
-  border-radius: 99px;
-  padding: 18px 25px;
+  border-radius: calc(var(--radius) - 2px);
+  padding: 8px 16px;
+  min-height: 36px;
   font-size: 14px;
-  font-weight: 700;
-  transition:
-    transform 0.2s,
-    background 0.2s;
+  line-height: 20px;
+  font-weight: 500;
+  white-space: nowrap;
+  transition: background 0.2s;
 }
-.button:hover {
-  background: color-mix(in oklch, var(--primary), black 12%);
-  transform: translateY(-3px);
+.button:hover,
+.login-link:hover {
+  background: color-mix(in oklch, var(--primary) 90%, transparent);
 }
 .hero-actions {
   display: flex;
@@ -191,15 +181,6 @@ h1 em {
   display: flex;
   align-items: center;
   gap: 10px;
-}
-.activity-icon {
-  display: grid;
-  place-items: center;
-  width: 35px;
-  height: 35px;
-  border-radius: 50%;
-  background: var(--accent);
-  font-size: 25px;
 }
 .mock-label {
   display: block;
@@ -329,10 +310,6 @@ h3 {
   align-items: center;
   gap: 20px;
 }
-.feature-tag span {
-  font-size: 20px;
-  color: var(--link-accent);
-}
 .route-demo {
   padding: 38px 34px 30px 15px;
   align-self: center;
@@ -445,15 +422,6 @@ h3 {
   font-size: 17px;
   font-weight: 400;
 }
-.chart-arrow {
-  display: grid;
-  place-items: center;
-  width: 43px;
-  height: 43px;
-  background: var(--muted);
-  font-size: 28px;
-  border-radius: 50%;
-}
 .week-chart svg {
   width: 100%;
   display: block;
@@ -489,11 +457,6 @@ h3 {
   font-size: clamp(52px, 6vw, 76px);
   letter-spacing: -4px;
   line-height: 1.25;
-}
-.record-demo > strong > span {
-  font-size: 40px;
-  font-weight: 400;
-  color: currentColor;
 }
 .record-medal {
   position: absolute;
@@ -601,9 +564,8 @@ h3 {
   margin-block: 23px;
 }
 .join h2 em {
-  font-family: Georgia, 'Times New Roman', serif;
   color: var(--link-accent);
-  font-weight: 400;
+  font-style: normal;
 }
 .join p:last-child {
   font-size: 15px;
@@ -612,26 +574,6 @@ h3 {
 }
 .join .button {
   flex-shrink: 0;
-}
-.site-footer {
-  border-top: 1px solid var(--border);
-  padding-block: 30px;
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  gap: 24px;
-}
-.site-footer .wordmark img {
-  width: 120px;
-}
-.site-footer p,
-.site-footer > a:last-child {
-  font-size: 12px;
-  color: var(--muted-foreground);
-}
-.site-footer p a {
-  text-decoration: underline;
-  text-underline-offset: 3px;
 }
 @media (max-width: 1050px) {
   .hero-content {
@@ -815,19 +757,13 @@ h3 {
   .join p:last-child {
     font-size: 13px;
   }
-  .site-footer {
-    flex-wrap: wrap;
-  }
-  .site-footer p {
-    order: 3;
-    width: 100%;
-  }
 }
 @media (prefers-reduced-motion: reduce) {
   html {
     scroll-behavior: auto;
   }
-  .button {
+  .button,
+  .login-link {
     transition: none;
   }
 }
