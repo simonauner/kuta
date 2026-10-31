@@ -91,7 +91,7 @@ export function Layout() {
       </main>
 
       <footer className="border-t pb-[calc(4rem+env(safe-area-inset-bottom))] md:pb-0">
-        <div className="mx-auto flex max-w-2xl flex-wrap items-center justify-between gap-2 px-4 py-5 text-xs text-muted-foreground">
+        <div className="mx-auto flex max-w-2xl flex-wrap items-start justify-between gap-2 px-4 py-5 text-xs text-muted-foreground">
           <p>© {copyrightYear} Kuta</p>
           <div className="flex flex-col items-start gap-2">
             <a
