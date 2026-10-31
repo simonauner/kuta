@@ -222,3 +222,10 @@ test('activity search keeps a valid year and defaults to all years for invalid v
   for (const year of [undefined, '', null, true, [2024], {}, 'older', 0, 9999, 2024.5])
     assert.deepEqual(activitySearch({ year }), {})
 })
+
+test('activity search preserves supported tags alongside the year', () => {
+  for (const tag of ['race', 'workout', 'long_run', 'easy'])
+    assert.deepEqual(activitySearch({ year: '2026', tag }), { year: 2026, tag })
+  for (const tag of ['', 'unknown', '__proto__', 'toString', ['race'], true, null])
+    assert.deepEqual(activitySearch({ tag }), {})
+})

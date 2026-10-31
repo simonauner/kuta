@@ -1,4 +1,5 @@
 import type { TFunction } from 'i18next'
+import sv from '../locales/sv.json' with { type: 'json' }
 
 export type ActivityTag = keyof typeof import('@/locales/sv.json').tagNames
 
@@ -15,10 +16,17 @@ export type Activity = {
   tags: ActivityTag[]
 }
 
-export function activitySearch(search: Record<string, unknown>): { year?: number } {
+export function activitySearch(search: Record<string, unknown>): {
+  year?: number
+  tag?: ActivityTag
+} {
   const value = search.year
   const year = typeof value === 'number' || typeof value === 'string' ? Number(value) : NaN
-  return Number.isInteger(year) && year >= 1 && year <= 9998 ? { year } : {}
+  const filters: { year?: number; tag?: ActivityTag } = {}
+  if (Number.isInteger(year) && year >= 1 && year <= 9998) filters.year = year
+  if (typeof search.tag === 'string' && Object.hasOwn(sv.tagNames, search.tag))
+    filters.tag = search.tag as ActivityTag
+  return filters
 }
 
 export type ActivityListItem = Activity & { showMonth: boolean; showWeek: boolean }

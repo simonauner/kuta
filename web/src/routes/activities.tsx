@@ -1,4 +1,3 @@
-import { useState } from 'react'
 import { TagLabels } from '@/components/activity-tags'
 import { equipmentQuery } from '@/lib/equipment'
 import { activityTagsQuery } from '@/lib/activity-query'
@@ -11,6 +10,7 @@ import { Button } from '@/components/ui/button'
 import { api } from '@/lib/api'
 import {
   activityTitle,
+  activitySearch,
   formatDuration,
   formatPace,
   groupActivities,
@@ -22,7 +22,7 @@ const route = getRouteApi('/app/activities')
 
 export function ActivitiesPage() {
   const { t, i18n } = useTranslation()
-  const { year } = route.useSearch()
+  const { year, tag } = route.useSearch()
   const navigate = route.useNavigate()
   const dateFormat = new Intl.DateTimeFormat(i18n.resolvedLanguage, {
     dateStyle: 'medium',
@@ -34,7 +34,6 @@ export function ActivitiesPage() {
     maximumFractionDigits: 2,
   })
   const queryClient = useQueryClient()
-  const [tag, setTag] = useState('')
   const tagOptions = useQuery(activityTagsQuery)
   const timeZone = Intl.DateTimeFormat().resolvedOptions().timeZone
   const years = useQuery({
@@ -74,7 +73,9 @@ export function ActivitiesPage() {
       <div className="flex items-center justify-between gap-4">
         <h1 className="text-2xl font-semibold tracking-tight">{t('nav.activities')}</h1>
         <Button asChild size="sm">
-          <Link to="/app/activities/new">{t('newActivity.title')}</Link>
+          <Link to="/app/activities/new" search={{ year, tag }}>
+            {t('newActivity.title')}
+          </Link>
         </Button>
       </div>
       {(availableYears.length > 1 || year !== undefined) && (
@@ -87,7 +88,9 @@ export function ActivitiesPage() {
             className="w-32 rounded-md border bg-background px-3 py-2 text-sm text-foreground"
             value={year ?? ''}
             onChange={(e) =>
-              void navigate({ search: e.target.value ? { year: Number(e.target.value) } : {} })
+              void navigate({
+                search: { year: e.target.value ? Number(e.target.value) : undefined, tag },
+              })
             }
           >
             <option value="">{t('activities.allYears')}</option>
@@ -119,8 +122,10 @@ export function ActivitiesPage() {
         {t('tags.label')}
         <select
           className="w-44 rounded-md border bg-background px-3 py-2"
-          value={tag}
-          onChange={(e) => setTag(e.currentTarget.value)}
+          value={tag ?? ''}
+          onChange={(e) =>
+            void navigate({ search: activitySearch({ year, tag: e.currentTarget.value }) })
+          }
         >
           <option value="">{t('tags.all')}</option>
           {tagOptions.data?.map((value) => (
@@ -166,7 +171,7 @@ export function ActivitiesPage() {
                       <Link
                         to="/app/activities/$activityId"
                         params={{ activityId: a.id }}
-                        search={{ year }}
+                        search={{ year, tag }}
                         className="inline-block font-medium underline-offset-2 hover:underline"
                         style={{ viewTransitionName: `activity-title-${a.id}` }}
                       >

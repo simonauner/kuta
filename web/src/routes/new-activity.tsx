@@ -1,6 +1,6 @@
 import { Modal } from '@/components/ui/modal'
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
-import { useNavigate } from '@tanstack/react-router'
+import { useNavigate, useSearch } from '@tanstack/react-router'
 import { useId, useRef, useState, type FormEvent, type ReactNode } from 'react'
 import { useTranslation } from 'react-i18next'
 import { BackLink } from '@/components/back-link'
@@ -43,6 +43,7 @@ const knownSport = (sport: string) =>
 export function NewActivityPage() {
   const { t, i18n } = useTranslation()
   const navigate = useNavigate()
+  const search = useSearch({ from: '/app/activities/new' })
   const queryClient = useQueryClient()
   const { data: me } = useQuery(meQuery)
   const shoes = useQuery(equipmentQuery)
@@ -131,7 +132,11 @@ export function NewActivityPage() {
         queryClient.invalidateQueries({ queryKey: lastUsedShoeQuery.queryKey }),
         queryClient.invalidateQueries({ queryKey: equipmentQuery.queryKey }),
       ])
-      await navigate({ to: '/app/activities/$activityId', params: { activityId: activity.id } })
+      await navigate({
+        to: '/app/activities/$activityId',
+        params: { activityId: activity.id },
+        search,
+      })
     },
   })
 

@@ -150,6 +150,8 @@ passet eller kopplingarna ändras. API:t använder SI-enheter; webben visar kilo
 Ett pass kan ha flera taggar: `race` (Lopp), `workout` (Intervaller/kvalitet),
 `long_run` (Långpass) och `easy` (Lugnt). Välj dem vid manuell registrering eller
 FIT-uppladdning, ändra dem på passsidan och filtrera passlistan efter en tagg.
+Listans taggfilter sparas i URL:en (`/app/activities?tag=race`), kan kombineras
+med `year` och följer med till pass, skapandeformulär och tillbaka till listan.
 
 `activities.tags` är `text[]`, med tom array som standard och GIN-index.
 API:t validerar mot `ActivityInput.Tags` och tar bort dubbletter; databasen har
