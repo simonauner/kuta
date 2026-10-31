@@ -1,7 +1,29 @@
 import assert from 'node:assert/strict'
 import { test } from 'node:test'
 import { partStreams } from '../src/lib/multisport.ts'
-import { formatSportPace } from '../src/lib/activity.ts'
+import { formatSportPace, routeSegments } from '../src/lib/activity.ts'
+
+test('selecting a sport part preserves hidden GPS gaps at interpolated boundaries', () => {
+  const streams = {
+    t: [0, 100, 200, 300],
+    dist: [0, 1000, 2000, 3000],
+    lat: [59, null, 61, 62],
+    lon: [17, null, 19, 20],
+    hr: null,
+    speed: null,
+    alt: null,
+    cadence: null,
+    temp: null,
+  }
+  const part = partStreams(streams, { startS: 50, endS: 250 })
+  assert.deepEqual(part.lat, [null, null, 61, 61.5])
+  assert.deepEqual(routeSegments(part), [
+    [
+      [19, 61],
+      [19.5, 61.5],
+    ],
+  ])
+})
 
 test('cut endpoints interpolate channels and rebase time and distance for splits', () => {
   const streams = {
