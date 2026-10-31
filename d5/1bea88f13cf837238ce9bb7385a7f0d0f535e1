@@ -1,0 +1,75 @@
+web/src/lib/activity-query.ts
+  s_cd3912a9286307::t_3be1ad449719bb 34-40
+web/src/routes/profile.tsx
+  s_cd3912a9286307::t_3be1ad449719bb 6,33-35
+api/Kuta.Api/Migrations/019_training_load.sql
+  s_cd3912a9286307::t_3be1ad449719bb 1-7
+web/src/components/onboarding-actions.tsx
+  s_cd3912a9286307::t_3be1ad449719bb 1-29
+web/src/locales/en.json
+  s_cd3912a9286307::t_3be1ad449719bb 37-47,66-87,140-150,354,673-688
+web/src/routes/activities.tsx
+  s_cd3912a9286307::t_3be1ad449719bb 6,8,11,47,66-73,97-103,106,115,154-199,207-215
+api/Kuta.Api.Tests/TrainingLoadTests.cs
+  s_cd3912a9286307::t_3be1ad449719bb 1-76
+api/Kuta.Api.Tests/TrainingLoadsTests.cs
+  s_cd3912a9286307::t_3be1ad449719bb 1-68
+web/src/components/activity-feed.tsx
+  s_cd3912a9286307::t_3be1ad449719bb 2,27-33,65-72
+api/Kuta.Api/DataExport.cs
+  s_cd3912a9286307::t_3be1ad449719bb 37-38,95-96
+web/tests/feed-empty-state.test.mjs
+  s_cd3912a9286307::t_3be1ad449719bb 32,40-42,71-76
+AGENTS.md
+  s_cd3912a9286307::t_3be1ad449719bb 68
+web/src/components/feed-empty-state.tsx
+  s_cd3912a9286307::t_3be1ad449719bb 3,7
+  s_cd3912a9286307::t_e6af97a7a7d947 46,58
+web/src/routes/stats.tsx
+  s_cd3912a9286307::t_3be1ad449719bb 7,9,14,38-39,41,69-80,268
+api/Kuta.Api.Tests/BestEffortTests.cs
+  s_cd3912a9286307::t_3be1ad449719bb 41-52,96-98,128-129
+api/Kuta.Api/TrainingLoad.cs
+  s_cd3912a9286307::t_3be1ad449719bb 1-92
+web/src/lib/training-load.ts
+  s_cd3912a9286307::t_3be1ad449719bb 1-62
+README.md
+  s_cd3912a9286307::t_3be1ad449719bb 29,193-217
+  s_cd3912a9286307::t_ba12015d906ca5 218
+api/Kuta.Api/TrainingLoads.cs
+  s_cd3912a9286307::t_3be1ad449719bb 1-51
+web/src/locales/sv.json
+  s_cd3912a9286307::t_3be1ad449719bb 37-47,66-87,140-150,354,673-688
+web/src/components/activities-empty-state.tsx
+  s_cd3912a9286307::t_3be1ad449719bb 1-90
+web/src/components/training-load.tsx
+  s_cd3912a9286307::t_3be1ad449719bb 1-264
+api/Kuta.Api/RacePredictor.cs
+  s_cd3912a9286307::t_3be1ad449719bb 27-38
+web/tests/training-load.test.mjs
+  s_cd3912a9286307::t_3be1ad449719bb 1-33
+api/Kuta.Api/Program.cs
+  s_cd3912a9286307::t_3be1ad449719bb 45-47
+api/Kuta.Api/BestEffortEndpoints.cs
+  s_cd3912a9286307::t_3be1ad449719bb 82-105
+web/tests/activities-empty-state.test.mjs
+  s_cd3912a9286307::t_3be1ad449719bb 1-116
+api/Kuta.Api/BestEfforts.cs
+  s_cd3912a9286307::t_3be1ad449719bb 7,11-13
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.7.5",
+  "base_commit_sha": "d51bea88f13cf837238ce9bb7385a7f0d0f535e1",
+  "prompts": {},
+  "sessions": {
+    "s_cd3912a9286307": {
+      "agent_id": {
+        "tool": "codex",
+        "id": "01a19402-c0b0-7051-9d67-3ace18448461",
+        "model": "gpt-6.1-sol"
+      },
+      "human_author": "Simon Aunér <simonauner@gmail.com>"
+    }
+  }
+}
