@@ -1,0 +1,40 @@
+web/src/routes/profile.tsx
+  s_2bed949ab0916a::t_9d2921fd6114f1 1,3,8,21-22
+web/src/routes/settings.tsx
+  s_2bed949ab0916a::t_9d2921fd6114f1 89
+web/src/components/strava-import.tsx
+  s_2bed949ab0916a::t_9d2921fd6114f1 39-40
+  s_2bed949ab0916a::t_c206845adc7e30 35-38,41-42
+web/src/components/activity-feed.tsx
+  s_2bed949ab0916a::t_9d2921fd6114f1 1,58-63
+README.md
+  s_2bed949ab0916a::t_9d2921fd6114f1 29-30
+web/src/locales/sv.json
+  s_2bed949ab0916a::t_9d2921fd6114f1 13-23
+web/src/routes/new-activity.tsx
+  s_2bed949ab0916a::t_9d2921fd6114f1 151
+web/src/locales/en.json
+  s_2bed949ab0916a::t_9d2921fd6114f1 13-23
+web/src/components/feed-empty-state.tsx
+  s_2bed949ab0916a::t_528b494a125c2a 1-80
+web/src/components/share-profile.tsx
+  s_2bed949ab0916a::t_72de714c778ddd 1-54
+web/tests/feed-empty-state.test.mjs
+  s_2bed949ab0916a::t_49428d8cb5278a 1-90
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.7.5",
+  "base_commit_sha": "66177fb6677df407b691386142ab0fa62fc4cdea",
+  "prompts": {},
+  "sessions": {
+    "s_2bed949ab0916a": {
+      "agent_id": {
+        "tool": "codex",
+        "id": "01a193e6-a019-7743-9719-dd20a107eb93",
+        "model": "gpt-6.1-sol"
+      },
+      "human_author": "Simon Aunér <simonauner@gmail.com>"
+    }
+  }
+}
