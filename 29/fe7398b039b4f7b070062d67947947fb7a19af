@@ -1,0 +1,19 @@
+web/src/components/multisport-editor.tsx
+  s_bcec312a97abae::t_ce7927d26cc1ed 40
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.7.5",
+  "base_commit_sha": "29fe7398b039b4f7b070062d67947947fb7a19af",
+  "prompts": {},
+  "sessions": {
+    "s_bcec312a97abae": {
+      "agent_id": {
+        "tool": "codex",
+        "id": "01a1942c-bbd4-7f93-9403-de2964ee138d",
+        "model": "gpt-6.1-sol"
+      },
+      "human_author": "Simon Aunér <simonauner@gmail.com>"
+    }
+  }
+}
