@@ -1,0 +1,68 @@
+web/src/components/multisport-editor.tsx
+  s_ece5f4cbd15b54::t_5e657d2d6009a0 202
+  s_ece5f4cbd15b54::t_e7af81cbb25041 1,105-124,166-169,171-189,198-201,203-267,269-272,275,278,280-281
+web/tests/form-field.test.mjs
+  s_ece5f4cbd15b54::t_d8b991338533a5 55
+  s_ece5f4cbd15b54::t_5e657d2d6009a0 37,42
+  s_ece5f4cbd15b54::t_bc5a536eebdfc9 1-36,43-52,54,56-59
+  s_ece5f4cbd15b54::t_b7c40573ee2d7a 38-41
+  s_ece5f4cbd15b54::t_d3f075396051eb 53
+web/src/routes/auth.tsx
+  s_ece5f4cbd15b54::t_59e8f9701495d5 93-95,97-108,183-194,230-234
+  s_ece5f4cbd15b54::t_014ab4e7e2aad2 8
+web/src/components/heart-rate-consent.tsx
+  s_ece5f4cbd15b54::t_5e657d2d6009a0 36
+  s_ece5f4cbd15b54::t_75d1b8d8f27929 1,5,34-35,37-55
+web/src/components/records.tsx
+  s_ece5f4cbd15b54::t_5e657d2d6009a0 139
+  s_ece5f4cbd15b54::t_a29ee9c3e6a5c3 1,136-138,140-155
+web/src/routes/stats.tsx
+  s_ece5f4cbd15b54::t_5e657d2d6009a0 151
+  s_ece5f4cbd15b54::t_8cca9a986a380f 1,72-104,148-150,152-167
+AGENTS.md
+  s_ece5f4cbd15b54::t_5e657d2d6009a0 120
+web/src/components/goals.tsx
+  s_ece5f4cbd15b54::t_59e8f9701495d5 275-277,316,329-332,342-346,359-362,376,379-381,401
+  s_ece5f4cbd15b54::t_66198abe6560f4 1,274,278-307,309,315,317-328,333-341,347-358,363-373,375,377-378,382-400,402
+web/src/components/ui/form-field.tsx
+  s_ece5f4cbd15b54::t_d8b991338533a5 3-45
+  s_ece5f4cbd15b54::t_0074206c0d2129 1-2,46-51
+web/src/components/activity-privacy.tsx
+  s_ece5f4cbd15b54::t_338ac75d91b6bc 1,43-65
+web/src/components/activity-tags.tsx
+  s_ece5f4cbd15b54::t_98ac7f02f557b0 1,24,26-28,30-42
+web/src/components/danger-zone.tsx
+  s_ece5f4cbd15b54::t_1a32656c06c7fe 1,92-104
+web/src/components/equipment.tsx
+  s_ece5f4cbd15b54::t_0e5d70f9978fc7 1,229-253,255-270,273-297,399-443,447,449-451,453-467
+web/src/components/language-select.tsx
+  s_ece5f4cbd15b54::t_5ecf1c26b4dafa 1,7-25
+web/src/components/privacy-places.tsx
+  s_ece5f4cbd15b54::t_cb8924f87ecfdb 1,210-222,253-289,291,293-295,297-298,300-301
+web/src/components/strava-import.tsx
+  s_ece5f4cbd15b54::t_0a9900fe840653 1,79-92
+web/src/routes/activities.tsx
+  s_ece5f4cbd15b54::t_35ccfde7586545 1,105-128,143-180
+web/src/routes/edit-activity.tsx
+  s_ece5f4cbd15b54::t_174f5c99b4d989 1,89-133
+web/src/routes/new-activity.tsx
+  s_ece5f4cbd15b54::t_cfbb028e344a35 1,13,232,242-243,254-255,271-272,309,315,326-327,342-343,356-357,370,372,385,451-474,510-520
+web/src/routes/profile.tsx
+  s_ece5f4cbd15b54::t_2ecc909d779d1b 1,55-64
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.7.5",
+  "base_commit_sha": "37bbda407d6f4f452fad4213444f378467e34973",
+  "prompts": {},
+  "sessions": {
+    "s_ece5f4cbd15b54": {
+      "agent_id": {
+        "tool": "codex",
+        "id": "01a192bd-a56c-7721-a2ca-666c8919a186",
+        "model": "gpt-6.1-sol"
+      },
+      "human_author": "Simon Aunér <simonauner@gmail.com>"
+    }
+  }
+}
