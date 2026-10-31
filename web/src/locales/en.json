@@ -28,6 +28,7 @@
     "method": "Time includes pauses. Pace is total time per kilometre for activities with distance and time. Lower pace means faster speed. Heart rate is weighted by activity duration, using only activities with saved heart rate. Missing values appear as –. All sports also combines pace and heart rate across sports. Months follow your device’s time zone."
   },
   "records": {
+    "bestEfforts": "Best efforts",
     "title": "Running records",
     "description": "Best efforts from your runs with recorded data from a file. Time includes pauses.",
     "empty": "No records yet. Records come from runs uploaded from a file with distance data.",

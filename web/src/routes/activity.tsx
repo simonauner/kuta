@@ -17,11 +17,14 @@ import { ActivityMap } from '@/components/activity-map'
 import { ErrorMessage } from '@/components/error-message'
 import { ApiError } from '@/lib/api'
 import { activityQuery } from '@/lib/activity-query'
+import { api } from '@/lib/api'
+import { recordMeters, type RecordDistance, type StoredBestEffort } from '@/lib/records'
 import {
   activityTitle,
   chartAxis,
   average,
   formatDuration,
+  formatPace,
   formatSportPace,
   splits,
   routeSegments,
@@ -45,12 +48,35 @@ export function ActivityPage() {
   const { year, tag } = useSearch({ from: '/app/activities/$activityId' })
   const { data: me } = useQuery(meQuery)
   const equipment = useQuery(equipmentQuery)
-  const [openPanel, setOpenPanel] = useState<'laps' | 'splits' | null>(null)
+  const [openPanel, setOpenPanel] = useState<'laps' | 'splits' | 'efforts' | null>(null)
   const lapsOpen = openPanel === 'laps'
   const splitsOpen = openPanel === 'splits'
+  const effortsOpen = openPanel === 'efforts'
   const lapsId = useId()
   const splitsId = useId()
+  const effortsId = useId()
   const activity = useQuery(activityQuery(activityId))
+  const bestEfforts = useQuery({
+    queryKey: ['records', 'activity', activityId],
+    queryFn: () => api.get<StoredBestEffort[]>(`/api/activities/${activityId}/best-efforts`),
+    enabled: activity.isSuccess,
+  })
+  // Rekordmärkning bara för egna pass: /api/records gäller inloggad användares rekord.
+  const recordYear = activity.data && new Date(activity.data.startedAt).getUTCFullYear()
+  const hasEfforts = !!bestEfforts.data?.length
+  const ownEfforts = hasEfforts && activity.data?.userId === me?.id
+  const personalBests = useQuery({
+    queryKey: ['records'],
+    queryFn: () => api.get<StoredBestEffort[]>('/api/records'),
+    enabled: ownEfforts,
+  })
+  const yearBests = useQuery({
+    queryKey: ['records', 'year', recordYear],
+    queryFn: () => api.get<StoredBestEffort[]>(`/api/records?year=${recordYear}`),
+    enabled: ownEfforts,
+  })
+  const holds = (records: StoredBestEffort[] | undefined, e: StoredBestEffort) =>
+    !!records?.some((r) => r.activityId === e.activityId && r.distanceM === e.distanceM)
   const [selection, setSelection] = useState<{ id: string; part: ActivityPart | null } | null>(null)
   const selectedPart = selection?.id === activityId ? selection.part : null
   const selectedSport = selectedPart?.sport ?? activity.data?.sport
@@ -199,6 +225,42 @@ export function ActivityPage() {
     </table>
   )
 
+  const effortTable = hasEfforts && (
+    <table className="w-full text-sm tabular-nums">
+      <thead className="text-left text-xs text-muted-foreground">
+        <tr>
+          <th className="py-1 font-normal">{t('records.distance')}</th>
+          <th className="py-1 font-normal">{t('records.time')}</th>
+          <th className="py-1 font-normal">{t('activity.pace')}</th>
+          <th className="py-1 font-normal">
+            <span className="sr-only">{t('records.title')}</span>
+          </th>
+        </tr>
+      </thead>
+      <tbody className="divide-y">
+        {bestEfforts.data!.map((e) => {
+          const badge = holds(personalBests.data, e)
+            ? t('records.personalBest')
+            : holds(yearBests.data, e) && t('records.yearBest', { year: recordYear })
+          return (
+            <tr key={e.distanceM}>
+              <td className="py-1.5">{t(`records.distances.${e.distanceM as RecordDistance}`)}</td>
+              <td className="py-1.5">{formatDuration(Math.round(e.elapsedS))}</td>
+              <td className="py-1.5">{formatPace(e.elapsedS, recordMeters(e.distanceM))}</td>
+              <td className="py-1.5 text-right">
+                {badge && (
+                  <span className="rounded-full bg-primary px-2 py-0.5 text-xs text-primary-foreground">
+                    {badge}
+                  </span>
+                )}
+              </td>
+            </tr>
+          )
+        })}
+      </tbody>
+    </table>
+  )
+
   return (
     <section>
       {original.userId === me?.id ? (
@@ -326,9 +388,9 @@ export function ActivityPage() {
         ))}
       </dl>
 
-      {((!mixed && a.laps.length > 0) || (view && view.splits.length > 0)) && (
+      {((!mixed && a.laps.length > 0) || (view && view.splits.length > 0) || hasEfforts) && (
         <div className="mt-8">
-          <div className="flex gap-2">
+          <div className="flex flex-wrap gap-2">
             {!mixed && a.laps.length > 0 && (
               <Button
                 id={`${lapsId}-toggle`}
@@ -358,6 +420,22 @@ export function ActivityPage() {
                 <ChevronDown
                   aria-hidden="true"
                   className={`transition-transform duration-250 motion-reduce:transition-none ${splitsOpen ? 'rotate-180' : ''}`}
+                />
+              </Button>
+            )}
+            {hasEfforts && (
+              <Button
+                id={`${effortsId}-toggle`}
+                type="button"
+                variant="outline"
+                aria-expanded={effortsOpen}
+                aria-controls={effortsId}
+                onClick={() => setOpenPanel((open) => (open === 'efforts' ? null : 'efforts'))}
+              >
+                {t('records.bestEfforts')}
+                <ChevronDown
+                  aria-hidden="true"
+                  className={`transition-transform duration-250 motion-reduce:transition-none ${effortsOpen ? 'rotate-180' : ''}`}
                 />
               </Button>
             )}
@@ -445,6 +523,26 @@ export function ActivityPage() {
               </div>
             </div>
           )}
+
+          {hasEfforts && (
+            <div
+              id={effortsId}
+              aria-hidden={!effortsOpen}
+              inert={!effortsOpen}
+              className={`grid transition-[grid-template-rows] duration-250 ease-out motion-reduce:transition-none ${effortsOpen ? 'grid-rows-[1fr]' : 'grid-rows-[0fr]'}`}
+            >
+              <div className="min-h-0 overflow-hidden">
+                <div
+                  role="region"
+                  aria-labelledby={`${effortsId}-toggle`}
+                  tabIndex={effortsOpen ? 0 : -1}
+                  className="mt-3 max-h-[min(16rem,25svh)] overflow-auto overscroll-contain rounded-lg border px-3 focus-visible:outline-2 focus-visible:outline-ring [&_thead]:sticky [&_thead]:top-0 [&_thead]:bg-background"
+                >
+                  {effortTable}
+                </div>
+              </div>
+            </div>
+          )}
         </div>
       )}
 
@@ -471,6 +569,13 @@ export function ActivityPage() {
         <div className="mt-8">
           <h2 className="mb-2 text-lg font-semibold">{t('activity.splits')}</h2>
           {splitTable}
+        </div>
+      )}
+
+      {hasEfforts && (
+        <div className="mt-8">
+          <h2 className="mb-2 text-lg font-semibold">{t('records.bestEfforts')}</h2>
+          {effortTable}
         </div>
       )}
     </section>
