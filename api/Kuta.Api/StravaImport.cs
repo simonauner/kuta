@@ -49,13 +49,7 @@ public static class StravaImport
                 throw new InvalidDataException("Invalid filename.");
             var title = Field("Activity Name");
             if (title.Length > 500) throw new InvalidDataException("Title too long.");
-            var sport = Field("Activity Type") switch
-            {
-                "Run" or "Trail Run" or "Virtual Run" => "running",
-                "Ride" or "Virtual Ride" or "E-Bike Ride" => "cycling",
-                "Walk" => "walking", "Hike" => "hiking", "Swim" => "swimming",
-                var other => other.ToLowerInvariant(),
-            };
+            var sport = ActivitySports.FromStrava(Field("Activity Type"));
             if (sport.Length is 0 or > 100) throw new InvalidDataException("Invalid sport.");
             var duration = Seconds("Elapsed Time");
             var moving = Number("Moving Time") is { } m ? checked((int)Math.Round(m)) : (int?)null;

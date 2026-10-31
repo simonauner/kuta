@@ -22,7 +22,7 @@ public class ActivityInputTests
     public static TheoryData<ManualActivityRequest> Invalid => new()
     {
         Valid with { Sport = null },
-        Valid with { Sport = "swimming" },
+        Valid with { Sport = "unknown" },
         Valid with { StartedAt = null },
         Valid with { StartedAt = Now.AddDays(2) },
         Valid with { DurationS = 0 },

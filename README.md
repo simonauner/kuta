@@ -181,6 +181,11 @@ Alla anrop kräver inloggning och gäller bara egna pass. Skapande tar `tags` so
 JSON-array för manuella pass eller upprepade formulärfält för FIT. Ändra med
 `PUT /api/activities/{id}/tags`, exempelvis `{"tags":["race","workout"]}`; tom array
 tar bort alla taggar. Skrivningar kräver `X-CSRF-TOKEN`.
+
+### Träningsformer
+
+Träningsformen visas med en ikon efter titeln i passlistan och på passidan, med översatt namn som skärmläsaretikett och vid hovring. Efter år och taggar finns ett filter för träningsform. År, tagg och träningsform bevaras i URL:en mellan passlista, passida och formulär. `GET /api/activities?sport=cycling&tag=race&year=2013` kombinerar filtren före sidindelning och beräkning av periodrubriker. Sportvärdena finns i `ActivitySports` (API) och `web/src/lib/sports.ts` (webb); sportval och översättningar täcker Stravas träningsformer samt Annat.
+
 `GET /api/activities?tag=race` filtrerar före sidindelningen på 25 pass. Sidmarkörer och periodrubriker gäller det filtrerade urvalet.
 `GET /api/records?tag=race&year=2026` ger bästa insatsen per distans i lopp under
 UTC-året; utelämnat år ger personbästa i lopp. Filtren använder
@@ -224,6 +229,8 @@ och kontrollerar import, omberäkning, årsskifte, kaskadradering, CSRF och äga
 ## Importera en Strava-export
 
 Öppna **Profil → Inställningar** via kugghjulet. Under **Importera från Strava** väljer du Stravas kompletta ZIP-export (högst 500 MB) och trycker **Importera pass**. Ta ställning till pulssamtycket först. Låt sidan vara öppen medan importen körs; stora arkiv kan ta flera minuter. Exporten måste innehålla `activities.csv` i roten och filerna på sökvägarna i kolumnen `Filename`.
+
+Träningsformen bevaras även för exempelvis terränglöpning, elcykling och virtuella pass. Namn från Stravas CSV och kompakta sportnamn normaliseras vid importen; okända framtida namn sparas också. Äldre importer slog ihop Run/Trail Run/Virtual Run respektive Ride/Virtual Ride/E-Bike Ride. Dessa redan sparade pass får ikonen för sin sparade sport; återimport av dubbletter ändrar inte sporten. Rekord beräknas för löpning, terränglöpning och virtuell löpning.
 
 Importen behåller passnamn, sport, starttid (UTC), distans i meter, tid och tillgängliga sammanfattningar från CSV. FIT och GPX, inklusive `.fit.gz` och `.gpx.gz`, ger tidsserier och rutter. Pass utan aktivitetsfil får en sammanfattning utan rutt. GPX-avstånd beräknas från GPS-punkterna; CSV-distansen behålls i sammanfattningen, så de kan skilja sig. Foton, kontakter, privata anteckningar och cyklar importeras inte. Detta använder användarens arkiv, utan anslutning till Stravas API.
 

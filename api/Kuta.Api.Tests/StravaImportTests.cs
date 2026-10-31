@@ -12,6 +12,40 @@ using static TestSession;
 
 public class StravaParserTests
 {
+    [Theory]
+    [InlineData("Ride", "cycling")]
+    [InlineData("Trail Run", "trail run")]
+    [InlineData("Virtual Run", "virtual run")]
+    [InlineData("E-Bike Ride", "e-bike ride")]
+    [InlineData("MountainBikeRide", "mountain bike ride")]
+    [InlineData("EMountainBikeRide", "e-mountain bike ride")]
+    [InlineData("HighIntensityIntervalTraining", "hiit")]
+    [InlineData("VirtualRow", "virtual rowing")]
+    [InlineData("Football (Soccer)", "soccer")]
+    [InlineData("Physical Therapy", "physical therapy")]
+    [InlineData("Future Sport", "future sport")]
+    public void Csv_preserves_sport_variants_and_unknown_sports(string type, string expected)
+    {
+        using var csv = new MemoryStream(Encoding.UTF8.GetBytes(StravaFixture.Csv(
+            StravaFixture.Row("1", "").Replace(",Run,", $",{type},"))));
+        Assert.Equal(expected, Assert.Single(StravaImport.ReadManifest(csv)).Summary.Sport);
+    }
+
+    [Fact]
+    public void Every_supported_sport_can_be_selected_and_imported()
+    {
+        foreach (var sport in ActivitySports.All)
+        {
+            Assert.Null(ActivityInput.ValidateSport(sport));
+            // Import also accepts the stored spelling, except Kuta's base sport names.
+            if (sport is not ("running" or "cycling" or "walking" or "hiking" or "swimming"))
+                Assert.Equal(sport, ActivitySports.FromStrava(sport));
+        }
+        Assert.True(ActivitySports.IsRunning("trail run"));
+        Assert.True(ActivitySports.IsRunning("virtual run"));
+        Assert.False(ActivitySports.IsRunning("virtual ride"));
+    }
+
     [Fact]
     public void Csv_uses_SI_columns_and_preserves_quoted_multiline_titles()
     {
