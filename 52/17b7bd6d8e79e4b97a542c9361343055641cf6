@@ -1,0 +1,21 @@
+web/public/favicon.svg
+  s_9202c7b44b97a1::t_eb9e7bbb6c0e0e 1
+web/src/components/layout.tsx
+  s_9202c7b44b97a1::t_22276a04b8978b 49,51-54
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.7.5",
+  "base_commit_sha": "5217b7bd6d8e79e4b97a542c9361343055641cf6",
+  "prompts": {},
+  "sessions": {
+    "s_9202c7b44b97a1": {
+      "agent_id": {
+        "tool": "codex",
+        "id": "01a18f9d-dced-7381-af5e-640ebf435a2d",
+        "model": "gpt-6.1-sol"
+      },
+      "human_author": "Simon Aunér <simonauner@gmail.com>"
+    }
+  }
+}
