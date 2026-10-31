@@ -1,3 +1,4 @@
+import { SlowLoading } from '@/components/slow-loading'
 import { FeedEmptyState } from '@/components/feed-empty-state'
 import { ActivityMapPreview } from '@/components/activity-map-preview'
 import { useInfiniteQuery } from '@tanstack/react-query'
@@ -45,8 +46,7 @@ export function ActivityFeed({ runnerId }: { runnerId?: string }) {
     timeStyle: 'short',
   })
   return (
-    <>
-      {feed.isPending && <p role="status">{t('social.loading')}</p>}
+    <SlowLoading loading={feed.isPending}>
       {feed.error && (
         <div role="alert">
           <ErrorMessage error={feed.error} />
@@ -102,6 +102,6 @@ export function ActivityFeed({ runnerId }: { runnerId?: string }) {
           {t('activities.loadOlder')}
         </Button>
       )}
-    </>
+    </SlowLoading>
   )
 }

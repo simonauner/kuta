@@ -1,3 +1,4 @@
+import { SlowLoading } from '@/components/slow-loading'
 import { FormField } from '@/components/ui/form-field'
 import { lazy, Suspense, useEffect, useRef, useState } from 'react'
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
@@ -46,55 +47,52 @@ export function PrivacyPlaces() {
         </Button>
       </div>
       <p className="mt-2 text-sm text-muted-foreground">{t('privacyPlaces.help')}</p>
-      {places.isPending && (
-        <p role="status" className="mt-3 text-sm">
-          {t('privacyPlaces.loading')}
-        </p>
-      )}
-      {places.error && (
-        <p role="alert" className="mt-3 text-sm text-destructive">
-          <ErrorMessage error={places.error} />
-        </p>
-      )}
-      {places.data?.length === 0 && (
-        <p className="mt-4 text-sm text-muted-foreground">{t('privacyPlaces.empty')}</p>
-      )}
-      <ul className="mt-4 divide-y">
-        {places.data?.map((place) => (
-          <li key={place.id} className="flex flex-wrap items-center justify-between gap-3 py-3">
-            <div className="min-w-0">
-              <p className="break-words font-medium">{place.name}</p>
-              <p className="text-sm text-muted-foreground">
-                {t('privacyPlaces.radiusValue', {
-                  radius: new Intl.NumberFormat(i18n.resolvedLanguage).format(place.radiusM),
-                })}
-              </p>
-            </div>
-            <div className="flex gap-2">
-              <Button
-                size="sm"
-                variant="outline"
-                aria-label={t('privacyPlaces.editNamed', { name: place.name })}
-                onClick={() => setEditing(place)}
-              >
-                {t('privacyPlaces.edit')}
-              </Button>
-              <Button
-                size="sm"
-                variant="outline"
-                aria-label={t('privacyPlaces.deleteNamed', { name: place.name })}
-                onClick={() => {
-                  setDeleting(place)
-                  remove.reset()
-                  deleteDialog.current?.showModal()
-                }}
-              >
-                {t('privacyPlaces.delete')}
-              </Button>
-            </div>
-          </li>
-        ))}
-      </ul>
+      <SlowLoading loading={places.isPending}>
+        {places.error && (
+          <p role="alert" className="mt-3 text-sm text-destructive">
+            <ErrorMessage error={places.error} />
+          </p>
+        )}
+        {places.data?.length === 0 && (
+          <p className="mt-4 text-sm text-muted-foreground">{t('privacyPlaces.empty')}</p>
+        )}
+        <ul className="mt-4 divide-y">
+          {places.data?.map((place) => (
+            <li key={place.id} className="flex flex-wrap items-center justify-between gap-3 py-3">
+              <div className="min-w-0">
+                <p className="break-words font-medium">{place.name}</p>
+                <p className="text-sm text-muted-foreground">
+                  {t('privacyPlaces.radiusValue', {
+                    radius: new Intl.NumberFormat(i18n.resolvedLanguage).format(place.radiusM),
+                  })}
+                </p>
+              </div>
+              <div className="flex gap-2">
+                <Button
+                  size="sm"
+                  variant="outline"
+                  aria-label={t('privacyPlaces.editNamed', { name: place.name })}
+                  onClick={() => setEditing(place)}
+                >
+                  {t('privacyPlaces.edit')}
+                </Button>
+                <Button
+                  size="sm"
+                  variant="outline"
+                  aria-label={t('privacyPlaces.deleteNamed', { name: place.name })}
+                  onClick={() => {
+                    setDeleting(place)
+                    remove.reset()
+                    deleteDialog.current?.showModal()
+                  }}
+                >
+                  {t('privacyPlaces.delete')}
+                </Button>
+              </div>
+            </li>
+          ))}
+        </ul>
+      </SlowLoading>
       {editing !== undefined && (
         <PlaceEditor place={editing} onClose={() => setEditing(undefined)} />
       )}

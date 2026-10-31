@@ -7,7 +7,7 @@
     "main": "Main navigation"
   },
   "language": "Language",
-  "slowLoading": "This is taking longer than expected",
+  "slowLoading": "This is taking unusually long...",
   "connectionError": "Could not reach Kuta. Check your connection and reload the page.",
   "feed": {
     "welcomeTitle": "Time for your first activity",
