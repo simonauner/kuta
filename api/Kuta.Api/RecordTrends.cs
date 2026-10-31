@@ -14,14 +14,19 @@ public static class RecordTrends
     {
         return await conn.QueryAsync<ActivityBestEffort>("""
             select activity_id, distance_m, elapsed_s, start_offset_s, achieved_at,
-                case when user_id = @userId and (previous_best is null or elapsed_s < previous_best)
+                case when user_id = @userId and not exclude_from_records
+                    and (previous_best is null or elapsed_s < previous_best)
                     then case when elapsed_s = personal_best then 'current' else 'previous' end
                 end as record_status
             from (
-                select *, min(elapsed_s) over (partition by user_id, distance_m order by achieved_at, activity_id
+                select b.*, a.exclude_from_records,
+                    min(b.elapsed_s) filter (where not a.exclude_from_records)
+                    over (partition by b.user_id, b.distance_m order by b.achieved_at, b.activity_id
                     rows between unbounded preceding and 1 preceding) as previous_best,
-                    min(elapsed_s) over (partition by user_id, distance_m) as personal_best
-                from best_efforts where user_id = @userId or activity_id = @activityId
+                    min(b.elapsed_s) filter (where not a.exclude_from_records)
+                    over (partition by b.user_id, b.distance_m) as personal_best
+                from best_efforts b join activities a on a.id = b.activity_id
+                where b.user_id = @userId or b.activity_id = @activityId
             ) e
             where activity_id = @activityId order by distance_m
             """, new { activityId, userId });
