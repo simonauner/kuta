@@ -1,3 +1,5 @@
+import { knownSport, sportIcons } from '@/lib/sports'
+import { SportIcon } from '@/components/sport-icon'
 import { useQuery } from '@tanstack/react-query'
 import { useParams } from '@tanstack/react-router'
 import { useMemo, useState } from 'react'
@@ -93,7 +95,7 @@ export function ActivityPage() {
     timeStyle: 'short',
   })
   // Kadens i steg/min för löpning och gång, varv/min för cykling (så lagras den, se FitImport)
-  const cadenceUnit = a.sport === 'cycling' ? 'rpm' : 'spm'
+  const cadenceUnit = sportIcons[knownSport(a.sport)] === 'bike' ? 'rpm' : 'spm'
   const cadence = average(a.streams?.cadence ?? null)
   const temp = average(a.streams?.temp ?? null)
   const stats = [
@@ -112,10 +114,15 @@ export function ActivityPage() {
     <section>
       <BackLink />
       <p className="mt-4 text-sm text-muted-foreground">{when.format(new Date(a.startedAt))}</p>
-      <h1 className="mt-1 text-2xl font-semibold tracking-tight">
+      <h1 className="mt-1 flex items-center gap-3 text-2xl font-semibold tracking-tight">
         <span className="inline-block" style={{ viewTransitionName: `activity-title-${a.id}` }}>
           {activityTitle(a, t)}
         </span>
+        <SportIcon
+          sport={a.sport}
+          className="size-9"
+          style={{ viewTransitionName: `activity-sport-${a.id}` }}
+        />
       </h1>
       {a.device && <p className="mt-1 text-xs text-muted-foreground">{a.device}</p>}
 

@@ -14,11 +14,11 @@ import {
   activityTitle,
   formatDuration,
   parseDuration,
-  sports,
   toDateTimeLocal,
   type Activity,
   type ActivityTag,
 } from '@/lib/activity'
+import { sports as sportOptions, knownSport } from '@/lib/sports'
 import { meQuery } from '@/lib/auth'
 import { equipmentQuery, lastUsedShoeQuery, type Equipment } from '@/lib/equipment'
 import { TagPicker } from '@/components/activity-tags'
@@ -33,10 +33,6 @@ type ActivityPreview = {
   elevationGainM: number | null
   device: string | null
 }
-
-const sportOptions = [...sports, 'other'] as const
-const knownSport = (sport: string) =>
-  (sportOptions as readonly string[]).includes(sport) ? sport : 'other'
 
 // Ett pass skapas antingen helt manuellt eller från en FIT-fil som fyller i fälten. Från en fil går titel,
 // beskrivning, sport och sko att ändra: mätvärdena hör ihop med tidsserierna (karta, diagram, splits, rekord).

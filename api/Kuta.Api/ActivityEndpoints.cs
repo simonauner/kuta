@@ -43,7 +43,7 @@ public static class ActivityEndpoints
         var activities = api.MapGroup("/activities").RequireAuthorization();
 
         // Inloggad användares pass, 25 åt gången med stabila rubriker för hela perioderna.
-        activities.MapGet("", async (NpgsqlDataSource db, ClaimsPrincipal user, string? timeZone, string? tag,
+        activities.MapGet("", async (NpgsqlDataSource db, ClaimsPrincipal user, string? timeZone, string? tag, string? sport,
             DateTimeOffset? beforeStartedAt, Guid? beforeId, int? year, CancellationToken cancellationToken) =>
         {
             if (beforeStartedAt.HasValue != beforeId.HasValue)
@@ -52,12 +52,14 @@ public static class ActivityEndpoints
                 return Results.BadRequest(new ApiError("Ange ett år mellan 1 och 9998.", "invalidActivityYear"));
             if (ActivityInput.ValidateTags(tag is null ? null : [tag]) is { } invalid)
                 return Results.BadRequest(invalid);
+            if (sport is { Length: 0 or > 100 })
+                return Results.BadRequest(new ApiError("Kontrollera sport, datum, tid och distans.", "invalidActivity"));
             timeZone ??= "UTC";
             await using var conn = await db.OpenConnectionAsync(cancellationToken);
             if (!await ActivityList.IsValidTimeZoneAsync(conn, timeZone, cancellationToken))
                 return Results.BadRequest(new ApiError("Tidszonen är ogiltig. Kontrollera enhetens inställningar.", "invalidTimeZone"));
             return Results.Ok(await ActivityList.ReadAsync(conn, user.GetUserId(), timeZone,
-                beforeStartedAt, beforeId, cancellationToken, tag, year));
+                beforeStartedAt, beforeId, cancellationToken, tag, year, sport));
         });
 
         activities.MapGet("/years", async (NpgsqlDataSource db, ClaimsPrincipal user, string? timeZone,
