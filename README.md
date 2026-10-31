@@ -176,6 +176,16 @@ Månader och årsgränser följer webbläsarens tidszon, och hela passet tillhö
 Statistikcachen uppdateras vid skapande, import och radering av pass och rensas när
 pulssamtycke återkallas.
 
+**År för år** på samma sida visar ackumulerad distans, tid eller antal pass per år på samma
+kalender för vald sportgrupp. Diagrammet visar valt år framhävt och upp till fem senaste år.
+Tabellen jämför alla år till och med dagens månad och dag (så att skottdagen inte förskjuter
+jämförelsen), med förändring mot året före och helårssumma.
+`GET /api/activities/statistics/days?sportGroup=running&timeZone=Europe%2FStockholm` ger
+summor per lokal dag (`day`, `count`, `distanceM`, `durationS`) över hela den egna historiken,
+bara dagar med pass. Summeringen följer målens regler (`SportGroups.EffectiveCte`): hela passet
+hör till startdagen, en grupp räknar matchande delar av multisportpass och utan grupp räknas
+varje pass en gång. Okänd grupp ger `invalidSportGroup` och ogiltig tidszon `invalidTimeZone`.
+
 ## Träningsmål
 
 **Pass → Nytt mål** skapar ett mål: distans (km), tid (minuter) eller antal pass per vecka,
