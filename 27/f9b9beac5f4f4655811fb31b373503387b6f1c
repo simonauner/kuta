@@ -1,0 +1,67 @@
+api/Kuta.Api/StravaImportEndpoint.cs
+  s_b4de916524f0de::t_ab9207f09b5945 1-120
+api/Kuta.Api/StravaImport.cs
+  s_b4de916524f0de::t_ab9207f09b5945 1-165
+web/src/routes/settings.tsx
+  s_b4de916524f0de::t_ab9207f09b5945 1-71
+web/src/locales/en.json
+  s_b4de916524f0de::t_ab9207f09b5945 25,29-30,168-169,179-192
+  s_b4de916524f0de::t_42dac36a507d28 18,193
+AGENTS.md
+  s_b4de916524f0de::t_ab9207f09b5945 32,50,52-53,61,64-65,76,101
+api/Kuta.Api.Tests/StravaImportTests.cs
+  s_b4de916524f0de::t_ab9207f09b5945 1-245
+web/src/locales/sv.json
+  s_b4de916524f0de::t_ab9207f09b5945 25,29-30,168-169,179-192
+  s_b4de916524f0de::t_44be708fb3f8ce 18,193
+web/vite.config.ts
+  s_b4de916524f0de::t_ab9207f09b5945 75-77
+api/Kuta.Api/FitImport.cs
+  s_b4de916524f0de::t_ab9207f09b5945 135
+api/Kuta.Api/MeEndpoints.cs
+  s_b4de916524f0de::t_ab9207f09b5945 61-62,64
+web/src/components/strava-import.tsx
+  s_b4de916524f0de::t_ab9207f09b5945 1-88
+README.md
+  s_b4de916524f0de::t_ab9207f09b5945 11-13,17,19,69-70,150,182-192
+  s_b4de916524f0de::t_9e16470dab5b08 193
+web/src/router.tsx
+  s_b4de916524f0de::t_ab9207f09b5945 12,53-58,66
+web/src/routes/new-activity.tsx
+  s_b4de916524f0de::t_ab9207f09b5945 2,336
+web/src/routes/profile.tsx
+  s_b4de916524f0de::t_ab9207f09b5945 2-4,7,15-24
+api/Kuta.Api/ActivityEndpoints.cs
+  s_b4de916524f0de::t_c49f59020cdd23 184
+  s_b4de916524f0de::t_ab9207f09b5945 189,209
+  s_b4de916524f0de::t_2f9e27ac653695 178,181-182,186-187,192
+api/Kuta.Api/Program.cs
+  s_b4de916524f0de::t_ab9207f09b5945 183
+api/Kuta.Api/ActivityStorage.cs
+  s_b4de916524f0de::t_ab9207f09b5945 1-9,11-20,22,24-29,31-64
+  s_b4de916524f0de::t_fb081c51c6b39d 10,21,23,30
+.github/workflows/api.yml
+  s_b4de916524f0de::t_ab9207f09b5945 29,40-43,48-51,60
+api/Kuta.Api/Migrations/006_strava_import.sql
+  s_b4de916524f0de::t_ab9207f09b5945 1-6
+api/Kuta.Api.Tests/WebRoutingTests.cs
+  s_b4de916524f0de::t_ab9207f09b5945 22
+api/Kuta.Api.Tests/EquipmentTests.cs
+  s_b4de916524f0de::t_c49f59020cdd23 104-112
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.7.5",
+  "base_commit_sha": "27f9b9beac5f4f4655811fb31b373503387b6f1c",
+  "prompts": {},
+  "sessions": {
+    "s_b4de916524f0de": {
+      "agent_id": {
+        "tool": "codex",
+        "id": "01a18f3e-6e06-7ce1-9144-c3f0efb7c472",
+        "model": "gpt-6.1-sol"
+      },
+      "human_author": "Simon Aunér <simonauner@gmail.com>"
+    }
+  }
+}
