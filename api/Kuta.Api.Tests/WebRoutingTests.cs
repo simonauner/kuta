@@ -26,7 +26,7 @@ public class WebRoutingTests
                 Assert.Contains("Privacy policy", html);
                 Assert.DoesNotContain("App shell", html);
             }
-            foreach (var path in new[] { "/app", "/app/", "/app/activities", "/app/activities/new", $"/app/activities/{Guid.NewGuid()}", "/app/stats", "/app/profile", "/app?confirm=failed", "/app?reset=password", "/app?reset=failed" })
+            foreach (var path in new[] { "/app", "/app/", "/app/activities", "/app/activities/new", $"/app/activities/{Guid.NewGuid()}", "/app/stats", "/app/profile", "/app/settings", "/app?confirm=failed", "/app?reset=password", "/app?reset=failed" })
             {
                 var html = await client.GetStringAsync(path, ct);
                 Assert.Contains("App shell", html);

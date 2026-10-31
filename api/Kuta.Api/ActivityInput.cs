@@ -1,12 +1,20 @@
 // Manuellt pass från formuläret "Skapa ny aktivitet". Tider i UTC, SI-enheter.
 public record ManualActivityRequest(
     string? Sport, string? Title, DateTimeOffset? StartedAt, int? DurationS, double? DistanceM,
-    float? ElevationGainM, short? AvgHr);
+    float? ElevationGainM, short? AvgHr, string[]? Tags = null, Guid[]? EquipmentIds = null);
 
 // Det löparen själv fyller i, kontrollerat innan det sparas
 public static class ActivityInput
 {
     public static readonly string[] Sports = ["running", "cycling", "walking", "hiking", "other"];
+    public static readonly string[] Tags = ["race", "workout", "long_run", "easy"];
+
+    public static ApiError? ValidateTags(string[]? tags) =>
+        tags is null || tags.All(tag => Tags.Contains(tag)) ? null
+            : new ApiError("Välj giltiga taggar.", "invalidTags");
+
+    public static string[] NormalizeTags(string[]? tags) => tags?.Distinct().ToArray() ?? [];
+
     const int MaxTitleLength = 100;
 
     public static ApiError? ValidateTitle(string? title) =>
@@ -20,6 +28,7 @@ public static class ActivityInput
 
     public static ApiError? Validate(ManualActivityRequest r, DateTimeOffset now) =>
         ValidateTitle(r.Title)
+        ?? ValidateTags(r.Tags)
         ?? (r.Sport is null ? InvalidActivity : ValidateSport(r.Sport))
         ?? (r.StartedAt is not { } startedAt || startedAt.Year < 1900 || startedAt > now.AddDays(1) ? InvalidActivity : null)
         ?? (r.DurationS is not (> 0 and <= 7 * 24 * 3600) ? InvalidActivity : null)

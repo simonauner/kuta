@@ -25,6 +25,14 @@ public class BestEffortTests(KutaFactory factory) : IClassFixture<KutaFactory>
             var first = await Upload(owner, start, ct);
             var second = await Upload(owner, start.AddYears(1), ct);
             var otherRun = await Upload(other, start.AddYears(1), ct);
+            Assert.Equal(HttpStatusCode.NoContent, (await owner.PutAsJsonAsync(
+                $"/api/activities/{second.Id}/tags", new { tags = new[] { "race" } }, ct)).StatusCode);
+            var raceRecords = await owner.GetFromJsonAsync<StoredBestEffort[]>("/api/records?tag=race&year=2026", ct);
+            Assert.Equal(3, raceRecords!.Length);
+            Assert.All(raceRecords, effort => Assert.Equal(second.Id, effort.ActivityId));
+            Assert.Empty((await other.GetFromJsonAsync<StoredBestEffort[]>("/api/records?tag=race", ct))!);
+            Assert.Equal(HttpStatusCode.BadRequest, (await owner.GetAsync("/api/records?tag=unknown", ct)).StatusCode);
+
 
             var efforts = (await owner.GetFromJsonAsync<StoredBestEffort[]>($"/api/activities/{first.Id}/best-efforts", ct))!;
             Assert.Equal(new[] { 1000, 1609, 5000 }, efforts.Select(e => e.DistanceM));
@@ -126,8 +134,12 @@ public class BestEffortTests(KutaFactory factory) : IClassFixture<KutaFactory>
         using var file = new ByteArrayContent(FitFile.Run(start, 2100));
         file.Headers.ContentType = new MediaTypeHeaderValue("application/octet-stream");
         form.Add(file, "file", "synthetic-run.fit");
+        form.Add(new StringContent("long_run"), "tags");
+        form.Add(new StringContent("easy"), "tags");
         using var response = await client.PostAsync("/api/activities", form, ct);
         Assert.True(response.IsSuccessStatusCode, await response.Content.ReadAsStringAsync(ct));
-        return (await response.Content.ReadFromJsonAsync<ActivitySummary>(ct))!;
+        var activity = (await response.Content.ReadFromJsonAsync<ActivitySummary>(ct))!;
+        Assert.Equal(new[] { "long_run", "easy" }, activity.Tags);
+        return activity;
     }
 }

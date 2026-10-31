@@ -76,15 +76,9 @@ export function Layout() {
               })}
             </ul>
           </nav>
-          <div className="hidden md:block">
-            <LanguageSelect />
-          </div>
         </div>
       </header>
 
-      <div className="mx-auto w-full max-w-2xl px-4 pt-4 md:hidden">
-        <LanguageSelect />
-      </div>
       <main className="mx-auto w-full max-w-2xl flex-1 px-4 pb-8 pt-6">
         <motion.div
           key={pathname}

@@ -1,7 +1,11 @@
+import { useState } from 'react'
+import { TagLabels } from '@/components/activity-tags'
+import { equipmentQuery } from '@/lib/equipment'
+import { activityTagsQuery } from '@/lib/activity-query'
 import { ErrorMessage } from '@/components/error-message'
 import { useTranslation } from 'react-i18next'
-import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
-import { Link } from '@tanstack/react-router'
+import { useInfiniteQuery, useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
+import { getRouteApi, Link } from '@tanstack/react-router'
 import { Button } from '@/components/ui/button'
 import { api } from '@/lib/api'
 import {
@@ -9,16 +13,16 @@ import {
   formatDuration,
   formatPace,
   groupActivities,
-  type Activity,
+  type ActivityCursor,
+  type ActivityPage,
 } from '@/lib/activity'
 
-const activitiesQuery = {
-  queryKey: ['activities'],
-  queryFn: () => api.get<Activity[]>('/api/activities'),
-}
+const route = getRouteApi('/app/activities')
 
 export function ActivitiesPage() {
   const { t, i18n } = useTranslation()
+  const { year } = route.useSearch()
+  const navigate = route.useNavigate()
   const dateFormat = new Intl.DateTimeFormat(i18n.resolvedLanguage, {
     dateStyle: 'medium',
     timeStyle: 'short',
@@ -29,11 +33,39 @@ export function ActivitiesPage() {
     maximumFractionDigits: 2,
   })
   const queryClient = useQueryClient()
-  const activities = useQuery(activitiesQuery)
+  const [tag, setTag] = useState('')
+  const tagOptions = useQuery(activityTagsQuery)
+  const timeZone = Intl.DateTimeFormat().resolvedOptions().timeZone
+  const years = useQuery({
+    queryKey: ['activities', 'years', timeZone],
+    queryFn: () => api.get<number[]>(`/api/activities/years?${new URLSearchParams({ timeZone })}`),
+    staleTime: 60_000,
+  })
+  const availableYears = years.data ?? []
+  const activities = useInfiniteQuery({
+    queryKey: ['activities', 'list', timeZone, year, tag],
+    initialPageParam: null as ActivityCursor | null,
+    queryFn: ({ pageParam }) => {
+      const params = new URLSearchParams({ timeZone })
+      if (year !== undefined) params.set('year', String(year))
+      if (tag) params.set('tag', tag)
+      if (pageParam) {
+        params.set('beforeStartedAt', pageParam.startedAt)
+        params.set('beforeId', pageParam.id)
+      }
+      return api.get<ActivityPage>(`/api/activities?${params}`)
+    },
+    getNextPageParam: (page) => page.nextCursor,
+  })
+  const items = activities.data?.pages.flatMap((page) => page.items) ?? []
 
   const remove = useMutation({
     mutationFn: (id: string) => api.send('DELETE', `/api/activities/${id}`),
-    onSuccess: () => queryClient.invalidateQueries({ queryKey: ['activities'] }),
+    onSuccess: () =>
+      Promise.all([
+        queryClient.invalidateQueries({ queryKey: ['activities'] }),
+        queryClient.invalidateQueries({ queryKey: equipmentQuery.queryKey }),
+      ]),
   })
 
   return (
@@ -44,17 +76,80 @@ export function ActivitiesPage() {
           <Link to="/app/activities/new">{t('newActivity.title')}</Link>
         </Button>
       </div>
+      {(availableYears.length > 1 || year !== undefined) && (
+        <div className="mt-6 flex items-center gap-3">
+          <label htmlFor="activity-year" className="text-sm font-medium">
+            {t('activities.year')}
+          </label>
+          <select
+            id="activity-year"
+            className="rounded-md border bg-background px-3 py-2 text-sm text-foreground"
+            value={year ?? ''}
+            onChange={(e) =>
+              void navigate({ search: e.target.value ? { year: Number(e.target.value) } : {} })
+            }
+          >
+            <option value="">{t('activities.allYears')}</option>
+            {year !== undefined && !availableYears.includes(year) && (
+              <option value={year}>{year}</option>
+            )}
+            {availableYears.map((value) => (
+              <option key={value} value={value}>
+                {value}
+              </option>
+            ))}
+          </select>
+        </div>
+      )}
+      {years.error && (
+        <div role="alert" className="mt-4 text-sm text-destructive">
+          <ErrorMessage error={years.error} />{' '}
+          <Button
+            variant="outline"
+            size="sm"
+            disabled={years.isFetching}
+            onClick={() => void years.refetch()}
+          >
+            {t('activities.retry')}
+          </Button>
+        </div>
+      )}
+      <label className="mt-5 flex items-center gap-3 text-sm">
+        {t('tags.label')}
+        <select
+          className="rounded-md border bg-background px-3 py-2"
+          value={tag}
+          onChange={(e) => setTag(e.currentTarget.value)}
+        >
+          <option value="">{t('tags.all')}</option>
+          {tagOptions.data?.map((value) => (
+            <option key={value} value={value}>
+              {t(`tagNames.${value}`)}
+            </option>
+          ))}
+        </select>
+      </label>
       {remove.error && (
         <p role="alert" className="mt-4 text-sm text-destructive">
           <ErrorMessage error={remove.error} />
         </p>
       )}
 
-      {activities.data?.length === 0 && (
-        <p className="mt-8 text-muted-foreground">{t('activities.empty')}</p>
+      {activities.isSuccess && items.length === 0 && (
+        <p className="mt-8 text-muted-foreground">{t(tag ? 'tags.empty' : 'activities.empty')}</p>
+      )}
+      {activities.isPending && (
+        <p role="status" className="mt-8 text-muted-foreground">
+          {t('activities.loading')}
+        </p>
+      )}
+      {activities.error && (
+        <p role="alert" className="mt-4 text-sm text-destructive">
+          <ErrorMessage error={activities.error} />
+        </p>
       )}
       <div className="mt-8 space-y-6">
-        {groupActivities(activities.data ?? []).map((period) => (
+        {groupActivities(items).map((period) => (
           <div key={period.activities[0].id}>
             {period.year !== null && (
               <h2 className="mb-4 text-xl font-semibold tracking-tight">{period.year}</h2>
@@ -74,6 +169,7 @@ export function ActivitiesPage() {
                     <Link
                       to="/app/activities/$activityId"
                       params={{ activityId: a.id }}
+                      search={{ year }}
                       className="inline-block font-medium underline-offset-2 hover:underline"
                       style={{ viewTransitionName: `activity-title-${a.id}` }}
                     >
@@ -87,6 +183,7 @@ export function ActivitiesPage() {
                       {formatPace(a.durationS, a.distanceM)}
                       {a.avgHr !== null && ` · ${a.avgHr} bpm`}
                     </p>
+                    <TagLabels tags={a.tags} />
                   </div>
                   <Button
                     variant="ghost"
@@ -108,6 +205,23 @@ export function ActivitiesPage() {
           </div>
         ))}
       </div>
+      {(activities.hasNextPage || (activities.isError && !activities.data)) && (
+        <Button
+          variant="outline"
+          className="mt-6"
+          disabled={activities.isFetching}
+          onClick={() => {
+            if (activities.data) void activities.fetchNextPage()
+            else void activities.refetch()
+          }}
+        >
+          {activities.isFetching
+            ? t('activities.loading')
+            : activities.isError
+              ? t('activities.retry')
+              : t('activities.loadOlder')}
+        </Button>
+      )}
     </section>
   )
 }

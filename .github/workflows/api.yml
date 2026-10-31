@@ -26,6 +26,7 @@ jobs:
     timeout-minutes: 20
     env:
       ASPNETCORE_ENVIRONMENT: Development
+      KUTA_PORTS: "18000"
     steps:
       - uses: actions/checkout@v7
       - uses: actions/setup-dotnet@v6
@@ -36,10 +37,18 @@ jobs:
           version: 2.72.7
       - name: Start local Supabase
         run: |
+          # Keep service ports outside Linux's ephemeral range during Docker image downloads.
+          for offset in $(seq 0 29); do
+            sed -i "s/$((55300 + offset))/$((KUTA_PORTS + offset))/g" supabase/config.toml
+          done
           supabase start -x studio,postgres-meta,imgproxy
           # Auth can load the default email templates before Kong is ready.
           docker restart supabase_auth_kuta
           local_config=$(supabase status -o json)
+          # Configure every test host, including those that do not use KutaFactory.
+          echo "ConnectionStrings__Default=Host=127.0.0.1;Port=$((KUTA_PORTS + 22));Database=postgres;Username=postgres;Password=postgres" >> "$GITHUB_ENV"
+          echo "Supabase__Url=http://127.0.0.1:$((KUTA_PORTS + 21))" >> "$GITHUB_ENV"
+          echo "Storage__ServiceUrl=http://127.0.0.1:$((KUTA_PORTS + 21))/storage/v1/s3" >> "$GITHUB_ENV"
           jq -r '
             "Supabase__PublishableKey=\(.PUBLISHABLE_KEY)",
             "Storage__AccessKeyId=\(.S3_PROTOCOL_ACCESS_KEY_ID)",
@@ -48,7 +57,7 @@ jobs:
           curl --fail --silent --show-error --max-time 5 \
             --retry 30 --retry-all-errors --retry-delay 1 \
             -H "apikey: $(jq -r '.PUBLISHABLE_KEY' <<< "$local_config")" \
-            http://127.0.0.1:55321/auth/v1/health > /dev/null
+            "http://127.0.0.1:$((KUTA_PORTS + 21))/auth/v1/health" > /dev/null
       - name: Run API tests
         # Test servers migrate the same fresh database on first startup.
         run: dotnet test --project api/Kuta.Api.Tests -- --parallel none
