@@ -88,22 +88,18 @@ Frontendkontroller med Node-versionen i `.nvmrc`: kör `npm ci` i `web/`, sedan
 `npm run format:check`, `npm run lint`, `npm test` och `npm run build`.
 `npm run format` formaterar webbfilerna med Prettier. API-klientens tester använder
 Nodes inbyggda testverktyg och mockade nätverksanrop; de kräver inte Supabase.
-GitHub Actions kör frontendkontrollerna vid ändringar i `web/` och bygger API:t och
-testprojektet vid ändringar i `api/` eller `supabase/`, på pull requests och push till
-`main`. Respektive workflow och verktygskonfiguration (`.nvmrc` respektive
-`global.json`) startar också motsvarande kontroller. `Dockerfile` och `.dockerignore`
-startar båda. Ändringar i enbart `.md`-filer startar inget av dessa workflows, även
-under `web/` eller `api/`. Backendtester mot lokal Supabase körs fortfarande lokalt
-enligt ovan; backend-workflowet kontrollerar enbart att projekten bygger.
+GitHub Actions kör frontendkontrollerna i `.github/workflows/frontend.yml` vid
+ändringar i `web/`, `.nvmrc` eller workflowfilen. API-jobbet i
+`.github/workflows/api.yml` bygger och kör hela `api/Kuta.Api.Tests` i Release vid
+ändringar i `api/`, `supabase/`, `global.json` eller workflowfilen. Båda körs på
+pull requests och push till `main`; `Dockerfile` och `.dockerignore` startar båda.
+Ändringar i enbart `.md`-filer startar inget av dessa workflows.
 
-API-jobbet i `.github/workflows/api.yml` kör hela `api/Kuta.Api.Tests` vid ändringar
-i API:t, Supabase-konfigurationen, `global.json`, `Dockerfile` eller själva jobbet,
-både på pull requests och push till `main`. Det installerar .NET enligt `global.json`
-och Supabase CLI 2.72.7, startar en tillfällig lokal Supabase med Auth, Mailpit och
-Storage, läser dess lokala nycklar och väntar på auth efter omstart innan testerna
-körs. Testerna körs sekventiellt (`-- --parallel none`) så att testservrarna inte
-försöker migrera den tomma databasen samtidigt. Inga produktionshemligheter
-eller hostade tjänster används. Supabase stoppas även om testerna misslyckas.
+API-jobbet installerar .NET enligt `global.json` och Supabase CLI 2.72.7, startar
+en tillfällig lokal Supabase med Auth, Mailpit och Storage, läser dess lokala
+nycklar och väntar på auth efter omstart innan testerna körs. Testerna körs
+sekventiellt (`-- --parallel none`). Inga produktionshemligheter eller hostade
+tjänster används. Supabase stoppas även om testerna misslyckas.
 
 Footern visar copyright och webbens byggnummer (`ÅÅÅÅMMDD.ttmmss`, UTC), som sätts
 automatiskt av Vite vid bygget, även i Docker. I utvecklingsläge visas `Version utveckling`.
