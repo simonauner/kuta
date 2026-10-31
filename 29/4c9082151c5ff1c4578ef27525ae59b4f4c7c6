@@ -1,0 +1,23 @@
+AGENTS.md
+  s_acd06763c92952::t_7b37787aa00221 32,52
+README.md
+  s_acd06763c92952::t_fa1063bc7faa22 13
+web/src/routes/new-activity.tsx
+  s_acd06763c92952::t_d993ef32dc8c82 2,7,317
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.7.5",
+  "base_commit_sha": "294c9082151c5ff1c4578ef27525ae59b4f4c7c6",
+  "prompts": {},
+  "sessions": {
+    "s_acd06763c92952": {
+      "agent_id": {
+        "tool": "codex",
+        "id": "01a18efb-8bf3-72a0-93fc-3e606809cffe",
+        "model": "gpt-6.1-sol"
+      },
+      "human_author": "Simon Aunér <simonauner@gmail.com>"
+    }
+  }
+}
