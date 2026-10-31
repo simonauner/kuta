@@ -97,6 +97,7 @@ Kuta är en Strava-liknande löparapp: ladda upp pass från Garmin (FIT) eller l
 7. Därefter: följare, flöde, grupper; e-post och push.
 
 ## Konventioner
+- Modaler använder `web/src/components/ui/modal.tsx` (`Modal`). Klick utanför stänger som standard; ange `closeOnOutsideClick={false}` om ett flöde uttryckligen kräver annat. Befintliga `onCancel`-regler gäller även för klick utanför, exempelvis blockering under pågående sparande/radering.
 - Appen har ännu inga användare och behöver inte vara bakåtkompatibel. Lägg inte till omdirigeringar, äldre API-format eller annan kompatibilitetskod för tidigare beteenden. Ompröva regeln när appen får användare.
 - Engelska URL:er (`/app`, `/app/activities`, `/app/stats`, `/app/profile`, `/app/settings`), oberoende av valt språk.
 - UI stödjer svenska och engelska med `react-i18next`. Lägg nya texter i båda `web/src/locales/{sv,en}.json` och använd typade `t()`-nycklar. Datum och tal formateras med valt språk via `Intl`; användardata översätts inte. Engelska i kod och commit-meddelanden.

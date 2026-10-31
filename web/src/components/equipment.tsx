@@ -1,3 +1,4 @@
+import { Modal } from '@/components/ui/modal'
 import { useRef, useState, type FormEvent } from 'react'
 import { Link } from '@tanstack/react-router'
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
@@ -151,13 +152,12 @@ export function EquipmentSection() {
           </li>
         ))}
       </ul>
-      <dialog
+      <Modal
         ref={createDialog}
         aria-labelledby="create-equipment-title"
         onCancel={(event) => {
           if (create.isPending) event.preventDefault()
         }}
-        className="fixed inset-0 m-auto max-h-[calc(100dvh-2rem)] w-[calc(100%-2rem)] max-w-md overflow-y-auto rounded-xl border bg-background p-6 text-foreground shadow-xl backdrop:bg-black/70"
       >
         <h2 id="create-equipment-title" className="text-xl font-semibold">
           {t('equipment.add')}
@@ -241,8 +241,8 @@ export function EquipmentSection() {
             </div>
           </fieldset>
         </form>
-      </dialog>
-      <dialog
+      </Modal>
+      <Modal
         ref={deleteDialog}
         aria-labelledby="delete-shoe-title"
         aria-describedby="delete-shoe-warning"
@@ -250,7 +250,6 @@ export function EquipmentSection() {
         onCancel={(event) => {
           if (remove.isPending) event.preventDefault()
         }}
-        className="fixed inset-0 m-auto max-h-[calc(100dvh-2rem)] w-[calc(100%-2rem)] max-w-md overflow-y-auto rounded-xl border bg-background p-6 text-foreground shadow-xl backdrop:bg-black/70"
       >
         <h2 id="delete-shoe-title" className="break-words text-xl font-semibold">
           {t('shoes.confirmDelete', { name: deleting?.name })}
@@ -281,7 +280,7 @@ export function EquipmentSection() {
             {remove.isPending ? t('shoes.deleting') : t('shoes.delete')}
           </Button>
         </div>
-      </dialog>
+      </Modal>
     </section>
   )
 }

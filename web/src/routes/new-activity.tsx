@@ -1,3 +1,4 @@
+import { Modal } from '@/components/ui/modal'
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
 import { useNavigate } from '@tanstack/react-router'
 import { useId, useRef, useState, type FormEvent, type ReactNode } from 'react'
@@ -377,13 +378,12 @@ export function NewActivityPage() {
         )}
       </form>
 
-      <dialog
+      <Modal
         ref={shoeDialog}
         aria-labelledby="add-shoe-title"
         onCancel={(event) => {
           if (addShoe.isPending) event.preventDefault()
         }}
-        className="fixed inset-0 m-auto max-h-[calc(100dvh-2rem)] w-[calc(100%-2rem)] max-w-md overflow-y-auto rounded-xl border bg-background p-6 text-foreground shadow-xl backdrop:bg-black/70"
       >
         <h2 id="add-shoe-title" className="text-xl font-semibold">
           {t('shoes.add')}
@@ -440,13 +440,9 @@ export function NewActivityPage() {
             </Button>
           </div>
         </form>
-      </dialog>
+      </Modal>
 
-      <dialog
-        ref={uploadDialog}
-        aria-labelledby="upload-title"
-        className="fixed inset-0 m-auto max-h-[calc(100dvh-2rem)] w-[calc(100%-2rem)] max-w-md overflow-y-auto rounded-xl border bg-background p-6 text-foreground shadow-xl backdrop:bg-black/70"
-      >
+      <Modal ref={uploadDialog} aria-labelledby="upload-title">
         <h2 id="upload-title" className="text-xl font-semibold">
           {t('newActivity.upload')}
         </h2>
@@ -488,7 +484,7 @@ export function NewActivityPage() {
             {t('newActivity.useFile')}
           </Button>
         </div>
-      </dialog>
+      </Modal>
     </section>
   )
 }
