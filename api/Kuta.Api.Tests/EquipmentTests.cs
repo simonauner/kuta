@@ -128,6 +128,24 @@ public class EquipmentTests(KutaFactory factory) : IClassFixture<KutaFactory>
     }
 
     [Fact]
+    public async Task Active_equipment_is_listed_before_older_retired_equipment()
+    {
+        var ct = TestContext.Current.CancellationToken;
+        await using var conn = await factory.Services.GetRequiredService<NpgsqlDataSource>().OpenConnectionAsync(ct);
+        await using var tx = await conn.BeginTransactionAsync(ct);
+        var ownerId = Guid.NewGuid();
+        await AddRunner(conn, ownerId);
+        var retired = await AddEquipment(conn, ownerId, "Retired", 0, 0);
+        var first = await AddEquipment(conn, ownerId, "First active", 0, 0);
+        var second = await AddEquipment(conn, ownerId, "Second active", 0, 0);
+        await conn.ExecuteAsync("update equipment set retired = true, created_at = now() - interval '2 days' where id = @retired", new { retired });
+        await conn.ExecuteAsync("update equipment set created_at = now() - interval '1 day' where id = @first", new { first });
+
+        var equipment = await EquipmentEndpoints.LoadAsync(conn, ownerId);
+        Assert.Equal(new[] { first, second, retired }, equipment.Select(e => e.Id));
+    }
+
+    [Fact]
     public async Task Retirement_reactivation_and_deletion_are_private_and_preserve_activities_and_last_used_selection()
     {
         var ct = TestContext.Current.CancellationToken;

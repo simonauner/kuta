@@ -108,7 +108,7 @@ public static class EquipmentEndpoints
             left join activities a on a.id = ae.activity_id and a.user_id = e.user_id
             where e.user_id = @userId
             group by e.id
-            order by e.created_at, e.id
+            order by e.retired, e.created_at, e.id
             """, new { userId });
 
     public static async Task<bool> OwnsAsync(NpgsqlConnection conn, NpgsqlTransaction tx, Guid userId, Guid[] equipmentIds, bool allowRetired = false)

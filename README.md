@@ -94,6 +94,8 @@ automatiskt av Vite vid bygget, även i Docker. I utvecklingsläge visas `Versio
 
 ## Utrustning och användning
 
+Aktiv utrustning visas före pensionerad. Inom grupperna behålls ordningen efter när utrustningen lades till.
+
 Lägg till utrustning i modalen under Profil → Utrustning och koppla den till manuella pass eller FIT-importer. Skor kan även skapas direkt med ”Skapa ny” vid skofältet; den nya skon väljs automatiskt utan att aktivitetsutkastet försvinner.
 Kopplingarna kan också ändras på passsidan. Ett pass kan använda flera
 utrustningsdelar. Skor (`shoe`) är den första typen; nya typer läggs till i
