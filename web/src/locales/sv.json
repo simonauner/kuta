@@ -32,6 +32,7 @@
     "hrNotSaved": "Pulsdata sparas inte. Ändra före uppladdning i"
   },
   "newActivity": {
+    "description": "Beskrivning (valfritt)",
     "title": "Skapa ny aktivitet",
     "upload": "Ladda upp fil",
     "file": "FIT-fil från din klocka",
@@ -165,6 +166,7 @@
     "duplicateActivity": "Det här passet är redan uppladdat.",
     "invalidRecordYear": "Ange ett år mellan 1 och 9998.",
     "invalidFit": "Filen kunde inte läsas som ett pass från en FIT-fil.",
+    "invalidDescription": "Beskrivningen får vara högst 10 000 tecken.",
     "invalidTitle": "Titeln får vara högst 100 tecken.",
     "invalidActivity": "Kontrollera sport, datum, tid och distans.",
     "passwordTooShort": "Använd minst 8 tecken i lösenordet.",

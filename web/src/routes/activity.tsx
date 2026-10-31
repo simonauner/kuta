@@ -119,6 +119,10 @@ export function ActivityPage() {
       </h1>
       {a.device && <p className="mt-1 text-xs text-muted-foreground">{a.device}</p>}
 
+      {a.description && (
+        <p className="mt-4 whitespace-pre-wrap text-sm wrap-anywhere">{a.description}</p>
+      )}
+
       <ActivityEquipmentEditor
         key={`equipment:${a.id}:${a.equipmentIds.join(',')}`}
         activityId={a.id}
