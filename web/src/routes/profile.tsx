@@ -3,6 +3,7 @@ import { Link } from '@tanstack/react-router'
 import { Settings } from 'lucide-react'
 import { useTranslation } from 'react-i18next'
 import { Button } from '@/components/ui/button'
+import { ActivitiesEmptyState } from '@/components/activities-empty-state'
 import { ActivityFeed } from '@/components/activity-feed'
 import { GoalList } from '@/components/goals'
 import { ShareProfile } from '@/components/share-profile'
@@ -29,7 +30,9 @@ export function ProfilePage() {
       </div>
       {me && <GoalList runnerId={me.id} />}
       <h2 className="text-lg font-semibold">{t('nav.activities')}</h2>
-      {me && <ActivityFeed runnerId={me.id} />}
+      {me && (
+        <ActivityFeed runnerId={me.id} emptyState={<ActivitiesEmptyState context="profile" />} />
+      )}
     </section>
   )
 }
