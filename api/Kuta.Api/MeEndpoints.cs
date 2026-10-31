@@ -1,5 +1,7 @@
 using System.Security.Claims;
 using Dapper;
+using Microsoft.AspNetCore.Authentication;
+using Microsoft.AspNetCore.Authentication.Cookies;
 using Npgsql;
 
 public record UpdateMeRequest(string? DisplayName);
@@ -15,6 +17,15 @@ public static class MeEndpoints
     public static void MapMe(this RouteGroupBuilder api)
     {
         var me = api.MapGroup("/me").RequireAuthorization();
+
+        me.MapDelete("", async (NpgsqlDataSource db, RawFileStore store, HttpContext http,
+            CancellationToken cancellationToken) =>
+        {
+            await using var conn = await db.OpenConnectionAsync(cancellationToken);
+            await DeleteAccountAsync(conn, store, http.User.GetUserId(), cancellationToken);
+            await http.SignOutAsync(CookieAuthenticationDefaults.AuthenticationScheme);
+            return Results.NoContent();
+        });
 
         // displayName är null tills webben skapat profilen med PUT efter första inloggningen
         me.MapGet("", async (NpgsqlDataSource db, ClaimsPrincipal user) =>
@@ -76,6 +87,23 @@ public static class MeEndpoints
             await tx.CommitAsync(cancellationToken);
             return Results.Ok(await LoadAsync(conn, user));
         });
+    }
+
+    public static async Task DeleteAccountAsync(NpgsqlConnection conn, RawFileStore store, Guid id,
+        CancellationToken ct)
+    {
+        await using var tx = await conn.BeginTransactionAsync(ct);
+        // Samma lås som importen: inga nya råfiler får sparas mellan listning och kaskadradering.
+        await conn.ExecuteAsync(new CommandDefinition("select id from users where id = @id for update",
+            new { id }, tx, cancellationToken: ct));
+        var keys = await conn.QueryAsync<string>(new CommandDefinition(
+            "select raw_file_key from activities where user_id = @id and raw_file_key is not null for update",
+            new { id }, tx, cancellationToken: ct));
+        await store.DeleteAsync(keys, ct);
+        // En transaktion raderar även profil, pass, utrustning och både Supabase- och Kuta-sessioner.
+        await conn.ExecuteAsync(new CommandDefinition("delete from auth.users where id = @id",
+            new { id }, tx, cancellationToken: ct));
+        await tx.CommitAsync(ct);
     }
 
     public static async Task<Profile?> LoadProfileAsync(NpgsqlConnection conn, Guid id) =>
