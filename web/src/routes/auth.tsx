@@ -242,7 +242,7 @@ export function ChooseNamePage() {
 }
 
 function AuthShell({ title, children }: { title: string; children: ReactNode }) {
-  const { t } = useTranslation()
+  const { t, i18n } = useTranslation()
   return (
     <div className="flex min-h-dvh flex-col">
       <header className="hidden px-6 pt-6 md:block">
@@ -260,6 +260,12 @@ function AuthShell({ title, children }: { title: string; children: ReactNode }) 
         </a>
         <h1 className="mb-6 mt-2 text-2xl font-semibold tracking-tight">{title}</h1>
         {children}
+        <a
+          href={i18n.resolvedLanguage === 'en' ? '/privacy#english' : '/privacy'}
+          className="mt-6 self-center text-sm text-muted-foreground underline underline-offset-4"
+        >
+          {t('footer.privacy')}
+        </a>
       </main>
     </div>
   )

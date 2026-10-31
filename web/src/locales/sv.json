@@ -177,7 +177,8 @@
   "home": "Kuta – startsida",
   "footer": {
     "version": "Version {{version}}",
-    "development": "utveckling"
+    "development": "utveckling",
+    "privacy": "Integritetspolicy"
   },
   "settings": {
     "title": "Inställningar",
