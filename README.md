@@ -108,6 +108,16 @@ eller hostade tjänster används. Supabase stoppas även om testerna misslyckas.
 Footern visar copyright och webbens byggnummer (`ÅÅÅÅMMDD.ttmmss`, UTC), som sätts
 automatiskt av Vite vid bygget, även i Docker. I utvecklingsläge visas `Version utveckling`.
 
+## Råfiler vid misslyckad import
+
+Om uppladdning eller databascommit misslyckas släpps transaktionen innan en ny
+anslutning kontrollerar om råfilen används av ett sparat pass. Kontrollen håller
+profilens lås, så en samtidig import inte kan återanvända filnyckeln medan den
+städas. Ett förlorat commitsvar får därmed inte radera råfilen för ett sparat pass.
+Om databasen inte kan bekräfta utfallet lämnas filen kvar och felet loggas av
+API:t. En sådan fil kan behöva städas manuellt när databasen åter är tillgänglig;
+kontrollera först att inget pass refererar till nyckeln.
+
 ## Utrustning och användning
 
 Aktiv utrustning visas före pensionerad. Inom grupperna behålls ordningen efter när utrustningen lades till.

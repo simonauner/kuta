@@ -109,9 +109,28 @@ public static class ActivityStorage
         }
         catch
         {
-            if (key is not null) await store.DeleteAsync([key], CancellationToken.None);
+            await tx.DisposeAsync();
+            if (key is not null) await CleanupUnreferencedFileAsync(conn, store, userId, key);
             throw;
         }
         return id;
     }
+
+    public static async Task CleanupUnreferencedFileAsync(NpgsqlConnection failedConnection, RawFileStore store,
+        Guid userId, string key)
+    {
+        // Ett förlorat commitsvar betyder inte rollback. Kontrollera utfallet innan filen raderas.
+        using var completion = new CancellationTokenSource(TimeSpan.FromSeconds(30));
+        await using var conn = failedConnection.CloneWith(failedConnection.ConnectionString);
+        await conn.OpenAsync(completion.Token);
+        await using var tx = await conn.BeginTransactionAsync(completion.Token);
+        // Hindra en ny import från att återanvända nyckeln mellan kontroll och radering.
+        await conn.ExecuteAsync(new CommandDefinition("select id from users where id = @userId for update",
+            new { userId }, tx, cancellationToken: completion.Token));
+        var referenced = await conn.ExecuteScalarAsync<bool>(new CommandDefinition(
+            "select exists (select 1 from activities where user_id = @userId and raw_file_key = @key)",
+            new { userId, key }, tx, cancellationToken: completion.Token));
+        if (!referenced) await store.DeleteAsync([key], completion.Token);
+    }
+
 }
