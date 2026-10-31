@@ -5,6 +5,7 @@ import { useTranslation } from 'react-i18next'
 import { ErrorMessage } from '@/components/error-message'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
+import { refreshActivityQueries } from '@/lib/activity-query'
 import { api, ApiError } from '@/lib/api'
 
 type StravaImportResult = {
@@ -29,18 +30,7 @@ export function StravaImport() {
   const queryClient = useQueryClient()
   const [progress, setProgress] = useState<StravaImportProgress | null>(null)
   const [file, setFile] = useState<File | null>(null)
-  const refreshImportedData = () =>
-    queryClient.invalidateQueries({
-      predicate: ({ queryKey }) =>
-        [
-          'activities',
-          'activity',
-          'records',
-          'feed',
-          'equipment',
-          'equipmentLastUsedShoe',
-        ].includes(String(queryKey[0])),
-    })
+  const refreshImportedData = () => refreshActivityQueries(queryClient)
   const upload = useMutation({
     mutationFn: async (file: File): Promise<StravaImportResult> => {
       setProgress(null)

@@ -6,6 +6,7 @@ import { useTranslation } from 'react-i18next'
 import { ErrorMessage } from '@/components/error-message'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
+import { refreshActivityQueries } from '@/lib/activity-query'
 import { api } from '@/lib/api'
 import { useSessionChanged } from '@/lib/auth'
 
@@ -25,17 +26,7 @@ export function DangerZone() {
         await sessionChanged()
         return
       }
-      await queryClient.invalidateQueries({
-        predicate: (query) =>
-          [
-            'me',
-            'activities',
-            'activity',
-            'records',
-            'equipment',
-            'equipmentLastUsedShoe',
-          ].includes(String(query.queryKey[0])),
-      })
+      await refreshActivityQueries(queryClient)
       setWord(null)
     },
   })

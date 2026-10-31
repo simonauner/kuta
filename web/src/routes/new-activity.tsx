@@ -1,3 +1,4 @@
+import { EquipmentNameFields } from '@/components/equipment-name-fields'
 import { FormField } from '@/components/ui/form-field'
 import {
   multisportKinds,
@@ -30,6 +31,7 @@ import {
 import { sports as sportOptions, knownSport } from '@/lib/sports'
 import { meQuery } from '@/lib/auth'
 import { equipmentQuery, lastUsedShoeQuery, type Equipment } from '@/lib/equipment'
+import { refreshActivityQueries } from '@/lib/activity-query'
 import { TagPicker } from '@/components/activity-tags'
 
 // Det API:t läser ur en FIT-fil, utan att spara något (POST /api/activities/preview)
@@ -145,13 +147,7 @@ export function NewActivityPage() {
       })
     },
     onSuccess: async (activity) => {
-      await Promise.all([
-        queryClient.invalidateQueries({ queryKey: ['activities'] }),
-        queryClient.invalidateQueries({ queryKey: ['records'] }),
-        queryClient.invalidateQueries({ queryKey: ['feed'] }),
-        queryClient.invalidateQueries({ queryKey: lastUsedShoeQuery.queryKey }),
-        queryClient.invalidateQueries({ queryKey: equipmentQuery.queryKey }),
-      ])
+      await refreshActivityQueries(queryClient)
       await navigate({
         to: '/app/activities/$activityId',
         params: { activityId: activity.id },
@@ -450,30 +446,14 @@ export function NewActivityPage() {
           }}
           className="mt-5 space-y-4"
         >
-          <FormField label={t('shoes.name')}>
-            {(id) => (
-              <Input
-                id={id}
-                autoFocus
-                required
-                maxLength={100}
-                disabled={addShoe.isPending}
-                value={shoeName}
-                onChange={(event) => setShoeName(event.currentTarget.value)}
-              />
-            )}
-          </FormField>
-          <FormField label={t('shoes.brand')}>
-            {(id) => (
-              <Input
-                id={id}
-                maxLength={100}
-                disabled={addShoe.isPending}
-                value={shoeBrand}
-                onChange={(event) => setShoeBrand(event.currentTarget.value)}
-              />
-            )}
-          </FormField>
+          <EquipmentNameFields
+            name={shoeName}
+            brand={shoeBrand}
+            onNameChange={setShoeName}
+            onBrandChange={setShoeBrand}
+            nameLabel={t('shoes.name')}
+            disabled={addShoe.isPending}
+          />
           {addShoe.error && (
             <p role="alert" className="text-sm text-destructive">
               <ErrorMessage error={addShoe.error} />
