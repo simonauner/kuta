@@ -1,0 +1,27 @@
+README.md
+  s_eb96909e109727::t_9337ef75e78386 228
+api/Kuta.Api.Tests/StravaImportTests.cs
+  s_eb96909e109727::t_d4dab3cb527029 116,132,134,150,152,154
+  s_eb96909e109727::t_259278605d4836 118-131,133,135-149,151,153,155-160
+api/Kuta.Api/StravaImport.cs
+  s_eb96909e109727::t_8cc0a2202b613b 125,127-136,138-139,142,144,147,151,153-157
+  s_eb96909e109727::t_d4dab3cb527029 137
+api/Kuta.Api/StravaImportEndpoint.cs
+  s_eb96909e109727::t_a223caa273f86d 40,59,72,85
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.7.5",
+  "base_commit_sha": "5bcae1f2382d01e53d6a75573f014d84db1d8fc6",
+  "prompts": {},
+  "sessions": {
+    "s_eb96909e109727": {
+      "agent_id": {
+        "tool": "codex",
+        "id": "01a18f9d-1cbf-7ab1-9180-6319dde2cf0a",
+        "model": "gpt-6.1-sol"
+      },
+      "human_author": null
+    }
+  }
+}

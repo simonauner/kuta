@@ -1,0 +1,21 @@
+.github/workflows/api.yml
+  s_eb96909e109727::t_aac3c156178ac5 11-12,21-22,66
+README.md
+  s_eb96909e109727::t_ceeb98fa70e9fd 91-102
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.7.5",
+  "base_commit_sha": "8740526efc5052edd7b9f015a0f99c6ba4494e2c",
+  "prompts": {},
+  "sessions": {
+    "s_eb96909e109727": {
+      "agent_id": {
+        "tool": "codex",
+        "id": "01a18f9d-1cbf-7ab1-9180-6319dde2cf0a",
+        "model": "gpt-6.1-sol"
+      },
+      "human_author": "Simon Aunér <simonauner@gmail.com>"
+    }
+  }
+}
