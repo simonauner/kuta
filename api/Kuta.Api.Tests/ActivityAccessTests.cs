@@ -27,6 +27,10 @@ public class ActivityAccessTests(KutaFactory factory) : IClassFixture<KutaFactor
                     insert into activities (id, user_id, source, title, started_at, duration_s, distance_m, privacy)
                     values (@id, @userId, 'manual', @title, now(), 1800, 5000, 'private')
                     """, new { id = activityIds[i], userId = userIds[i], title = $"Private run {i}" });
+                await conn.ExecuteAsync("""
+                    insert into activity_streams (activity_id, t, lat, lon)
+                    values (@id, array[0, 60, 120], array[59.0, 59.01, 59.02], array[18.0, 18.01, 18.02])
+                    """, new { id = activityIds[i] });
             }
 
             using var anonymous = factory.CreateClient();
@@ -55,6 +59,8 @@ public class ActivityAccessTests(KutaFactory factory) : IClassFixture<KutaFactor
                     $"/api/activities/{activity.Id}", new { title = activity.Title, tags = new[] { "race", "workout", "race" }, equipmentIds = Array.Empty<Guid>() }, ct)).StatusCode);
                 var detail = await client.GetFromJsonAsync<ActivityDetail>($"/api/activities/{activity.Id}", ct);
                 Assert.Equal(new[] { "race", "workout" }, detail!.Tags);
+                Assert.Equal(new double?[] { 59, 59.01, 59.02 }, detail.Streams!.Lat);
+                Assert.Equal(new double?[] { 18, 18.01, 18.02 }, detail.Streams.Lon);
                 Assert.Equal(activity.Id, Assert.Single((await client.GetFromJsonAsync<ActivityPage>(
                     $"/api/activities?tag=race&year={activity.StartedAt.Year}", ct))!.Items).Id);
                 Assert.Empty((await client.GetFromJsonAsync<ActivityPage>("/api/activities?tag=easy", ct))!.Items);
