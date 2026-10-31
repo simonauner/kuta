@@ -7,6 +7,7 @@ import { activityTagsQuery } from '@/lib/activity-query'
 import { ErrorMessage } from '@/components/error-message'
 import { SlowLoading } from '@/components/slow-loading'
 import { GoalDialog, GoalList } from '@/components/goals'
+import { TrainingLoadWarning } from '@/components/training-load'
 import type { Goal } from '@/lib/goals'
 import { useState } from 'react'
 import { useTranslation } from 'react-i18next'
@@ -94,6 +95,7 @@ export function ActivitiesPage() {
           </Button>
         </div>
       </div>
+      <TrainingLoadWarning />
       <GoalList onSelect={setGoalForm} />
       {goalForm && (
         <GoalDialog
