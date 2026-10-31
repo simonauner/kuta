@@ -45,6 +45,8 @@
     "method": "The chart shows the selected year and up to {{years}} most recent years. The comparison uses the same month and day each year, and the change compares with the year before. Time includes pauses, and each activity counts on the day it starts in your device's time zone."
   },
   "records": {
+    "helpLabel": "Help with running records",
+    "help": "Does something look wrong? You can exclude an activity with incorrect data from running records by editing the activity.",
     "bestEfforts": "Best efforts",
     "title": "Running records",
     "description": "Best efforts from your runs with recorded data from a file. Time includes pauses.",
@@ -179,6 +181,9 @@
     "description": "Description (optional)"
   },
   "activity": {
+    "excludeFromRecords": "Exclude from running records",
+    "excludeFromRecordsHint": "The entire activity is excluded from personal bests, yearly records, record trends and predictions. It still counts towards training statistics and goals. You can undo this later.",
+    "excludedFromRecords": "This activity is excluded from running records and predictions.",
     "back": "All activities",
     "notFound": "The activity doesn't exist.",
     "distance": "Distance",

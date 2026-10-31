@@ -16,15 +16,15 @@ public class RecordTrendsTests(KutaFactory factory) : IClassFixture<KutaFactory>
         {
             foreach (var id in new[] { userId, otherId })
                 await conn.ExecuteAsync("insert into auth.users (id) values (@id); insert into users (id, display_name) values (@id, 'Synthetic runner')", new { id });
-            async Task Effort(Guid user, string at, int distance, double elapsed) =>
+            async Task Effort(Guid user, string at, int distance, double elapsed, bool excluded = false) =>
                 await conn.ExecuteAsync("""
                     with a as (
-                        insert into activities (user_id, source, sport, started_at, duration_s, distance_m)
-                        values (@user, 'manual', 'running', @at::timestamptz, 3600, 10000) returning id
+                        insert into activities (user_id, source, sport, started_at, duration_s, distance_m, exclude_from_records)
+                        values (@user, 'manual', 'running', @at::timestamptz, 3600, 10000, @excluded) returning id
                     )
                     insert into best_efforts (activity_id, user_id, distance_m, elapsed_s, start_offset_s, achieved_at)
                     select id, @user, @distance, @elapsed, 0, @at::timestamptz from a
-                    """, new { user, at, distance, elapsed });
+                    """, new { user, at, distance, elapsed, excluded });
 
             await Effort(userId, "2026-01-05T12:00:00Z", 5000, 1500);
             await Effort(userId, "2026-01-31T23:30:00Z", 5000, 1400); // februari i Stockholm
@@ -33,6 +33,8 @@ public class RecordTrendsTests(KutaFactory factory) : IClassFixture<KutaFactory>
             await Effort(userId, "2026-04-10T12:00:00Z", 5000, 1390);
             await Effort(userId, "2026-04-11T12:00:00Z", 10000, 2000);
             await Effort(otherId, "2026-01-01T12:00:00Z", 5000, 1000);
+
+            await Effort(userId, "2026-04-12T12:00:00Z", 5000, 700, excluded: true);
 
             var trend = await RecordTrends.ReadAsync(conn, userId, 5000, "Europe/Stockholm", ct);
             Assert.Equal(new[] { (2026, 1, 1500d), (2026, 2, 1400d), (2026, 3, 1400d), (2026, 4, 1390d) },

@@ -3,6 +3,7 @@ import { useState } from 'react'
 import { useQuery } from '@tanstack/react-query'
 import { Link } from '@tanstack/react-router'
 import { useTranslation } from 'react-i18next'
+import { HelpPopover } from '@/components/help-popover'
 import { ErrorMessage } from '@/components/error-message'
 import { Button } from '@/components/ui/button'
 import { api } from '@/lib/api'
@@ -74,9 +75,12 @@ export function RecordsSection({ year }: { year: number }) {
 
   return (
     <section className="mt-10" aria-labelledby="records-title">
-      <h2 id="records-title" className="text-xl font-semibold tracking-tight">
-        {t('records.title')}
-      </h2>
+      <div className="flex items-center justify-between gap-4">
+        <h2 id="records-title" className="text-xl font-semibold tracking-tight">
+          {t('records.title')}
+        </h2>
+        <HelpPopover label={t('records.helpLabel')}>{t('records.help')}</HelpPopover>
+      </div>
       <p className="mt-2 text-sm text-muted-foreground">{t('records.description')}</p>
 
       {allTime.error && <QueryError error={allTime.error} retry={() => void allTime.refetch()} />}

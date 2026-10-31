@@ -307,6 +307,9 @@ export function ActivityPage() {
       {a.description && (
         <p className="mt-4 whitespace-pre-wrap text-sm wrap-anywhere">{a.description}</p>
       )}
+      {original.userId === me?.id && original.excludeFromRecords && (
+        <p className="mt-4 text-sm text-muted-foreground">{t('activity.excludedFromRecords')}</p>
+      )}
       <MultisportEditor
         key={`${original.id}:${original.partsEdited}:${JSON.stringify(original.parts)}`}
         activity={original}

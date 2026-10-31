@@ -19,6 +19,7 @@ public static class RecordTrends
                 select extract(year from achieved_at at time zone @timeZone)::int as year,
                     extract(month from achieved_at at time zone @timeZone)::int as month, *
                 from best_efforts where user_id = @userId and distance_m = @distanceM
+                  and activity_id in (select id from activities where user_id = @userId and not exclude_from_records)
             ) e
             order by year, month, elapsed_s, achieved_at, activity_id
             """, args, cancellationToken: ct));
@@ -28,6 +29,7 @@ public static class RecordTrends
                 select *, min(elapsed_s) over (order by achieved_at, activity_id
                     rows between unbounded preceding and 1 preceding) as previous_best
                 from best_efforts where user_id = @userId and distance_m = @distanceM
+                  and activity_id in (select id from activities where user_id = @userId and not exclude_from_records)
             ) e
             where previous_best is null or elapsed_s < previous_best
             order by achieved_at, activity_id
@@ -41,7 +43,9 @@ public static class RecordTrends
         var efforts = await conn.QueryAsync<StoredBestEffort>(new CommandDefinition("""
             select distinct on (distance_m) activity_id, distance_m, elapsed_s, start_offset_s, achieved_at
             from best_efforts
-            where user_id = @userId and distance_m >= @minimum and achieved_at >= @since and achieved_at <= @now
+            where user_id = @userId
+              and activity_id in (select id from activities where user_id = @userId and not exclude_from_records)
+              and distance_m >= @minimum and achieved_at >= @since and achieved_at <= @now
             order by distance_m, elapsed_s, achieved_at desc, activity_id
             """, new { userId, minimum = RacePredictor.MinimumBasisDistanceM, since = now - RacePredictor.Window, now },
             cancellationToken: ct));

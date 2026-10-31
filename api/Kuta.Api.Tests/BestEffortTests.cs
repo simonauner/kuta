@@ -123,6 +123,49 @@ public class BestEffortTests(KutaFactory factory) : IClassFixture<KutaFactory>
         }
     }
 
+    [Fact]
+    public async Task Excluding_an_activity_is_owner_only_reversible_and_survives_recalculation()
+    {
+        var ct = TestContext.Current.CancellationToken;
+        var ownerId = Guid.NewGuid();
+        var otherId = Guid.NewGuid();
+        var id = Guid.NewGuid();
+        var fallbackId = Guid.NewGuid();
+        await using var conn = await factory.Services.GetRequiredService<NpgsqlDataSource>().OpenConnectionAsync(ct);
+        try
+        {
+            using var owner = await CreateRunner(conn, ownerId, ct);
+            using var other = await CreateRunner(conn, otherId, ct);
+            await conn.ExecuteAsync("""
+                insert into activities (id, user_id, source, sport, started_at, duration_s, distance_m)
+                values (@id, @ownerId, 'fit', 'running', now(), 600, 2000);
+                insert into activities (id, user_id, source, sport, started_at, duration_s, distance_m)
+                values (@fallbackId, @ownerId, 'fit', 'running', now(), 800, 2000);
+                insert into best_efforts (activity_id, user_id, distance_m, elapsed_s, start_offset_s, achieved_at)
+                values (@fallbackId, @ownerId, 1000, 400, 0, now());
+                insert into activity_streams (activity_id, t, dist) values (@id, array[0,300,600], array[0,1000,2000]::real[])
+                """, new { id, ownerId, fallbackId });
+            var request = new { title = "Synthetic GPS gap", description = "", tags = Array.Empty<string>(), equipmentIds = Array.Empty<Guid>(), excludeFromRecords = true };
+            Assert.Equal(HttpStatusCode.NotFound, (await other.PutAsJsonAsync($"/api/activities/{id}", request, ct)).StatusCode);
+            Assert.False((await owner.GetFromJsonAsync<ActivityDetail>($"/api/activities/{id}", ct))!.ExcludeFromRecords);
+            Assert.Equal(HttpStatusCode.NoContent, (await owner.PutAsJsonAsync($"/api/activities/{id}", request, ct)).StatusCode);
+            Assert.True((await owner.GetFromJsonAsync<ActivityDetail>($"/api/activities/{id}", ct))!.ExcludeFromRecords);
+            Assert.Equal(HttpStatusCode.NoContent, (await owner.PostAsync($"/api/activities/{id}/best-efforts/recalculate", null, ct)).StatusCode);
+            Assert.True(await conn.ExecuteScalarAsync<bool>("select exists(select 1 from best_efforts where activity_id = @id)", new { id }));
+            Assert.Equal(fallbackId, Assert.Single((await owner.GetFromJsonAsync<StoredBestEffort[]>("/api/records", ct))!).ActivityId);
+            Assert.Equal(fallbackId, Assert.Single((await owner.GetFromJsonAsync<StoredBestEffort[]>($"/api/records?year={DateTime.UtcNow.Year}", ct))!).ActivityId);
+            Assert.Equal(2000, (await owner.GetFromJsonAsync<ActivityDetail>($"/api/activities/{id}", ct))!.DistanceM);
+            Assert.Equal(HttpStatusCode.NoContent, (await owner.PutAsJsonAsync($"/api/activities/{id}", request with { excludeFromRecords = false }, ct)).StatusCode);
+            var restored = (await owner.GetFromJsonAsync<StoredBestEffort[]>("/api/records", ct))!;
+            Assert.Equal(2, restored.Length);
+            Assert.All(restored, effort => Assert.Equal(id, effort.ActivityId));
+        }
+        finally
+        {
+            await conn.ExecuteAsync("delete from auth.users where id in (@ownerId, @otherId)", new { ownerId, otherId });
+        }
+    }
+
     private async Task<HttpClient> CreateRunner(NpgsqlConnection conn, Guid id, CancellationToken ct)
     {
         var email = $"best-effort-{id:N}@example.com";

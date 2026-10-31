@@ -64,7 +64,7 @@ public static class BestEffortEndpoints
                 select distinct on (distance_m) activity_id, distance_m, elapsed_s, start_offset_s, achieved_at
                 from best_efforts
                 where user_id = @userId
-                  and activity_id in (select id from activities where user_id = @userId and tags @> @tags::text[])
+                  and activity_id in (select id from activities where user_id = @userId and not exclude_from_records and tags @> @tags::text[])
                   and (@from::timestamptz is null or achieved_at >= @from)
                   and (@until::timestamptz is null or achieved_at < @until)
                 order by distance_m, elapsed_s, achieved_at, activity_id
