@@ -3,6 +3,7 @@ import { Link } from '@tanstack/react-router'
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
 import { useTranslation } from 'react-i18next'
 import { api } from '@/lib/api'
+import { cn } from '@/lib/utils'
 import { formatDuration, parseDuration } from '@/lib/activity'
 import { equipmentQuery, equipmentKindsQuery, type Equipment } from '@/lib/equipment'
 import { activityQuery } from '@/lib/activity-query'
@@ -21,6 +22,8 @@ export function EquipmentSection() {
   const [name, setName] = useState('')
   const [brand, setBrand] = useState('')
   const [kind, setKind] = useState('shoe')
+  const singleKind = kinds.data?.length === 1
+  const selectedKind = singleKind ? kinds.data![0] : kind
   const [distanceKm, setDistanceKm] = useState('')
   const [duration, setDuration] = useState('')
   const km = new Intl.NumberFormat(i18n.resolvedLanguage, { maximumFractionDigits: 2 })
@@ -29,7 +32,7 @@ export function EquipmentSection() {
       api.send('POST', '/api/equipment', {
         name,
         brand,
-        kind,
+        kind: selectedKind,
         initialDistanceM: distanceKm === '' ? 0 : Number(distanceKm) * 1000,
         initialDurationS: duration === '' ? 0 : parseDuration(duration),
       }),
@@ -171,7 +174,7 @@ export function EquipmentSection() {
                 onChange={(e) => setName(e.currentTarget.value)}
               />
             </label>
-            <label className="space-y-2 text-sm font-medium">
+            <label className={cn('space-y-2 text-sm font-medium', singleKind && 'col-span-2')}>
               {t('equipment.brand')}
               <Input
                 maxLength={100}
@@ -179,20 +182,22 @@ export function EquipmentSection() {
                 onChange={(e) => setBrand(e.currentTarget.value)}
               />
             </label>
-            <label className="space-y-2 text-sm font-medium">
-              {t('equipment.kind')}
-              <select
-                className="h-9 w-full rounded-md border bg-background px-3"
-                value={kind}
-                onChange={(e) => setKind(e.currentTarget.value)}
-              >
-                {kinds.data?.map((value) => (
-                  <option key={value} value={value}>
-                    {t(`equipmentKinds.${value}`)}
-                  </option>
-                ))}
-              </select>
-            </label>
+            {kinds.data && kinds.data.length > 1 && (
+              <label className="space-y-2 text-sm font-medium">
+                {t('equipment.kind')}
+                <select
+                  className="h-9 w-full rounded-md border bg-background px-3"
+                  value={selectedKind}
+                  onChange={(e) => setKind(e.currentTarget.value)}
+                >
+                  {kinds.data?.map((value) => (
+                    <option key={value} value={value}>
+                      {t(`equipmentKinds.${value}`)}
+                    </option>
+                  ))}
+                </select>
+              </label>
+            )}
             <p className="col-span-2 text-xs text-muted-foreground">{t('equipment.initialHint')}</p>
             <label className="space-y-2 text-sm font-medium">
               {t('equipment.initialDistance')}
