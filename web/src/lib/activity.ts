@@ -1,4 +1,5 @@
 import type { TFunction } from 'i18next'
+import sv from '../locales/sv.json' with { type: 'json' }
 
 export type ActivityTag = keyof typeof import('@/locales/sv.json').tagNames
 
@@ -15,10 +16,17 @@ export type Activity = {
   tags: ActivityTag[]
 }
 
-export function activitySearch(search: Record<string, unknown>): { year?: number } {
+export function activitySearch(search: Record<string, unknown>): {
+  year?: number
+  tag?: ActivityTag
+} {
   const value = search.year
   const year = typeof value === 'number' || typeof value === 'string' ? Number(value) : NaN
-  return Number.isInteger(year) && year >= 1 && year <= 9998 ? { year } : {}
+  const filters: { year?: number; tag?: ActivityTag } = {}
+  if (Number.isInteger(year) && year >= 1 && year <= 9998) filters.year = year
+  if (typeof search.tag === 'string' && Object.hasOwn(sv.tagNames, search.tag))
+    filters.tag = search.tag as ActivityTag
+  return filters
 }
 
 export type ActivityListItem = Activity & { showMonth: boolean; showWeek: boolean }
@@ -79,6 +87,18 @@ export type ActivityStreams = {
   // Steg/min (löpning, gång) eller varv/min (cykling); °C
   cadence: (number | null)[] | null
   temp: (number | null)[] | null
+}
+
+export type ChartAxis = { values: number[]; elapsedTime: boolean }
+
+export function chartAxis(streams: ActivityStreams): ChartAxis {
+  let last = streams.dist?.find((d) => d !== null) ?? 0
+  const values = (streams.dist ?? []).map((d) => (last = d ?? last) / 1000)
+  const increasing = values.some((d) => d > values[0])
+  const invalid = values.some((d, i) => !Number.isFinite(d) || (i > 0 && d < values[i - 1]))
+  return increasing && !invalid
+    ? { values, elapsedTime: false }
+    : { values: streams.t, elapsedTime: true }
 }
 
 // Varv som klockan registrerade (manuellt eller autolap); startS = sekunder från passets start
@@ -177,31 +197,69 @@ export type Split = {
   avgHr: number | null
 }
 
-// Ett split per hel kilometer plus resten. Tiden mellan första mätpunkterna på vardera sidan om gränsen.
+// Interpolera kilometergränser mellan mätpunkter, utan att extrapolera utanför inspelningen.
 export function splits(streams: ActivityStreams): Split[] {
   const { t, dist, alt, hr } = streams
   if (!dist) return []
+  const first = dist.findIndex((d) => d !== null)
+  if (first < 0) return []
   const result: Split[] = []
-  let from = 0
-  let km = 1
-  for (let i = 0; i < t.length; i++) {
-    const d = dist[i]
-    const last = i === t.length - 1
-    if (d === null || (d < km * 1000 && !last)) continue
-    const startD = dist[from] ?? 0
-    const hrs = hr?.slice(from, i + 1).filter((v): v is number => v !== null) ?? []
-    const altFrom = alt?.[from]
-    const altTo = alt?.[i]
+  let previous = first
+  let fromD = dist[first]!
+  let fromT = t[first]
+  let fromAlt = alt?.[first] ?? null
+  let km = Math.floor(fromD / 1000) + 1
+  let hrTotal = 0
+  let hrSeconds = 0
+  const interpolate = (
+    a: number | null | undefined,
+    b: number | null | undefined,
+    ratio: number,
+  ) => (a == null || b == null ? null : a + (b - a) * ratio)
+  function finish(d: number, time: number, elevation: number | null) {
     result.push({
       km,
-      distanceM: d - startD,
-      durationS: t[i] - t[from],
-      elevationM: altFrom != null && altTo != null ? altTo - altFrom : null,
-      avgHr: hrs.length ? Math.round(hrs.reduce((a, b) => a + b, 0) / hrs.length) : null,
+      distanceM: d - fromD,
+      durationS: time - fromT,
+      elevationM: fromAlt !== null && elevation !== null ? elevation - fromAlt : null,
+      avgHr: hrSeconds > 0 ? Math.round(hrTotal / hrSeconds) : null,
     })
-    from = i
+    fromD = d
+    fromT = time
+    fromAlt = elevation
+    hrTotal = hrSeconds = 0
     km++
   }
-  // En sista rest på några meter är brus, inte ett split
-  return result.filter((s, i) => i < result.length - 1 || s.distanceM >= 50)
+  for (let i = first; i < t.length; i++) {
+    const d = dist[i]
+    if (d === null) continue
+    // En återställd eller trasig ström har ingen entydig kilometerindelning.
+    if (!Number.isFinite(d) || d < 0 || !Number.isFinite(t[i])) return []
+    if (i === first) continue
+    const previousD = dist[previous]!
+    if (d < previousD || t[i] <= t[previous]) return []
+    let fromRatio = 0
+    while (fromRatio < 1) {
+      const boundary = Math.min(km * 1000, d)
+      const ratio = d === previousD ? 1 : (boundary - previousD) / (d - previousD)
+      const seconds = (ratio - fromRatio) * (t[i] - t[previous])
+      const hrFrom = interpolate(hr?.[previous], hr?.[i], fromRatio)
+      const hrTo = interpolate(hr?.[previous], hr?.[i], ratio)
+      if (hrFrom !== null && hrTo !== null) {
+        hrTotal += ((hrFrom + hrTo) / 2) * seconds
+        hrSeconds += seconds
+      }
+      if (boundary === km * 1000)
+        finish(
+          boundary,
+          t[previous] + ratio * (t[i] - t[previous]),
+          interpolate(alt?.[previous], alt?.[i], ratio),
+        )
+      fromRatio = ratio
+    }
+    previous = i
+  }
+  // En sista rest på några meter är brus, inte ett split.
+  if (dist[previous]! - fromD >= 50) finish(dist[previous]!, t[previous], alt?.[previous] ?? null)
+  return result
 }

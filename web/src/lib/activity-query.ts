@@ -1,6 +1,16 @@
-import { queryOptions } from '@tanstack/react-query'
-import { ApiError, api } from '@/lib/api'
-import type { ActivityDetail, ActivityTag } from '@/lib/activity'
+import { queryOptions, type QueryClient } from '@tanstack/react-query'
+import { ApiError, api } from './api.ts'
+import type { ActivityDetail, ActivityTag } from './activity.ts'
+
+export async function clearHeartRateQueries(queryClient: QueryClient) {
+  const filter = {
+    predicate: (query: { queryKey: readonly unknown[] }) =>
+      ['activities', 'activity', 'activityPreview'].includes(String(query.queryKey[0])),
+  }
+  // Stoppa även sena svar från att lägga tillbaka raderad puls.
+  await queryClient.cancelQueries(filter)
+  queryClient.removeQueries(filter)
+}
 
 export const activityQuery = (activityId: string) =>
   queryOptions({
