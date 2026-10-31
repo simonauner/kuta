@@ -1,0 +1,23 @@
+supabase/templates/confirmation.html
+  s_3f0d09f258ae0f::t_85fd9ea39cc46b 1-60
+supabase/templates/recovery.html
+  s_3f0d09f258ae0f::t_85fd9ea39cc46b 1-60
+README.md
+  s_3f0d09f258ae0f::t_85fd9ea39cc46b 150-155
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.7.5",
+  "base_commit_sha": "b07e78bb1f5ced85585039b53e613fe479f2f359",
+  "prompts": {},
+  "sessions": {
+    "s_3f0d09f258ae0f": {
+      "agent_id": {
+        "tool": "codex",
+        "id": "01a190ab-0b28-7130-b0d1-abc48080a849",
+        "model": "gpt-6.1-sol"
+      },
+      "human_author": "Simon Aunér <simonauner@gmail.com>"
+    }
+  }
+}
