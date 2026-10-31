@@ -6,6 +6,10 @@ export type StoredBestEffort = {
   achievedAt: string
 }
 
+export type ActivityBestEffort = StoredBestEffort & {
+  recordStatus: 'current' | 'previous' | null
+}
+
 export type RecordMonth = {
   year: number
   month: number

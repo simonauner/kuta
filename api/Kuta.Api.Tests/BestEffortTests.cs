@@ -44,9 +44,10 @@ public class BestEffortTests(KutaFactory factory) : IClassFixture<KutaFactory>
             Assert.Equal(HttpStatusCode.Unauthorized, (await anonymous.GetAsync("/api/records/predictions", ct)).StatusCode);
 
 
-            var efforts = (await owner.GetFromJsonAsync<StoredBestEffort[]>($"/api/activities/{first.Id}/best-efforts", ct))!;
+            var efforts = (await owner.GetFromJsonAsync<ActivityBestEffort[]>($"/api/activities/{first.Id}/best-efforts", ct))!;
             Assert.Equal(new[] { 1000, 1609, 5000 }, efforts.Select(e => e.DistanceM));
             Assert.All(efforts, e => Assert.Equal(first.Id, e.ActivityId));
+            Assert.All(efforts, e => Assert.Equal("current", e.RecordStatus));
             Assert.Equal(1609.344 / 3, efforts[1].ElapsedS, precision: 8);
             Assert.Equal(start, efforts[0].AchievedAt);
             var records = await owner.GetFromJsonAsync<StoredBestEffort[]>("/api/records", ct);

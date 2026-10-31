@@ -173,7 +173,7 @@ public class SocialTests(KutaFactory factory) : IClassFixture<KutaFactory>
             var ownDetail = (await owner.GetFromJsonAsync<ActivityDetail>($"/api/activities/{activityId}", ct))!;
             Assert.Equal((short)140, ownDetail.AvgHr);
             Assert.NotNull(ownDetail.Streams!.Lat);
-            Assert.Single((await viewer.GetFromJsonAsync<StoredBestEffort[]>($"/api/activities/{activityId}/best-efforts", ct))!);
+            Assert.Null(Assert.Single((await viewer.GetFromJsonAsync<ActivityBestEffort[]>($"/api/activities/{activityId}/best-efforts", ct))!).RecordStatus);
             var update = new { title = "Shared test", tags = Array.Empty<string>(), equipmentIds = Array.Empty<Guid>(), privacy = "public" };
             Assert.Equal(HttpStatusCode.NotFound, (await viewer.PutAsJsonAsync($"/api/activities/{activityId}", update, ct)).StatusCode);
             Assert.Equal(HttpStatusCode.NotFound, (await viewer.DeleteAsync($"/api/activities/{activityId}", ct)).StatusCode);
