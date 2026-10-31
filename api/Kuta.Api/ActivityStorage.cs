@@ -27,7 +27,7 @@ public static class ActivityStorage
         await using var tx = await conn.BeginTransactionAsync(ct);
         // Samma profillås som återkallat samtycke: läs aldrig ett äldre samtycke före transaktionen.
         var profile = await conn.QuerySingleOrDefaultAsync<Profile>(new CommandDefinition(
-            "select display_name, hr_consent_at is not null as hr_consent from users where id = @userId for update",
+            "select display_name, hr_consent_at is not null as hr_consent, default_activity_privacy from users where id = @userId for update",
             new { userId }, tx, cancellationToken: ct));
         if (profile is null) return null;
         var equipmentIds = req.EquipmentIds ?? [];
@@ -40,13 +40,13 @@ public static class ActivityStorage
         var id = await conn.ExecuteScalarAsync<Guid>(new CommandDefinition(
             """
             insert into activities (user_id, source, sport, title, started_at, duration_s, distance_m, avg_hr,
-                                    avg_speed_mps, elevation_gain_m, tags, description)
+                                    avg_speed_mps, elevation_gain_m, tags, description, privacy)
             values (@userId, 'manual', @Sport, @title, @startedAt, @DurationS, @DistanceM, @avgHr,
-                    @avgSpeedMps, @ElevationGainM, @tags, @description)
+                    @avgSpeedMps, @ElevationGainM, @tags, @description, @DefaultActivityPrivacy)
             returning id
             """, new
             {
-                userId, req.Sport, title, startedAt, req.DurationS, req.DistanceM, avgHr, tags,
+                userId, req.Sport, title, startedAt, req.DurationS, req.DistanceM, avgHr, tags, profile.DefaultActivityPrivacy,
                 description = ActivityInput.NormalizeDescription(req.Description),
                 avgSpeedMps = (float)(req.DistanceM!.Value / req.DurationS!.Value), req.ElevationGainM,
             }, tx, cancellationToken: ct));
@@ -65,21 +65,21 @@ public static class ActivityStorage
         await using var tx = await conn.BeginTransactionAsync(ct);
         if (!await EquipmentEndpoints.OwnsAsync(conn, tx, userId, equipmentIds ?? [], allowRetired: source == "strava"))
             throw new InvalidEquipmentException();
-        var consent = await conn.QuerySingleAsync<bool>(
-            "select hr_consent_at is not null from users where id = @userId for update", new { userId }, tx);
-        if (!consent) parsed = parsed.WithoutHeartRate();
-        var key = consent && hash is not null ? $"fit/{userId}/{Convert.ToHexStringLower(hash)}{extension}" : null;
+        var profile = await conn.QuerySingleAsync<Profile>(
+            "select display_name, hr_consent_at is not null as hr_consent, default_activity_privacy from users where id = @userId for update", new { userId }, tx);
+        if (!profile.HrConsent) parsed = parsed.WithoutHeartRate();
+        var key = profile.HrConsent && hash is not null ? $"fit/{userId}/{Convert.ToHexStringLower(hash)}{extension}" : null;
         var id = await conn.QuerySingleOrDefaultAsync<Guid?>(
             """
             insert into activities (user_id, source, sport, title, started_at, duration_s, moving_s, distance_m,
-                                    avg_hr, max_hr, avg_speed_mps, elevation_gain_m, route, device, raw_file_key, raw_file_sha256, strava_activity_id, tags, description)
+                                    avg_hr, max_hr, avg_speed_mps, elevation_gain_m, route, device, raw_file_key, raw_file_sha256, strava_activity_id, tags, description, privacy)
             values (@userId, @source, @Sport, @title, @StartedAt, @DurationS, @MovingS, @DistanceM,
-                    @AvgHr, @MaxHr, @AvgSpeedMps, @ElevationGainM, @route::geography, @Device, @key, @hash, @stravaId, @tags, @description)
+                    @AvgHr, @MaxHr, @AvgSpeedMps, @ElevationGainM, @route::geography, @Device, @key, @hash, @stravaId, @tags, @description, @DefaultActivityPrivacy)
             on conflict do nothing returning id
             """,
             new
             {
-                userId, source, title, stravaId, description = ActivityInput.NormalizeDescription(description), parsed.Sport, parsed.StartedAt, parsed.DurationS, parsed.MovingS,
+                userId, source, title, stravaId, profile.DefaultActivityPrivacy, description = ActivityInput.NormalizeDescription(description), parsed.Sport, parsed.StartedAt, parsed.DurationS, parsed.MovingS,
                 parsed.DistanceM, parsed.AvgHr, parsed.MaxHr, parsed.AvgSpeedMps, parsed.ElevationGainM,
                 route = (object?)parsed.Route ?? DBNull.Value, parsed.Device, key, hash, tags = ActivityInput.NormalizeTags(tags),
             }, tx);

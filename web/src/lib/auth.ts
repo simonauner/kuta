@@ -2,7 +2,13 @@ import { queryOptions, useQueryClient } from '@tanstack/react-query'
 import { api, ApiError, resetCsrfToken } from '@/lib/api'
 
 // hrConsent: uttryckligt samtycke till att puls (hälsodata) sparas
-export type Me = { id: string; email: string; displayName: string | null; hrConsent: boolean }
+export type Me = {
+  id: string
+  email: string
+  displayName: string | null
+  hrConsent: boolean
+  defaultActivityPrivacy: 'private' | 'followers' | 'public'
+}
 
 // null = inte inloggad
 export const meQuery = queryOptions({

@@ -435,6 +435,16 @@
     "locationTimeout": "Finding your location took too long. Try again or choose a point on the map.",
     "locationUnsupported": "Location access is not available in this browser. Choose a point on the map."
   },
+  "activityPrivacy": {
+    "title": "Activity visibility",
+    "default": "Default visibility for new activities",
+    "help": "Saved automatically. Applies to new manual activities, FIT uploads and Strava imports. Existing activities keep their visibility until you apply this choice to all.",
+    "applyAll": "Apply to all activities",
+    "confirm": "Change every existing activity to “{{visibility}}”? This replaces individual visibility choices for all your activities.",
+    "applying": "Applying…",
+    "applied": "All your activities now use this visibility.",
+    "saved": "Default visibility saved."
+  },
   "social": {
     "follow": "Request to follow",
     "pending": "Pending approval",
