@@ -118,6 +118,7 @@ Kuta är en Strava-liknande löparapp: ladda upp pass från Garmin (FIT) eller l
 7. ~~Följare med godkännande och flöde~~ – implementerat. Därefter: grupper; e-post och push.
 
 ## Konventioner
+- Tabellernas datarader har gemensam minsta höjd på 48 px via `tbody > tr` i `web/src/index.css`. Låt rader med mer innehåll växa naturligt.
 - Alla input-, select- och textareafält använder `web/src/components/ui/form-field.tsx` (`FormField`) för gemensamt avstånd (8 px) och etikettkoppling via fältets genererade id. Standard är staplat; `layout="inline"` används för fält på samma rad och `layout="choice"` för checkboxar med etiketten efter kontrollen. `hideLabel` döljer etiketten visuellt men behåller dess tillgängliga namn. Valfri åtgärd bredvid etiketten anges med `action`.
 - Brödsmulor visar hela sidans hierarki, inte bara närmaste förälder. Undersidor till Inställningar börjar med Profil → Inställningar.
 - Modaler använder `web/src/components/ui/modal.tsx` (`Modal`). Klick utanför stänger som standard; ange `closeOnOutsideClick={false}` om ett flöde uttryckligen kräver annat. Befintliga `onCancel`-regler gäller även för klick utanför, exempelvis blockering under pågående sparande/radering.

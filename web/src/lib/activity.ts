@@ -142,6 +142,7 @@ export type ActivityDetail = Activity & {
   userId: string
   displayName: string
   privacy: 'private' | 'followers' | 'public'
+  excludeFromRecords: boolean
   description: string | null
   movingS: number | null
   maxHr: number | null

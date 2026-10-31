@@ -67,12 +67,17 @@
     "warningLink": "Se träningsbelastning"
   },
   "records": {
+    "helpLabel": "Hjälp om löprekord",
+    "help": "Ser något fel ut? Ett pass med felaktiga siffror kan undantas från löprekord genom att redigera passet.",
     "bestEfforts": "Bästa insatser",
     "title": "Löprekord",
     "description": "Bästa insatser ur dina löppass med tidsserier från fil. Tid inkluderar pauser.",
     "empty": "Inga rekord än. Rekord räknas ur löppass som laddats upp från en fil med distansdata.",
     "distance": "Distans",
     "personalBest": "Personbästa",
+    "activityRecords": "Rekord på passet",
+    "currentBest": "Nuvarande personbäst",
+    "previousBest": "Tidigare personbäst",
     "yearBest": "Bästa {{year}}",
     "distances": {
       "1000": "1 km",
@@ -86,6 +91,7 @@
     "trendEmpty": "Inga insatser på {{distance}} än.",
     "trendChart": "Bästa tid per månad på {{distance}}. Snabbare tider ligger högre.",
     "chartScale": "Snabbast överst: {{best}}, långsammast nederst: {{worst}}.",
+    "chartScaleHint": "Skalan följer personbästan. Månadens bästa visas inom spannet.",
     "legendMonth": "Månadens bästa",
     "legendRecord": "Nytt personbästa",
     "history": "Rekordhistorik, {{distance}}",
@@ -200,6 +206,9 @@
     "description": "Beskrivning (valfritt)"
   },
   "activity": {
+    "excludeFromRecords": "Undanta från löprekord",
+    "excludeFromRecordsHint": "Hela passet undantas från personbästa, årsrekord, rekordutveckling och prognoser. Det räknas fortfarande i träningsstatistik och mål. Du kan ångra valet senare.",
+    "excludedFromRecords": "Det här passet är undantaget från löprekord och prognoser.",
     "back": "Alla pass",
     "notFound": "Passet finns inte.",
     "distance": "Distans",

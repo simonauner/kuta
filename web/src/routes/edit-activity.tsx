@@ -45,6 +45,7 @@ function EditActivityForm({ activity }: { activity: ActivityDetail }) {
   const [title, setTitle] = useState(activity.title ?? '')
   const [description, setDescription] = useState(activity.description ?? '')
   const [tags, setTags] = useState(activity.tags)
+  const [excludeFromRecords, setExcludeFromRecords] = useState(activity.excludeFromRecords)
   const [privacy, setPrivacy] = useState(activity.privacy)
   const [equipmentIds, setEquipmentIds] = useState(activity.equipmentIds)
   const destination = {
@@ -56,6 +57,7 @@ function EditActivityForm({ activity }: { activity: ActivityDetail }) {
     mutationFn: (draft: MultisportDraft) =>
       api.send('PUT', `/api/activities/${activity.id}`, {
         privacy,
+        excludeFromRecords,
         title,
         description,
         tags,
@@ -132,6 +134,23 @@ function EditActivityForm({ activity }: { activity: ActivityDetail }) {
             </>
           )}
         </FormField>
+        {activity.streams && (
+          <div className="space-y-2">
+            <FormField label={t('activity.excludeFromRecords')} layout="choice">
+              {(id) => (
+                <input
+                  id={id}
+                  type="checkbox"
+                  checked={excludeFromRecords}
+                  onChange={(event) => setExcludeFromRecords(event.currentTarget.checked)}
+                  disabled={save.isPending}
+                  className="size-4 accent-primary"
+                />
+              )}
+            </FormField>
+            <p className="text-xs text-muted-foreground">{t('activity.excludeFromRecordsHint')}</p>
+          </div>
+        )}
         <MultisportEditor
           activity={multisportView(activity, split)}
           onChange={setSplit}

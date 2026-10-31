@@ -67,12 +67,17 @@
     "warningLink": "See training load"
   },
   "records": {
+    "helpLabel": "Help with running records",
+    "help": "Does something look wrong? You can exclude an activity with incorrect data from running records by editing the activity.",
     "bestEfforts": "Best efforts",
     "title": "Running records",
     "description": "Best efforts from your runs with recorded data from a file. Time includes pauses.",
     "empty": "No records yet. Records come from runs uploaded from a file with distance data.",
     "distance": "Distance",
     "personalBest": "Personal best",
+    "activityRecords": "Records set on this activity",
+    "currentBest": "Current personal best",
+    "previousBest": "Previous personal best",
     "yearBest": "Best {{year}}",
     "distances": {
       "1000": "1 km",
@@ -86,6 +91,7 @@
     "trendEmpty": "No efforts over {{distance}} yet.",
     "trendChart": "Best time per month over {{distance}}. Faster times are higher.",
     "chartScale": "Fastest at the top: {{best}}, slowest at the bottom: {{worst}}.",
+    "chartScaleHint": "The scale follows personal bests. Monthly bests are shown within that range.",
     "legendMonth": "Best of the month",
     "legendRecord": "New personal best",
     "history": "Record history, {{distance}}",
@@ -200,6 +206,9 @@
     "description": "Description (optional)"
   },
   "activity": {
+    "excludeFromRecords": "Exclude from running records",
+    "excludeFromRecordsHint": "The entire activity is excluded from personal bests, yearly records, record trends and predictions. It still counts towards training statistics and goals. You can undo this later.",
+    "excludedFromRecords": "This activity is excluded from running records and predictions.",
     "back": "All activities",
     "notFound": "The activity doesn't exist.",
     "distance": "Distance",

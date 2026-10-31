@@ -62,25 +62,6 @@
   font-size: 13px;
   margin-top: 22px;
 }
-.product-shot {
-  padding: 14px;
-  border: 1px solid var(--border);
-  border-radius: 20px;
-  background: #090909;
-  color: #a3a3a3;
-}
-.product-shot img {
-  display: block;
-  width: 100%;
-  height: auto;
-  border-radius: 8px;
-}
-.product-shot figcaption {
-  font-size: 11px;
-  text-align: center;
-  line-height: 1.5;
-  padding: 14px 4px 2px;
-}
 .more-features {
   border-top: 1px solid var(--border);
   padding-block: 80px;
@@ -141,61 +122,11 @@
   }
 }
 
-.product-shot.statistics-carousel,
-.product-shot.phone-shot {
+.product-shot.statistics-carousel {
   padding: 0;
   border: 0;
   background: transparent;
   color: var(--muted-foreground);
-}
-.app-phone {
-  width: min(100%, 360px);
-  margin-inline: auto;
-  padding: 9px;
-  border: 1px solid #555;
-  border-radius: 46px;
-  background: #202020;
-  box-shadow:
-    0 20px 50px #0002,
-    inset 0 0 0 2px #333;
-}
-.phone-screen {
-  overflow: hidden;
-  border-radius: 36px;
-  background: #090909;
-  color: #fafafa;
-}
-.phone-status {
-  position: relative;
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  height: 38px;
-  padding-inline: 24px;
-  font-size: 12px;
-  font-weight: 600;
-}
-.phone-camera {
-  position: absolute;
-  top: 8px;
-  left: 50%;
-  width: 80px;
-  height: 23px;
-  border-radius: 20px;
-  background: #000;
-  transform: translateX(-50%);
-}
-.phone-home {
-  display: grid;
-  height: 19px;
-  place-items: center;
-}
-.phone-home::after {
-  content: '';
-  width: 32%;
-  height: 4px;
-  border-radius: 4px;
-  background: #fafafa;
 }
 .statistics-slides {
   position: relative;
@@ -265,9 +196,6 @@
   gap: 48px;
   max-width: 900px;
   margin: 40px auto 0;
-}
-.phone-shot .phone-screen > img {
-  border-radius: 0;
 }
 .goals-shots figcaption {
   font-size: 13px;

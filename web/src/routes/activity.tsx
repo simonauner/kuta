@@ -15,10 +15,16 @@ import { equipmentQuery } from '@/lib/equipment'
 import { TagLabels } from '@/components/activity-tags'
 import { ActivityMap } from '@/components/activity-map'
 import { ErrorMessage } from '@/components/error-message'
+import { RecordAward } from '@/components/record-award'
 import { ApiError } from '@/lib/api'
 import { activityQuery } from '@/lib/activity-query'
 import { api } from '@/lib/api'
-import { recordMeters, type RecordDistance, type StoredBestEffort } from '@/lib/records'
+import {
+  recordMeters,
+  type RecordDistance,
+  type StoredBestEffort,
+  type ActivityBestEffort,
+} from '@/lib/records'
 import {
   activityTitle,
   chartAxis,
@@ -58,18 +64,13 @@ export function ActivityPage() {
   const activity = useQuery(activityQuery(activityId))
   const bestEfforts = useQuery({
     queryKey: ['records', 'activity', activityId],
-    queryFn: () => api.get<StoredBestEffort[]>(`/api/activities/${activityId}/best-efforts`),
+    queryFn: () => api.get<ActivityBestEffort[]>(`/api/activities/${activityId}/best-efforts`),
     enabled: activity.isSuccess,
   })
   // Rekordmärkning bara för egna pass: /api/records gäller inloggad användares rekord.
   const recordYear = activity.data && new Date(activity.data.startedAt).getUTCFullYear()
   const hasEfforts = !!bestEfforts.data?.length
   const ownEfforts = hasEfforts && activity.data?.userId === me?.id
-  const personalBests = useQuery({
-    queryKey: ['records'],
-    queryFn: () => api.get<StoredBestEffort[]>('/api/records'),
-    enabled: ownEfforts,
-  })
   const yearBests = useQuery({
     queryKey: ['records', 'year', recordYear],
     queryFn: () => api.get<StoredBestEffort[]>(`/api/records?year=${recordYear}`),
@@ -239,19 +240,18 @@ export function ActivityPage() {
       </thead>
       <tbody className="divide-y">
         {bestEfforts.data!.map((e) => {
-          const badge = holds(personalBests.data, e)
-            ? t('records.personalBest')
-            : holds(yearBests.data, e) && t('records.yearBest', { year: recordYear })
+          const yearBest = holds(yearBests.data, e)
           return (
             <tr key={e.distanceM}>
               <td className="py-1.5">{t(`records.distances.${e.distanceM as RecordDistance}`)}</td>
               <td className="py-1.5">{formatDuration(Math.round(e.elapsedS))}</td>
               <td className="py-1.5">{formatPace(e.elapsedS, recordMeters(e.distanceM))}</td>
               <td className="py-1.5 text-right">
-                {badge && (
-                  <span className="rounded-full bg-primary px-2 py-0.5 text-xs text-primary-foreground">
-                    {badge}
-                  </span>
+                {e.recordStatus ? (
+                  <RecordAward status={e.recordStatus} />
+                ) : (
+                  yearBest &&
+                  recordYear !== undefined && <RecordAward status="year" year={recordYear} />
                 )}
               </td>
             </tr>
@@ -306,6 +306,9 @@ export function ActivityPage() {
 
       {a.description && (
         <p className="mt-4 whitespace-pre-wrap text-sm wrap-anywhere">{a.description}</p>
+      )}
+      {original.userId === me?.id && original.excludeFromRecords && (
+        <p className="mt-4 text-sm text-muted-foreground">{t('activity.excludedFromRecords')}</p>
       )}
       <MultisportEditor
         key={`${original.id}:${original.partsEdited}:${JSON.stringify(original.parts)}`}
@@ -387,6 +390,41 @@ export function ActivityPage() {
           </div>
         ))}
       </dl>
+
+      {ownEfforts && bestEfforts.data?.some((e) => e.recordStatus) && (
+        <section
+          className="mt-6 rounded-xl border bg-card p-4"
+          aria-labelledby="activity-records-title"
+        >
+          <h2 id="activity-records-title" className="text-sm font-semibold">
+            {t('records.activityRecords')}
+          </h2>
+          <ul className="mt-3 grid gap-3 sm:grid-cols-2">
+            {bestEfforts.data
+              .filter((e) => e.recordStatus)
+              .map((e) => (
+                <li
+                  key={e.distanceM}
+                  className="flex flex-wrap items-center justify-between gap-x-4 gap-y-1 rounded-lg bg-muted/50 px-3 py-2"
+                >
+                  <span className="text-sm font-medium">
+                    {t(`records.distances.${e.distanceM as RecordDistance}`)}
+                    <span className="ml-3 tabular-nums">{formatDuration(e.elapsedS)}</span>
+                  </span>
+                  <RecordAward status={e.recordStatus!} />
+                </li>
+              ))}
+          </ul>
+        </section>
+      )}
+      {bestEfforts.error && (
+        <p role="alert" className="mt-4 text-sm text-destructive">
+          <ErrorMessage error={bestEfforts.error} />{' '}
+          <Button size="sm" variant="outline" onClick={() => void bestEfforts.refetch()}>
+            {t('activities.retry')}
+          </Button>
+        </p>
+      )}
 
       {((!mixed && a.laps.length > 0) || (view && view.splits.length > 0) || hasEfforts) && (
         <div className="mt-8">

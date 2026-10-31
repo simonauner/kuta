@@ -16,11 +16,7 @@ public static class BestEffortEndpoints
             if (!await conn.ExecuteScalarAsync<bool>(
                     $"select exists (select 1 from activities a where a.id = @id and {SocialEndpoints.CanRead})", new { id, userId }))
                 return Results.NotFound();
-            return Results.Ok(await conn.QueryAsync<StoredBestEffort>(
-                """
-                select activity_id, distance_m, elapsed_s, start_offset_s, achieved_at
-                from best_efforts where activity_id = @id order by distance_m
-                """, new { id, userId }));
+            return Results.Ok(await RecordTrends.ReadActivityAsync(conn, id, userId));
         });
 
         activities.MapPost("/{id:guid}/best-efforts/recalculate", async (Guid id, NpgsqlDataSource db, ClaimsPrincipal user) =>
@@ -64,7 +60,7 @@ public static class BestEffortEndpoints
                 select distinct on (distance_m) activity_id, distance_m, elapsed_s, start_offset_s, achieved_at
                 from best_efforts
                 where user_id = @userId
-                  and activity_id in (select id from activities where user_id = @userId and tags @> @tags::text[])
+                  and activity_id in (select id from activities where user_id = @userId and not exclude_from_records and tags @> @tags::text[])
                   and (@from::timestamptz is null or achieved_at >= @from)
                   and (@until::timestamptz is null or achieved_at < @until)
                 order by distance_m, elapsed_s, achieved_at, activity_id
