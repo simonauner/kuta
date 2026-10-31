@@ -25,8 +25,7 @@ public class BestEffortTests(KutaFactory factory) : IClassFixture<KutaFactory>
             var first = await Upload(owner, start, ct);
             var second = await Upload(owner, start.AddYears(1), ct);
             var otherRun = await Upload(other, start.AddYears(1), ct);
-            Assert.Equal(HttpStatusCode.NoContent, (await owner.PutAsJsonAsync(
-                $"/api/activities/{second.Id}/tags", new { tags = new[] { "race" } }, ct)).StatusCode);
+            await conn.ExecuteAsync("update activities set tags = ARRAY['race'] where id = @id", new { id = second.Id });
             var raceRecords = await owner.GetFromJsonAsync<StoredBestEffort[]>("/api/records?tag=race&year=2026", ct);
             Assert.Equal(3, raceRecords!.Length);
             Assert.All(raceRecords, effort => Assert.Equal(second.Id, effort.ActivityId));

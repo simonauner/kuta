@@ -51,7 +51,7 @@ public class ActivityAccessTests(KutaFactory factory) : IClassFixture<KutaFactor
                 Assert.Empty(activity.Tags);
                 await TestSession.UseCsrfToken(client, ct);
                 Assert.Equal(HttpStatusCode.NoContent, (await client.PutAsJsonAsync(
-                    $"/api/activities/{activity.Id}/tags", new { tags = new[] { "race", "workout", "race" } }, ct)).StatusCode);
+                    $"/api/activities/{activity.Id}", new { title = activity.Title, tags = new[] { "race", "workout", "race" }, equipmentIds = Array.Empty<Guid>() }, ct)).StatusCode);
                 var detail = await client.GetFromJsonAsync<ActivityDetail>($"/api/activities/{activity.Id}", ct);
                 Assert.Equal(new[] { "race", "workout" }, detail!.Tags);
                 Assert.Equal(activity.Id, Assert.Single((await client.GetFromJsonAsync<ActivityPage>(
@@ -60,12 +60,12 @@ public class ActivityAccessTests(KutaFactory factory) : IClassFixture<KutaFactor
                 Assert.Equal(HttpStatusCode.NotFound, (await client.GetAsync(
                     $"/api/activities/{activityIds[1 - i]}", ct)).StatusCode);
                 Assert.Equal(HttpStatusCode.NotFound, (await client.PutAsJsonAsync(
-                    $"/api/activities/{activityIds[1 - i]}/tags", new { tags = new[] { "easy" } }, ct)).StatusCode);
+                    $"/api/activities/{activityIds[1 - i]}", new { title = activity.Title, tags = new[] { "easy" }, equipmentIds = Array.Empty<Guid>() }, ct)).StatusCode);
                 Assert.Equal(HttpStatusCode.BadRequest, (await client.PutAsJsonAsync(
-                    $"/api/activities/{activity.Id}/tags", new { tags = (string[]?)null }, ct)).StatusCode);
+                    $"/api/activities/{activity.Id}", new { title = activity.Title, tags = (string[]?)null, equipmentIds = Array.Empty<Guid>() }, ct)).StatusCode);
                 Assert.Equal(HttpStatusCode.BadRequest, (await client.GetAsync("/api/activities?tag=unknown", ct)).StatusCode);
                 Assert.Equal(HttpStatusCode.NoContent, (await client.PutAsJsonAsync(
-                    $"/api/activities/{activity.Id}/tags", new { tags = Array.Empty<string>() }, ct)).StatusCode);
+                    $"/api/activities/{activity.Id}", new { title = activity.Title, tags = Array.Empty<string>(), equipmentIds = Array.Empty<Guid>() }, ct)).StatusCode);
                 Assert.Empty((await client.GetFromJsonAsync<ActivityDetail>($"/api/activities/{activity.Id}", ct))!.Tags);
 
                 Assert.Null(activities.NextCursor);

@@ -1,11 +1,12 @@
 import { useQuery } from '@tanstack/react-query'
-import { useParams } from '@tanstack/react-router'
+import { Link, useParams, useSearch } from '@tanstack/react-router'
 import { useMemo, useState } from 'react'
 import { useTranslation } from 'react-i18next'
 import { ActivityCharts, type ChartSeries } from '@/components/activity-charts'
 import { BackLink } from '@/components/back-link'
-import { ActivityEquipmentEditor } from '@/components/equipment'
-import { ActivityTagEditor } from '@/components/activity-tags'
+import { Button } from '@/components/ui/button'
+import { equipmentQuery } from '@/lib/equipment'
+import { TagLabels } from '@/components/activity-tags'
 import { ActivityMap } from '@/components/activity-map'
 import { ErrorMessage } from '@/components/error-message'
 import { ApiError } from '@/lib/api'
@@ -40,6 +41,8 @@ function distanceKm(streams: ActivityStreams) {
 export function ActivityPage() {
   const { activityId } = useParams({ from: '/app/activities/$activityId' })
   const { t, i18n } = useTranslation()
+  const { year } = useSearch({ from: '/app/activities/$activityId' })
+  const equipment = useQuery(equipmentQuery)
   const [tab, setTab] = useState<'overview' | 'laps'>('overview')
   const activity = useQuery(activityQuery(activityId))
 
@@ -125,16 +128,47 @@ export function ActivityPage() {
       </h1>
       {a.device && <p className="mt-1 text-xs text-muted-foreground">{a.device}</p>}
 
-      <ActivityEquipmentEditor
-        key={`equipment:${a.id}:${a.equipmentIds.join(',')}`}
-        activityId={a.id}
-        initialIds={a.equipmentIds}
-      />
-      <ActivityTagEditor
-        key={`tags:${a.id}:${a.tags.join(',')}`}
-        activityId={a.id}
-        initialTags={a.tags}
-      />
+      <div className="mt-4">
+        <Button asChild size="sm" variant="outline">
+          <Link
+            to="/app/activities/$activityId/edit"
+            params={{ activityId: a.id }}
+            search={{ year }}
+          >
+            {t('activity.edit')}
+          </Link>
+        </Button>
+      </div>
+      {a.equipmentIds.length > 0 && (
+        <div className="mt-5">
+          <h2 className="text-sm font-medium">{t('equipment.title')}</h2>
+          <ul className="mt-2 flex flex-wrap gap-2">
+            {equipment.data
+              ?.filter((item) => a.equipmentIds.includes(item.id))
+              .map((item) => (
+                <li key={item.id} className="rounded-full bg-muted px-2 py-0.5 text-xs">
+                  {item.name}
+                </li>
+              ))}
+          </ul>
+          {equipment.isPending && (
+            <p role="status" className="text-sm text-muted-foreground">
+              {t('equipment.loading')}
+            </p>
+          )}
+          {equipment.error && (
+            <p role="alert" className="text-sm text-destructive">
+              <ErrorMessage error={equipment.error} />
+            </p>
+          )}
+        </div>
+      )}
+      {a.tags.length > 0 && (
+        <div className="mt-5">
+          <h2 className="text-sm font-medium">{t('tags.label')}</h2>
+          <TagLabels tags={a.tags} />
+        </div>
+      )}
 
       <dl className="mt-6 grid grid-cols-3 gap-4">
         {stats.map(([label, value], i) => (
