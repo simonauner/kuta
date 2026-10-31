@@ -1,0 +1,22 @@
+README.md
+  s_479abfa4529b69::t_7abd3adb8c18e6 13,250-301
+web/privacy.html
+  s_479abfa4529b69::t_882d88cf724ad5 153-158,197-211,241-246,363-369,409-425,454-458
+  s_479abfa4529b69::t_99f2ce24b65c94 152,459
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.7.5",
+  "base_commit_sha": "fdc73061d51369bef1dc4fcd8247427662d0549f",
+  "prompts": {},
+  "sessions": {
+    "s_479abfa4529b69": {
+      "agent_id": {
+        "tool": "codex",
+        "id": "01a18f48-7620-7332-be46-47c6b4342018",
+        "model": "gpt-6.1-sol"
+      },
+      "human_author": "Simon Aunér <simonauner@gmail.com>"
+    }
+  }
+}
