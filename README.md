@@ -148,7 +148,7 @@ kontrollera först att inget pass refererar till nyckeln.
 
 Aktiv utrustning visas före pensionerad. Inom grupperna behålls ordningen efter när utrustningen lades till.
 
-Lägg till utrustning i modalen under Profil → Utrustning och koppla den till manuella pass eller FIT-importer. Skor kan även skapas direkt med ”Skapa ny” vid skofältet; den nya skon väljs automatiskt utan att aktivitetsutkastet försvinner.
+Lägg till utrustning i modalen under Profil → Utrustning och koppla den till manuella pass eller FIT-importer. Välj ”Redigera utrustning” i utrustningens meny för att ändra namn, märke och tidigare användning i samma modal. Passkopplingar och pensionsstatus behålls. Skor kan även skapas direkt med ”Skapa ny” vid skofältet; den nya skon väljs automatiskt utan att aktivitetsutkastet försvinner.
 Kopplingarna kan också ändras på passsidan. Ett pass kan använda flera
 utrustningsdelar. Skor (`shoe`) är den första typen; nya typer läggs till i
 `EquipmentEndpoints.Kinds` och i båda språkfilernas `equipmentKinds`. Typväljaren i formuläret visas först när fler än en typ finns.
@@ -170,6 +170,7 @@ Alla anrop kräver inloggning; skrivningar kräver `X-CSRF-TOKEN`:
 |---|---|
 | `GET /api/equipment` | Egen utrustning med startvärden och total användning. |
 | `GET /api/equipment/last-used-shoe` | Senast använda aktiva sko, sorterad på passets starttid; `{ "id": null }` om ingen finns. |
+| `PUT /api/equipment/{id}` | Uppdaterar egen utrustning med samma fält och validering som vid skapande. Annans eller okänd utrustning ger 404. |
 | `PUT /api/equipment/{id}/retire` | Pensionerar egen utrustning och behåller gamla kopplingar. |
 | `DELETE /api/equipment/{id}/retire` | Återaktiverar egen utrustning så att den kan väljas igen; historik och totaler behålls. |
 | `DELETE /api/equipment/{id}` | Raderar egen utrustning och dess kopplingar, men behåller passen. |

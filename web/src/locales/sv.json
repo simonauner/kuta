@@ -316,6 +316,7 @@
     "title": "Utrustning",
     "description": "Total distans och tid från kopplade pass, inklusive tidigare användning. Tiden räknas inklusive pauser.",
     "empty": "Du har ingen utrustning än.",
+    "edit": "Redigera utrustning",
     "add": "Lägg till utrustning",
     "cancel": "Avbryt",
     "save": "Spara utrustning",
