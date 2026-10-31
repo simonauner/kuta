@@ -116,6 +116,7 @@ export type ActivityLap = {
 }
 
 export type ActivityDetail = Activity & {
+  description: string | null
   movingS: number | null
   maxHr: number | null
   avgSpeedMps: number | null

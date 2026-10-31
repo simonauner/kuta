@@ -114,7 +114,7 @@ public static class StravaImportEndpoint
                     try
                     {
                         var id = await ActivityStorage.SaveAsync(conn, store, userId, parsed, "strava", row.Title, row.Id,
-                            bytes, extension, cancellationToken, equipmentIds: equipmentId is { } shoeId ? [shoeId] : []);
+                            bytes, extension, cancellationToken, equipmentIds: equipmentId is { } shoeId ? [shoeId] : [], description: row.Description);
                         if (id is null)
                         {
                             duplicates++;

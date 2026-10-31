@@ -19,6 +19,17 @@ public class ActivityInputTests
         Assert.Equal("invalidTitle", ActivityInput.Validate(Valid with { Title = new string('a', 101) }, Now)?.Code);
     }
 
+    [Fact]
+    public void Description_length_is_checked_after_trimming()
+    {
+        Assert.Null(ActivityInput.Validate(Valid with { Description = " " + new string('a', 10000) + " " }, Now));
+        Assert.Equal("invalidDescription", ActivityInput.Validate(Valid with { Description = new string('a', 10001) }, Now)?.Code);
+    }
+
+    [Theory, InlineData(null, null), InlineData(" \n ", null), InlineData(" First\nSecond ", "First\nSecond")]
+    public void Description_is_optional_and_keeps_internal_line_breaks(string? input, string? expected) =>
+        Assert.Equal(expected, ActivityInput.NormalizeDescription(input));
+
     public static TheoryData<ManualActivityRequest> Invalid => new()
     {
         Valid with { Sport = null },
