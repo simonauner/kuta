@@ -55,10 +55,10 @@ men saknat tempo och puls visas som `–`.
 `GET /api/activities/statistics?year=2026&sport=running&timeZone=Europe%2FStockholm`
 ger tolv månadsrader för den inloggade användaren. År krävs (1–9998), utelämnad sport
 betyder alla sporter och utelämnad tidszon UTC. Summeringen sker i Postgres över hela
-året, oberoende av passlistans sidindelning, utan att hämta tidsserier eller rutter.
+året, oberoende av passlistans sidindelning, utan att skicka tidsserier eller rutter till webben.
 Tid inkluderar pauser. Tempo är summan av tid delad med summan av distans för pass med
 positiv tid och distans (sekunder per kilometer). Snittpuls tidsvägs bara över pass med
-positiv tid och sparad puls. Alla sporter kombinerar även tempo och puls mellan sporter.
+positiv tid och sparad puls. Alla sporter kombinerar även tempo och puls mellan sporter; samlade multisportpass ingår inte i snittempot. Vid sportfilter räknas motsvarande delar av multisportpass, med puls från delens mätpunkter. Totalvyn räknar varje pass en gång.
 Månader och årsgränser följer webbläsarens tidszon, och hela passet tillhör startmånaden.
 Statistikcachen uppdateras vid skapande, import och radering av pass och rensas när
 pulssamtycke återkallas.
@@ -74,6 +74,18 @@ Inga request bodies, URL:er, querysträngar, headers, cookies, tokens, mejladres
 Nya logghändelser ska använda granskade strukturerade fält utan användarvärden och testas med känsliga syntetiska värden. Okända fält utelämnas som standard. Använd inte `Console.WriteLine`/stderr för dynamiska värden, serialisera inte råa undantag och lägg inte till andra loggproviders vid sidan av integritetsgränsen. Regex-maskning av fritext är inte en garanti mot personuppgifter.
 
 Framtida loggmottagare får samla in den begränsade konsolutmatningen. En direkt SDK-integration som Sentry måste granskas separat: automatisk insamling av exceptions, requests, breadcrumbs, användarkontext och tracing passerar inte nödvändigtvis loggprovidern. Aktivera den inte utan en testad tillåtelselista för vad som får skickas. Detta skydd omfattar Kutas applikationsloggar, inte Flys egna proxy-/plattformloggar, Supabases loggar eller historiska loggar.
+
+## Multisport och uppdelning av importerade pass
+
+En multisport-FIT importeras som ett pass med ordnade sportdelar, inklusive registrerade växlingar. Simning → cykling → löpning identifieras som triathlon, kombinerad simning/löpning som swimrun och övriga kombinationer som multisport. Sessionernas start, tid och distans bevaras; kadens tolkas för respektive sport. Vid multisport-FIT i ett Strava-arkiv används FIT-filens sportdelar, starttid och totalsammanfattning; CSV-titeln behålls. Stravas separata aktiviteter slås inte ihop automatiskt.
+
+På skapa- eller redigeringssidan väljer du **Dela upp i sporter**, väljer passtyp och justerar sportbyten med reglage eller sekunder från passets start. **Dela här** delar den valda delen i mitten; för swimrun får den nya delen motsatt sport. **Slå ihop med föregående** tar bort en gräns och behåller föregående sport. Klicka på en del för att granska dess karta och diagram innan du sparar. Ändringarna är ett lokalt utkast tills sidans gemensamma **Spara** används; **Avbryt** lämnar det sparade passet oförändrat. Passsidan visar bara resultatet och val av sportdel, med länken **Redigera aktivitet** till uppdelningsverktyget. Hela passets karta använder olika färger för sporterna. Simtempo visas per 100 meter, cykling i km/h och löpning per kilometer.
+
+Uppdelningen kräver minst två sporter och en sammanhängande, stigande tidsserie med fullständig, icke minskande distans. Delarna täcker hela inspelningen utan luckor eller överlapp; gränser mellan mätpunkter interpoleras. Högst 200 delar stöds. Sammanfattningar utan tidsserier kan inte klippas. Funktionen ändrar sportindelningen och reparerar inte felaktig GPS eller simdistans.
+
+FIT-uppladdning tar ett valfritt multipartfält `parts` med `{ kind, parts: [{ sport, startS, endS, useEquipment }] }`. `kind` är `triathlon`, `swimrun` eller `multisport`; sport kan även vara `transition`. Triathlon kräver simning, cykling och löpning i den ordningen (med valfria växlingar). Swimrun tillåter simning och löpning (med valfria växlingar). Passets valda utrustning räknas bara på delar där `useEquipment` är sant; olika utrustningsval per del stöds ännu inte. FIT-importen markerar löpning/gång/vandring som standard och även simning för swimrun. Växlingstid finns kvar i den totala förflutna tiden.
+
+Redigeringssidan sparar uppdelningen som `multisport` tillsammans med titel, beskrivning, taggar och utrustning i `PUT /api/activities/{id}`. **Återställ importerad version** kräver bekräftelse, förhandsvisar originaldelarna och skickar `restoreParts: true` först när formuläret sparas. Allt sparas atomärt. De separata API-anropen `PUT`/`DELETE /api/activities/{id}/parts` finns också för uppdelning/återställning. Originalets sammanfattning, tidsserier, filhash och råfil behålls vid redigering. Inga extra pass skapas. Utrustningstotaler och distans uppdateras från den gällande uppdelningen; löprekord räknas om i samma transaktion och kan aldrig sträcka sig över flera löpdelar. Ändringsanropen kräver inloggning, ägarskap och CSRF-token. Sportdelar innehåller ingen kopia av pulsdata, så återkallat pulssamtycke fortsätter att radera all sparad puls på samma ställen.
 
 ## Köra lokalt
 
@@ -148,7 +160,7 @@ kontrollera först att inget pass refererar till nyckeln.
 
 Aktiv utrustning visas före pensionerad. Inom grupperna behålls ordningen efter när utrustningen lades till.
 
-Lägg till utrustning i modalen under Profil → Utrustning och koppla den till manuella pass eller FIT-importer. Skor kan även skapas direkt med ”Skapa ny” vid skofältet; den nya skon väljs automatiskt utan att aktivitetsutkastet försvinner.
+Lägg till utrustning i modalen under Profil → Utrustning och koppla den till manuella pass eller FIT-importer. Välj ”Redigera utrustning” i utrustningens meny för att ändra namn, märke och tidigare användning i samma modal. Passkopplingar och pensionsstatus behålls. Skor kan även skapas direkt med ”Skapa ny” vid skofältet; den nya skon väljs automatiskt utan att aktivitetsutkastet försvinner.
 Kopplingarna kan också ändras på passsidan. Ett pass kan använda flera
 utrustningsdelar. Skor (`shoe`) är den första typen; nya typer läggs till i
 `EquipmentEndpoints.Kinds` och i båda språkfilernas `equipmentKinds`. Typväljaren i formuläret visas först när fler än en typ finns.
@@ -170,6 +182,7 @@ Alla anrop kräver inloggning; skrivningar kräver `X-CSRF-TOKEN`:
 |---|---|
 | `GET /api/equipment` | Egen utrustning med startvärden och total användning. |
 | `GET /api/equipment/last-used-shoe` | Senast använda aktiva sko, sorterad på passets starttid; `{ "id": null }` om ingen finns. |
+| `PUT /api/equipment/{id}` | Uppdaterar egen utrustning med samma fält och validering som vid skapande. Annans eller okänd utrustning ger 404. |
 | `PUT /api/equipment/{id}/retire` | Pensionerar egen utrustning och behåller gamla kopplingar. |
 | `DELETE /api/equipment/{id}/retire` | Återaktiverar egen utrustning så att den kan väljas igen; historik och totaler behålls. |
 | `DELETE /api/equipment/{id}` | Raderar egen utrustning och dess kopplingar, men behåller passen. |

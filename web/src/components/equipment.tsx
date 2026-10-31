@@ -21,7 +21,8 @@ export function EquipmentSection() {
   const queryClient = useQueryClient()
   const deleteDialog = useRef<HTMLDialogElement>(null)
   const [deleting, setDeleting] = useState<Equipment | null>(null)
-  const createDialog = useRef<HTMLDialogElement>(null)
+  const formDialog = useRef<HTMLDialogElement>(null)
+  const [editing, setEditing] = useState<Equipment | null>(null)
   const [name, setName] = useState('')
   const [brand, setBrand] = useState('')
   const [kind, setKind] = useState('shoe')
@@ -30,18 +31,22 @@ export function EquipmentSection() {
   const [distanceKm, setDistanceKm] = useState('')
   const [duration, setDuration] = useState('')
   const km = new Intl.NumberFormat(i18n.resolvedLanguage, { maximumFractionDigits: 2 })
-  const create = useMutation({
+  const save = useMutation({
     mutationFn: () =>
-      api.send('POST', '/api/equipment', {
-        name,
-        brand,
-        kind: selectedKind,
-        initialDistanceM: distanceKm === '' ? 0 : Number(distanceKm) * 1000,
-        initialDurationS: duration === '' ? 0 : parseDuration(duration),
-      }),
+      api.send(
+        editing ? 'PUT' : 'POST',
+        editing ? `/api/equipment/${editing.id}` : '/api/equipment',
+        {
+          name,
+          brand,
+          kind: selectedKind,
+          initialDistanceM: distanceKm === '' ? 0 : Number(distanceKm) * 1000,
+          initialDurationS: duration === '' ? 0 : parseDuration(duration),
+        },
+      ),
     onSuccess: async () => {
       await queryClient.invalidateQueries({ queryKey: equipmentQuery.queryKey })
-      createDialog.current?.close()
+      formDialog.current?.close()
       setName('')
       setBrand('')
       setDistanceKm('')
@@ -73,7 +78,7 @@ export function EquipmentSection() {
   })
   function onSubmit(e: FormEvent) {
     e.preventDefault()
-    if (!create.isPending) create.mutate()
+    if (!save.isPending) save.mutate()
   }
   return (
     <section className="mt-8 border-t pt-6" aria-labelledby="equipment-heading">
@@ -85,13 +90,14 @@ export function EquipmentSection() {
           size="sm"
           variant="outline"
           onClick={() => {
+            setEditing(null)
             setName('')
             setBrand('')
             setKind('shoe')
             setDistanceKm('')
             setDuration('')
-            create.reset()
-            createDialog.current?.showModal()
+            save.reset()
+            formDialog.current?.showModal()
           }}
         >
           {t('equipment.add')}
@@ -148,6 +154,27 @@ export function EquipmentSection() {
                         <Menu.Positioner align="end" sideOffset={4} className="z-50">
                           <Menu.Popup className="min-w-40 rounded-md border bg-card p-1 text-card-foreground shadow-md outline-none">
                             <Menu.Item
+                              className="cursor-default rounded-sm px-2 py-1.5 text-sm outline-none data-highlighted:bg-accent data-highlighted:text-accent-foreground"
+                              onClick={() => {
+                                setEditing(item)
+                                setName(item.name)
+                                setBrand(item.brand ?? '')
+                                setKind(item.kind)
+                                setDistanceKm(
+                                  item.initialDistanceM ? String(item.initialDistanceM / 1000) : '',
+                                )
+                                setDuration(
+                                  item.initialDurationS
+                                    ? formatDuration(item.initialDurationS)
+                                    : '',
+                                )
+                                save.reset()
+                                formDialog.current?.showModal()
+                              }}
+                            >
+                              {t('equipment.edit')}
+                            </Menu.Item>
+                            <Menu.Item
                               className="cursor-default rounded-sm px-2 py-1.5 text-sm outline-none data-highlighted:bg-accent data-highlighted:text-accent-foreground data-disabled:opacity-50"
                               disabled={setRetired.isPending}
                               onClick={() =>
@@ -188,17 +215,17 @@ export function EquipmentSection() {
         )
       })}
       <Modal
-        ref={createDialog}
-        aria-labelledby="create-equipment-title"
+        ref={formDialog}
+        aria-labelledby="equipment-form-title"
         onCancel={(event) => {
-          if (create.isPending) event.preventDefault()
+          if (save.isPending) event.preventDefault()
         }}
       >
-        <h2 id="create-equipment-title" className="text-xl font-semibold">
-          {t('equipment.add')}
+        <h2 id="equipment-form-title" className="text-xl font-semibold">
+          {t(editing ? 'equipment.edit' : 'equipment.add')}
         </h2>
         <form onSubmit={onSubmit}>
-          <fieldset disabled={create.isPending} className="mt-5 grid grid-cols-2 gap-4">
+          <fieldset disabled={save.isPending} className="mt-5 grid grid-cols-2 gap-4">
             <label className="col-span-2 space-y-2 text-sm font-medium">
               {t('equipment.name')}
               <Input
@@ -240,7 +267,7 @@ export function EquipmentSection() {
                 type="number"
                 inputMode="decimal"
                 min={0}
-                step={0.01}
+                step="any"
                 value={distanceKm}
                 onChange={(e) => setDistanceKm(e.currentTarget.value)}
               />
@@ -261,17 +288,17 @@ export function EquipmentSection() {
               </p>
             )}
 
-            {create.error && (
+            {save.error && (
               <p role="alert" className="col-span-2 text-sm text-destructive">
-                <ErrorMessage error={create.error} />
+                <ErrorMessage error={save.error} />
               </p>
             )}
             <div className="col-span-2 flex flex-wrap justify-end gap-3 pt-2">
-              <Button type="button" variant="outline" onClick={() => createDialog.current?.close()}>
+              <Button type="button" variant="outline" onClick={() => formDialog.current?.close()}>
                 {t('equipment.cancel')}
               </Button>
               <Button type="submit" disabled={!kinds.data?.length}>
-                {create.isPending ? t('newActivity.saving') : t('equipment.save')}
+                {save.isPending ? t('newActivity.saving') : t('equipment.save')}
               </Button>
             </div>
           </fieldset>

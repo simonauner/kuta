@@ -6,7 +6,7 @@ public record ManualActivityRequest(
 // Det löparen själv fyller i, kontrollerat innan det sparas
 public static class ActivityInput
 {
-    public static readonly string[] Sports = ActivitySports.All;
+    public static readonly string[] Sports = [.. ActivitySports.All, .. Multisport.Kinds];
     public static readonly string[] Tags = ["race", "workout", "long_run", "easy"];
 
     public static ApiError? ValidateTags(string[]? tags) =>

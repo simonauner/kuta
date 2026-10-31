@@ -1,3 +1,5 @@
+import { MultisportEditor } from '@/components/multisport-editor'
+import { multisportView, partsFromForm, type MultisportDraft } from '@/lib/multisport'
 import { useState } from 'react'
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
 import { Link, useNavigate, useParams, useSearch } from '@tanstack/react-router'
@@ -35,6 +37,7 @@ function EditActivityForm({ activity }: { activity: ActivityDetail }) {
   const { year, tag } = useSearch({ from: '/app/activities/$activityId/edit' })
   const navigate = useNavigate()
   const queryClient = useQueryClient()
+  const [split, setSplit] = useState<MultisportDraft>(undefined)
   const [title, setTitle] = useState(activity.title ?? '')
   const [description, setDescription] = useState(activity.description ?? '')
   const [tags, setTags] = useState(activity.tags)
@@ -45,8 +48,15 @@ function EditActivityForm({ activity }: { activity: ActivityDetail }) {
     search: { year, tag },
   }
   const save = useMutation({
-    mutationFn: () =>
-      api.send('PUT', `/api/activities/${activity.id}`, { title, description, tags, equipmentIds }),
+    mutationFn: (draft: MultisportDraft) =>
+      api.send('PUT', `/api/activities/${activity.id}`, {
+        title,
+        description,
+        tags,
+        equipmentIds,
+        multisport: draft ?? undefined,
+        restoreParts: draft === null,
+      }),
     onSuccess: async () => {
       await Promise.all([
         queryClient.invalidateQueries({ queryKey: activityQuery(activity.id).queryKey }),
@@ -66,7 +76,7 @@ function EditActivityForm({ activity }: { activity: ActivityDetail }) {
         className="mt-6 space-y-6"
         onSubmit={(event) => {
           event.preventDefault()
-          if (!save.isPending) save.mutate()
+          if (!save.isPending) save.mutate(partsFromForm(split, event.currentTarget))
         }}
       >
         <label className="block space-y-2 text-sm font-medium">
@@ -90,6 +100,11 @@ function EditActivityForm({ activity }: { activity: ActivityDetail }) {
             className="w-full rounded-md border border-input bg-transparent px-3 py-2 text-base shadow-xs outline-none focus-visible:border-ring focus-visible:ring-[3px] focus-visible:ring-ring/50 md:text-sm dark:bg-input/30"
           />
         </label>
+        <MultisportEditor
+          activity={multisportView(activity, split)}
+          onChange={setSplit}
+          disabled={save.isPending}
+        />
         <EquipmentPicker
           value={equipmentIds}
           initialIds={activity.equipmentIds}

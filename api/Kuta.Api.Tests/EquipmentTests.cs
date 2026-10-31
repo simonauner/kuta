@@ -136,6 +136,45 @@ public class EquipmentTests(KutaFactory factory) : IClassFixture<KutaFactory>
     }
 
     [Fact]
+    public async Task Editing_equipment_is_private_and_preserves_retirement_and_activity_usage()
+    {
+        var ct = TestContext.Current.CancellationToken;
+        await using var conn = await factory.Services.GetRequiredService<NpgsqlDataSource>().OpenConnectionAsync(ct);
+        var ownerId = Guid.NewGuid();
+        var otherId = Guid.NewGuid();
+        try
+        {
+            await AddRunner(conn, ownerId);
+            await AddRunner(conn, otherId);
+            var id = await AddEquipment(conn, ownerId, "Old shoe", 1000, 600);
+            var activityId = await AddActivity(conn, ownerId, 5000, 1800);
+            await using (var tx = await conn.BeginTransactionAsync(ct))
+            {
+                await EquipmentEndpoints.AttachAsync(conn, tx, activityId, ownerId, [id]);
+                await tx.CommitAsync(ct);
+            }
+            await conn.ExecuteAsync("update equipment set retired = true where id = @id", new { id });
+            using var owner = await Client(ownerId, ct);
+            using var other = await Client(otherId, ct);
+            var request = new EquipmentRequest(" Renamed shoe ", " Brand ", "shoe", 1234.5, 900);
+            Assert.Equal(HttpStatusCode.NotFound, (await other.PutAsJsonAsync($"/api/equipment/{id}", request, ct)).StatusCode);
+            Assert.Equal("Old shoe", Assert.Single(await EquipmentEndpoints.LoadAsync(conn, ownerId)).Name);
+            Assert.Empty((await other.GetFromJsonAsync<EquipmentSummary[]>("/api/equipment", ct))!);
+            Assert.Equal(HttpStatusCode.NotFound, (await other.GetAsync($"/api/activities/{activityId}", ct)).StatusCode);
+            Assert.Equal(HttpStatusCode.NotFound, (await other.DeleteAsync($"/api/activities/{activityId}", ct)).StatusCode);
+            Assert.Equal(HttpStatusCode.NotFound, (await owner.PutAsJsonAsync($"/api/equipment/{Guid.NewGuid()}", request, ct)).StatusCode);
+            Assert.Equal(HttpStatusCode.BadRequest, (await owner.PutAsJsonAsync($"/api/equipment/{id}", request with { Name = " " }, ct)).StatusCode);
+            Assert.Equal(HttpStatusCode.NoContent, (await owner.PutAsJsonAsync($"/api/equipment/{id}", request, ct)).StatusCode);
+            var updated = Assert.Single((await owner.GetFromJsonAsync<EquipmentSummary[]>("/api/equipment", ct))!);
+            Assert.Equal(("Renamed shoe", "Brand", "shoe", true), (updated.Name, updated.Brand, updated.Kind, updated.Retired));
+            Assert.Equal((1234.5, 900L, 6234.5, 2700L),
+                (updated.InitialDistanceM, updated.InitialDurationS, updated.DistanceM, updated.DurationS));
+            Assert.Equal(id, Assert.Single((await owner.GetFromJsonAsync<ActivityDetail>($"/api/activities/{activityId}", ct))!.EquipmentIds));
+        }
+        finally { await conn.ExecuteAsync("delete from auth.users where id = any(@ids)", new { ids = new[] { ownerId, otherId } }); }
+    }
+
+    [Fact]
     public async Task Active_equipment_is_listed_before_older_retired_equipment()
     {
         var ct = TestContext.Current.CancellationToken;

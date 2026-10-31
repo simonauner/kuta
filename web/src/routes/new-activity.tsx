@@ -1,3 +1,11 @@
+import {
+  multisportKinds,
+  multisportView,
+  partsFromForm,
+  type MultisportDraft,
+  type ActivityPart,
+} from '@/lib/multisport'
+import { MultisportEditor } from '@/components/multisport-editor'
 import { Modal } from '@/components/ui/modal'
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
 import { useNavigate, useSearch } from '@tanstack/react-router'
@@ -16,6 +24,7 @@ import {
   parseDuration,
   toDateTimeLocal,
   type Activity,
+  type ActivityStreams,
   type ActivityTag,
 } from '@/lib/activity'
 import { sports as sportOptions, knownSport } from '@/lib/sports'
@@ -32,6 +41,9 @@ type ActivityPreview = {
   avgHr: number | null
   elevationGainM: number | null
   device: string | null
+  streams: ActivityStreams
+  parts: ActivityPart[]
+  canSplit: boolean
 }
 
 // Ett pass skapas antingen helt manuellt eller från en FIT-fil som fyller i fälten. Från en fil går titel,
@@ -74,6 +86,7 @@ export function NewActivityPage() {
   const [pendingFile, setPendingFile] = useState<File | null>(null) // vald i modalen, inte använd än
   const [dialogKey, setDialogKey] = useState(0)
   const [file, setFile] = useState<File | null>(null)
+  const [split, setSplit] = useState<MultisportDraft>(undefined)
   const [tags, setTags] = useState<ActivityTag[]>([])
   const [title, setTitle] = useState('')
   const [description, setDescription] = useState('')
@@ -98,14 +111,20 @@ export function NewActivityPage() {
     gcTime: 0,
   })
   const fromFile = file ? preview.data : undefined
-  const selectedSport = sport ?? (fromFile ? knownSport(fromFile.sport) : 'running')
+  const importedMultisport = fromFile && multisportKinds.some((k) => k === fromFile.sport)
+  const selectedSport =
+    split?.kind ??
+    (importedMultisport
+      ? fromFile.sport
+      : (sport ?? (fromFile ? knownSport(fromFile.sport) : 'running')))
 
   const save = useMutation({
-    mutationFn: () => {
+    mutationFn: (draft: MultisportDraft) => {
       if (file) {
         const form = new FormData()
         form.append('file', file)
         form.append('title', title)
+        if (draft) form.append('parts', JSON.stringify(draft))
         form.append('description', description)
         if (shoeId) form.append('equipmentIds', shoeId)
         tags.forEach((tag) => form.append('tags', tag))
@@ -139,9 +158,9 @@ export function NewActivityPage() {
     },
   })
 
-  function onSubmit(e: FormEvent) {
+  function onSubmit(e: FormEvent<HTMLFormElement>) {
     e.preventDefault()
-    save.mutate()
+    save.mutate(partsFromForm(split, e.currentTarget))
   }
 
   // Ifyllda fält som filen skriver över; titel och beskrivning behålls och varnas inte för. Startfältet räknas bara om det ändrats.
@@ -190,6 +209,7 @@ export function NewActivityPage() {
                 className="text-muted-foreground underline underline-offset-2"
                 onClick={() => {
                   setFile(null)
+                  setSplit(undefined)
                   setSport(null)
                   save.reset()
                 }}
@@ -237,6 +257,7 @@ export function NewActivityPage() {
               <select
                 id={id}
                 value={selectedSport}
+                disabled={!!importedMultisport || !!split}
                 onChange={(e) => setSport(e.currentTarget.value)}
                 className="h-9 w-full rounded-md border border-input bg-transparent px-3 text-base shadow-xs outline-none focus-visible:border-ring focus-visible:ring-[3px] focus-visible:ring-ring/50 md:text-sm dark:bg-input/30"
               >
@@ -364,6 +385,22 @@ export function NewActivityPage() {
             </Field>
           )}
         </div>
+        {fromFile && (
+          <MultisportEditor
+            key={`${file?.name}:${file?.lastModified}`}
+            activity={multisportView(
+              {
+                ...fromFile,
+                partsEdited: false,
+                originalParts: fromFile.parts,
+                originalSport: fromFile.sport,
+              },
+              split,
+            )}
+            onChange={setSplit}
+            disabled={save.isPending}
+          />
+        )}
         <TagPicker value={tags} onChange={setTags} disabled={save.isPending} />
         {fromFile && (
           <p className="text-xs text-muted-foreground">
@@ -492,6 +529,7 @@ export function NewActivityPage() {
             disabled={!pendingFile}
             onClick={() => {
               setFile(pendingFile)
+              setSplit(undefined)
               setSport(null)
               save.reset()
               uploadDialog.current?.close()

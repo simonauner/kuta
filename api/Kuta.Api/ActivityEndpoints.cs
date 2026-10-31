@@ -1,4 +1,5 @@
 using System.Security.Claims;
+using System.Text.Json;
 using System.Security.Cryptography;
 using Dapper;
 using Microsoft.AspNetCore.Mvc;
@@ -14,12 +15,12 @@ public record ActivitySummary(
 public record ActivityDetail(
     Guid Id, string Sport, string? Title, System.DateTime StartedAt, int DurationS, int? MovingS, double DistanceM,
     short? AvgHr, short? MaxHr, float? AvgSpeedMps, float? ElevationGainM, string? Device, ActivityStreams? Streams,
-    IEnumerable<ActivityLap> Laps, string[] Tags, Guid[] EquipmentIds, string? Description);
+    IEnumerable<ActivityLap> Laps, string[] Tags, Guid[] EquipmentIds, ActivityPart[] Parts, bool PartsEdited, bool CanSplit, string? Description, ActivityPart[] OriginalParts, string OriginalSport);
 
 // Det som formuläret förifylls med från en FIT-fil
 public record ActivityPreview(
     string Sport, System.DateTime StartedAt, int DurationS, int? MovingS, double DistanceM, short? AvgHr, short? MaxHr,
-    float? ElevationGainM, string? Device);
+    float? ElevationGainM, string? Device, ActivityStreams Streams, ActivityPart[] Parts, bool CanSplit);
 
 public record ActivityStreams(
     int[] T, float?[]? Dist, short?[]? Hr, float?[]? Speed, float?[]? Alt, double?[]? Lat, double?[]? Lon,
@@ -30,7 +31,7 @@ public record ActivityLap(
     short LapIndex, int StartS, int DurationS, int? MovingS, double DistanceM, short? AvgHr, short? MaxHr,
     float? AscentM, float? DescentM, short? AvgCadence);
 
-public record ActivityUpdateRequest(string? Title, string? Description, string[] Tags, Guid[] EquipmentIds);
+public record ActivityUpdateRequest(string? Title, string? Description, string[] Tags, Guid[] EquipmentIds, MultisportRequest? Multisport = null, bool RestoreParts = false);
 
 public static class ActivityEndpoints
 {
@@ -41,6 +42,7 @@ public static class ActivityEndpoints
         api.MapGet("/activity-tags", () => Results.Ok(ActivityInput.Tags)).RequireAuthorization();
 
         var activities = api.MapGroup("/activities").RequireAuthorization();
+        activities.MapMultisport();
 
         // Inloggad användares pass, 25 åt gången med stabila rubriker för hela perioderna.
         activities.MapGet("", async (NpgsqlDataSource db, ClaimsPrincipal user, string? timeZone, string? tag, string? sport,
@@ -94,10 +96,10 @@ public static class ActivityEndpoints
             await using var conn = await db.OpenConnectionAsync(cancellationToken);
             await using var command = new NpgsqlCommand(
                 """
-                select a.id, a.sport, a.title, a.started_at, a.duration_s, a.moving_s, a.distance_m, a.avg_hr, a.max_hr,
+                select a.id, a.sport, a.title, a.started_at, a.duration_s, a.moving_s, coalesce((select sum(p.distance_m) from activity_parts p where p.activity_id = a.id and p.original = not a.parts_edited), a.distance_m), a.avg_hr, a.max_hr,
                        a.avg_speed_mps, a.elevation_gain_m, a.device, s.t, s.dist, s.hr, s.speed, s.alt, s.lat, s.lon,
                        s.cadence, s.temp, a.tags,
-                       array(select equipment_id from activity_equipment where activity_id = a.id order by equipment_id) as equipment_ids, a.description
+                       array(select equipment_id from activity_equipment where activity_id = a.id order by equipment_id) as equipment_ids, a.parts_edited, a.description, coalesce(a.original_sport, a.sport)
                 from activities a left join activity_streams s on s.activity_id = a.id
                 where a.id = @id and a.user_id = @userId
                 """, conn);
@@ -118,14 +120,14 @@ public static class ActivityEndpoints
                     reader.GetGuid(0), reader.GetString(1), Value<string>(2),
                     System.DateTime.SpecifyKind(reader.GetDateTime(3), DateTimeKind.Utc), reader.GetInt32(4),
                     Value<int?>(5), reader.GetDouble(6), Value<short?>(7), Value<short?>(8), Value<float?>(9),
-                    Value<float?>(10), Value<string>(11), streams, [], reader.GetFieldValue<string[]>(21), reader.GetFieldValue<Guid[]>(22), Value<string>(23));
+                    Value<float?>(10), Value<string>(11), streams, [], reader.GetFieldValue<string[]>(21), reader.GetFieldValue<Guid[]>(22), [], reader.GetBoolean(23), streams is not null && Multisport.CanSplit(streams.T, streams.Dist), Value<string>(24), [], reader.GetString(25));
             }
             var laps = await conn.QueryAsync<ActivityLap>(
                 """
                 select lap_index, start_s, duration_s, moving_s, distance_m, avg_hr, max_hr, ascent_m, descent_m, avg_cadence
                 from activity_laps where activity_id = @id order by lap_index
                 """, new { id });
-            return Results.Ok(detail with { Laps = laps });
+            return Results.Ok(detail with { Laps = laps, Parts = await Multisport.LoadAsync(conn, id), OriginalParts = await Multisport.LoadAsync(conn, id, original: true) });
         });
 
         // Förhandsvisning för formuläret "Skapa ny aktivitet": tolkar filen utan att spara något.
@@ -138,7 +140,9 @@ public static class ActivityEndpoints
             if (fit is null) return error!;
             var p = fit.Parsed;
             return Results.Ok(new ActivityPreview(
-                p.Sport, p.StartedAt, p.DurationS, p.MovingS, p.DistanceM, p.AvgHr, p.MaxHr, p.ElevationGainM, p.Device));
+                p.Sport, p.StartedAt, p.DurationS, p.MovingS, p.DistanceM, p.AvgHr, p.MaxHr, p.ElevationGainM, p.Device,
+                new ActivityStreams(p.T, p.Dist, p.Hr, p.Speed, p.Alt, p.Lat, p.Lon, p.Cadence, p.Temp),
+                p.Parts ?? [], Multisport.CanSplit(p.T, p.Dist)));
         })
         .DisableAntiforgery();
 
@@ -177,14 +181,22 @@ public static class ActivityEndpoints
             var (fit, error) = await ReadFitAsync(file, conn, userId, cancellationToken);
             if (fit is null) return error!;
             var (bytes, sha256, parsed, hrConsent) = fit;
-            if (sport is not null) parsed = parsed with { Sport = sport };
+            if (sport is not null && parsed.Parts is not { Length: > 0 }) parsed = parsed with { Sport = sport };
+            MultisportRequest? split = null;
+            if (form.ContainsKey("parts"))
+            {
+                try { split = JsonSerializer.Deserialize<MultisportRequest>(form["parts"].ToString(), JsonSerializerOptions.Web); }
+                catch (JsonException) { return Results.BadRequest(Multisport.InvalidParts); }
+                if (split is null || Multisport.Build(split, parsed.T, parsed.Dist) is null)
+                    return Results.BadRequest(Multisport.InvalidParts);
+            }
             title = ActivityInput.NormalizeTitle(title);
 
             Guid? id;
             try
             {
                 id = await ActivityStorage.SaveAsync(conn, store, userId, parsed, "fit", title, null, bytes, ".fit",
-                    cancellationToken, tags, equipmentIds.ToArray(), description);
+                    cancellationToken, tags, equipmentIds.ToArray(), description, split);
             }
             catch (InvalidEquipmentException)
             {
@@ -198,7 +210,7 @@ public static class ActivityEndpoints
             if (id is null) return Results.Conflict(new ApiError("Det här passet är redan uppladdat.", "duplicateActivity"));
 
             return Results.Created($"/api/activities/{id}", new ActivitySummary(
-                id.Value, parsed.Sport, title, parsed.StartedAt, parsed.DurationS, parsed.DistanceM, parsed.AvgHr, ActivityInput.NormalizeTags(tags), equipmentIds.Distinct().ToArray()));
+                id.Value, split?.Kind ?? parsed.Sport, title, parsed.StartedAt, parsed.DurationS, split is null ? parsed.DistanceM : Multisport.Build(split, parsed.T, parsed.Dist)!.Sum(p => p.DistanceM), parsed.AvgHr, ActivityInput.NormalizeTags(tags), equipmentIds.Distinct().ToArray()));
         })
         // CSRF-token kontrolleras av filtret i AuthEndpoints (X-CSRF-TOKEN), inte av ramverkets formulärkontroll
         .DisableAntiforgery();
@@ -215,6 +227,12 @@ public static class ActivityEndpoints
             var owned = await conn.QuerySingleOrDefaultAsync<Guid?>(
                 "select id from activities where id = @id and user_id = @userId for update", new { id, userId }, tx);
             if (owned is null) return Results.NotFound();
+            if (req.RestoreParts && req.Multisport is not null) return Results.BadRequest(Multisport.InvalidParts);
+            if (req.RestoreParts || req.Multisport is not null)
+            {
+                var result = await Multisport.ApplyAsync(conn, tx, userId, id, req.Multisport);
+                if (result != 204) return Results.BadRequest(Multisport.InvalidParts);
+            }
             if (!await EquipmentEndpoints.OwnsAsync(conn, tx, userId, req.EquipmentIds, allowRetired: true)) return Results.BadRequest(EquipmentEndpoints.InvalidEquipment);
             await conn.ExecuteAsync("delete from activity_equipment where activity_id = @id and user_id = @userId",
                 new { id, userId }, tx);

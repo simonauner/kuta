@@ -12,20 +12,40 @@ public static class ActivityStatistics
     {
         var sportFilter = sport is null ? "" : "and sport = @sport";
         return (await conn.QueryAsync<ActivityStatisticsMonth>(new CommandDefinition($"""
-            with monthly as (
+            with scoped as (
+                select a.* from activities a
+                where user_id = @userId
+                    and started_at >= (make_date(@year, 1, 1)::timestamp at time zone @timeZone)
+                    and started_at < (make_date(@year + 1, 1, 1)::timestamp at time zone @timeZone)
+            ), effective as (
+                select a.id, a.started_at, a.sport, a.duration_s,
+                    coalesce((select sum(p.distance_m) from activity_parts p
+                        where p.activity_id = a.id and p.original = not a.parts_edited), a.distance_m) as distance_m,
+                    a.avg_hr::double precision as avg_hr
+                from scoped a where @sport::text is null or a.sport = @sport
+                union all
+                select a.id, a.started_at, p.sport, sum(p.end_s - p.start_s)::int, sum(p.distance_m),
+                    sum(hr.avg_hr * (p.end_s - p.start_s))
+                        / nullif(sum(p.end_s - p.start_s) filter (where hr.avg_hr is not null), 0)
+                from scoped a join activity_parts p on p.activity_id = a.id and p.original = not a.parts_edited
+                left join lateral (
+                    select avg(sample.hr::double precision) as avg_hr
+                    from activity_streams s, unnest(s.t, s.hr) as sample(t, hr)
+                    where s.activity_id = a.id and sample.t >= p.start_s and sample.t < p.end_s and sample.hr > 0
+                ) hr on true
+                where @sport::text is not null and a.sport <> @sport and p.sport = @sport
+                group by a.id, a.started_at, p.sport
+            ), monthly as (
                 select extract(month from started_at at time zone @timeZone)::int as month,
                     count(*)::int as count,
                     sum(duration_s)::double precision as duration_s,
                     sum(distance_m) as distance_m,
-                    sum(duration_s::double precision) filter (where distance_m > 0 and duration_s > 0) * 1000
-                        / nullif(sum(distance_m) filter (where distance_m > 0 and duration_s > 0), 0) as pace_s_per_km,
+                    sum(duration_s::double precision) filter (where distance_m > 0 and duration_s > 0 and sport not in ('triathlon', 'swimrun', 'multisport')) * 1000
+                        / nullif(sum(distance_m) filter (where distance_m > 0 and duration_s > 0 and sport not in ('triathlon', 'swimrun', 'multisport')), 0) as pace_s_per_km,
                     sum(avg_hr::double precision * duration_s) filter (where avg_hr > 0 and duration_s > 0)
                         / nullif(sum(duration_s::double precision) filter (where avg_hr > 0 and duration_s > 0), 0) as avg_hr
-                from activities
-                where user_id = @userId
-                    and started_at >= (make_date(@year, 1, 1)::timestamp at time zone @timeZone)
-                    and started_at < (make_date(@year + 1, 1, 1)::timestamp at time zone @timeZone)
-                    {sportFilter}
+                from effective
+                where true {sportFilter}
                 group by 1
             )
             select m.month, coalesce(a.count, 0) as count, coalesce(a.duration_s, 0) as duration_s,

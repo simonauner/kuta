@@ -14,9 +14,11 @@ setWorkerUrl(workerUrl)
 export function ActivityMap({
   coordinates,
   label,
+  routes,
 }: {
   coordinates: [number, number][]
   label: string
+  routes?: { coordinates: [number, number][]; color: string }[]
 }) {
   const container = useRef<HTMLDivElement>(null)
 
@@ -39,25 +41,34 @@ export function ActivityMap({
     map.on('load', () => {
       map.addSource('route', {
         type: 'geojson',
-        data: { type: 'Feature', properties: {}, geometry: { type: 'LineString', coordinates } },
+        data: {
+          type: 'FeatureCollection',
+          features: (routes ?? [{ coordinates, color: '#e8590c' }])
+            .filter((r) => r.coordinates.length > 1)
+            .map((r) => ({
+              type: 'Feature',
+              properties: { color: r.color },
+              geometry: { type: 'LineString', coordinates: r.coordinates },
+            })),
+        },
       })
       map.addLayer({
         id: 'route',
         type: 'line',
         source: 'route',
         layout: { 'line-join': 'round', 'line-cap': 'round' },
-        paint: { 'line-color': '#e8590c', 'line-width': 4 },
+        paint: { 'line-color': ['get', 'color'], 'line-width': 4 },
       })
     })
     return () => map.remove()
-  }, [coordinates])
+  }, [coordinates, routes])
 
   return (
     <div
       ref={container}
       role="img"
       aria-label={label}
-      className="h-72 w-full overflow-hidden rounded-lg border sm:h-96"
+      className="h-72 max-h-[45svh] w-full overflow-hidden rounded-lg border sm:h-96"
     />
   )
 }

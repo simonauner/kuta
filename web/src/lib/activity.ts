@@ -1,3 +1,4 @@
+import type { ActivityPart } from './multisport.ts'
 import type { TFunction } from 'i18next'
 import sv from '../locales/sv.json' with { type: 'json' }
 import { knownSport, sports, type Sport } from './sports.ts'
@@ -127,6 +128,11 @@ export type ActivityDetail = Activity & {
   elevationGainM: number | null
   device: string | null
   streams: ActivityStreams | null
+  originalParts: ActivityPart[]
+  originalSport: string
+  parts: ActivityPart[]
+  partsEdited: boolean
+  canSplit: boolean
   laps: ActivityLap[]
 }
 
@@ -163,6 +169,25 @@ export function toDateTimeLocal(date: Date) {
 export function formatPace(durationS: number, distanceM: number) {
   if (distanceM < 1) return '–'
   return `${formatDuration(Math.round(durationS / (distanceM / 1000)))} /km`
+}
+
+export function formatSportPace(
+  sport: string,
+  durationS: number,
+  distanceM: number,
+  locale?: string,
+) {
+  if (
+    ['triathlon', 'swimrun', 'multisport', 'transition'].includes(sport) ||
+    distanceM < 1 ||
+    durationS <= 0
+  )
+    return '–'
+  if (sport === 'cycling')
+    return `${((distanceM / durationS) * 3.6).toLocaleString(locale, { maximumFractionDigits: 1 })} km/h`
+  if (sport === 'swimming')
+    return `${formatDuration(Math.round(durationS / (distanceM / 100)))} /100 m`
+  return formatPace(durationS, distanceM)
 }
 
 // Egen titel om löparen skrivit en, annars sport + tid på dygnet ("Löpning eftermiddag").

@@ -47,7 +47,6 @@
     "noMatches": "No activities match the filters."
   },
   "newActivity": {
-    "description": "Description (optional)",
     "title": "Create activity",
     "upload": "Upload file",
     "file": "FIT file from your watch",
@@ -60,11 +59,15 @@
     "sport": "Sport",
     "sports": {
       "running": "Run",
-      "trail run": "Trail Run",
       "cycling": "Ride",
-      "swimming": "Swim",
       "walking": "Walk",
       "hiking": "Hike",
+      "other": "Other",
+      "swimming": "Swim",
+      "triathlon": "Triathlon",
+      "swimrun": "Swimrun",
+      "multisport": "Multisport",
+      "trail run": "Trail Run",
       "mountain bike ride": "Mountain Bike Ride",
       "gravel ride": "Gravel Ride",
       "e-bike ride": "E-Bike Ride",
@@ -114,8 +117,7 @@
       "windsurf": "Windsurf",
       "wheelchair": "Wheelchair",
       "workout": "Workout",
-      "yoga": "Yoga",
-      "other": "Other"
+      "yoga": "Yoga"
     },
     "startedAt": "Date and time",
     "distance": "Distance (km)",
@@ -126,12 +128,10 @@
     "locked": "The measurements come from the file.",
     "lockedFrom": "The measurements come from the file ({{device}}).",
     "save": "Save",
-    "saving": "Saving …"
+    "saving": "Saving …",
+    "description": "Description (optional)"
   },
   "activity": {
-    "edit": "Edit activity",
-    "save": "Save changes",
-    "cancel": "Cancel",
     "back": "All activities",
     "notFound": "The activity doesn't exist.",
     "distance": "Distance",
@@ -169,7 +169,12 @@
       "cycling": "ride",
       "walking": "walk",
       "hiking": "hike",
-      "other": "activity"
+      "other": "activity",
+      "swimming": "Swimming",
+      "triathlon": "Triathlon",
+      "swimrun": "Swimrun",
+      "multisport": "Multisport",
+      "transition": "Transition"
     },
     "timeOfDay": {
       "night": "Night",
@@ -177,7 +182,11 @@
       "forenoon": "Late morning",
       "afternoon": "Afternoon",
       "evening": "Evening"
-    }
+    },
+    "speed": "Speed",
+    "edit": "Edit activity",
+    "save": "Save changes",
+    "cancel": "Cancel"
   },
   "consent": {
     "title": "Save heart rate from my activities.",
@@ -236,18 +245,19 @@
     "duplicateActivity": "This activity has already been uploaded.",
     "invalidRecordYear": "Enter a year between 1 and 9998.",
     "invalidFit": "The file could not be read as an activity from a FIT file.",
-    "invalidDescription": "The description can be at most 10,000 characters.",
     "invalidTitle": "The title can be at most 100 characters.",
     "invalidActivity": "Check the sport, date, time and distance.",
     "passwordTooShort": "Use at least 8 characters in your password.",
     "passwordUnchanged": "Choose a different password from your current one.",
     "recoveryExpired": "The reset link is invalid or has expired. Request a new link.",
     "stravaArchiveRequired": "Choose a Strava ZIP export (up to 500 MB).",
-    "stravaImportInterrupted": "The import was interrupted. Saved activities are kept. Retry with the same file; duplicates are skipped.",
     "invalidStravaArchive": "The ZIP file does not contain a valid Strava export.",
     "invalidTags": "Choose valid tags.",
     "invalidEquipment": "Choose valid equipment that belongs to you.",
-    "invalidEquipmentInput": "Check the name, type and prior use."
+    "invalidEquipmentInput": "Check the name, type and prior use.",
+    "invalidActivityParts": "Check sports and boundaries. Legs must cover the entire recording without gaps or overlaps.",
+    "invalidDescription": "The description can be at most 10,000 characters.",
+    "stravaImportInterrupted": "The import was interrupted. Saved activities are kept. Retry with the same file; duplicates are skipped."
   },
   "home": "Kuta – home",
   "footer": {
@@ -263,15 +273,15 @@
     "stravaFile": "Strava export (ZIP)",
     "import": "Import activities",
     "importing": "Importing …",
-    "importPreparing": "Uploading and reading the archive …",
-    "importProgress": "Processed {{processed}} of {{total}} activities",
     "importWait": "Importing activities. This may take several minutes. Keep this page open.",
     "importHelp": "Choose the complete ZIP export, up to 500 MB. Shoes are imported first and linked to activities to calculate distance and time per shoe. Names, summaries and available streams are imported. Heart rate follows your choice above. You can retry after an interruption; duplicates are skipped. Find your imported activities under Activities.",
     "importResult": "Imported: {{imported}}. Duplicates: {{duplicates}}. Failed: {{failed}}.",
     "importEquipmentResult": "Shoes imported: {{imported}}. Existing activities linked to shoes: {{linked}}.",
     "failedImports": "Strava IDs of activities that could not be imported",
     "account": "Account",
-    "logout": "Log out"
+    "logout": "Log out",
+    "importPreparing": "Uploading and reading the archive …",
+    "importProgress": "Processed {{processed}} of {{total}} activities"
   },
   "dangerZone": {
     "title": "Danger zone",
@@ -313,11 +323,11 @@
   "equipment": {
     "activeHeading": "Active",
     "retiredHeading": "Retired",
-    "choose": "Choose equipment",
     "actionsLabel": "Actions for {{name}}",
     "title": "Equipment",
     "description": "Total distance and time from linked activities, including prior use. Time includes pauses.",
     "empty": "You have no equipment yet.",
+    "edit": "Edit equipment",
     "add": "Add equipment",
     "cancel": "Cancel",
     "save": "Save equipment",
@@ -332,7 +342,8 @@
     "duration": "Total time (h:mm:ss)",
     "retired": "Retired",
     "addInProfile": "Add it on your profile.",
-    "loading": "Loading equipment…"
+    "loading": "Loading equipment…",
+    "choose": "Choose equipment"
   },
   "equipmentKinds": {
     "shoe": "Shoes"
@@ -358,5 +369,26 @@
     "reactivate": "Reactivate",
     "reactivateLabel": "Reactivate {{name}}"
   },
-  "breadcrumbs": "Breadcrumbs"
+  "breadcrumbs": "Breadcrumbs",
+  "multisport": {
+    "title": "Sport legs",
+    "split": "Split into sports",
+    "edit": "Edit legs",
+    "kind": "Activity type",
+    "instructions": "Set sport changes in seconds from the activity start. Select a leg to review its map and charts below. Original samples are preserved, and the split can be restored.",
+    "whole": "Whole activity",
+    "partSport": "Sport for leg {{number}}",
+    "boundary": "End of leg {{number}} (seconds)",
+    "useEquipment": "Count usage for the activity’s selected equipment",
+    "addBoundary": "Split leg",
+    "removeBoundary": "Merge with previous",
+    "save": "Save legs",
+    "cancel": "Cancel",
+    "restore": "Restore imported version",
+    "unavailable": "Splitting requires a continuous time and distance stream.",
+    "selected": "Showing leg {{number}}: {{sport}}",
+    "distanceBySport": "Distance by sport",
+    "confirmRestore": "Restoring will remove the split. Do you want to continue?",
+    "restoreConfirm": "Restore"
+  }
 }
