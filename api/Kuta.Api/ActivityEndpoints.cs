@@ -191,6 +191,10 @@ public static class ActivityEndpoints
                 id = await ActivityStorage.SaveAsync(conn, store, userId, parsed, "fit", title, null, bytes, ".fit",
                     cancellationToken, tags, equipmentIds.ToArray());
             }
+            catch (InvalidEquipmentException)
+            {
+                return Results.BadRequest(EquipmentEndpoints.InvalidEquipment);
+            }
             catch (PostgresException e) when (e.SqlState == PostgresErrorCodes.ForeignKeyViolation && e.TableName == "activity_equipment")
             {
                 // Composite foreign keys reject unknown equipment and equipment owned by another user.

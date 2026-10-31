@@ -1,10 +1,8 @@
+import { Modal } from '@/components/ui/modal'
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
 import { useNavigate } from '@tanstack/react-router'
 import { useId, useRef, useState, type FormEvent, type ReactNode } from 'react'
 import { useTranslation } from 'react-i18next'
-import { EquipmentPicker } from '@/components/equipment'
-import { equipmentQuery } from '@/lib/equipment'
-import { TagPicker } from '@/components/activity-tags'
 import { BackLink } from '@/components/back-link'
 import { ErrorMessage } from '@/components/error-message'
 import { HeartRateConsent } from '@/components/heart-rate-consent'
@@ -22,6 +20,8 @@ import {
   type ActivityTag,
 } from '@/lib/activity'
 import { meQuery } from '@/lib/auth'
+import { equipmentQuery, lastUsedShoeQuery, type Equipment } from '@/lib/equipment'
+import { TagPicker } from '@/components/activity-tags'
 
 // Det API:t läser ur en FIT-fil, utan att spara något (POST /api/activities/preview)
 type ActivityPreview = {
@@ -38,19 +38,45 @@ const sportOptions = [...sports, 'other'] as const
 const knownSport = (sport: string) =>
   (sportOptions as readonly string[]).includes(sport) ? sport : 'other'
 
-// Ett pass skapas antingen helt manuellt eller från en FIT-fil som fyller i fälten. Från en fil går bara titel
-// och sport att ändra: mätvärdena hör ihop med tidsserierna (karta, diagram, splits, rekord).
+// Ett pass skapas antingen helt manuellt eller från en FIT-fil som fyller i fälten. Från en fil går titel,
+// sport och sko att ändra: mätvärdena hör ihop med tidsserierna (karta, diagram, splits, rekord).
 export function NewActivityPage() {
   const { t, i18n } = useTranslation()
   const navigate = useNavigate()
   const queryClient = useQueryClient()
   const { data: me } = useQuery(meQuery)
+  const shoes = useQuery(equipmentQuery)
+  const [shoeChoice, setShoeChoice] = useState<string | null>(null)
+  const activeShoes = shoes.data?.filter((shoe) => shoe.kind === 'shoe' && !shoe.retired) ?? []
+  const lastUsedShoe = useQuery(lastUsedShoeQuery)
+  const shoeId =
+    shoeChoice ??
+    (activeShoes.some((shoe) => shoe.id === lastUsedShoe.data?.id) ? lastUsedShoe.data?.id : '') ??
+    ''
   const uploadDialog = useRef<HTMLDialogElement>(null)
+  const shoeDialog = useRef<HTMLDialogElement>(null)
+  const shoeSelect = useRef<HTMLSelectElement>(null)
+  const [shoeName, setShoeName] = useState('')
+  const [shoeBrand, setShoeBrand] = useState('')
+  const addShoe = useMutation({
+    mutationFn: () =>
+      api.send<Equipment>('POST', '/api/equipment', {
+        name: shoeName,
+        brand: shoeBrand,
+        kind: 'shoe',
+      }),
+    onSuccess: (shoe) => {
+      queryClient.setQueryData(equipmentQuery.queryKey, (current) => [...(current ?? []), shoe])
+      setShoeChoice(shoe.id)
+      shoeDialog.current?.close()
+      shoeSelect.current?.focus()
+      return queryClient.invalidateQueries({ queryKey: equipmentQuery.queryKey })
+    },
+  })
 
   const [pendingFile, setPendingFile] = useState<File | null>(null) // vald i modalen, inte använd än
   const [dialogKey, setDialogKey] = useState(0)
   const [file, setFile] = useState<File | null>(null)
-  const [equipmentIds, setEquipmentIds] = useState<string[]>([])
   const [tags, setTags] = useState<ActivityTag[]>([])
   const [title, setTitle] = useState('')
   const [sport, setSport] = useState<string | null>(null) // null = som filen (eller löpning)
@@ -82,15 +108,15 @@ export function NewActivityPage() {
         const form = new FormData()
         form.append('file', file)
         form.append('title', title)
+        if (shoeId) form.append('equipmentIds', shoeId)
         tags.forEach((tag) => form.append('tags', tag))
-        equipmentIds.forEach((id) => form.append('equipmentIds', id))
         if (sport) form.append('sport', sport)
         return api.upload<Activity>('/api/activities', form)
       }
       return api.send<Activity>('POST', '/api/activities/manual', {
-        sport: selectedSport,
+        equipmentIds: shoeId ? [shoeId] : [],
         tags,
-        equipmentIds,
+        sport: selectedSport,
         title,
         startedAt: new Date(startedAt).toISOString(),
         durationS: parseDuration(duration),
@@ -102,6 +128,7 @@ export function NewActivityPage() {
     onSuccess: async (activity) => {
       await Promise.all([
         queryClient.invalidateQueries({ queryKey: ['activities'] }),
+        queryClient.invalidateQueries({ queryKey: lastUsedShoeQuery.queryKey }),
         queryClient.invalidateQueries({ queryKey: equipmentQuery.queryKey }),
       ])
       await navigate({ to: '/app/activities/$activityId', params: { activityId: activity.id } })
@@ -205,6 +232,49 @@ export function NewActivityPage() {
               </select>
             )}
           </Field>
+          <Field
+            label={t('shoes.title')}
+            action={
+              <Button
+                type="button"
+                variant="link"
+                className="h-auto p-0 text-xs"
+                disabled={save.isPending || addShoe.isPending}
+                onClick={() => {
+                  setShoeName('')
+                  setShoeBrand('')
+                  addShoe.reset()
+                  shoeDialog.current?.showModal()
+                }}
+              >
+                {t('shoes.createNew')}
+              </Button>
+            }
+          >
+            {(id) => (
+              <select
+                ref={shoeSelect}
+                id={id}
+                value={shoeId}
+                onChange={(e) => setShoeChoice(e.currentTarget.value)}
+                disabled={shoes.isPending || !!shoes.error}
+                className="h-9 w-full rounded-md border border-input bg-transparent px-3 text-base shadow-xs outline-none focus-visible:border-ring focus-visible:ring-[3px] focus-visible:ring-ring/50 md:text-sm dark:bg-input/30"
+              >
+                <option value="">{t('shoes.none')}</option>
+                {activeShoes.map((shoe) => (
+                  <option key={shoe.id} value={shoe.id}>
+                    {shoe.name}
+                    {shoe.brand ? ` (${shoe.brand})` : ''}
+                  </option>
+                ))}
+              </select>
+            )}
+          </Field>
+          {(shoes.error || lastUsedShoe.error) && (
+            <p role="alert" className="col-span-2 text-sm text-destructive">
+              <ErrorMessage error={(shoes.error || lastUsedShoe.error)!} />
+            </p>
+          )}
           <Field label={t('newActivity.startedAt')}>
             {(id) => (
               <Input
@@ -278,11 +348,6 @@ export function NewActivityPage() {
             </Field>
           )}
         </div>
-        <EquipmentPicker
-          value={equipmentIds}
-          onChange={setEquipmentIds}
-          disabled={save.isPending}
-        />
         <TagPicker value={tags} onChange={setTags} disabled={save.isPending} />
         {fromFile && (
           <p className="text-xs text-muted-foreground">
@@ -294,7 +359,15 @@ export function NewActivityPage() {
 
         <Button
           type="submit"
-          disabled={save.isPending || (locked && !fromFile) || preview.isFetching}
+          disabled={
+            save.isPending ||
+            shoes.isPending ||
+            !!shoes.error ||
+            lastUsedShoe.isPending ||
+            !!lastUsedShoe.error ||
+            (locked && !fromFile) ||
+            preview.isFetching
+          }
         >
           {save.isPending ? t('newActivity.saving') : t('newActivity.save')}
         </Button>
@@ -305,11 +378,71 @@ export function NewActivityPage() {
         )}
       </form>
 
-      <dialog
-        ref={uploadDialog}
-        aria-labelledby="upload-title"
-        className="fixed inset-0 m-auto max-h-[calc(100dvh-2rem)] w-[calc(100%-2rem)] max-w-md overflow-y-auto rounded-xl border bg-background p-6 text-foreground shadow-xl backdrop:bg-black/70"
+      <Modal
+        ref={shoeDialog}
+        aria-labelledby="add-shoe-title"
+        onCancel={(event) => {
+          if (addShoe.isPending) event.preventDefault()
+        }}
       >
+        <h2 id="add-shoe-title" className="text-xl font-semibold">
+          {t('shoes.add')}
+        </h2>
+        <form
+          onSubmit={(event) => {
+            event.preventDefault()
+            if (!addShoe.isPending) addShoe.mutate()
+          }}
+          className="mt-5 space-y-4"
+        >
+          <div>
+            <Label htmlFor="add-shoe-name" className="mb-2">
+              {t('shoes.name')}
+            </Label>
+            <Input
+              id="add-shoe-name"
+              autoFocus
+              required
+              maxLength={100}
+              disabled={addShoe.isPending}
+              value={shoeName}
+              onChange={(event) => setShoeName(event.currentTarget.value)}
+            />
+          </div>
+          <div>
+            <Label htmlFor="add-shoe-brand" className="mb-2">
+              {t('shoes.brand')}
+            </Label>
+            <Input
+              id="add-shoe-brand"
+              maxLength={100}
+              disabled={addShoe.isPending}
+              value={shoeBrand}
+              onChange={(event) => setShoeBrand(event.currentTarget.value)}
+            />
+          </div>
+          {addShoe.error && (
+            <p role="alert" className="text-sm text-destructive">
+              <ErrorMessage error={addShoe.error} />
+            </p>
+          )}
+          <div className="flex flex-wrap justify-end gap-3 pt-2">
+            <Button
+              type="button"
+              variant="outline"
+              disabled={addShoe.isPending}
+              onClick={() => shoeDialog.current?.close()}
+            >
+              {t('shoes.cancel')}
+            </Button>
+            <Button type="submit" disabled={addShoe.isPending}>
+              {addShoe.isPending ? t('newActivity.saving') : t('newActivity.save')}
+            </Button>
+          </div>
+        </form>
+      </Modal>
+
+      <Modal ref={uploadDialog} aria-labelledby="upload-title">
         <h2 id="upload-title" className="text-xl font-semibold">
           {t('newActivity.upload')}
         </h2>
@@ -351,26 +484,29 @@ export function NewActivityPage() {
             {t('newActivity.useFile')}
           </Button>
         </div>
-      </dialog>
+      </Modal>
     </section>
   )
 }
 
 function Field({
   label,
+  action,
   className,
   children,
 }: {
   label: string
+  action?: ReactNode
   className?: string
   children: (id: string) => ReactNode
 }) {
   const id = useId()
   return (
     <div className={className}>
-      <Label htmlFor={id} className="mb-2">
-        {label}
-      </Label>
+      <div className="mb-2 flex min-h-4 items-center justify-between gap-2">
+        <Label htmlFor={id}>{label}</Label>
+        {action}
+      </div>
       {children(id)}
     </div>
   )

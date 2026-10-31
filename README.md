@@ -10,7 +10,7 @@ Logotypen ”Spåret” finns som fristående SVG i `web/public/brand/` (mörk o
 
 React-appen öppnas på `/app`, med vyerna `/app/activities`, `/app/stats` samt `/app/profile` och `/app/settings`. `web/app.html` har `noindex`. Mejlets bekräftelselänk återvänder till `/app`. Vite bygger båda HTML-filerna, och .NET serverar dem från samma origin. PWA:n startar på `/app` och använder bara appskalet som navigeringsfallback inom `/app`.
 
-Profil visar löparens namn. Kugghjulet öppnar Inställningar på `/app/settings`, med språkval, pulssamtycke, Strava-import, e-postadress, utloggning och Danger zone för att radera alla pass. Vanlig FIT-uppladdning och manuell registrering nås via Pass → Skapa ny aktivitet. Pulssamtycket kan ändras med samma checkbox både i filmodalen och under Inställningar. Checkboxen visas även när samtycket redan är givet.
+Profil visar löparens namn och länkar till Utrustning på `/app/profile/equipment`. Kugghjulet öppnar Inställningar på `/app/settings`, med språkval, pulssamtycke, Strava-import, e-postadress, utloggning och Danger zone för att radera alla pass. Vanlig FIT-uppladdning och manuell registrering nås via Pass → Skapa ny aktivitet. Pulssamtycket kan ändras med samma checkbox både i filmodalen och under Inställningar. Checkboxen visas även när samtycket redan är givet.
 
 ## Språk och URL:er
 
@@ -99,10 +99,12 @@ automatiskt av Vite vid bygget, även i Docker. I utvecklingsläge visas `Versio
 
 ## Utrustning och användning
 
-Lägg till utrustning på profilen och koppla den till manuella pass eller FIT-importer.
+Aktiv utrustning visas före pensionerad. Inom grupperna behålls ordningen efter när utrustningen lades till.
+
+Lägg till utrustning i modalen under Profil → Utrustning och koppla den till manuella pass eller FIT-importer. Skor kan även skapas direkt med ”Skapa ny” vid skofältet; den nya skon väljs automatiskt utan att aktivitetsutkastet försvinner.
 Kopplingarna kan också ändras på passsidan. Ett pass kan använda flera
 utrustningsdelar. Skor (`shoe`) är den första typen; nya typer läggs till i
-`EquipmentEndpoints.Kinds` och i båda språkfilernas `equipmentKinds`.
+`EquipmentEndpoints.Kinds` och i båda språkfilernas `equipmentKinds`. Typväljaren i formuläret visas först när fler än en typ finns.
 
 Migrering 009 gör om `shoes` till `equipment` och bevarar befintliga skor,
 startdistanser och passkopplingar. `activity_equipment` kopplar pass och utrustning;
@@ -120,6 +122,10 @@ Alla anrop kräver inloggning; skrivningar kräver `X-CSRF-TOKEN`:
 | Anrop | Resultat |
 |---|---|
 | `GET /api/equipment` | Egen utrustning med startvärden och total användning. |
+| `GET /api/equipment/last-used-shoe` | Senast använda aktiva sko, sorterad på passets starttid; `{ "id": null }` om ingen finns. |
+| `PUT /api/equipment/{id}/retire` | Pensionerar egen utrustning och behåller gamla kopplingar. |
+| `DELETE /api/equipment/{id}/retire` | Återaktiverar egen utrustning så att den kan väljas igen; historik och totaler behålls. |
+| `DELETE /api/equipment/{id}` | Raderar egen utrustning och dess kopplingar, men behåller passen. |
 | `GET /api/equipment/kinds` | Tillåtna typer. |
 | `POST /api/equipment` | Skapar utrustning med `name`, `kind`, valfritt `brand`, `initialDistanceM` och `initialDurationS`. Båda startvärdena är 0 om de utelämnas. |
 | `PUT /api/activities/{id}/equipment` | Ersätter kopplingarna med `{"equipmentIds":["uuid"]}`; tom lista kopplar bort alla. Annans eller okänt pass ger 404. |

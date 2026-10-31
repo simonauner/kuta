@@ -232,6 +232,7 @@
     "empty": "Inga pass med den här taggen."
   },
   "equipment": {
+    "actionsLabel": "Åtgärder för {{name}}",
     "title": "Utrustning",
     "description": "Total distans och tid från kopplade pass, inklusive tidigare användning. Tiden räknas inklusive pauser.",
     "empty": "Du har ingen utrustning än.",
@@ -253,5 +254,27 @@
   },
   "equipmentKinds": {
     "shoe": "Skor"
-  }
+  },
+  "shoes": {
+    "title": "Skor",
+    "name": "Namn på skon",
+    "brand": "Märke (valfritt)",
+    "add": "Lägg till sko",
+    "retire": "Pensionera",
+    "retireLabel": "Pensionera {{name}}",
+    "retired": "Pensionerad",
+    "empty": "Du har inga skor än.",
+    "none": "Ingen sko",
+    "loading": "Hämtar skor …",
+    "delete": "Radera",
+    "deleteLabel": "Radera {{name}}",
+    "confirmDelete": "Radera {{name}}?",
+    "deleteWarning": "Skon raderas permanent och kopplas bort från alla dina pass. Passen behålls. Det går inte att ångra.",
+    "cancel": "Avbryt",
+    "deleting": "Raderar …",
+    "createNew": "Skapa ny",
+    "reactivate": "Återaktivera",
+    "reactivateLabel": "Återaktivera {{name}}"
+  },
+  "breadcrumbs": "Brödsmulor"
 }

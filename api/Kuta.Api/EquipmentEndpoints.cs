@@ -6,6 +6,8 @@ public record EquipmentRequest(string? Name, string? Brand, string? Kind, double
 public record EquipmentSummary(Guid Id, string Name, string? Brand, string Kind, bool Retired,
     double InitialDistanceM, long InitialDurationS, double DistanceM, long DurationS);
 public record ActivityEquipmentRequest(Guid[] EquipmentIds);
+public record LastUsedShoe(Guid? Id);
+public sealed class InvalidEquipmentException : Exception;
 
 public static class EquipmentEndpoints
 {
@@ -27,6 +29,35 @@ public static class EquipmentEndpoints
         {
             await using var conn = await db.OpenConnectionAsync();
             return Results.Ok(await LoadAsync(conn, user.GetUserId()));
+        });
+        equipment.MapGet("/last-used-shoe", async (NpgsqlDataSource db, ClaimsPrincipal user) =>
+        {
+            await using var conn = await db.OpenConnectionAsync();
+            var id = await conn.QuerySingleOrDefaultAsync<Guid?>(
+                """
+                select e.id from equipment e
+                join activity_equipment ae on ae.equipment_id = e.id and ae.user_id = e.user_id
+                join activities a on a.id = ae.activity_id and a.user_id = ae.user_id
+                where e.user_id = @userId and e.kind = 'shoe' and not e.retired
+                order by a.started_at desc, a.created_at desc, a.id desc, e.id limit 1
+                """, new { userId = user.GetUserId() });
+            return Results.Ok(new LastUsedShoe(id));
+        });
+        equipment.MapMethods("/{id:guid}/retire", ["PUT", "DELETE"], async (Guid id, HttpRequest request, NpgsqlDataSource db, ClaimsPrincipal user) =>
+        {
+            await using var conn = await db.OpenConnectionAsync();
+            var updated = await conn.ExecuteAsync(
+                "update equipment set retired = @retired where id = @id and user_id = @userId",
+                new { id, userId = user.GetUserId(), retired = HttpMethods.IsPut(request.Method) });
+            return updated == 0 ? Results.NotFound() : Results.NoContent();
+        });
+        equipment.MapDelete("/{id:guid}", async (Guid id, NpgsqlDataSource db, ClaimsPrincipal user) =>
+        {
+            await using var conn = await db.OpenConnectionAsync();
+            // Länkarna försvinner via FK-kaskad; passen behålls.
+            var deleted = await conn.ExecuteAsync(
+                "delete from equipment where id = @id and user_id = @userId", new { id, userId = user.GetUserId() });
+            return deleted == 0 ? Results.NotFound() : Results.NoContent();
         });
         equipment.MapPost("", async (EquipmentRequest req, NpgsqlDataSource db, ClaimsPrincipal user) =>
         {
@@ -56,7 +87,7 @@ public static class EquipmentEndpoints
             var owned = await conn.QuerySingleOrDefaultAsync<Guid?>(
                 "select id from activities where id = @id and user_id = @userId for update", new { id, userId }, tx);
             if (owned is null) return Results.NotFound();
-            if (!await OwnsAsync(conn, tx, userId, req.EquipmentIds)) return Results.BadRequest(InvalidEquipment);
+            if (!await OwnsAsync(conn, tx, userId, req.EquipmentIds, allowRetired: true)) return Results.BadRequest(InvalidEquipment);
             await conn.ExecuteAsync("delete from activity_equipment where activity_id = @id and user_id = @userId",
                 new { id, userId }, tx);
             await AttachAsync(conn, tx, id, userId, req.EquipmentIds);
@@ -77,15 +108,15 @@ public static class EquipmentEndpoints
             left join activities a on a.id = ae.activity_id and a.user_id = e.user_id
             where e.user_id = @userId
             group by e.id
-            order by e.created_at, e.id
+            order by e.retired, e.created_at, e.id
             """, new { userId });
 
-    public static async Task<bool> OwnsAsync(NpgsqlConnection conn, NpgsqlTransaction tx, Guid userId, Guid[] equipmentIds)
+    public static async Task<bool> OwnsAsync(NpgsqlConnection conn, NpgsqlTransaction tx, Guid userId, Guid[] equipmentIds, bool allowRetired = false)
     {
         var ids = equipmentIds.Distinct().ToArray();
         var owned = await conn.QueryAsync<Guid>(
-            "select id from equipment where user_id = @userId and id = any(@ids) order by id for key share",
-            new { userId, ids }, tx);
+            "select id from equipment where user_id = @userId and id = any(@ids) and (@allowRetired or not retired) order by id for key share",
+            new { userId, ids, allowRetired }, tx);
         return owned.Count() == ids.Length;
     }
 
