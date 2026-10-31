@@ -210,7 +210,8 @@
     "confirmDelete": "Delete {{name}}?",
     "deleteWarning": "The shoe will be permanently deleted and removed from all your activities. Your activities will remain. This cannot be undone.",
     "cancel": "Cancel",
-    "deleting": "Deleting …"
+    "deleting": "Deleting …",
+    "createNew": "Create new"
   },
   "breadcrumbs": "Breadcrumbs",
   "equipment": {
