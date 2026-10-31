@@ -1,0 +1,32 @@
+.github/workflows/frontend.yml
+  s_09b576b677dba8::t_b76fc8b4a653a5 10
+  s_09b576b677dba8::t_82a55caedcadb6 4
+.github/workflows/api.yml
+  s_09b576b677dba8::t_82a55caedcadb6 4
+  s_09b576b677dba8::t_b76fc8b4a653a5 11
+.github/workflows/deploy.yml
+  s_09b576b677dba8::t_c0fffbd83590c0 49
+  s_09b576b677dba8::t_82a55caedcadb6 1-48
+AGENTS.md
+  s_09b576b677dba8::t_a8e309c060efc1 72,74
+README.md
+  s_09b576b677dba8::t_ac2653a1034225 326-328,545-557,564-566,571-572
+  s_09b576b677dba8::t_c0fffbd83590c0 558-563,567-570
+  s_09b576b677dba8::t_b76fc8b4a653a5 324-325
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.7.5",
+  "base_commit_sha": "1186a9a90a35d1e45c0e3ae429dd0b0c7ce4b81f",
+  "prompts": {},
+  "sessions": {
+    "s_09b576b677dba8": {
+      "agent_id": {
+        "tool": "codex",
+        "id": "01a192ba-d35e-75a1-87b3-52c303fc0205",
+        "model": "gpt-6.1-sol"
+      },
+      "human_author": "Simon Aunér <simonauner@gmail.com>"
+    }
+  }
+}
