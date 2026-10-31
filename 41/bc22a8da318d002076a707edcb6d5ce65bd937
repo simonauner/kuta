@@ -1,0 +1,40 @@
+api/Kuta.Api/RoutePrivacy.cs
+  s_2b928969bd5fb6::t_3a3b35a1c320c2 1-51
+web/tests/multisport.test.mjs
+  s_2b928969bd5fb6::t_3a3b35a1c320c2 4-26
+web/src/components/multisport-preview.tsx
+  s_2b928969bd5fb6::t_3a3b35a1c320c2 5,47-53
+web/src/routes/activity.tsx
+  s_2b928969bd5fb6::t_3a3b35a1c320c2 26,58-59,91,93,95-96,98
+web/src/lib/activity.ts
+  s_2b928969bd5fb6::t_3a3b35a1c320c2 8-25
+README.md
+  s_2b928969bd5fb6::t_3a3b35a1c320c2 48-65
+web/tests/activity.test.mjs
+  s_2b928969bd5fb6::t_3a3b35a1c320c2 12,16-31
+  s_2b928969bd5fb6::t_f25f9a3e5f981e 32
+api/Kuta.Api/ActivityEndpoints.cs
+  s_2b928969bd5fb6::t_fe6cf5877365cb 252,269
+api/Kuta.Api.Tests/RoutePrivacyTests.cs
+  s_2b928969bd5fb6::t_3a3b35a1c320c2 1-80
+api/Kuta.Api.Tests/DataExportTests.cs
+  s_2b928969bd5fb6::t_75b1d2a34b99cc 61-64
+api/Kuta.Api.Tests/ActivityAccessTests.cs
+  s_2b928969bd5fb6::t_3a3b35a1c320c2 30-33,62-63
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.7.5",
+  "base_commit_sha": "41bc22a8da318d002076a707edcb6d5ce65bd937",
+  "prompts": {},
+  "sessions": {
+    "s_2b928969bd5fb6": {
+      "agent_id": {
+        "tool": "codex",
+        "id": "01a190a9-5d9b-7c13-b08e-0e528f7b35bb",
+        "model": "gpt-6.1-sol"
+      },
+      "human_author": "Simon Aunér <simonauner@gmail.com>"
+    }
+  }
+}
