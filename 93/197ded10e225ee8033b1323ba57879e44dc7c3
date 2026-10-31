@@ -1,0 +1,36 @@
+web/src/features.css
+  s_02abbca9d81b03::t_963eeab73f85f1 3,9,12,19,26,31,39,45,53,57,60,64,71,77,83,87,93,97,105,108,111,115,120,124,127,133-142
+  s_02abbca9d81b03::t_5bc3f99642fedd 1-2,4-8,10-11,13-18,20-25,27-30,32-38,40-44,46-52,54-56,58-59,61-63,65-70,72-76,78-82,84-86,88-92,94-96,98-104,106-107,109-110,112-114,116-119,121-123,125-126,128-132
+README.md
+  s_02abbca9d81b03::t_3d72ba126e3e11 7
+api/Kuta.Api.Tests/WebRoutingTests.cs
+  s_02abbca9d81b03::t_094769eb084cf2 15,29-34
+api/Kuta.Api/Program.cs
+  s_02abbca9d81b03::t_5525a288a97027 237
+web/features.html
+  s_02abbca9d81b03::t_c8f7c98ec372e3 1-216
+web/index.html
+  s_02abbca9d81b03::t_e6c64de029449d 41,97,101-105,108,186,189,239,269-270,281-282
+web/public/sitemap.xml
+  s_02abbca9d81b03::t_34817545b294cd 4
+web/src/landing.css
+  s_02abbca9d81b03::t_2816f699c6bd49 834-839
+web/vite.config.ts
+  s_02abbca9d81b03::t_b6bbda38b30f15 34-35,47
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.7.5",
+  "base_commit_sha": "93197ded10e225ee8033b1323ba57879e44dc7c3",
+  "prompts": {},
+  "sessions": {
+    "s_02abbca9d81b03": {
+      "agent_id": {
+        "tool": "codex",
+        "id": "01a18fd4-e3bd-7623-a9f4-9567ee2e065f",
+        "model": "gpt-6.1-sol"
+      },
+      "human_author": "Simon Aunér <simonauner@gmail.com>"
+    }
+  }
+}
