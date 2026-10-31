@@ -22,6 +22,7 @@ web/src/routes/activities.tsx
   s_cb71bef9c40aff::t_0344a7dde793aa 142-146,151-159
   s_cb71bef9c40aff::t_6238570777a51d 169
   s_cb71bef9c40aff::t_a411e07fb50e14 1-2,48,54,168,170,199,201-210
+  s_cb71bef9c40aff::t_bd0024e1465149 27,80,96,131,148,150
 api/Kuta.Api/BestEfforts.cs
   s_cb71bef9c40aff::t_324a54c2091c04 11
 web/src/routes/activity.tsx
@@ -30,6 +31,7 @@ web/src/routes/activity.tsx
 README.md
   s_cb71bef9c40aff::t_e685facec072b1 184-186
   s_cb71bef9c40aff::t_7153b10acf81c0 188,233-234
+  s_cb71bef9c40aff::t_bd0024e1465149 187
 web/src/locales/sv.json
   s_cb71bef9c40aff::t_6238570777a51d 34-35
   s_cb71bef9c40aff::t_324a54c2091c04 32-33,50,52-53,55-104
