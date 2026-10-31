@@ -1,0 +1,32 @@
+web/src/components/year-comparison.tsx
+  s_3db7a21c42c5cb::t_84ae2ea8896711 2,81,83
+  s_3db7a21c42c5cb::t_6fe59b78cc9649 84,221
+web/src/components/ui/heading.tsx
+  s_3db7a21c42c5cb::t_84ae2ea8896711 1-17
+web/src/index.css
+  s_3db7a21c42c5cb::t_84ae2ea8896711 31-40,76
+web/src/components/records.tsx
+  s_3db7a21c42c5cb::t_6fe59b78cc9649 86,142-144,181,211
+  s_3db7a21c42c5cb::t_84ae2ea8896711 2,81,83,147,172
+web/src/routes/stats.tsx
+  s_3db7a21c42c5cb::t_f902ce6d93bebb 149-152,155,252
+  s_3db7a21c42c5cb::t_84ae2ea8896711 2,71
+AGENTS.md
+  s_3db7a21c42c5cb::t_84ae2ea8896711 120
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.7.5",
+  "base_commit_sha": "7e17d305c74663e2917da8b6d515f09e0dec2e27",
+  "prompts": {},
+  "sessions": {
+    "s_3db7a21c42c5cb": {
+      "agent_id": {
+        "tool": "codex",
+        "id": "01a19400-d6d5-79c0-8351-a86afb22fbb9",
+        "model": "gpt-6.1-sol"
+      },
+      "human_author": "Simon Aunér <simonauner@gmail.com>"
+    }
+  }
+}
