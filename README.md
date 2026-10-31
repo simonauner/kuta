@@ -45,6 +45,24 @@ splitstabellen utelämnas. En avslutande rest under 50 meter visas inte.
 Diagram använder kilometer som x-axel när distansen ökar utan återställningar,
 annars förfluten tid. Tidsaxelns etikett följer appens valda språk.
 
+## Statistik över tid
+
+`/app/stats` visar årsstatistik med månadsdiagram och tabell för distans, träningstid,
+snittempo och snittpuls samt antal pass. Välj år och sport; löpning och innevarande år är
+förval. Årsväljaren innehåller hela den egna historiken. Tomma månader har noll mängd,
+men saknat tempo och puls visas som `–`.
+
+`GET /api/activities/statistics?year=2026&sport=running&timeZone=Europe%2FStockholm`
+ger tolv månadsrader för den inloggade användaren. År krävs (1–9998), utelämnad sport
+betyder alla sporter och utelämnad tidszon UTC. Summeringen sker i Postgres över hela
+året, oberoende av passlistans sidindelning, utan att hämta tidsserier eller rutter.
+Tid inkluderar pauser. Tempo är summan av tid delad med summan av distans för pass med
+positiv tid och distans (sekunder per kilometer). Snittpuls tidsvägs bara över pass med
+positiv tid och sparad puls. Alla sporter kombinerar även tempo och puls mellan sporter.
+Månader och årsgränser följer webbläsarens tidszon, och hela passet tillhör startmånaden.
+Statistikcachen uppdateras vid skapande, import och radering av pass och rensas när
+pulssamtycke återkallas.
+
 ## Applikationsloggar och integritet
 
 API:t ersätter .NET:s loggproviders med `PrivateLogProvider`. Den skriver JSON med fasta händelser och operationer för start, stopp, requestfel, startfel och migreringsfel. Requestfel har även HTTP-status och tidsåtgång i millisekunder. Loggformatterare, godtyckligt loggstate, scopes och kategorinamn används aldrig, även om loggnivån höjs. DbUp:s egen konsolloggning är avstängd. Samma skydd används lokalt och i drift.
