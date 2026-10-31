@@ -148,6 +148,7 @@ export function NewActivityPage() {
       await Promise.all([
         queryClient.invalidateQueries({ queryKey: ['activities'] }),
         queryClient.invalidateQueries({ queryKey: ['records'] }),
+        queryClient.invalidateQueries({ queryKey: ['feed'] }),
         queryClient.invalidateQueries({ queryKey: lastUsedShoeQuery.queryKey }),
         queryClient.invalidateQueries({ queryKey: equipmentQuery.queryKey }),
       ])
