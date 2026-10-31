@@ -1,6 +1,6 @@
 import { ErrorMessage } from '@/components/error-message'
 import { useTranslation } from 'react-i18next'
-import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
+import { useInfiniteQuery, useMutation, useQueryClient } from '@tanstack/react-query'
 import { Link } from '@tanstack/react-router'
 import { Button } from '@/components/ui/button'
 import { api } from '@/lib/api'
@@ -9,13 +9,9 @@ import {
   formatDuration,
   formatPace,
   groupActivities,
-  type Activity,
+  type ActivityCursor,
+  type ActivityPage,
 } from '@/lib/activity'
-
-const activitiesQuery = {
-  queryKey: ['activities'],
-  queryFn: () => api.get<Activity[]>('/api/activities'),
-}
 
 export function ActivitiesPage() {
   const { t, i18n } = useTranslation()
@@ -29,7 +25,21 @@ export function ActivitiesPage() {
     maximumFractionDigits: 2,
   })
   const queryClient = useQueryClient()
-  const activities = useQuery(activitiesQuery)
+  const timeZone = Intl.DateTimeFormat().resolvedOptions().timeZone
+  const activities = useInfiniteQuery({
+    queryKey: ['activities', timeZone],
+    initialPageParam: null as ActivityCursor | null,
+    queryFn: ({ pageParam }) => {
+      const params = new URLSearchParams({ timeZone })
+      if (pageParam) {
+        params.set('beforeStartedAt', pageParam.startedAt)
+        params.set('beforeId', pageParam.id)
+      }
+      return api.get<ActivityPage>(`/api/activities?${params}`)
+    },
+    getNextPageParam: (page) => page.nextCursor,
+  })
+  const items = activities.data?.pages.flatMap((page) => page.items) ?? []
 
   const remove = useMutation({
     mutationFn: (id: string) => api.send('DELETE', `/api/activities/${id}`),
@@ -50,11 +60,21 @@ export function ActivitiesPage() {
         </p>
       )}
 
-      {activities.data?.length === 0 && (
+      {activities.isSuccess && items.length === 0 && (
         <p className="mt-8 text-muted-foreground">{t('activities.empty')}</p>
       )}
+      {activities.isPending && (
+        <p role="status" className="mt-8 text-muted-foreground">
+          {t('activities.loading')}
+        </p>
+      )}
+      {activities.error && (
+        <p role="alert" className="mt-4 text-sm text-destructive">
+          <ErrorMessage error={activities.error} />
+        </p>
+      )}
       <div className="mt-8 space-y-6">
-        {groupActivities(activities.data ?? []).map((period) => (
+        {groupActivities(items).map((period) => (
           <div key={period.activities[0].id}>
             {period.year !== null && (
               <h2 className="mb-4 text-xl font-semibold tracking-tight">{period.year}</h2>
@@ -108,6 +128,23 @@ export function ActivitiesPage() {
           </div>
         ))}
       </div>
+      {(activities.hasNextPage || (activities.isError && !activities.data)) && (
+        <Button
+          variant="outline"
+          className="mt-6"
+          disabled={activities.isFetching}
+          onClick={() => {
+            if (activities.data) void activities.fetchNextPage()
+            else void activities.refetch()
+          }}
+        >
+          {activities.isFetching
+            ? t('activities.loading')
+            : activities.isError
+              ? t('activities.retry')
+              : t('activities.loadOlder')}
+        </Button>
+      )}
     </section>
   )
 }

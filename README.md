@@ -18,6 +18,15 @@ Appens URL:er är `/app` (flöde), `/app/activities`, `/app/stats` och `/app/pro
 
 Översättningar finns i `web/src/locales/sv.json` och `en.json`; lägg till samma nycklar i båda. API-felkoder översätts i webben, med ett generellt fel för okända koder. Mejlmallar och PWA-manifest är tills vidare svenska. Språkval och katalogernas täckning kontrolleras med `cd web && npm test` (Node enligt `.nvmrc`).
 
+## Passlistans sidindelning
+
+`GET /api/activities?timeZone=Europe%2FStockholm` ger `{ items, nextCursor }`, högst 25 pass
+sorterade på `startedAt` och `id` fallande. Nästa sida hämtas med `beforeStartedAt` och `beforeId`
+från `nextCursor`; null betyder att historiken är slut. Utelämnad tidszon ger UTC, webben skickar
+webbläsarens IANA-tidszon. Listans `showMonth` och `showWeek` anger om fler egna pass finns i
+samma lokala år respektive månad, även utanför sidan. Därmed ändras inte rubriknivåerna när
+”Visa äldre pass” fyller på listan. Inga tidsserier eller rutter ingår i listsvaren.
+
 ## Köra lokalt
 
 Kräver Docker, Supabase CLI, .NET SDK och nvm (Node-versionen står i `.nvmrc`). `global.json` väljer .NET SDK 10.0.402 eller senare stabil patch i 10.0.4xx-serien, både lokalt och i Dockerbygget. Allt startas med:
