@@ -1,3 +1,4 @@
+import { FormField } from '@/components/ui/form-field'
 import { useState } from 'react'
 import { useQuery } from '@tanstack/react-query'
 import { useTranslation } from 'react-i18next'
@@ -81,20 +82,22 @@ export function YearComparison({ year, sportGroup }: { year: number; sportGroup:
           </h2>
           <p className="mt-2 text-sm text-muted-foreground">{t('yearComparison.description')}</p>
         </div>
-        <label className="grid gap-1 text-sm font-medium">
-          {t('yearComparison.metric')}
-          <select
-            className={selectClass}
-            value={metric}
-            onChange={(e) => setMetric(e.target.value as YearMetric)}
-          >
-            {yearMetrics.map((key) => (
-              <option key={key} value={key}>
-                {t(`yearComparison.metrics.${key}`)}
-              </option>
-            ))}
-          </select>
-        </label>
+        <FormField label={t('yearComparison.metric')} className="text-sm font-medium">
+          {(id) => (
+            <select
+              id={id}
+              className={selectClass}
+              value={metric}
+              onChange={(e) => setMetric(e.target.value as YearMetric)}
+            >
+              {yearMetrics.map((key) => (
+                <option key={key} value={key}>
+                  {t(`yearComparison.metrics.${key}`)}
+                </option>
+              ))}
+            </select>
+          )}
+        </FormField>
       </div>
       {days.error && (
         <p role="alert" className="mt-4 text-sm text-destructive">
