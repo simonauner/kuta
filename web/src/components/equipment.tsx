@@ -1,3 +1,4 @@
+import { SlowLoading } from '@/components/slow-loading'
 import { FormField } from '@/components/ui/form-field'
 import { Menu } from '@base-ui/react/menu'
 import { Select } from '@base-ui/react/select'
@@ -382,97 +383,97 @@ export function EquipmentPicker({
   return (
     <fieldset disabled={disabled}>
       <legend className="mb-2 text-sm font-medium">{t('equipment.title')}</legend>
-      {equipment.isPending && (
-        <p role="status" className="text-sm text-muted-foreground">
-          {t('equipment.loading')}
-        </p>
-      )}
-      {equipment.data?.length === 0 && (
-        <p className="text-sm text-muted-foreground">
-          {t('equipment.empty')}{' '}
-          <Link to="/app/settings/equipment" className="underline underline-offset-2">
-            {t('equipment.addInSettings')}
-          </Link>
-        </p>
-      )}
-      {options.length > 3 ? (
-        <FormField label={t('equipment.title')} hideLabel>
-          {(id) => (
-            <Select.Root
-              multiple
-              value={value}
-              onValueChange={onChange}
-              disabled={disabled}
-              items={options.map((item) => ({ value: item.id, label: label(item) }))}
-            >
-              <Select.Trigger
-                id={id}
-                className="flex min-h-9 w-full items-center justify-between gap-2 rounded-md border bg-background px-3 py-2 text-left text-sm outline-none focus-visible:ring-2 focus-visible:ring-ring disabled:opacity-50"
+      <SlowLoading loading={equipment.isPending}>
+        {equipment.data?.length === 0 && (
+          <p className="text-sm text-muted-foreground">
+            {t('equipment.empty')}{' '}
+            <Link to="/app/settings/equipment" className="underline underline-offset-2">
+              {t('equipment.addInSettings')}
+            </Link>
+          </p>
+        )}
+        {options.length > 3 ? (
+          <FormField label={t('equipment.title')} hideLabel>
+            {(id) => (
+              <Select.Root
+                multiple
+                value={value}
+                onValueChange={onChange}
+                disabled={disabled}
+                items={options.map((item) => ({ value: item.id, label: label(item) }))}
               >
-                <Select.Value placeholder={t('equipment.choose')} className="min-w-0 break-words" />
-                <Select.Icon>
-                  <ChevronDown className="size-4 shrink-0" aria-hidden="true" />
-                </Select.Icon>
-              </Select.Trigger>
-              <Select.Portal>
-                <Select.Positioner alignItemWithTrigger={false} sideOffset={4} className="z-50">
-                  <Select.Popup className="max-h-[min(20rem,var(--available-height))] w-[var(--anchor-width)] overflow-y-auto rounded-md border bg-card p-1 text-card-foreground shadow-md outline-none">
-                    <Select.List>
-                      {options.map((item) => (
-                        <Select.Item
-                          key={item.id}
-                          value={item.id}
-                          className="flex cursor-default items-center gap-2 rounded-sm px-2 py-2 text-sm outline-none data-highlighted:bg-accent data-highlighted:text-accent-foreground"
-                        >
-                          <span className="size-4 shrink-0">
-                            <Select.ItemIndicator>
-                              <Check className="size-4" aria-hidden="true" />
-                            </Select.ItemIndicator>
-                          </span>
-                          <Select.ItemText className="min-w-0 break-words">
-                            {label(item)}
-                          </Select.ItemText>
-                        </Select.Item>
-                      ))}
-                    </Select.List>
-                  </Select.Popup>
-                </Select.Positioner>
-              </Select.Portal>
-            </Select.Root>
-          )}
-        </FormField>
-      ) : (
-        <div className="flex flex-wrap gap-3">
-          {options.map((item) => (
-            <FormField
-              key={item.id}
-              layout="choice"
-              label={label(item)}
-              className="rounded-md border px-3 py-2 text-sm"
-            >
-              {(id) => (
-                <input
+                <Select.Trigger
                   id={id}
-                  type="checkbox"
-                  checked={value.includes(item.id)}
-                  onChange={(e) =>
-                    onChange(
-                      e.currentTarget.checked
-                        ? [...value, item.id]
-                        : value.filter((id) => id !== item.id),
-                    )
-                  }
-                />
-              )}
-            </FormField>
-          ))}
-        </div>
-      )}
-      {equipment.error && (
-        <p role="alert" className="text-sm text-destructive">
-          <ErrorMessage error={equipment.error} />
-        </p>
-      )}
+                  className="flex min-h-9 w-full items-center justify-between gap-2 rounded-md border bg-background px-3 py-2 text-left text-sm outline-none focus-visible:ring-2 focus-visible:ring-ring disabled:opacity-50"
+                >
+                  <Select.Value
+                    placeholder={t('equipment.choose')}
+                    className="min-w-0 break-words"
+                  />
+                  <Select.Icon>
+                    <ChevronDown className="size-4 shrink-0" aria-hidden="true" />
+                  </Select.Icon>
+                </Select.Trigger>
+                <Select.Portal>
+                  <Select.Positioner alignItemWithTrigger={false} sideOffset={4} className="z-50">
+                    <Select.Popup className="max-h-[min(20rem,var(--available-height))] w-[var(--anchor-width)] overflow-y-auto rounded-md border bg-card p-1 text-card-foreground shadow-md outline-none">
+                      <Select.List>
+                        {options.map((item) => (
+                          <Select.Item
+                            key={item.id}
+                            value={item.id}
+                            className="flex cursor-default items-center gap-2 rounded-sm px-2 py-2 text-sm outline-none data-highlighted:bg-accent data-highlighted:text-accent-foreground"
+                          >
+                            <span className="size-4 shrink-0">
+                              <Select.ItemIndicator>
+                                <Check className="size-4" aria-hidden="true" />
+                              </Select.ItemIndicator>
+                            </span>
+                            <Select.ItemText className="min-w-0 break-words">
+                              {label(item)}
+                            </Select.ItemText>
+                          </Select.Item>
+                        ))}
+                      </Select.List>
+                    </Select.Popup>
+                  </Select.Positioner>
+                </Select.Portal>
+              </Select.Root>
+            )}
+          </FormField>
+        ) : (
+          <div className="flex flex-wrap gap-3">
+            {options.map((item) => (
+              <FormField
+                key={item.id}
+                layout="choice"
+                label={label(item)}
+                className="rounded-md border px-3 py-2 text-sm"
+              >
+                {(id) => (
+                  <input
+                    id={id}
+                    type="checkbox"
+                    checked={value.includes(item.id)}
+                    onChange={(e) =>
+                      onChange(
+                        e.currentTarget.checked
+                          ? [...value, item.id]
+                          : value.filter((id) => id !== item.id),
+                      )
+                    }
+                  />
+                )}
+              </FormField>
+            ))}
+          </div>
+        )}
+        {equipment.error && (
+          <p role="alert" className="text-sm text-destructive">
+            <ErrorMessage error={equipment.error} />
+          </p>
+        )}
+      </SlowLoading>
     </fieldset>
   )
 }

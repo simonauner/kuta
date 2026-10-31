@@ -7,7 +7,7 @@
     "main": "Huvudnavigering"
   },
   "language": "Språk",
-  "slowLoading": "Detta tar längre tid än väntat",
+  "slowLoading": "Detta tar ovanligt lång tid...",
   "connectionError": "Kunde inte nå Kuta. Kontrollera anslutningen och ladda om sidan.",
   "feed": {
     "welcomeTitle": "Dags för ditt första pass",

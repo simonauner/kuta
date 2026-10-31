@@ -1,3 +1,4 @@
+import { SlowLoading } from '@/components/slow-loading'
 import type { ReactNode } from 'react'
 import { FeedEmptyState } from '@/components/feed-empty-state'
 import { ActivityMapPreview } from '@/components/activity-map-preview'
@@ -52,8 +53,7 @@ export function ActivityFeed({
     timeStyle: 'short',
   })
   return (
-    <>
-      {feed.isPending && <p role="status">{t('social.loading')}</p>}
+    <SlowLoading loading={feed.isPending}>
       {feed.error && (
         <div role="alert">
           <ErrorMessage error={feed.error} />
@@ -111,6 +111,6 @@ export function ActivityFeed({
           {t('activities.loadOlder')}
         </Button>
       )}
-    </>
+    </SlowLoading>
   )
 }
