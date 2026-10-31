@@ -1,10 +1,7 @@
-import { useState } from 'react'
-import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
+import { useQuery } from '@tanstack/react-query'
 import { useTranslation } from 'react-i18next'
-import { api } from '@/lib/api'
-import { activityTagsQuery, activityQuery } from '@/lib/activity-query'
+import { activityTagsQuery } from '@/lib/activity-query'
 import type { ActivityTag } from '@/lib/activity'
-import { Button } from '@/components/ui/button'
 import { ErrorMessage } from '@/components/error-message'
 
 export function TagPicker({
@@ -44,58 +41,6 @@ export function TagPicker({
         </p>
       )}
     </fieldset>
-  )
-}
-
-export function ActivityTagEditor({
-  activityId,
-  initialTags,
-}: {
-  activityId: string
-  initialTags: ActivityTag[]
-}) {
-  const { t } = useTranslation()
-  const [tags, setTags] = useState(initialTags)
-  const queryClient = useQueryClient()
-  const save = useMutation({
-    mutationFn: () => api.send('PUT', `/api/activities/${activityId}/tags`, { tags }),
-    onSuccess: async () => {
-      await Promise.all([
-        queryClient.invalidateQueries({ queryKey: activityQuery(activityId).queryKey }),
-        queryClient.invalidateQueries({ queryKey: ['activities'] }),
-        queryClient.invalidateQueries({ queryKey: ['records'] }),
-      ])
-    },
-  })
-  const changed =
-    tags.length !== initialTags.length || tags.some((tag) => !initialTags.includes(tag))
-  return (
-    <form
-      className="mt-5 space-y-3"
-      onSubmit={(e) => {
-        e.preventDefault()
-        save.mutate()
-      }}
-    >
-      <TagPicker
-        value={tags}
-        onChange={(value) => {
-          setTags(value)
-          save.reset()
-        }}
-        disabled={save.isPending}
-      />
-      {changed && (
-        <Button size="sm" disabled={save.isPending}>
-          {t('tags.save')}
-        </Button>
-      )}
-      {save.error && (
-        <p role="alert" className="text-sm text-destructive">
-          <ErrorMessage error={save.error} />
-        </p>
-      )}
-    </form>
   )
 }
 

@@ -22,8 +22,8 @@ public static class BestEfforts
     public static IReadOnlyList<BestEffort> Calculate(string sport, int[] t, float?[]? dist, ActivityPart[]? parts = null)
     {
         if (parts is not { Length: > 0 })
-            return sport == "running" ? BestEffortCalculator.Calculate(t, dist) : [];
-        return parts.Where(p => p.Sport == "running").SelectMany(p =>
+            return ActivitySports.IsRunning(sport) ? BestEffortCalculator.Calculate(t, dist) : [];
+        return parts.Where(p => ActivitySports.IsRunning(p.Sport)).SelectMany(p =>
         {
             var leg = Multisport.Slice(t, dist, p);
             return BestEffortCalculator.Calculate(leg.T, leg.Dist);

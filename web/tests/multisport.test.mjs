@@ -31,3 +31,23 @@ test('sport presentation uses meaningful units and omits aggregate multisport pa
   assert.equal(formatSportPace('swimrun', 600, 1000, 'en'), '–')
   assert.equal(formatSportPace('swimming', 600, 0, 'en'), '–')
 })
+
+test('draft sport legs are previewed locally and restoring uses the imported version', async () => {
+  const { multisportView } = await import('../src/lib/multisport.ts')
+  const original = {
+    sport: 'swimrun',
+    parts: [{ partIndex: 0 }],
+    partsEdited: true,
+    originalParts: [],
+    originalSport: 'running',
+  }
+  assert.equal(multisportView(original, undefined), original)
+  const draft = { kind: 'triathlon', parts: [{ partIndex: 1 }] }
+  assert.equal(multisportView(original, draft).sport, 'triathlon')
+  assert.deepEqual(multisportView(original, draft).parts, draft.parts)
+  const restored = multisportView(original, null)
+  assert.equal(restored.sport, 'running')
+  assert.deepEqual(restored.parts, [])
+  assert.equal(restored.partsEdited, false)
+  assert.equal(original.sport, 'swimrun')
+})

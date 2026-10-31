@@ -1,4 +1,4 @@
-import type { ActivityStreams } from './activity'
+import type { ActivityDetail, ActivityStreams } from './activity'
 
 export type ActivityPart = {
   partIndex: number
@@ -8,6 +8,33 @@ export type ActivityPart = {
   distanceM: number
   useEquipment: boolean
 }
+export type MultisportDraft = { kind: string; parts: ActivityPart[] } | null | undefined
+
+export function multisportView<
+  T extends Pick<
+    ActivityDetail,
+    'sport' | 'parts' | 'partsEdited' | 'originalParts' | 'originalSport'
+  >,
+>(activity: T, draft: MultisportDraft): T {
+  if (draft === undefined) return activity
+  return {
+    ...activity,
+    sport: draft?.kind ?? activity.originalSport,
+    parts: draft?.parts ?? activity.originalParts,
+    partsEdited: draft !== null,
+  }
+}
+
+export function partsFromForm(draft: MultisportDraft, form: HTMLFormElement): MultisportDraft {
+  if (!draft) return draft
+  const values = new FormData(form)
+  const ends = draft.parts.map((p, i) => Number(values.get(`endS-${i}`) ?? p.endS))
+  return {
+    ...draft,
+    parts: draft.parts.map((p, i) => ({ ...p, startS: i ? ends[i - 1] : p.startS, endS: ends[i] })),
+  }
+}
+
 export const multisportKinds = ['triathlon', 'swimrun', 'multisport'] as const
 export const partSports = [
   'running',

@@ -115,6 +115,10 @@ test('own title wins, otherwise sport and time of day', () => {
   )
   assert.equal(
     activityTitle({ title: null, sport: 'rowing', startedAt: at(6) }, t),
+    'rowing|morning',
+  )
+  assert.equal(
+    activityTitle({ title: null, sport: 'future sport', startedAt: at(6) }, t),
     'other|morning',
   )
   assert.equal(
@@ -228,4 +232,15 @@ test('activity search preserves supported tags alongside the year', () => {
     assert.deepEqual(activitySearch({ year: '2026', tag }), { year: 2026, tag })
   for (const tag of ['', 'unknown', '__proto__', 'toString', ['race'], true, null])
     assert.deepEqual(activitySearch({ tag }), {})
+})
+
+test('activity search preserves supported sports with year and tag', () => {
+  assert.deepEqual(activitySearch({ year: '2013', tag: 'race', sport: 'cycling' }), {
+    year: 2013,
+    tag: 'race',
+    sport: 'cycling',
+  })
+  assert.deepEqual(activitySearch({ sport: 'trail run' }), { sport: 'trail run' })
+  for (const sport of ['', 'unknown', '__proto__', ['cycling'], null])
+    assert.deepEqual(activitySearch({ sport }), {})
 })

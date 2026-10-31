@@ -1,12 +1,9 @@
-import { useMutation, useQueryClient } from '@tanstack/react-query'
-import { useId, useRef, useState } from 'react'
+import { lazy, Suspense, useId, useRef, useState } from 'react'
 import { useTranslation } from 'react-i18next'
 import { AnimatePresence, motion, useReducedMotion } from 'motion/react'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Modal } from '@/components/ui/modal'
-import { ErrorMessage } from '@/components/error-message'
-import { api } from '@/lib/api'
 import { formatDuration, type ActivityDetail } from '@/lib/activity'
 import {
   multisportKinds,
@@ -15,17 +12,26 @@ import {
   sportNameKey,
   sportColors,
   type ActivityPart,
+  type MultisportDraft,
 } from '@/lib/multisport'
+
+const MultisportPreview = lazy(() => import('./multisport-preview'))
 
 export function MultisportEditor({
   activity: a,
   onPreview,
+  onChange,
+  disabled = false,
 }: {
-  activity: ActivityDetail
-  onPreview: (part: ActivityPart | null) => void
+  activity: Pick<
+    ActivityDetail,
+    'sport' | 'parts' | 'partsEdited' | 'canSplit' | 'streams' | 'originalParts' | 'originalSport'
+  >
+  onPreview?: (part: ActivityPart | null) => void
+  onChange?: (draft: MultisportDraft) => void
+  disabled?: boolean
 }) {
   const { t, i18n } = useTranslation()
-  const client = useQueryClient()
   const restoreDialog = useRef<HTMLDialogElement>(null)
   const restoreTitleId = useId()
   const restoreWarningId = useId()
@@ -37,29 +43,10 @@ export function MultisportEditor({
   const reduceMotion = useReducedMotion()
   const [selected, setSelected] = useState<number | null>(null)
   const number = new Intl.NumberFormat(i18n.resolvedLanguage, { maximumFractionDigits: 2 })
-  const save = useMutation({
-    mutationFn: ({ restore, value = parts }: { restore: boolean; value?: ActivityPart[] }) =>
-      api.send(
-        restore ? 'DELETE' : 'PUT',
-        `/api/activities/${a.id}/parts`,
-        restore ? undefined : { kind, parts: value },
-      ),
-    onSuccess: async () => {
-      restoreDialog.current?.close()
-      setEditing(false)
-      setSelected(null)
-      onPreview(null)
-      await Promise.all(
-        ['activity', 'activities', 'equipment', 'records'].map((key) =>
-          client.invalidateQueries({ queryKey: [key] }),
-        ),
-      )
-    },
-  })
   const shown = editing ? parts : a.parts
   function preview(part: ActivityPart | null) {
     setSelected(part?.partIndex ?? null)
-    onPreview(part)
+    onPreview?.(part)
   }
   function update(next: ActivityPart[]) {
     const measured = next.map((p, i) => {
@@ -67,8 +54,8 @@ export function MultisportEditor({
       return { ...p, partIndex: i, distanceM: stream?.dist?.at(-1) ?? 0 }
     })
     setParts(measured)
-    save.reset()
-    if (selected !== null) onPreview(measured[selected] ?? null)
+    onChange?.({ kind, parts: measured })
+    if (selected !== null) onPreview?.(measured[selected] ?? null)
   }
   function begin() {
     const from = a.streams!.t[0],
@@ -99,27 +86,14 @@ export function MultisportEditor({
           ],
     )
   }
+  if (!a.parts.length && !onChange) return null
   if (!a.canSplit && !a.parts.length)
     return <p className="mt-5 text-sm text-muted-foreground">{t('multisport.unavailable')}</p>
   return (
-    <form
-      onSubmit={(e) => {
-        e.preventDefault()
-        const values = new FormData(e.currentTarget)
-        const ends = parts.map((p, i) =>
-          i < parts.length - 1 ? Number(values.get(`endS-${i}`)) : p.endS,
-        )
-        save.mutate({
-          restore: false,
-          value: parts.map((p, i) => ({ ...p, startS: i ? ends[i - 1] : p.startS, endS: ends[i] })),
-        })
-      }}
-      className="mt-6 space-y-3 rounded-lg border p-4"
-      aria-label={t('multisport.title')}
-    >
+    <section className="mt-6 space-y-3 rounded-lg border p-4" aria-label={t('multisport.title')}>
       <div className="flex flex-wrap items-center justify-between gap-2">
         <h2 className="font-semibold">{t('multisport.title')}</h2>
-        {!editing && a.canSplit && (
+        {onChange && !editing && a.canSplit && (
           <Button type="button" size="sm" variant="outline" onClick={begin}>
             {t(a.parts.length ? 'multisport.edit' : 'multisport.split')}
           </Button>
@@ -133,8 +107,11 @@ export function MultisportEditor({
             <select
               className="rounded-md border bg-background p-2"
               value={kind}
-              disabled={save.isPending}
-              onChange={(e) => setKind(e.target.value)}
+              disabled={disabled}
+              onChange={(e) => {
+                setKind(e.target.value)
+                onChange?.({ kind: e.target.value, parts })
+              }}
             >
               {multisportKinds.map((k) => (
                 <option key={k} value={k}>
@@ -155,7 +132,7 @@ export function MultisportEditor({
           {t('multisport.whole')}
         </Button>
       )}
-      <fieldset disabled={save.isPending} className="space-y-3">
+      <fieldset disabled={disabled} className="space-y-3">
         <AnimatePresence initial={false}>
           {shown.map((p, i) => (
             <motion.div
@@ -330,33 +307,13 @@ export function MultisportEditor({
           ))}
         </AnimatePresence>
       </fieldset>
-      {editing && (
-        <div className="flex flex-wrap gap-2">
-          <Button type="submit" disabled={save.isPending}>
-            {t('multisport.save')}
-          </Button>
-          <Button
-            type="button"
-            variant="ghost"
-            disabled={save.isPending}
-            onClick={() => {
-              setEditing(false)
-              preview(null)
-              save.reset()
-            }}
-          >
-            {t('multisport.cancel')}
-          </Button>
-        </div>
-      )}
-      {a.partsEdited && !editing && (
+      {onChange && a.partsEdited && !editing && (
         <Button
           type="button"
           variant="outline"
           size="sm"
-          disabled={save.isPending}
+          disabled={disabled}
           onClick={() => {
-            save.reset()
             restoreDialog.current?.showModal()
           }}
         >
@@ -368,7 +325,7 @@ export function MultisportEditor({
         aria-labelledby={restoreTitleId}
         aria-describedby={restoreWarningId}
         onCancel={(event) => {
-          if (save.isPending) event.preventDefault()
+          if (disabled) event.preventDefault()
         }}
       >
         <h2 id={restoreTitleId} className="text-xl font-semibold">
@@ -377,35 +334,35 @@ export function MultisportEditor({
         <p id={restoreWarningId} className="mt-3 text-sm text-muted-foreground">
           {t('multisport.confirmRestore')}
         </p>
-        {save.error && save.variables?.restore && (
-          <p role="alert" className="mt-3 text-sm text-destructive">
-            <ErrorMessage error={save.error} />
-          </p>
-        )}
         <div className="mt-6 flex justify-end gap-3">
           <Button
             type="button"
             variant="outline"
             autoFocus
-            disabled={save.isPending}
+            disabled={disabled}
             onClick={() => restoreDialog.current?.close()}
           >
             {t('multisport.cancel')}
           </Button>
           <Button
             type="button"
-            disabled={save.isPending}
-            onClick={() => save.mutate({ restore: true })}
+            disabled={disabled}
+            onClick={() => {
+              setEditing(false)
+              preview(null)
+              onChange?.(null)
+              restoreDialog.current?.close()
+            }}
           >
             {t('multisport.restoreConfirm')}
           </Button>
         </div>
       </Modal>
-      {save.error && !save.variables?.restore && (
-        <p role="alert" className="text-sm text-destructive">
-          <ErrorMessage error={save.error} />
-        </p>
+      {onChange && editing && a.streams && (
+        <Suspense fallback={null}>
+          <MultisportPreview streams={a.streams} parts={shown} selected={selected} />
+        </Suspense>
       )}
-    </form>
+    </section>
   )
 }

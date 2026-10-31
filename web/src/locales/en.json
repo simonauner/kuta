@@ -13,7 +13,19 @@
     "description": "Activities from you and the people you follow will appear here."
   },
   "stats": {
-    "description": "Distance, pace, heart rate and personal bests over time."
+    "description": "Track your training volume, distance, pace and heart rate over time.",
+    "allSports": "All sports",
+    "count": "Activities",
+    "distanceM": "Distance",
+    "durationS": "Training time",
+    "paceSPerKm": "Average pace",
+    "avgHr": "Average heart rate",
+    "monthly": "Month by month",
+    "month": "Month",
+    "empty": "No activities for the selected sport and year.",
+    "noHeartRate": "No saved heart rate data during this period.",
+    "chartScale": "Scale: 0–{{max}}. All values are in the table below.",
+    "method": "Time includes pauses. Pace is total time per kilometre for activities with distance and time. Lower pace means faster speed. Heart rate is weighted by activity duration, using only activities with saved heart rate. Missing values appear as –. All sports also combines pace and heart rate across sports. Months follow your device’s time zone."
   },
   "profile": {
     "description": "Your runner profile and equipment."
@@ -29,7 +41,10 @@
     "delete": "Delete",
     "deleteLabel": "Delete activity {{date}}",
     "confirmDelete": "Delete this activity? This cannot be undone.",
-    "hrNotSaved": "Heart rate is not saved. Change this before uploading in"
+    "hrNotSaved": "Heart rate is not saved. Change this before uploading in",
+    "sport": "Sport",
+    "allSports": "All sports",
+    "noMatches": "No activities match the filters."
   },
   "newActivity": {
     "title": "Create activity",
@@ -48,10 +63,61 @@
       "walking": "Walk",
       "hiking": "Hike",
       "other": "Other",
-      "swimming": "Swimming",
+      "swimming": "Swim",
       "triathlon": "Triathlon",
       "swimrun": "Swimrun",
-      "multisport": "Multisport"
+      "multisport": "Multisport",
+      "trail run": "Trail Run",
+      "mountain bike ride": "Mountain Bike Ride",
+      "gravel ride": "Gravel Ride",
+      "e-bike ride": "E-Bike Ride",
+      "e-mountain bike ride": "E-Mountain Bike Ride",
+      "alpine ski": "Alpine Ski",
+      "badminton": "Badminton",
+      "backcountry ski": "Backcountry Ski",
+      "basketball": "Basketball",
+      "canoe": "Canoe",
+      "crossfit": "Crossfit",
+      "cricket": "Cricket",
+      "dance": "Dance",
+      "elliptical": "Elliptical",
+      "golf": "Golf",
+      "ice skate": "Ice Skate",
+      "inline skate": "Inline Skate",
+      "handcycle": "Handcycle",
+      "hiit": "HIIT",
+      "kayaking": "Kayaking",
+      "kitesurf": "Kitesurf",
+      "nordic ski": "Nordic Ski",
+      "padel": "Padel",
+      "pickleball": "Pickleball",
+      "pilates": "Pilates",
+      "physical therapy": "Physical Therapy",
+      "racquetball": "Racquetball",
+      "rock climb": "Rock Climb",
+      "roller ski": "Roller Ski",
+      "rowing": "Rowing",
+      "sail": "Sail",
+      "skateboard": "Skateboard",
+      "snowboard": "Snowboard",
+      "snowshoe": "Snowshoe",
+      "soccer": "Football (Soccer)",
+      "squash": "Squash",
+      "stand up paddling": "Stand Up Paddling",
+      "stair-stepper": "Stair-Stepper",
+      "surfing": "Surfing",
+      "table tennis": "Table Tennis",
+      "tennis": "Tennis",
+      "velomobile": "Velomobile",
+      "virtual ride": "Virtual Ride",
+      "virtual run": "Virtual Run",
+      "virtual rowing": "Virtual Rowing",
+      "volleyball": "Volleyball",
+      "weight training": "Weight Training",
+      "windsurf": "Windsurf",
+      "wheelchair": "Wheelchair",
+      "workout": "Workout",
+      "yoga": "Yoga"
     },
     "startedAt": "Date and time",
     "distance": "Distance (km)",
@@ -62,7 +128,8 @@
     "locked": "The measurements come from the file.",
     "lockedFrom": "The measurements come from the file ({{device}}).",
     "save": "Save",
-    "saving": "Saving …"
+    "saving": "Saving …",
+    "description": "Description (optional)"
   },
   "activity": {
     "back": "All activities",
@@ -116,7 +183,10 @@
       "afternoon": "Afternoon",
       "evening": "Evening"
     },
-    "speed": "Speed"
+    "speed": "Speed",
+    "edit": "Edit activity",
+    "save": "Save changes",
+    "cancel": "Cancel"
   },
   "consent": {
     "title": "Save heart rate from my activities.",
@@ -185,7 +255,9 @@
     "invalidTags": "Choose valid tags.",
     "invalidEquipment": "Choose valid equipment that belongs to you.",
     "invalidEquipmentInput": "Check the name, type and prior use.",
-    "invalidActivityParts": "Check sports and boundaries. Legs must cover the entire recording without gaps or overlaps."
+    "invalidActivityParts": "Check sports and boundaries. Legs must cover the entire recording without gaps or overlaps.",
+    "invalidDescription": "The description can be at most 10,000 characters.",
+    "stravaImportInterrupted": "The import was interrupted. Saved activities are kept. Retry with the same file; duplicates are skipped."
   },
   "home": "Kuta – home",
   "footer": {
@@ -207,7 +279,9 @@
     "importEquipmentResult": "Shoes imported: {{imported}}. Existing activities linked to shoes: {{linked}}.",
     "failedImports": "Strava IDs of activities that could not be imported",
     "account": "Account",
-    "logout": "Log out"
+    "logout": "Log out",
+    "importPreparing": "Uploading and reading the archive …",
+    "importProgress": "Processed {{processed}} of {{total}} activities"
   },
   "dangerZone": {
     "title": "Danger zone",
@@ -265,7 +339,8 @@
     "duration": "Total time (h:mm:ss)",
     "retired": "Retired",
     "addInProfile": "Add it on your profile.",
-    "loading": "Loading equipment…"
+    "loading": "Loading equipment…",
+    "choose": "Choose equipment"
   },
   "equipmentKinds": {
     "shoe": "Shoes"

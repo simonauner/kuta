@@ -1,12 +1,12 @@
 // Manuellt pass från formuläret "Skapa ny aktivitet". Tider i UTC, SI-enheter.
 public record ManualActivityRequest(
     string? Sport, string? Title, DateTimeOffset? StartedAt, int? DurationS, double? DistanceM,
-    float? ElevationGainM, short? AvgHr, string[]? Tags = null, Guid[]? EquipmentIds = null);
+    float? ElevationGainM, short? AvgHr, string[]? Tags = null, Guid[]? EquipmentIds = null, string? Description = null);
 
 // Det löparen själv fyller i, kontrollerat innan det sparas
 public static class ActivityInput
 {
-    public static readonly string[] Sports = ["running", "cycling", "walking", "hiking", "swimming", "triathlon", "swimrun", "multisport", "other"];
+    public static readonly string[] Sports = [.. ActivitySports.All, .. Multisport.Kinds];
     public static readonly string[] Tags = ["race", "workout", "long_run", "easy"];
 
     public static ApiError? ValidateTags(string[]? tags) =>
@@ -14,6 +14,15 @@ public static class ActivityInput
             : new ApiError("Välj giltiga taggar.", "invalidTags");
 
     public static string[] NormalizeTags(string[]? tags) => tags?.Distinct().ToArray() ?? [];
+
+    public const int MaxDescriptionLength = 10_000;
+
+    public static ApiError? ValidateDescription(string? description) =>
+        description?.Trim().Length > MaxDescriptionLength
+            ? new ApiError("Beskrivningen får vara högst 10 000 tecken.", "invalidDescription") : null;
+
+    public static string? NormalizeDescription(string? description) =>
+        string.IsNullOrWhiteSpace(description) ? null : description.Trim();
 
     const int MaxTitleLength = 100;
 
@@ -28,6 +37,7 @@ public static class ActivityInput
 
     public static ApiError? Validate(ManualActivityRequest r, DateTimeOffset now) =>
         ValidateTitle(r.Title)
+        ?? ValidateDescription(r.Description)
         ?? ValidateTags(r.Tags)
         ?? (r.Sport is null ? InvalidActivity : ValidateSport(r.Sport))
         ?? (r.StartedAt is not { } startedAt || startedAt.Year < 1900 || startedAt > now.AddDays(1) ? InvalidActivity : null)

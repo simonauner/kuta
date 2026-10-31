@@ -1,3 +1,5 @@
+import { SportIcon } from '@/components/sport-icon'
+import { sports } from '@/lib/sports'
 import { TagLabels } from '@/components/activity-tags'
 import { equipmentQuery, lastUsedShoeQuery } from '@/lib/equipment'
 import { activityTagsQuery } from '@/lib/activity-query'
@@ -22,7 +24,7 @@ const route = getRouteApi('/app/activities')
 
 export function ActivitiesPage() {
   const { t, i18n } = useTranslation()
-  const { year, tag } = route.useSearch()
+  const { year, tag, sport } = route.useSearch()
   const navigate = route.useNavigate()
   const dateFormat = new Intl.DateTimeFormat(i18n.resolvedLanguage, {
     dateStyle: 'medium',
@@ -43,12 +45,13 @@ export function ActivitiesPage() {
   })
   const availableYears = years.data ?? []
   const activities = useInfiniteQuery({
-    queryKey: ['activities', 'list', timeZone, year, tag],
+    queryKey: ['activities', 'list', timeZone, year, tag, sport],
     initialPageParam: null as ActivityCursor | null,
     queryFn: ({ pageParam }) => {
       const params = new URLSearchParams({ timeZone })
       if (year !== undefined) params.set('year', String(year))
       if (tag) params.set('tag', tag)
+      if (sport) params.set('sport', sport)
       if (pageParam) {
         params.set('beforeStartedAt', pageParam.startedAt)
         params.set('beforeId', pageParam.id)
@@ -74,7 +77,7 @@ export function ActivitiesPage() {
       <div className="flex items-center justify-between gap-4">
         <h1 className="text-2xl font-semibold tracking-tight">{t('nav.activities')}</h1>
         <Button asChild size="sm">
-          <Link to="/app/activities/new" search={{ year, tag }}>
+          <Link to="/app/activities/new" search={{ year, tag, sport }}>
             {t('newActivity.title')}
           </Link>
         </Button>
@@ -90,7 +93,7 @@ export function ActivitiesPage() {
             value={year ?? ''}
             onChange={(e) =>
               void navigate({
-                search: { year: e.target.value ? Number(e.target.value) : undefined, tag },
+                search: { year: e.target.value ? Number(e.target.value) : undefined, tag, sport },
               })
             }
           >
@@ -125,7 +128,7 @@ export function ActivitiesPage() {
           className="w-44 rounded-md border bg-background px-3 py-2"
           value={tag ?? ''}
           onChange={(e) =>
-            void navigate({ search: activitySearch({ year, tag: e.currentTarget.value }) })
+            void navigate({ search: activitySearch({ year, tag: e.currentTarget.value, sport }) })
           }
         >
           <option value="">{t('tags.all')}</option>
@@ -136,6 +139,24 @@ export function ActivitiesPage() {
           ))}
         </select>
       </label>
+      <div className="mt-5 flex items-center gap-3 text-sm">
+        <label htmlFor="activity-sport">{t('activities.sport')}</label>
+        <select
+          id="activity-sport"
+          className="w-52 rounded-md border bg-background px-3 py-2"
+          value={sport ?? ''}
+          onChange={(e) =>
+            void navigate({ search: activitySearch({ year, tag, sport: e.currentTarget.value }) })
+          }
+        >
+          <option value="">{t('activities.allSports')}</option>
+          {sports.map((value) => (
+            <option key={value} value={value}>
+              {t(`newActivity.sports.${value}`)}
+            </option>
+          ))}
+        </select>
+      </div>
       {remove.error && (
         <p role="alert" className="mt-4 text-sm text-destructive">
           <ErrorMessage error={remove.error} />
@@ -144,7 +165,9 @@ export function ActivitiesPage() {
 
       <SlowLoading loading={activities.isPending}>
         {activities.isSuccess && items.length === 0 && (
-          <p className="mt-8 text-muted-foreground">{t(tag ? 'tags.empty' : 'activities.empty')}</p>
+          <p className="mt-8 text-muted-foreground">
+            {t(tag || sport ? 'activities.noMatches' : 'activities.empty')}
+          </p>
         )}
         {activities.error && (
           <p role="alert" className="mt-4 text-sm text-destructive">
@@ -172,11 +195,19 @@ export function ActivitiesPage() {
                       <Link
                         to="/app/activities/$activityId"
                         params={{ activityId: a.id }}
-                        search={{ year, tag }}
-                        className="inline-block font-medium underline-offset-2 hover:underline"
-                        style={{ viewTransitionName: `activity-title-${a.id}` }}
+                        search={{ year, tag, sport }}
+                        className="inline-flex items-center gap-2 font-medium underline-offset-2 hover:underline"
                       >
-                        {activityTitle(a, t)}
+                        <span
+                          className="inline-block"
+                          style={{ viewTransitionName: `activity-title-${a.id}` }}
+                        >
+                          {activityTitle(a, t)}
+                        </span>
+                        <SportIcon
+                          sport={a.sport}
+                          style={{ viewTransitionName: `activity-sport-${a.id}` }}
+                        />
                       </Link>
                       <p className="text-xs text-muted-foreground">
                         {dateFormat.format(new Date(a.startedAt))}

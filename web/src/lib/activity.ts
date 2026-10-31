@@ -1,7 +1,7 @@
 import type { ActivityPart } from './multisport.ts'
-import { sportNameKey } from './multisport.ts'
 import type { TFunction } from 'i18next'
 import sv from '../locales/sv.json' with { type: 'json' }
+import { knownSport, sports, type Sport } from './sports.ts'
 
 export type ActivityTag = keyof typeof import('@/locales/sv.json').tagNames
 
@@ -21,13 +21,16 @@ export type Activity = {
 export function activitySearch(search: Record<string, unknown>): {
   year?: number
   tag?: ActivityTag
+  sport?: Sport
 } {
   const value = search.year
   const year = typeof value === 'number' || typeof value === 'string' ? Number(value) : NaN
-  const filters: { year?: number; tag?: ActivityTag } = {}
+  const filters: { year?: number; tag?: ActivityTag; sport?: Sport } = {}
   if (Number.isInteger(year) && year >= 1 && year <= 9998) filters.year = year
   if (typeof search.tag === 'string' && Object.hasOwn(sv.tagNames, search.tag))
     filters.tag = search.tag as ActivityTag
+  if (typeof search.sport === 'string' && (sports as readonly string[]).includes(search.sport))
+    filters.sport = search.sport as Sport
   return filters
 }
 
@@ -118,12 +121,15 @@ export type ActivityLap = {
 }
 
 export type ActivityDetail = Activity & {
+  description: string | null
   movingS: number | null
   maxHr: number | null
   avgSpeedMps: number | null
   elevationGainM: number | null
   device: string | null
   streams: ActivityStreams | null
+  originalParts: ActivityPart[]
+  originalSport: string
   parts: ActivityPart[]
   partsEdited: boolean
   canSplit: boolean
@@ -184,17 +190,6 @@ export function formatSportPace(
   return formatPace(durationS, distanceM)
 }
 
-export const sports = [
-  'running',
-  'cycling',
-  'walking',
-  'hiking',
-  'swimming',
-  'triathlon',
-  'swimrun',
-  'multisport',
-] as const
-
 // Egen titel om löparen skrivit en, annars sport + tid på dygnet ("Löpning eftermiddag").
 // Plats ("Löpning Uppsala") kommer när orten slås upp vid importen.
 export function activityTitle(
@@ -202,7 +197,7 @@ export function activityTitle(
   t: TFunction,
 ) {
   if (activity.title) return activity.title
-  const sport = (sports as readonly string[]).includes(activity.sport) ? activity.sport : 'other'
+  const sport = knownSport(activity.sport)
   const hour = new Date(activity.startedAt).getHours()
   const timeOfDay =
     hour < 5
@@ -217,7 +212,7 @@ export function activityTitle(
               ? 'evening'
               : 'night'
   return t('activity.defaultTitle', {
-    sport: t(sportNameKey(sport)),
+    sport: t(`newActivity.sports.${sport}`),
     timeOfDay: t(`activity.timeOfDay.${timeOfDay}`),
   })
 }

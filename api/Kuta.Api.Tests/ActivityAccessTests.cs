@@ -32,6 +32,7 @@ public class ActivityAccessTests(KutaFactory factory) : IClassFixture<KutaFactor
             using var anonymous = factory.CreateClient();
             Assert.Equal(HttpStatusCode.Unauthorized, (await anonymous.GetAsync("/api/activities", ct)).StatusCode);
             Assert.Equal(HttpStatusCode.Unauthorized, (await anonymous.GetAsync("/api/activities/years", ct)).StatusCode);
+            Assert.Equal(HttpStatusCode.Unauthorized, (await anonymous.GetAsync("/api/activities/statistics?year=2026", ct)).StatusCode);
             for (var i = 0; i < userIds.Length; i++)
             {
                 using var scope = factory.Services.CreateScope();
@@ -51,7 +52,7 @@ public class ActivityAccessTests(KutaFactory factory) : IClassFixture<KutaFactor
                 Assert.Empty(activity.Tags);
                 await TestSession.UseCsrfToken(client, ct);
                 Assert.Equal(HttpStatusCode.NoContent, (await client.PutAsJsonAsync(
-                    $"/api/activities/{activity.Id}/tags", new { tags = new[] { "race", "workout", "race" } }, ct)).StatusCode);
+                    $"/api/activities/{activity.Id}", new { title = activity.Title, tags = new[] { "race", "workout", "race" }, equipmentIds = Array.Empty<Guid>() }, ct)).StatusCode);
                 var detail = await client.GetFromJsonAsync<ActivityDetail>($"/api/activities/{activity.Id}", ct);
                 Assert.Equal(new[] { "race", "workout" }, detail!.Tags);
                 Assert.Equal(activity.Id, Assert.Single((await client.GetFromJsonAsync<ActivityPage>(
@@ -60,13 +61,24 @@ public class ActivityAccessTests(KutaFactory factory) : IClassFixture<KutaFactor
                 Assert.Equal(HttpStatusCode.NotFound, (await client.GetAsync(
                     $"/api/activities/{activityIds[1 - i]}", ct)).StatusCode);
                 Assert.Equal(HttpStatusCode.NotFound, (await client.PutAsJsonAsync(
-                    $"/api/activities/{activityIds[1 - i]}/tags", new { tags = new[] { "easy" } }, ct)).StatusCode);
+                    $"/api/activities/{activityIds[1 - i]}", new { title = activity.Title, tags = new[] { "easy" }, equipmentIds = Array.Empty<Guid>() }, ct)).StatusCode);
                 Assert.Equal(HttpStatusCode.BadRequest, (await client.PutAsJsonAsync(
-                    $"/api/activities/{activity.Id}/tags", new { tags = (string[]?)null }, ct)).StatusCode);
+                    $"/api/activities/{activity.Id}", new { title = activity.Title, tags = (string[]?)null, equipmentIds = Array.Empty<Guid>() }, ct)).StatusCode);
                 Assert.Equal(HttpStatusCode.BadRequest, (await client.GetAsync("/api/activities?tag=unknown", ct)).StatusCode);
                 Assert.Equal(HttpStatusCode.NoContent, (await client.PutAsJsonAsync(
-                    $"/api/activities/{activity.Id}/tags", new { tags = Array.Empty<string>() }, ct)).StatusCode);
+                    $"/api/activities/{activity.Id}", new { title = activity.Title, tags = Array.Empty<string>(), equipmentIds = Array.Empty<Guid>() }, ct)).StatusCode);
                 Assert.Empty((await client.GetFromJsonAsync<ActivityDetail>($"/api/activities/{activity.Id}", ct))!.Tags);
+
+                var statistics = await client.GetFromJsonAsync<ActivityStatisticsMonth[]>(
+                    $"/api/activities/statistics?year={activity.StartedAt.Year}&sport=running&timeZone=UTC", ct);
+                Assert.Equal(12, statistics!.Length);
+                Assert.Equal(1, statistics.Sum(m => m.Count));
+                Assert.Equal(5000, statistics.Sum(m => m.DistanceM));
+                if (i == 0)
+                {
+                    foreach (var query in new[] { "year=0", "year=2026&sport=unknown", "year=2026&timeZone=NotAZone" })
+                        Assert.Equal(HttpStatusCode.BadRequest, (await client.GetAsync($"/api/activities/statistics?{query}", ct)).StatusCode);
+                }
 
                 Assert.Null(activities.NextCursor);
                 var years = await client.GetFromJsonAsync<int[]>("/api/activities/years?timeZone=UTC", ct);

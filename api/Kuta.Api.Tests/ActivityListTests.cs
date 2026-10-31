@@ -173,6 +173,39 @@ public class ActivityListTests(WebApplicationFactory<Program> factory) : IClassF
         finally { await conn.ExecuteAsync("delete from auth.users where id = @userId", new { userId }); }
     }
 
+    [Fact]
+    public async Task Sport_filter_combines_with_year_tags_pagination_and_ownership()
+    {
+        var ct = TestContext.Current.CancellationToken;
+        await using var conn = await factory.Services.GetRequiredService<NpgsqlDataSource>().OpenConnectionAsync(ct);
+        var userId = await Runner(conn);
+        var otherId = await Runner(conn);
+        try
+        {
+            await conn.ExecuteAsync("""
+                insert into activities (user_id, source, sport, started_at, duration_s, distance_m, tags)
+                select @userId, 'manual', 'cycling', '2013-08-12T12:00:00Z', 3600, 20000, array['race']
+                from generate_series(1, 26);
+                insert into activities (user_id, source, sport, started_at, duration_s, distance_m, tags)
+                values (@userId, 'manual', 'running', '2013-09-01T12:00:00Z', 1800, 5000, array['race']),
+                       (@userId, 'manual', 'cycling', '2013-09-01T12:00:00Z', 3600, 20000, array['easy']),
+                       (@userId, 'manual', 'cycling', '2014-08-12T12:00:00Z', 3600, 20000, array['race']),
+                       (@otherId, 'manual', 'cycling', '2013-09-01T12:00:00Z', 3600, 20000, array['race']);
+                """, new { userId, otherId });
+            var first = await ActivityList.ReadAsync(conn, userId, "UTC", ct: ct, tag: "race", year: 2013, sport: "cycling");
+            Assert.Equal(25, first.Items.Count);
+            Assert.All(first.Items, a => { Assert.Equal("cycling", a.Sport); Assert.True(a.ShowMonth); Assert.True(a.ShowWeek); });
+            var cursor = Assert.IsType<ActivityCursor>(first.NextCursor);
+            var last = await ActivityList.ReadAsync(conn, userId, "UTC", cursor.StartedAt, cursor.Id, ct, "race", 2013, "cycling");
+            Assert.Single(last.Items);
+            Assert.Null(last.NextCursor);
+            Assert.Equal(26, first.Items.Concat(last.Items).Select(a => a.Id).Distinct().Count());
+            Assert.Single((await ActivityList.ReadAsync(conn, otherId, "UTC", ct: ct, sport: "cycling")).Items);
+            Assert.Empty((await ActivityList.ReadAsync(conn, userId, "UTC", ct: ct, sport: "swimming")).Items);
+        }
+        finally { await conn.ExecuteAsync("delete from auth.users where id = any(@ids)", new { ids = new[] { userId, otherId } }); }
+    }
+
     private static async Task<Guid> Runner(NpgsqlConnection conn)
     {
         var id = Guid.NewGuid();

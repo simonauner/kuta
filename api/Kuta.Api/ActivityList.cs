@@ -21,7 +21,7 @@ public static class ActivityList
             """, new { userId, timeZone }, cancellationToken: ct))).ToArray();
 
     public static async Task<ActivityPage> ReadAsync(NpgsqlConnection conn, Guid userId, string timeZone,
-        DateTimeOffset? beforeStartedAt = null, Guid? beforeId = null, CancellationToken ct = default, string? tag = null, int? year = null)
+        DateTimeOffset? beforeStartedAt = null, Guid? beforeId = null, CancellationToken ct = default, string? tag = null, int? year = null, string? sport = null)
     {
         // Läs en extra rad för att avgöra om det finns en sida till. Markören kräver ingen kvarvarande rad.
         var cursorFilter = beforeStartedAt.HasValue ? "and (a.started_at, a.id) < (@beforeStartedAt, @beforeId)" : "";
@@ -29,11 +29,13 @@ public static class ActivityList
             and a.started_at >= (make_date(@year, 1, 1)::timestamp at time zone @timeZone)
             and a.started_at < (make_date(@year + 1, 1, 1)::timestamp at time zone @timeZone)
             """ : "";
+        var sportFilter = sport is null ? "" : "and a.sport = @sport";
+        var otherSportFilter = sport is null ? "" : "and other.sport = @sport";
         await using var command = new NpgsqlCommand($"""
             with page as (
                 select a.id, a.sport, a.title, a.started_at, a.duration_s, coalesce((select sum(p.distance_m) from activity_parts p where p.activity_id = a.id and p.original = not a.parts_edited), a.distance_m) as distance_m, a.avg_hr, a.tags
                 from activities a
-                where a.user_id = @userId and a.tags @> @tags::text[] {cursorFilter} {yearFilter}
+                where a.user_id = @userId and a.tags @> @tags::text[] {cursorFilter} {yearFilter} {sportFilter}
                 order by a.started_at desc, a.id desc
                 limit 26
             )
@@ -41,13 +43,13 @@ public static class ActivityList
                 array(select equipment_id from activity_equipment where activity_id = a.id order by equipment_id) as equipment_ids,
                 exists (
                     select 1 from activities other
-                    where other.user_id = @userId and other.id <> a.id and other.tags @> @tags::text[]
+                    where other.user_id = @userId and other.id <> a.id and other.tags @> @tags::text[] {otherSportFilter}
                       and other.started_at >= (period.year_start at time zone @timeZone)
                       and other.started_at < ((period.year_start + interval '1 year') at time zone @timeZone)
                 ) as show_month,
                 exists (
                     select 1 from activities other
-                    where other.user_id = @userId and other.id <> a.id and other.tags @> @tags::text[]
+                    where other.user_id = @userId and other.id <> a.id and other.tags @> @tags::text[] {otherSportFilter}
                       and other.started_at >= (period.month_start at time zone @timeZone)
                       and other.started_at < ((period.month_start + interval '1 month') at time zone @timeZone)
                 ) as show_week
@@ -61,6 +63,7 @@ public static class ActivityList
         command.Parameters.AddWithValue("userId", userId);
         command.Parameters.AddWithValue("timeZone", timeZone);
         command.Parameters.AddWithValue("tags", tag is null ? Array.Empty<string>() : [tag]);
+        if (sport is not null) command.Parameters.AddWithValue("sport", sport);
         if (year.HasValue) command.Parameters.AddWithValue("year", year.Value);
         if (beforeStartedAt.HasValue)
         {

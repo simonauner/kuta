@@ -7,6 +7,7 @@ test('revoking consent clears heart-rate caches and discards late responses', as
   const client = new QueryClient({ defaultOptions: { queries: { staleTime: 30_000 } } })
   const keys = [
     ['activities', 'list'],
+    ['activities', 'statistics', 'Europe/Stockholm', 2026, 'running'],
     ['activity', 'run'],
     ['activityPreview', 'file'],
   ]

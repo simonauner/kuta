@@ -65,12 +65,12 @@ public static class Multisport
         return (points.Select(v => v.T).ToArray(), points.Select(v => v.D).ToArray());
     }
 
-    public static async Task<ActivityPart[]> LoadAsync(NpgsqlConnection conn, Guid id, NpgsqlTransaction? tx = null) =>
+    public static async Task<ActivityPart[]> LoadAsync(NpgsqlConnection conn, Guid id, NpgsqlTransaction? tx = null, bool? original = null) =>
         (await conn.QueryAsync<ActivityPart>("""
             select p.part_index, p.sport, p.start_s, p.end_s, p.distance_m, p.use_equipment
             from activity_parts p join activities a on a.id = p.activity_id
-            where a.id = @id and p.original = not a.parts_edited order by p.part_index
-            """, new { id }, tx)).ToArray();
+            where a.id = @id and p.original = coalesce(@original, not a.parts_edited) order by p.part_index
+            """, new { id, original }, tx)).ToArray();
 
     public static Task SavePartsAsync(NpgsqlConnection conn, NpgsqlTransaction tx, Guid id, ActivityPart[] parts, bool original) =>
         conn.ExecuteAsync("""
@@ -90,6 +90,13 @@ public static class Multisport
     public static async Task<int> UpdateAsync(NpgsqlConnection conn, Guid userId, Guid id, MultisportRequest? req)
     {
         await using var tx = await conn.BeginTransactionAsync();
+        var status = await ApplyAsync(conn, tx, userId, id, req);
+        if (status == 204) await tx.CommitAsync();
+        return status;
+    }
+
+    public static async Task<int> ApplyAsync(NpgsqlConnection conn, NpgsqlTransaction tx, Guid userId, Guid id, MultisportRequest? req)
+    {
         var activity = await conn.QuerySingleOrDefaultAsync<PartOwner>(
             "select sport, started_at from activities where id = @id and user_id = @userId for update", new { id, userId }, tx);
         if (activity is null) return 404;
@@ -120,7 +127,6 @@ public static class Multisport
         }
         var sport = req?.Kind ?? await conn.QuerySingleAsync<string>("select sport from activities where id = @id", new { id }, tx);
         await BestEfforts.ReplaceAsync(conn, tx, id, userId, sport, activity.StartedAt, t, dist, parts);
-        await tx.CommitAsync();
         return 204;
     }
 

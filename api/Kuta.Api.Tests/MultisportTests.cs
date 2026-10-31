@@ -128,6 +128,16 @@ public class MultisportStorageTests(KutaFactory factory) : IClassFixture<KutaFac
             Assert.Equal(1500, (await EquipmentEndpoints.LoadAsync(conn, userId)).Single().DistanceM);
             Assert.Equal(150, (await EquipmentEndpoints.LoadAsync(conn, userId)).Single().DurationS);
             Assert.Equal(150, await conn.QuerySingleAsync<double>("select start_offset_s from best_efforts where activity_id = @id", new { id }));
+            var allSports = (await ActivityStatistics.ReadAsync(conn, userId, 2026, "UTC", null, ct))[0];
+            Assert.Equal(1, allSports.Count);
+            Assert.Equal(3000, allSports.DistanceM);
+            Assert.Equal(300, allSports.DurationS);
+            Assert.Null(allSports.PaceSPerKm);
+            var running = (await ActivityStatistics.ReadAsync(conn, userId, 2026, "UTC", "running", ct))[0];
+            Assert.Equal(1, running.Count);
+            Assert.Equal(1500, running.DistanceM);
+            Assert.Equal(150, running.DurationS);
+            Assert.Equal(100, running.PaceSPerKm);
             Assert.Equal(400, await Multisport.UpdateAsync(conn, userId, id, req with { Kind = "bad" }));
             Assert.Equal(2, (await Multisport.LoadAsync(conn, id)).Length);
             Assert.Equal(204, await Multisport.UpdateAsync(conn, userId, id, req with { Parts = req.Parts.Select(p => p with { UseEquipment = false }).ToArray() }));
@@ -142,6 +152,14 @@ public class MultisportStorageTests(KutaFactory factory) : IClassFixture<KutaFac
             Assert.True(detail.CanSplit);
             Assert.Equal(2, detail.Parts.Length);
             Assert.Equal(3000, detail.DistanceM);
+            var update = new ActivityUpdateRequest("Changed together", "Description", ["race"], [shoe], req);
+            Assert.Equal(HttpStatusCode.NoContent, (await owner.PutAsJsonAsync($"/api/activities/{id}", update, ct)).StatusCode);
+            Assert.Equal(HttpStatusCode.BadRequest, (await owner.PutAsJsonAsync($"/api/activities/{id}",
+                update with { Title = "Must roll back", Multisport = req with { Kind = "invalid" } }, ct)).StatusCode);
+            Assert.Equal("Changed together", await conn.QuerySingleAsync<string>("select title from activities where id = @id", new { id }));
+            Assert.Equal(HttpStatusCode.NoContent, (await owner.PutAsJsonAsync($"/api/activities/{id}",
+                update with { Multisport = null, RestoreParts = true }, ct)).StatusCode);
+            Assert.Equal("running", await conn.QuerySingleAsync<string>("select sport from activities where id = @id", new { id }));
             Assert.Equal(HttpStatusCode.NoContent, (await owner.DeleteAsync($"/api/activities/{id}/parts", ct)).StatusCode);
             Assert.Equal("running", await conn.QuerySingleAsync<string>("select sport from activities where id = @id", new { id }));
             Assert.Empty(await Multisport.LoadAsync(conn, id));
@@ -159,6 +177,17 @@ public class MultisportStorageTests(KutaFactory factory) : IClassFixture<KutaFac
             Assert.Equal(204, await Multisport.UpdateAsync(conn, userId, id, null));
             Assert.Equal("swimrun", await conn.QuerySingleAsync<string>("select sport from activities where id = @id", new { id }));
             Assert.Equal(new[] { "running", "swimming" }, (await Multisport.LoadAsync(conn, id)).Select(p => p.Sport));
+            using var form = new MultipartFormDataContent();
+            form.Add(new ByteArrayContent(FitFile.Run(new System.DateTime(2026, 2, 1, 0, 0, 0, DateTimeKind.Utc), 300)), "file", "split.fit");
+            form.Add(new StringContent(System.Text.Json.JsonSerializer.Serialize(req, System.Text.Json.JsonSerializerOptions.Web)), "parts");
+            using var uploaded = await owner.PostAsync("/api/activities", form, ct);
+            Assert.Equal(HttpStatusCode.Created, uploaded.StatusCode);
+            var created = (await uploaded.Content.ReadFromJsonAsync<ActivitySummary>(ct))!;
+            Assert.Equal("multisport", created.Sport);
+            var createdDetail = (await owner.GetFromJsonAsync<ActivityDetail>($"/api/activities/{created.Id}", ct))!;
+            Assert.Equal(2, createdDetail.Parts.Length);
+            Assert.Equal("running", createdDetail.OriginalSport);
+            Assert.True(createdDetail.PartsEdited);
             await conn.ExecuteAsync("delete from activities where id = @id", new { id });
             Assert.Equal(0, await conn.QuerySingleAsync<int>("select count(*) from activity_parts where activity_id = @id", new { id }));
             Assert.True(await conn.QuerySingleAsync<bool>("select relrowsecurity from pg_class where oid = 'activity_parts'::regclass"));

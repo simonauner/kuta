@@ -40,13 +40,14 @@ public static class ActivityStorage
         var id = await conn.ExecuteScalarAsync<Guid>(new CommandDefinition(
             """
             insert into activities (user_id, source, sport, title, started_at, duration_s, distance_m, avg_hr,
-                                    avg_speed_mps, elevation_gain_m, tags)
+                                    avg_speed_mps, elevation_gain_m, tags, description)
             values (@userId, 'manual', @Sport, @title, @startedAt, @DurationS, @DistanceM, @avgHr,
-                    @avgSpeedMps, @ElevationGainM, @tags)
+                    @avgSpeedMps, @ElevationGainM, @tags, @description)
             returning id
             """, new
             {
                 userId, req.Sport, title, startedAt, req.DurationS, req.DistanceM, avgHr, tags,
+                description = ActivityInput.NormalizeDescription(req.Description),
                 avgSpeedMps = (float)(req.DistanceM!.Value / req.DurationS!.Value), req.ElevationGainM,
             }, tx, cancellationToken: ct));
         await EquipmentEndpoints.AttachAsync(conn, tx, id, userId, equipmentIds);
@@ -58,7 +59,7 @@ public static class ActivityStorage
     // Samma lås används vid återkallat samtycke, så att en lång import inte kan spara puls efteråt.
     public static async Task<Guid?> SaveAsync(NpgsqlConnection conn, RawFileStore store, Guid userId,
         ParsedActivity parsed, string source, string? title, string? stravaId, byte[]? bytes, string extension,
-        CancellationToken ct, string[]? tags = null, Guid[]? equipmentIds = null)
+        CancellationToken ct, string[]? tags = null, Guid[]? equipmentIds = null, string? description = null, MultisportRequest? split = null)
     {
         var hash = bytes is null ? null : SHA256.HashData(bytes);
         await using var tx = await conn.BeginTransactionAsync(ct);
@@ -71,14 +72,14 @@ public static class ActivityStorage
         var id = await conn.QuerySingleOrDefaultAsync<Guid?>(
             """
             insert into activities (user_id, source, sport, title, started_at, duration_s, moving_s, distance_m,
-                                    avg_hr, max_hr, avg_speed_mps, elevation_gain_m, route, device, raw_file_key, raw_file_sha256, strava_activity_id, tags)
+                                    avg_hr, max_hr, avg_speed_mps, elevation_gain_m, route, device, raw_file_key, raw_file_sha256, strava_activity_id, tags, description)
             values (@userId, @source, @Sport, @title, @StartedAt, @DurationS, @MovingS, @DistanceM,
-                    @AvgHr, @MaxHr, @AvgSpeedMps, @ElevationGainM, @route::geography, @Device, @key, @hash, @stravaId, @tags)
+                    @AvgHr, @MaxHr, @AvgSpeedMps, @ElevationGainM, @route::geography, @Device, @key, @hash, @stravaId, @tags, @description)
             on conflict do nothing returning id
             """,
             new
             {
-                userId, source, title, stravaId, parsed.Sport, parsed.StartedAt, parsed.DurationS, parsed.MovingS,
+                userId, source, title, stravaId, description = ActivityInput.NormalizeDescription(description), parsed.Sport, parsed.StartedAt, parsed.DurationS, parsed.MovingS,
                 parsed.DistanceM, parsed.AvgHr, parsed.MaxHr, parsed.AvgSpeedMps, parsed.ElevationGainM,
                 route = (object?)parsed.Route ?? DBNull.Value, parsed.Device, key, hash, tags = ActivityInput.NormalizeTags(tags),
             }, tx);
@@ -103,7 +104,12 @@ public static class ActivityStorage
         await EquipmentEndpoints.AttachAsync(conn, tx, id.Value, userId, equipmentIds ?? []);
         if (parsed.Parts is { Length: > 0 } parts)
             await Multisport.SavePartsAsync(conn, tx, id.Value, parts, true);
-        await BestEfforts.ReplaceAsync(conn, tx, id.Value, userId, parsed.Sport, parsed.StartedAt, parsed.T, parsed.Dist, parsed.Parts);
+        if (split is not null)
+        {
+            if (await Multisport.ApplyAsync(conn, tx, userId, id.Value, split) != 204)
+                throw new InvalidOperationException("Invalid activity parts.");
+        }
+        else await BestEfforts.ReplaceAsync(conn, tx, id.Value, userId, parsed.Sport, parsed.StartedAt, parsed.T, parsed.Dist, parsed.Parts);
         try
         {
             if (key is not null) await store.PutAsync(key, bytes!, ct);

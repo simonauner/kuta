@@ -45,6 +45,24 @@ splitstabellen utelämnas. En avslutande rest under 50 meter visas inte.
 Diagram använder kilometer som x-axel när distansen ökar utan återställningar,
 annars förfluten tid. Tidsaxelns etikett följer appens valda språk.
 
+## Statistik över tid
+
+`/app/stats` visar årsstatistik med månadsdiagram och tabell för distans, träningstid,
+snittempo och snittpuls samt antal pass. Välj år och sport; löpning och innevarande år är
+förval. Årsväljaren innehåller hela den egna historiken. Tomma månader har noll mängd,
+men saknat tempo och puls visas som `–`.
+
+`GET /api/activities/statistics?year=2026&sport=running&timeZone=Europe%2FStockholm`
+ger tolv månadsrader för den inloggade användaren. År krävs (1–9998), utelämnad sport
+betyder alla sporter och utelämnad tidszon UTC. Summeringen sker i Postgres över hela
+året, oberoende av passlistans sidindelning, utan att skicka tidsserier eller rutter till webben.
+Tid inkluderar pauser. Tempo är summan av tid delad med summan av distans för pass med
+positiv tid och distans (sekunder per kilometer). Snittpuls tidsvägs bara över pass med
+positiv tid och sparad puls. Alla sporter kombinerar även tempo och puls mellan sporter; samlade multisportpass ingår inte i snittempot. Vid sportfilter räknas motsvarande delar av multisportpass, med puls från delens mätpunkter. Totalvyn räknar varje pass en gång.
+Månader och årsgränser följer webbläsarens tidszon, och hela passet tillhör startmånaden.
+Statistikcachen uppdateras vid skapande, import och radering av pass och rensas när
+pulssamtycke återkallas.
+
 ## Applikationsloggar och integritet
 
 API:t ersätter .NET:s loggproviders med `PrivateLogProvider`. Den skriver JSON med fasta händelser och operationer för start, stopp, requestfel, startfel och migreringsfel. Requestfel har även HTTP-status och tidsåtgång i millisekunder. Loggformatterare, godtyckligt loggstate, scopes och kategorinamn används aldrig, även om loggnivån höjs. DbUp:s egen konsolloggning är avstängd. Samma skydd används lokalt och i drift.
@@ -61,13 +79,13 @@ Framtida loggmottagare får samla in den begränsade konsolutmatningen. En direk
 
 En multisport-FIT importeras som ett pass med ordnade sportdelar, inklusive registrerade växlingar. Simning → cykling → löpning identifieras som triathlon, kombinerad simning/löpning som swimrun och övriga kombinationer som multisport. Sessionernas start, tid och distans bevaras; kadens tolkas för respektive sport. Vid multisport-FIT i ett Strava-arkiv används FIT-filens sportdelar, starttid och totalsammanfattning; CSV-titeln behålls. Stravas separata aktiviteter slås inte ihop automatiskt.
 
-På passsidan väljer du **Dela upp i sporter**, väljer passtyp och justerar sportbyten med reglage eller sekunder från passets start. **Dela här** delar den valda delen i mitten; för swimrun får den nya delen motsatt sport. **Slå ihop med föregående** tar bort en gräns och behåller föregående sport. Klicka på en del för att granska dess karta, diagram och statistik innan du sparar. Hela passets karta använder olika färger för sporterna. Simtempo visas per 100 meter, cykling i km/h och löpning per kilometer.
+På skapa- eller redigeringssidan väljer du **Dela upp i sporter**, väljer passtyp och justerar sportbyten med reglage eller sekunder från passets start. **Dela här** delar den valda delen i mitten; för swimrun får den nya delen motsatt sport. **Slå ihop med föregående** tar bort en gräns och behåller föregående sport. Klicka på en del för att granska dess karta och diagram innan du sparar. Ändringarna är ett lokalt utkast tills sidans gemensamma **Spara** används; **Avbryt** lämnar det sparade passet oförändrat. Passsidan visar bara resultatet och val av sportdel, med länken **Redigera aktivitet** till uppdelningsverktyget. Hela passets karta använder olika färger för sporterna. Simtempo visas per 100 meter, cykling i km/h och löpning per kilometer.
 
 Uppdelningen kräver minst två sporter och en sammanhängande, stigande tidsserie med fullständig, icke minskande distans. Delarna täcker hela inspelningen utan luckor eller överlapp; gränser mellan mätpunkter interpoleras. Högst 200 delar stöds. Sammanfattningar utan tidsserier kan inte klippas. Funktionen ändrar sportindelningen och reparerar inte felaktig GPS eller simdistans.
 
-`PUT /api/activities/{id}/parts` tar `{ kind, parts: [{ sport, startS, endS, useEquipment }] }`. `kind` är `triathlon`, `swimrun` eller `multisport`; sport kan även vara `transition`. Triathlon kräver simning, cykling och löpning i den ordningen (med valfria växlingar). Swimrun tillåter simning och löpning (med valfria växlingar). Passets valda utrustning räknas bara på delar där `useEquipment` är sant; olika utrustningsval per del stöds ännu inte. FIT-importen markerar löpning/gång/vandring som standard och även simning för swimrun. Växlingstid finns kvar i den totala förflutna tiden.
+FIT-uppladdning tar ett valfritt multipartfält `parts` med `{ kind, parts: [{ sport, startS, endS, useEquipment }] }`. `kind` är `triathlon`, `swimrun` eller `multisport`; sport kan även vara `transition`. Triathlon kräver simning, cykling och löpning i den ordningen (med valfria växlingar). Swimrun tillåter simning och löpning (med valfria växlingar). Passets valda utrustning räknas bara på delar där `useEquipment` är sant; olika utrustningsval per del stöds ännu inte. FIT-importen markerar löpning/gång/vandring som standard och även simning för swimrun. Växlingstid finns kvar i den totala förflutna tiden.
 
-`DELETE /api/activities/{id}/parts` återställer den importerade versionen, inklusive originaldelar från FIT. Originalets sammanfattning, tidsserier, filhash och råfil behålls vid redigering. Inga extra pass skapas. Utrustningstotaler och distans uppdateras från den gällande uppdelningen; löprekord räknas om i samma transaktion och kan aldrig sträcka sig över flera löpdelar. Båda ändringsanropen kräver inloggning, ägarskap och CSRF-token. Sportdelar innehåller ingen kopia av pulsdata, så återkallat pulssamtycke fortsätter att radera all sparad puls på samma ställen.
+Redigeringssidan sparar uppdelningen som `multisport` tillsammans med titel, beskrivning, taggar och utrustning i `PUT /api/activities/{id}`. **Återställ importerad version** kräver bekräftelse, förhandsvisar originaldelarna och skickar `restoreParts: true` först när formuläret sparas. Allt sparas atomärt. De separata API-anropen `PUT`/`DELETE /api/activities/{id}/parts` finns också för uppdelning/återställning. Originalets sammanfattning, tidsserier, filhash och råfil behålls vid redigering. Inga extra pass skapas. Utrustningstotaler och distans uppdateras från den gällande uppdelningen; löprekord räknas om i samma transaktion och kan aldrig sträcka sig över flera löpdelar. Ändringsanropen kräver inloggning, ägarskap och CSRF-token. Sportdelar innehåller ingen kopia av pulsdata, så återkallat pulssamtycke fortsätter att radera all sparad puls på samma ställen.
 
 ## Köra lokalt
 
@@ -169,17 +187,21 @@ Alla anrop kräver inloggning; skrivningar kräver `X-CSRF-TOKEN`:
 | `DELETE /api/equipment/{id}` | Raderar egen utrustning och dess kopplingar, men behåller passen. |
 | `GET /api/equipment/kinds` | Tillåtna typer. |
 | `POST /api/equipment` | Skapar utrustning med `name`, `kind`, valfritt `brand`, `initialDistanceM` och `initialDurationS`. Båda startvärdena är 0 om de utelämnas. |
-| `PUT /api/activities/{id}/equipment` | Ersätter kopplingarna med `{"equipmentIds":["uuid"]}`; tom lista kopplar bort alla. Annans eller okänt pass ger 404. |
+| `PUT /api/activities/{id}` | Sparar titel, beskrivning, taggar och utrustning tillsammans med `{"title":"Morgonpass","description":null,"tags":["race"],"equipmentIds":["uuid"]}`; tomma listor tar bort respektive val. Annans eller okänt pass ger 404. |
 
 Vid skapande av pass skickas `equipmentIds` som JSON-array (manuellt) eller
 upprepade formulärfält (FIT). Okänd eller annans utrustning avvisas utan att
 passet eller kopplingarna ändras. API:t använder SI-enheter; webben visar kilometer.
 
+Passsidan visar bara kopplad utrustning och valda taggar. Knappen Redigera aktivitet
+öppnar `/app/activities/$activityId/edit`, där titel, beskrivning, taggar och utrustning ändras med gemensamma Spara och
+Avbryt. Spara uppdaterar allt i samma transaktion; Avbryt lämnar passet oförändrat.
+
 ## Taggar på aktiviteter
 
 Ett pass kan ha flera taggar: `race` (Lopp), `workout` (Intervaller/kvalitet),
 `long_run` (Långpass) och `easy` (Lugnt). Välj dem vid manuell registrering eller
-FIT-uppladdning, ändra dem på passsidan och filtrera passlistan efter en tagg.
+FIT-uppladdning, ändra dem via passsidans Redigera aktivitet och filtrera passlistan efter en tagg.
 Listans taggfilter sparas i URL:en (`/app/activities?tag=race`), kan kombineras
 med `year` och följer med till pass, skapandeformulär och tillbaka till listan.
 
@@ -191,8 +213,14 @@ i vardera `tagNames` i svenska och engelska språkfilen, ingen ny migrering.
 
 Alla anrop kräver inloggning och gäller bara egna pass. Skapande tar `tags` som
 JSON-array för manuella pass eller upprepade formulärfält för FIT. Ändra med
-`PUT /api/activities/{id}/tags`, exempelvis `{"tags":["race","workout"]}`; tom array
+`PUT /api/activities/{id}` med `title`, `description`, `tags` och `equipmentIds`, exempelvis
+`{"title":"Morgonpass","description":null,"tags":["race","workout"],"equipmentIds":[]}`; tom array
 tar bort alla taggar. Skrivningar kräver `X-CSRF-TOKEN`.
+
+### Träningsformer
+
+Träningsformen visas med en ikon efter titeln i passlistan och på passidan, med översatt namn som skärmläsaretikett och vid hovring. Efter år och taggar finns ett filter för träningsform. År, tagg och träningsform bevaras i URL:en mellan passlista, passida och formulär. `GET /api/activities?sport=cycling&tag=race&year=2013` kombinerar filtren före sidindelning och beräkning av periodrubriker. Sportvärdena finns i `ActivitySports` (API) och `web/src/lib/sports.ts` (webb); sportval och översättningar täcker Stravas träningsformer samt Annat.
+
 `GET /api/activities?tag=race` filtrerar före sidindelningen på 25 pass. Sidmarkörer och periodrubriker gäller det filtrerade urvalet.
 `GET /api/records?tag=race&year=2026` ger bästa insatsen per distans i lopp under
 UTC-året; utelämnat år ger personbästa i lopp. Filtren använder
@@ -233,11 +261,19 @@ Beräkningstesterna jämför också med en uttömmande referensberäkning på or
 strömmar. Integrationstesterna använder syntetiska FIT-filer skapade med Garmins SDK
 och kontrollerar import, omberäkning, årsskifte, kaskadradering, CSRF och ägarskap.
 
+Aktiviteter kan ha en valfri beskrivning på högst 10 000 tecken. `description`
+skickas i JSON för manuella pass och som formulärfält vid FIT-uppladdning.
+Tom text sparas som null. Beskrivningen behålls när en FIT-fil väljs i formuläret
+och visas som vanlig text med radbrytningar på passsidan. Migrering 012 lägger
+till fältet; redan importerade dubbletter hoppas fortfarande över vid Strava-import.
+
 ## Importera en Strava-export
 
-Öppna **Profil → Inställningar** via kugghjulet. Under **Importera från Strava** väljer du Stravas kompletta ZIP-export (högst 500 MB) och trycker **Importera pass**. Ta ställning till pulssamtycket först. Låt sidan vara öppen medan importen körs; stora arkiv kan ta flera minuter. Exporten måste innehålla `activities.csv` i roten och filerna på sökvägarna i kolumnen `Filename`.
+Öppna **Profil → Inställningar** via kugghjulet. Under **Importera från Strava** väljer du Stravas kompletta ZIP-export (högst 500 MB) och trycker **Importera pass**. Ta ställning till pulssamtycket först. Under importen visas antal bearbetade pass och löpande räknare för importerade, dubbletter och misslyckade. Låt sidan vara öppen medan importen körs; stora arkiv kan ta flera minuter. Exporten måste innehålla `activities.csv` i roten och filerna på sökvägarna i kolumnen `Filename`.
 
-Importen behåller passnamn, sport, starttid (UTC), distans i meter, tid och tillgängliga sammanfattningar från CSV. Undantaget är multisport-FIT, där sportdelar, tidsbas och sammanfattning kommer från FIT-filen (se Multisport ovan). FIT och GPX, inklusive `.fit.gz` och `.gpx.gz`, ger tidsserier och rutter. Pass utan aktivitetsfil får en sammanfattning utan rutt. GPX-avstånd beräknas från GPS-punkterna; CSV-distansen behålls i sammanfattningen, så de kan skilja sig. Foton, kontakter, privata anteckningar och cyklar importeras inte. Detta använder användarens arkiv, utan anslutning till Stravas API.
+Träningsformen bevaras även för exempelvis terränglöpning, elcykling och virtuella pass. Namn från Stravas CSV och kompakta sportnamn normaliseras vid importen; okända framtida namn sparas också. Äldre importer slog ihop Run/Trail Run/Virtual Run respektive Ride/Virtual Ride/E-Bike Ride. Dessa redan sparade pass får ikonen för sin sparade sport; återimport av dubbletter ändrar inte sporten. Rekord beräknas för löpning, terränglöpning och virtuell löpning.
+
+Importen behåller passnamn, beskrivning (kolumnen `Activity Description`), sport, starttid (UTC), distans i meter, tid och tillgängliga sammanfattningar från CSV. FIT och GPX, inklusive `.fit.gz` och `.gpx.gz`, ger tidsserier och rutter. Pass utan aktivitetsfil får en sammanfattning utan rutt. GPX-avstånd beräknas från GPS-punkterna; CSV-distansen behålls i sammanfattningen, så de kan skilja sig. Foton, kontakter, privata anteckningar och cyklar importeras inte. Detta använder användarens arkiv, utan anslutning till Stravas API.
 
 Alla importerade pass är privata. Puls och de enskilda råfilerna sparas bara med samtycke; ZIP-arkivet sparas inte som råfil. Återkallat samtycke raderar puls och råfiler även från importerade pass. Importen fyller inte på puls i redan importerade pass: ta bort och importera dem igen om de först laddades upp utan samtycke.
 
@@ -245,7 +281,7 @@ Skor importeras före passen och kopplas med `Gear`-ID från `activities.csv`. N
 
 Efteråt visas antal importerade pass, skor, kompletterade skokopplingar och dubbletter samt Strava-ID för pass som misslyckats (till exempel en saknad, trasig eller ej stödd aktivitetsfil). Tidigare sparade pass behålls om ett senare pass misslyckas eller anslutningen bryts. Kör samma export igen för att fortsätta; Strava-ID och identiska aktivitetsfiler förhindrar dubbletter inom kontot. Passlistan visar 25 pass åt gången; resten nås med Visa fler.
 
-API: `POST /api/activities/import/strava`, multipart-fält `file`, med inloggning och CSRF-token. Svar: `{ imported, duplicates, failedActivityIds }`. Högst 20 000 pass, 100 000 ZIP-poster, 20 MB per uppackad fil och totalt 1 GiB uppackade aktivitetsfiler per anrop, inklusive lästa byte från filer som avvisas. Budgeten räknas under läsningen; när den tar slut hoppas resterande pass över och rapporteras som misslyckade. Enskilda fel hindrar inte andra pass; ett ogiltigt CSV-manifest avvisar hela arkivet före lagring.
+API: `POST /api/activities/import/strava`, multipart-fält `file`, med inloggning och CSRF-token. Svar: en NDJSON-ström (`application/x-ndjson`) i samma anrop med `{ processed, total, imported, duplicates, failed, result }`. Status skickas vid start och därefter högst fyra gånger per sekund mellan passen. Sista meddelandet har `result: { imported, duplicates, failedActivityIds, equipmentImported, equipmentLinked }`; tidigare meddelanden har `result: null`. En ström utan slutresultat räknas som avbruten import. Valideringsfel före importen returneras fortfarande som vanliga JSON-felsvar. Högst 20 000 pass, 100 000 ZIP-poster, 20 MB per uppackad fil och totalt 1 GiB uppackade aktivitetsfiler per anrop, inklusive lästa byte från filer som avvisas. Budgeten räknas under läsningen; när den tar slut hoppas resterande pass över och rapporteras som misslyckade. Enskilda fel hindrar inte andra pass; ett ogiltigt CSV-manifest avvisar hela arkivet före lagring.
 
 ## Driftsättning (Fly.io)
 
