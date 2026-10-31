@@ -1,0 +1,63 @@
+api/Kuta.Api/Program.cs
+  s_8b6915d520f192::t_d114d519d96d94 182
+api/Kuta.Api.Tests/StravaImportTests.cs
+  s_8b6915d520f192::t_d114d519d96d94 1-245
+api/Kuta.Api/MeEndpoints.cs
+  s_8b6915d520f192::t_d114d519d96d94 61-62,64
+web/src/routes/new-activity.tsx
+  s_8b6915d520f192::t_d114d519d96d94 2,317
+web/src/routes/profile.tsx
+  s_8b6915d520f192::t_d114d519d96d94 1-3,6,14-23
+web/src/locales/en.json
+  s_8b6915d520f192::t_d114d519d96d94 18,27,31-32,170-172,179-192
+  s_8b6915d520f192::t_2644a27a29bcac 193
+api/Kuta.Api/FitImport.cs
+  s_8b6915d520f192::t_d114d519d96d94 135
+.github/workflows/api.yml
+  s_8b6915d520f192::t_d114d519d96d94 29,40-43,48-51,60
+api/Kuta.Api/ActivityEndpoints.cs
+  s_8b6915d520f192::t_d114d519d96d94 167-168,171,176
+  s_8b6915d520f192::t_cee93e4a74397a 177
+README.md
+  s_8b6915d520f192::t_d114d519d96d94 11-13,17,19,74-75,102,134-144
+  s_8b6915d520f192::t_eadbfd1da443b5 145
+web/vite.config.ts
+  s_8b6915d520f192::t_d114d519d96d94 75-77
+api/Kuta.Api/StravaImport.cs
+  s_8b6915d520f192::t_d114d519d96d94 1-165
+api/Kuta.Api/Migrations/006_strava_import.sql
+  s_8b6915d520f192::t_d114d519d96d94 1-6
+api/Kuta.Api/StravaImportEndpoint.cs
+  s_8b6915d520f192::t_d114d519d96d94 1-120
+AGENTS.md
+  s_8b6915d520f192::t_d114d519d96d94 32,50,52-53,61-63,74,99
+web/src/locales/sv.json
+  s_8b6915d520f192::t_d114d519d96d94 18,27,31-32,170-172,179-192
+  s_8b6915d520f192::t_69fb3e55568bd2 193
+web/src/components/strava-import.tsx
+  s_8b6915d520f192::t_d114d519d96d94 1-88
+web/src/router.tsx
+  s_8b6915d520f192::t_d114d519d96d94 12,56-61,69
+api/Kuta.Api.Tests/WebRoutingTests.cs
+  s_8b6915d520f192::t_d114d519d96d94 22
+api/Kuta.Api/ActivityStorage.cs
+  s_8b6915d520f192::t_d114d519d96d94 1-63
+web/src/routes/settings.tsx
+  s_8b6915d520f192::t_d114d519d96d94 1-71
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.7.5",
+  "base_commit_sha": "6efdf2802a20957a3b82df442895ba557d32e623",
+  "prompts": {},
+  "sessions": {
+    "s_8b6915d520f192": {
+      "agent_id": {
+        "tool": "codex",
+        "id": "01a18f2a-67ba-7630-8dd9-d32eef3506ae",
+        "model": "gpt-6.1-sol"
+      },
+      "human_author": "Simon Aunér <simonauner@gmail.com>"
+    }
+  }
+}
