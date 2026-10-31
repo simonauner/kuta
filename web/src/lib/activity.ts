@@ -5,6 +5,24 @@ import { knownSport, sports, type Sport } from './sports.ts'
 
 export type ActivityTag = keyof typeof import('@/locales/sv.json').tagNames
 
+// Keep gaps as separate lines: joining visible points could draw through a hidden zone.
+export function routeSegments(streams: ActivityStreams): [number, number][][] {
+  const segments: [number, number][][] = []
+  let segment: [number, number][] = []
+  for (let i = 0; i < streams.t.length; i++) {
+    const lat = streams.lat?.[i]
+    const lon = streams.lon?.[i]
+    if (lat != null && lon != null && Number.isFinite(lat) && Number.isFinite(lon)) {
+      segment.push([lon, lat])
+    } else if (segment.length) {
+      segments.push(segment)
+      segment = []
+    }
+  }
+  if (segment.length) segments.push(segment)
+  return segments
+}
+
 // Som API:t: SI-enheter (meter, sekunder, m/s). Metriskt här; imperial blir ett val per användare senare.
 export type Activity = {
   id: string

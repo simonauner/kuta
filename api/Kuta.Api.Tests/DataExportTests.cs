@@ -58,6 +58,10 @@ public class DataExportTests(KutaFactory factory) : IClassFixture<KutaFactory>
                 Assert.Single(detail.GetProperty("parts").EnumerateArray());
                 Assert.Single(detail.GetProperty("originalParts").EnumerateArray());
                 Assert.NotEmpty(detail.GetProperty("streams").GetProperty("t").EnumerateArray());
+                Assert.Equal(parsed.Lat, detail.GetProperty("streams").GetProperty("lat").EnumerateArray()
+                    .Select(point => point.ValueKind == JsonValueKind.Null ? (double?)null : point.GetDouble()).ToArray());
+                Assert.Equal(parsed.Lon, detail.GetProperty("streams").GetProperty("lon").EnumerateArray()
+                    .Select(point => point.ValueKind == JsonValueKind.Null ? (double?)null : point.GetDouble()).ToArray());
                 Assert.Single(exported.GetProperty("bestEfforts").EnumerateArray());
                 await using var raw = zip.GetEntry(exported.GetProperty("rawFile").GetString()!)!.Open();
                 using var copy = new MemoryStream();

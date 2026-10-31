@@ -2,7 +2,7 @@ import { useMemo } from 'react'
 import { useTranslation } from 'react-i18next'
 import { ActivityMap } from './activity-map'
 import { ActivityCharts, type ChartSeries } from './activity-charts'
-import { chartAxis, type ActivityStreams } from '@/lib/activity'
+import { chartAxis, routeSegments, type ActivityStreams } from '@/lib/activity'
 import { partStreams, sportColors, type ActivityPart } from '@/lib/multisport'
 
 export default function MultisportPreview({
@@ -18,11 +18,6 @@ export default function MultisportPreview({
   const view = useMemo(() => {
     const part = selected === null ? null : parts[selected]
     const data = part ? partStreams(streams, part) : streams
-    const coordinates = (s: ActivityStreams) =>
-      (s.lat ?? []).flatMap((lat, i): [number, number][] => {
-        const lon = s.lon?.[i]
-        return lat != null && lon != null ? [[lon, lat]] : []
-      })
     const series: ChartSeries[] = []
     if (data.alt)
       series.push({
@@ -49,11 +44,13 @@ export default function MultisportPreview({
         pace: part.sport !== 'cycling',
       })
     return {
-      coordinates: coordinates(data),
-      routes: (part ? [part] : parts).map((p) => ({
-        coordinates: coordinates(partStreams(streams, p)),
-        color: sportColors[p.sport] ?? '#ae3ec9',
-      })),
+      coordinates: routeSegments(data).flat(),
+      routes: (part ? [part] : parts).flatMap((p) =>
+        routeSegments(partStreams(streams, p)).map((coordinates) => ({
+          coordinates,
+          color: sportColors[p.sport] ?? '#ae3ec9',
+        })),
+      ),
       series,
       axis: chartAxis(data),
     }

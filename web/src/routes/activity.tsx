@@ -23,6 +23,7 @@ import {
   formatDuration,
   formatSportPace,
   splits,
+  routeSegments,
 } from '@/lib/activity'
 
 // Tempo ur hastigheten, utjämnat över ~15 s så att GPS-brus inte ger spikar; stillastående blir lucka.
@@ -54,10 +55,8 @@ export function ActivityPage() {
     const original = activity.data?.streams
     const streams = original && selectedPart ? partStreams(original, selectedPart) : original
     if (!streams) return null
-    const coordinates = (streams.lat ?? []).flatMap((lat, i): [number, number][] => {
-      const lon = streams.lon?.[i]
-      return lat != null && lon != null ? [[lon, lat]] : []
-    })
+    const segments = routeSegments(streams)
+    const coordinates = segments.flat()
     const series: ChartSeries[] = []
     if (streams.alt)
       series.push({
@@ -89,17 +88,14 @@ export function ActivityPage() {
       series.push({ label: t('activity.chartTemp'), values: streams.temp, color: '#f08c00' })
     const routes =
       !selectedPart && activity.data?.parts.length
-        ? activity.data.parts.map((p) => {
+        ? activity.data.parts.flatMap((p) => {
             const leg = partStreams(original!, p)
-            return {
+            return routeSegments(leg).map((coordinates) => ({
               color: sportColors[p.sport] ?? '#ae3ec9',
-              coordinates: (leg.lat ?? []).flatMap((lat, i): [number, number][] => {
-                const lon = leg.lon?.[i]
-                return lat != null && lon != null ? [[lon, lat]] : []
-              }),
-            }
+              coordinates,
+            }))
           })
-        : undefined
+        : segments.map((coordinates) => ({ coordinates, color: '#e8590c' }))
     return {
       coordinates,
       routes,

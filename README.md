@@ -45,6 +45,24 @@ splitstabellen utelämnas. En avslutande rest under 50 meter visas inte.
 Diagram använder kilometer som x-axel när distansen ökar utan återställningar,
 annars förfluten tid. Tidsaxelns etikett följer appens valda språk.
 
+## Dolda start- och slutzoner
+
+Pass är fortfarande bara åtkomliga för ägaren, även om databasens `privacy` har värdet
+`followers` eller `public`. Delning och följarrelationer är ännu inte implementerade.
+API:ts detaljsvar använder `RoutePrivacy.ForViewer` med databasens ägare och inloggad
+mottagare. Ägaren får originalet; för andra mottagare ersätts GPS-koordinater inom
+200 meter från första och sista giltiga GPS-punkten med `null`, även vid återbesök.
+Korta pass kan därför sakna synlig rutt. Saknade eller ogiltiga koordinater döljs också.
+Glesa linjesegment som kan korsa en zon bryts konservativt genom att dölja båda ändarna;
+det kan dölja mer än 200 meter. Kartan ritar separata linjer över sammanhängande synliga
+punkter och kopplar aldrig ihop dem över luckor.
+
+Projektionen ändrar bara svarets koordinater. Sparad rutt, råfil, tidsserier, rekord,
+splits och totalsiffror behålls. Zonerna är per pass och inte en garanti för anonymitet.
+Innan delning införs måste dess åtkomstregler implementeras separat och alla nya
+rutt-/export-/kartändpunkter använda samma skydd; originalrutt och råfil får inte
+lämnas till andra mottagare. Ingen ny åtkomst följer av själva klippningen.
+
 ## Statistik över tid
 
 `/app/stats` visar årsstatistik med månadsdiagram och tabell för distans, träningstid,
