@@ -315,10 +315,12 @@ export function EquipmentSection() {
 
 export function EquipmentPicker({
   value,
+  initialIds,
   onChange,
   disabled = false,
 }: {
   value: string[]
+  initialIds: string[]
   onChange: (ids: string[]) => void
   disabled?: boolean
 }) {
@@ -342,7 +344,9 @@ export function EquipmentPicker({
       )}
       <div className="flex flex-wrap gap-3">
         {equipment.data
-          ?.filter((item) => !item.retired || value.includes(item.id))
+          ?.filter(
+            (item) => !item.retired || value.includes(item.id) || initialIds.includes(item.id),
+          )
           .map((item) => (
             <label
               key={item.id}
@@ -405,6 +409,7 @@ export function ActivityEquipmentEditor({
     >
       <EquipmentPicker
         value={ids}
+        initialIds={initialIds}
         onChange={(value) => {
           setIds(value)
           save.reset()
