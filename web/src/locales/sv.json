@@ -396,7 +396,6 @@
     "save": "Spara uppdelning",
     "cancel": "Avbryt",
     "restore": "Återställ importerad version",
-    "unavailable": "Uppdelning kräver en sammanhängande tids- och distansserie.",
     "selected": "Visar del {{number}}: {{sport}}",
     "distanceBySport": "Distans per sport",
     "confirmRestore": "Återställa kommer ta bort uppdelningen. Vill du fortsätta?",
