@@ -9,6 +9,7 @@ import { ActivitiesPage } from '@/routes/activities'
 import { FeedPage } from '@/routes/feed'
 import { NewActivityPage } from '@/routes/new-activity'
 import { ProfilePage } from '@/routes/profile'
+import { SettingsPage } from '@/routes/settings'
 import { StatsPage } from '@/routes/stats'
 import { activityQuery } from '@/lib/activity-query'
 import { queryClient } from '@/lib/query-client'
@@ -49,6 +50,12 @@ const profileRoute = createRoute({
   component: ProfilePage,
 })
 
+const settingsRoute = createRoute({
+  getParentRoute: () => rootRoute,
+  path: '/app/settings',
+  component: SettingsPage,
+})
+
 const routeTree = rootRoute.addChildren([
   feedRoute,
   activitiesRoute,
@@ -56,6 +63,7 @@ const routeTree = rootRoute.addChildren([
   activityRoute,
   statsRoute,
   profileRoute,
+  settingsRoute,
 ])
 
 export const router = createRouter({

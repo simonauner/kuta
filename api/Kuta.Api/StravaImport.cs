@@ -1,0 +1,165 @@
+using System.Globalization;
+using System.IO.Compression;
+using System.Xml;
+using System.Xml.Linq;
+using Microsoft.VisualBasic.FileIO;
+
+public sealed record StravaActivity(string Id, string? Title, string Filename, ParsedActivity Summary);
+
+// Läser bara aktivitetsdata, aldrig exportens profil, kontakter, privata anteckningar eller media.
+public static class StravaImport
+{
+    public const int MaxFileBytes = 20 * 1024 * 1024;
+    public const int MaxActivities = 20000;
+    private static readonly CultureInfo Invariant = CultureInfo.InvariantCulture;
+
+    public static List<StravaActivity> ReadManifest(Stream csv)
+    {
+        using var parser = new TextFieldParser(csv) { HasFieldsEnclosedInQuotes = true };
+        parser.SetDelimiters(",");
+        var header = parser.ReadFields() ?? throw new InvalidDataException("Missing CSV header.");
+        int Index(string name) => Array.LastIndexOf(header, name); // De sista distans-/tidskolumnerna använder SI.
+        foreach (var required in new[] { "Activity ID", "Activity Date", "Activity Name", "Activity Type", "Filename", "Elapsed Time", "Distance" })
+            if (Index(required) < 0) throw new InvalidDataException("Missing CSV column.");
+        if (Index("Distance") == Array.IndexOf(header, "Distance"))
+            throw new InvalidDataException("Missing SI distance column.");
+        var result = new List<StravaActivity>();
+        while (!parser.EndOfData)
+        {
+            if (result.Count >= MaxActivities) throw new InvalidDataException("Too many activities.");
+            var row = parser.ReadFields()!;
+            string Field(string name) => Index(name) is var i && i >= 0 && i < row.Length ? row[i] : "";
+            double? Number(string name)
+            {
+                var value = Field(name);
+                if (value.Length == 0) return null;
+                if (!double.TryParse(value, NumberStyles.Float, Invariant, out var n) || !double.IsFinite(n) || n < 0)
+                    throw new InvalidDataException("Invalid number.");
+                return n;
+            }
+            int Seconds(string name) => checked((int)Math.Round(Number(name) ?? 0));
+            var id = Field("Activity ID");
+            if (id.Length is 0 or > 30 || !id.All(char.IsAsciiDigit)) throw new InvalidDataException("Invalid activity ID.");
+            if (!DateTime.TryParseExact(Field("Activity Date"), ["MMM d, yyyy, h:mm:ss tt", "yyyy-MM-dd HH:mm:ss"],
+                    Invariant, DateTimeStyles.AssumeUniversal | DateTimeStyles.AdjustToUniversal, out var start))
+                throw new InvalidDataException("Invalid activity date.");
+            var filename = Field("Filename");
+            if (filename.Length > 500 || filename.Contains('\\') || filename.Split('/').Any(s => s is ".." or ".") || filename.StartsWith('/'))
+                throw new InvalidDataException("Invalid filename.");
+            var title = Field("Activity Name");
+            if (title.Length > 500) throw new InvalidDataException("Title too long.");
+            var sport = Field("Activity Type") switch
+            {
+                "Run" or "Trail Run" or "Virtual Run" => "running",
+                "Ride" or "Virtual Ride" or "E-Bike Ride" => "cycling",
+                "Walk" => "walking", "Hike" => "hiking", "Swim" => "swimming",
+                var other => other.ToLowerInvariant(),
+            };
+            if (sport.Length is 0 or > 100) throw new InvalidDataException("Invalid sport.");
+            var duration = Seconds("Elapsed Time");
+            var moving = Number("Moving Time") is { } m ? checked((int)Math.Round(m)) : (int?)null;
+            short? HeartRate(string name) => Number(name) is { } hr ? checked((short)Math.Round(hr)) : null;
+            float? Single(string name) => Number(name) is { } n && n <= float.MaxValue ? (float)n : null;
+            result.Add(new StravaActivity(id, title.Length == 0 ? null : title, filename,
+                new ParsedActivity(sport, start, duration, moving, Number("Distance") ?? 0,
+                    HeartRate("Average Heart Rate"), HeartRate("Max Heart Rate"), Single("Average Speed"), Single("Elevation Gain"),
+                    null, [], null, null, null, null, null, null)));
+        }
+        if (result.Select(r => r.Id).Distinct().Count() != result.Count) throw new InvalidDataException("Duplicate activity IDs.");
+        return result;
+    }
+
+    public static byte[] ReadFile(ZipArchiveEntry entry)
+    {
+        if (entry.Length > MaxFileBytes) throw new InvalidDataException("File too large.");
+        using var input = entry.Open();
+        if (!entry.Name.EndsWith(".gz", StringComparison.OrdinalIgnoreCase)) return ReadBounded(input);
+        using var gzip = new GZipStream(input, CompressionMode.Decompress);
+        return ReadBounded(gzip);
+    }
+
+    public static byte[] ReadBounded(Stream input)
+    {
+        using var output = new MemoryStream();
+        var buffer = new byte[81920];
+        int read;
+        while ((read = input.Read(buffer)) > 0)
+        {
+            if (output.Length + read > MaxFileBytes) throw new InvalidDataException("File too large.");
+            output.Write(buffer, 0, read);
+        }
+        return output.ToArray();
+    }
+
+    public static ParsedActivity ParseGpx(byte[] bytes, ParsedActivity summary)
+    {
+        using var input = new MemoryStream(bytes);
+        using var reader = XmlReader.Create(input, new XmlReaderSettings
+        {
+            DtdProcessing = DtdProcessing.Prohibit, XmlResolver = null, MaxCharactersInDocument = MaxFileBytes,
+        });
+        var doc = XDocument.Load(reader);
+        if (doc.Root?.Name.LocalName != "gpx") throw new InvalidDataException("Not GPX.");
+        var points = doc.Descendants().Where(e => e.Name.LocalName == "trkpt").ToArray();
+        if (points.Length > 500000) throw new InvalidDataException("Too many points.");
+        var t = new List<int>();
+        var lat = new List<double?>();
+        var lon = new List<double?>();
+        var alt = new List<float?>();
+        var hr = new List<short?>();
+        var dist = new List<float?>();
+        var speed = new List<float?>();
+        double distance = 0;
+        XElement? previousSegment = null;
+        foreach (var point in points)
+        {
+            var time = point.Elements().FirstOrDefault(e => e.Name.LocalName == "time")?.Value;
+            if (!DateTime.TryParse(time, Invariant, DateTimeStyles.AssumeUniversal | DateTimeStyles.AdjustToUniversal, out var stamp))
+                throw new InvalidDataException("Missing GPX time.");
+            var seconds = checked((int)Math.Round((stamp - summary.StartedAt).TotalSeconds));
+            if (seconds < 0 || t.Count > 0 && seconds < t[^1]) throw new InvalidDataException("Unordered GPX times.");
+            double Coordinate(string name, double max)
+            {
+                if (!double.TryParse(point.Attribute(name)?.Value, NumberStyles.Float, Invariant, out var value) ||
+                    !double.IsFinite(value) || Math.Abs(value) > max) throw new InvalidDataException("Invalid GPX coordinate.");
+                return value;
+            }
+            var latitude = Coordinate("lat", 90);
+            var longitude = Coordinate("lon", 180);
+            // Börja inte räkna avstånd över luckan mellan två GPX-segment.
+            float? velocity = null;
+            if (lat.Count > 0 && point.Parent == previousSegment)
+            {
+                var step = Distance(lat[^1]!.Value, lon[^1]!.Value, latitude, longitude);
+                distance += step;
+                if (seconds > t[^1]) velocity = (float)(step / (seconds - t[^1]));
+            }
+            speed.Add(velocity);
+            previousSegment = point.Parent;
+            var elevation = point.Elements().FirstOrDefault(e => e.Name.LocalName == "ele")?.Value;
+            var pulse = point.Descendants().FirstOrDefault(e => e.Name.LocalName == "hr")?.Value;
+            if (elevation is not null && (!float.TryParse(elevation, NumberStyles.Float, Invariant, out var a) || !float.IsFinite(a)))
+                throw new InvalidDataException("Invalid elevation.");
+            if (pulse is not null && (!short.TryParse(pulse, out var h) || h < 0)) throw new InvalidDataException("Invalid heart rate.");
+            t.Add(seconds); lat.Add(latitude); lon.Add(longitude); dist.Add((float)distance);
+            alt.Add(elevation is null ? null : float.Parse(elevation, Invariant));
+            hr.Add(pulse is null ? null : short.Parse(pulse, Invariant));
+        }
+        return summary with
+        {
+            T = t.ToArray(), Lat = lat.Count == 0 ? null : lat.ToArray(), Lon = lon.Count == 0 ? null : lon.ToArray(),
+            Dist = dist.Count == 0 ? null : dist.ToArray(), Alt = alt.Any(a => a is not null) ? alt.ToArray() : null,
+            Hr = hr.Any(h => h is not null) ? hr.ToArray() : null,
+            Speed = speed.Any(v => v is not null) ? speed.ToArray() : null,
+            Route = FitImport.Route(lat.ToArray(), lon.ToArray()),
+        };
+    }
+
+    private static double Distance(double lat1, double lon1, double lat2, double lon2)
+    {
+        const double rad = Math.PI / 180;
+        var a = Math.Pow(Math.Sin((lat2 - lat1) * rad / 2), 2) +
+            Math.Cos(lat1 * rad) * Math.Cos(lat2 * rad) * Math.Pow(Math.Sin((lon2 - lon1) * rad / 2), 2);
+        return 6371000 * 2 * Math.Asin(Math.Sqrt(Math.Clamp(a, 0, 1)));
+    }
+}

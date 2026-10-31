@@ -1,5 +1,5 @@
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
-import { Link, useNavigate } from '@tanstack/react-router'
+import { useNavigate } from '@tanstack/react-router'
 import { useId, useRef, useState, type FormEvent, type ReactNode } from 'react'
 import { useTranslation } from 'react-i18next'
 import { EquipmentPicker } from '@/components/equipment'
@@ -333,17 +333,7 @@ export function NewActivityPage() {
           accept=".fit"
           onChange={(e) => setPendingFile(e.currentTarget.files?.[0] ?? null)}
         />
-        {/* Valet visas bara tills samtycke finns; därefter ändras det på profilsidan */}
-        {me?.hrConsent ? (
-          <p className="mt-2 text-xs text-muted-foreground">
-            {t('activities.hrSaved')}{' '}
-            <Link to="/app/profile" className="underline underline-offset-2">
-              {t('nav.profile')}
-            </Link>
-          </p>
-        ) : (
-          <HeartRateConsent className="mt-4" />
-        )}
+        <HeartRateConsent className="mt-4" />
         <div className="mt-6 flex flex-wrap justify-end gap-3">
           <Button type="button" variant="outline" onClick={() => uploadDialog.current?.close()}>
             {t('newActivity.cancel')}

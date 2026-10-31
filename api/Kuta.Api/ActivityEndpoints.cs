@@ -175,70 +175,21 @@ public static class ActivityEndpoints
             if (sport is not null) parsed = parsed with { Sport = sport };
             title = ActivityInput.NormalizeTitle(title);
 
-            await using var tx = await conn.BeginTransactionAsync(cancellationToken);
-            if (!await EquipmentEndpoints.OwnsAsync(conn, tx, userId, equipmentIds.ToArray()))
-                return Results.BadRequest(EquipmentEndpoints.InvalidEquipment);
-
-            // Utan samtycke sparas varken pulsen eller råfilen (som också innehåller puls); hashen räcker för dubbletter.
-            string? key = null;
-            if (hrConsent)
-            {
-                key = $"fit/{userId}/{Convert.ToHexStringLower(sha256)}.fit";
-                await store.PutAsync(key, bytes, cancellationToken);
-            }
-
-            Guid id;
+            Guid? id;
             try
             {
-                id = await conn.ExecuteScalarAsync<Guid>(
-                    """
-                    insert into activities (user_id, source, sport, title, started_at, duration_s, moving_s, distance_m,
-                                            avg_hr, max_hr, avg_speed_mps, elevation_gain_m, route, device,
-                                            raw_file_key, raw_file_sha256, tags)
-                    values (@userId, 'fit', @Sport, @title, @StartedAt, @DurationS, @MovingS, @DistanceM,
-                            @AvgHr, @MaxHr, @AvgSpeedMps, @ElevationGainM, @route::geography, @Device, @key, @sha256, @tags)
-                    returning id
-                    """,
-                    new
-                    {
-                        userId, parsed.Sport, title, parsed.StartedAt, parsed.DurationS, parsed.MovingS, parsed.DistanceM,
-                        parsed.AvgHr, parsed.MaxHr, parsed.AvgSpeedMps, parsed.ElevationGainM,
-                        route = (object?)parsed.Route ?? DBNull.Value, parsed.Device, key, sha256, tags = ActivityInput.NormalizeTags(tags),
-                    }, tx);
+                id = await ActivityStorage.SaveAsync(conn, store, userId, parsed, "fit", title, null, bytes, ".fit",
+                    cancellationToken, tags, equipmentIds.ToArray());
             }
-            catch (PostgresException e) when (e.SqlState == PostgresErrorCodes.UniqueViolation)
+            catch (PostgresException e) when (e.SqlState == PostgresErrorCodes.ForeignKeyViolation && e.TableName == "activity_equipment")
             {
-                // Samma fil uppladdad samtidigt i en annan förfrågan
-                return Results.Conflict(new ApiError("Det här passet är redan uppladdat.", "duplicateActivity"));
+                // Composite foreign keys reject unknown equipment and equipment owned by another user.
+                return Results.BadRequest(EquipmentEndpoints.InvalidEquipment);
             }
-            await conn.ExecuteAsync(
-                """
-                insert into activity_streams (activity_id, t, dist, hr, speed, alt, lat, lon, cadence, temp)
-                values (@id, @T, @Dist, @Hr, @Speed, @Alt, @Lat, @Lon, @Cadence, @Temp)
-                """,
-                new
-                {
-                    id, parsed.T, parsed.Dist, parsed.Hr, parsed.Speed, parsed.Alt, parsed.Lat, parsed.Lon,
-                    parsed.Cadence, parsed.Temp,
-                }, tx);
-            await conn.ExecuteAsync(
-                """
-                insert into activity_laps (activity_id, lap_index, start_s, duration_s, moving_s, distance_m, avg_hr, max_hr,
-                                           ascent_m, descent_m, avg_cadence)
-                values (@id, @LapIndex, @StartS, @DurationS, @MovingS, @DistanceM, @AvgHr, @MaxHr,
-                        @AscentM, @DescentM, @AvgCadence)
-                """,
-                (parsed.Laps ?? []).Select((l, i) => new
-                {
-                    id, LapIndex = (short)i, l.StartS, l.DurationS, l.MovingS, l.DistanceM, l.AvgHr, l.MaxHr,
-                    l.AscentM, l.DescentM, l.AvgCadence,
-                }), tx);
-            await EquipmentEndpoints.AttachAsync(conn, tx, id, userId, equipmentIds.ToArray());
-            await BestEfforts.ReplaceAsync(conn, tx, id, userId, parsed.Sport, parsed.StartedAt, parsed.T, parsed.Dist);
-            await tx.CommitAsync(cancellationToken);
+            if (id is null) return Results.Conflict(new ApiError("Det här passet är redan uppladdat.", "duplicateActivity"));
 
             return Results.Created($"/api/activities/{id}", new ActivitySummary(
-                id, parsed.Sport, title, parsed.StartedAt, parsed.DurationS, parsed.DistanceM, parsed.AvgHr, ActivityInput.NormalizeTags(tags), equipmentIds.Distinct().ToArray()));
+                id.Value, parsed.Sport, title, parsed.StartedAt, parsed.DurationS, parsed.DistanceM, parsed.AvgHr, ActivityInput.NormalizeTags(tags), equipmentIds.Distinct().ToArray()));
         })
         // CSRF-token kontrolleras av filtret i AuthEndpoints (X-CSRF-TOKEN), inte av ramverkets formulärkontroll
         .DisableAntiforgery();
@@ -255,6 +206,7 @@ public static class ActivityEndpoints
                 new { id, userId = user.GetUserId(), tags = ActivityInput.NormalizeTags(req.Tags) });
             return updated == 0 ? Results.NotFound() : Results.NoContent();
         });
+        activities.MapStravaImport();
 
         activities.MapDelete("", async (NpgsqlDataSource db, RawFileStore store, ClaimsPrincipal user,
             CancellationToken cancellationToken) =>

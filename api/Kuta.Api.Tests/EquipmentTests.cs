@@ -101,6 +101,15 @@ public class EquipmentTests(KutaFactory factory) : IClassFixture<KutaFactory>
                 new { equipmentIds = Array.Empty<Guid>() }, ct)).StatusCode);
             Assert.Empty((await owner.GetFromJsonAsync<ActivityDetail>($"/api/activities/{activity.Id}", ct))!.EquipmentIds);
 
+            // Rejecting FIT equipment must roll back the common storage path, allowing the same file afterwards.
+            using (var rejectedForm = new MultipartFormDataContent())
+            {
+                rejectedForm.Add(new ByteArrayContent(FitFile.Run(new DateTime(2026, 10, 1, 8, 0, 0, DateTimeKind.Utc), 600)), "file", "synthetic.fit");
+                rejectedForm.Add(new StringContent(otherGear.ToString()), "equipmentIds");
+                Assert.Equal(HttpStatusCode.BadRequest, (await owner.PostAsync("/api/activities", rejectedForm, ct)).StatusCode);
+                Assert.Single((await owner.GetFromJsonAsync<ActivityPage>("/api/activities", ct))!.Items);
+            }
+
             using var form = new MultipartFormDataContent();
             using var file = new ByteArrayContent(FitFile.Run(new DateTime(2026, 10, 1, 8, 0, 0, DateTimeKind.Utc), 600));
             file.Headers.ContentType = new MediaTypeHeaderValue("application/octet-stream");
