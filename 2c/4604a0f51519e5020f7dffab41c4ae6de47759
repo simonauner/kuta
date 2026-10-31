@@ -1,0 +1,23 @@
+README.md
+  s_b6d16283e63d0f::t_196f75dad1ad71 97-98
+api/Kuta.Api.Tests/EquipmentTests.cs
+  s_b6d16283e63d0f::t_d215e7326a031a 130-147
+api/Kuta.Api/EquipmentEndpoints.cs
+  s_b6d16283e63d0f::t_6d06f14d400696 111
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.7.5",
+  "base_commit_sha": "2c4604a0f51519e5020f7dffab41c4ae6de47759",
+  "prompts": {},
+  "sessions": {
+    "s_b6d16283e63d0f": {
+      "agent_id": {
+        "tool": "codex",
+        "id": "01a18f3b-b342-7810-ae98-1b426c8a2b7e",
+        "model": "gpt-6.1-sol"
+      },
+      "human_author": "Simon Aunér <simonauner@gmail.com>"
+    }
+  }
+}
