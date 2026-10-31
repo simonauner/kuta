@@ -229,7 +229,8 @@ function RecordTrendView({ trend, distanceLabel }: { trend: RecordTrend; distanc
         {t('records.chartScale', {
           best: formatDuration(chart.fastest),
           worst: formatDuration(chart.slowest),
-        })}
+        })}{' '}
+        {t('records.chartScaleHint')}
       </p>
       <svg
         viewBox={`0 0 ${width} ${height}`}
