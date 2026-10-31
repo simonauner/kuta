@@ -46,8 +46,8 @@ public static class Goals
         _ => start.AddYears(-1),
     };
 
-    // values: summa per periodstart (lokalt datum); saknad period = 0. Ett engångsmål gäller perioden som innehåller
-    // startdatumet. Upprepade mål räknar även tidigare pass, så att förra perioden och raden syns direkt.
+    // values: summa per periodstart (lokalt datum); saknad period = 0. Målet gäller från början av perioden som
+    // innehåller startdatumet (1 januari för ett årsmål skapat i oktober), men aldrig tidigare perioder.
     public static GoalProgress Evaluate(StoredGoal goal, DateOnly today, IReadOnlyDictionary<DateOnly, double> values)
     {
         GoalPeriodProgress Make(DateOnly start)
@@ -56,19 +56,22 @@ public static class Goals
             return new(start, NextPeriod(goal.Period, start), value, value >= goal.Target);
         }
 
-        var currentStart = PeriodStart(goal.Period, today);
+        var first = PeriodStart(goal.Period, goal.StartsOn);
+        // En annan tidszon än vid skapandet kan ge ett "idag" före första perioden.
+        var currentStart = PeriodStart(goal.Period, today) is var start && start > first ? start : first;
         if (!goal.Recurring)
-        {
-            var first = PeriodStart(goal.Period, goal.StartsOn);
             return Result(Make(first), currentStart > first, null, 0);
-        }
 
         var current = Make(currentStart);
-        var previous = Make(PreviousPeriod(goal.Period, currentStart));
-        // Raden slutar vid första missade perioden; perioder utan pass är alltid missade eftersom målet är > 0.
+        GoalPeriodProgress? previous = null;
         var streak = 0;
-        for (var period = previous; period.Achieved; period = Make(PreviousPeriod(goal.Period, period.Start)))
+        for (var period = PreviousPeriod(goal.Period, currentStart); period >= first; period = PreviousPeriod(goal.Period, period))
+        {
+            var progress = Make(period);
+            previous ??= progress;
+            if (!progress.Achieved) break;
             streak++;
+        }
         // Pågående period räknas in först när den är uppnådd.
         return Result(current, false, previous, streak + (current.Achieved ? 1 : 0));
 
@@ -123,7 +126,7 @@ public static class Goals
             """, new { userId, req.Sport, req.Metric, req.Period, req.Target, req.Recurring, now, timeZone },
             cancellationToken: ct));
 
-    // Startdatumet behålls: ett ändrat engångsmål gäller perioden som innehåller det ursprungliga datumet.
+    // Startdatumet behålls: ett ändrat mål räknas från perioden som innehåller det ursprungliga datumet.
     public static async Task<bool> UpdateAsync(NpgsqlConnection conn, Guid userId, Guid id, GoalRequest req, CancellationToken ct) =>
         await conn.ExecuteAsync(new CommandDefinition("""
             update goals set sport = @Sport, metric = @Metric, period = @Period, target = @Target, recurring = @Recurring
@@ -172,7 +175,7 @@ public static class Goals
                         else count(distinct e.id) end)::double precision as value
                 from effective e
                 where (case when g.sport is null then not e.part else e.sport = g.sport end)
-                    and (g.recurring or e.started_at >= (date_trunc(g.period, g.starts_on::timestamp) at time zone @timeZone))
+                    and e.started_at >= (date_trunc(g.period, g.starts_on::timestamp) at time zone @timeZone)
                 group by 1
             ) b
             where g.user_id = @userId

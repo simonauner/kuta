@@ -54,11 +54,12 @@ public class GoalsTests(KutaFactory factory) : IClassFixture<KutaFactory>
         var march = Goals.Evaluate(goal, new DateOnly(2026, 3, 5), values);
         Assert.Equal((false, 1), (march.Previous!.Achieved, march.Streak));
 
-        // Upprepade mål räknar även perioder före startdatumet.
+        // Perioder före startperioden räknas inte; ett "idag" före start (annan tidszon) visar första perioden.
         values[new(2025, 12, 1)] = 300_000;
         var first = Goals.Evaluate(goal, new DateOnly(2026, 1, 25), values);
-        Assert.Equal((new DateOnly(2025, 12, 1), true, 2), (first.Previous!.Start, first.Previous.Achieved, first.Streak));
-        Assert.Equal(new DateOnly(2025, 12, 1), Goals.Evaluate(goal, new DateOnly(2025, 12, 31), values).Current.Start);
+        Assert.Null(first.Previous);
+        Assert.Equal(1, first.Streak);
+        Assert.Equal(new DateOnly(2026, 1, 1), Goals.Evaluate(goal, new DateOnly(2025, 12, 31), values).Current.Start);
     }
 
     [Fact]
@@ -119,8 +120,9 @@ public class GoalsTests(KutaFactory factory) : IClassFixture<KutaFactory>
             Assert.Equal(3, stockholm[running].Streak);
             // Utan sport räknas triathlonpasset en gång.
             Assert.Equal(4, stockholm[sessions].Current.Value);
-            // Skapat denna vecka, men förra veckans pass räknas: ett löppass, under målet.
-            Assert.Equal((1d, false, 1), (stockholm[sessions].Previous!.Value, stockholm[sessions].Previous!.Achieved, stockholm[sessions].Streak));
+            // Skapat på onsdagen: veckans tidigare pass räknas, men inte förra veckan.
+            Assert.Null(stockholm[sessions].Previous);
+            Assert.Equal(1, stockholm[sessions].Streak);
             Assert.Equal((true, 0d), (stockholm[oneTime].Ended, stockholm[oneTime].Current.Value));
 
             var utc = (await Goals.LoadAsync(conn, owner, "UTC", now, ct)).ToDictionary(g => g.Id);
@@ -173,7 +175,7 @@ public class GoalsTests(KutaFactory factory) : IClassFixture<KutaFactory>
             Assert.Equal("distance", goal.GetProperty("metric").GetString());
             Assert.Equal(0, goal.GetProperty("current").GetProperty("value").GetDouble());
             Assert.False(goal.GetProperty("current").GetProperty("achieved").GetBoolean());
-            Assert.False(goal.GetProperty("previous").GetProperty("achieved").GetBoolean());
+            Assert.Equal(JsonValueKind.Null, goal.GetProperty("previous").ValueKind);
             Assert.Equal(0, goal.GetProperty("streak").GetInt32());
 
             Assert.Empty((await other.GetFromJsonAsync<JsonElement>(list, ct)).EnumerateArray());

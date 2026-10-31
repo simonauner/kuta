@@ -189,15 +189,16 @@ redigering och borttagning i samma modal. Inga mål ger ingen sektion.
 Summeringen följer statistikens regler: hela passet hör till perioden där det startar, tid
 inkluderar pauser, redigerade multisportdelars distans används och ett sportspecifikt mål räknar
 matchande delar av multisportpass. Utan sport räknas varje pass en gång. Veckor börjar på
-måndag och perioder följer webbläsarens tidszon. Engångsmål räknar pass inom sin period, även
-pass före skapandet. Upprepade mål räknar alla perioder, så förra perioden och raden syns direkt.
-Raden räknar uppnådda perioder bakåt från förra perioden till första missade, plus den pågående
-när den är uppnådd. Ett ändrat engångsmål behåller sitt startdatum.
+måndag och perioder följer webbläsarens tidszon. Ett mål räknas från början av perioden då det
+skapas, även pass före skapandet (ett årsmål i oktober räknar från 1 januari), men aldrig
+tidigare perioder. Ett nytt upprepat mål visar därför förra perioden och raden först från nästa
+period. Raden räknar uppnådda perioder bakåt från förra perioden till första missade eller
+startperioden, plus den pågående när den är uppnådd. Ett ändrat mål behåller sitt startdatum.
 
 API (inloggning krävs; skrivningar kräver CSRF; bara egna mål, andras ger 404):
 
 - `GET /api/goals?timeZone=Europe%2FStockholm` ger målen med `current` och `previous`
-  (`{ start, end, value, achieved }`, `end` exklusivt; `previous` är null för engångsmål),
+  (`{ start, end, value, achieved }`, `end` exklusivt; `previous` är null för engångsmål och under startperioden),
   `streak` och `ended`.
 - `POST /api/goals` och `PUT /api/goals/{id}` tar `{ sport, metric, period, target, recurring, timeZone }`.
   `sport` null = alla, `metric` är `distance`, `duration` eller `count`, `period` är `week`,
