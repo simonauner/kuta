@@ -373,16 +373,15 @@ h3 {
   flex-shrink: 0;
 }
 
-.hero-product {
-  width: 100%;
-  margin: 0;
-  visibility: hidden;
+@media (scripting: enabled) {
+  .hero:not(.is-ready) {
+    visibility: hidden;
+  }
 }
-.hero-product.is-ready {
-  visibility: visible;
-  animation: phone-fade-in-up 600ms ease-out both;
+.hero.is-ready {
+  animation: hero-fade-in-up 600ms ease-out both;
 }
-@keyframes phone-fade-in-up {
+@keyframes hero-fade-in-up {
   from {
     opacity: 0;
     transform: translateY(24px);
@@ -393,9 +392,13 @@ h3 {
   }
 }
 @media (prefers-reduced-motion: reduce) {
-  .hero-product.is-ready {
+  .hero.is-ready {
     animation: none;
   }
+}
+.hero-product {
+  width: 100%;
+  margin: 0;
 }
 .hero-product .app-phone {
   width: 100%;
