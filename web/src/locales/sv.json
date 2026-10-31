@@ -15,19 +15,19 @@
     "description": "Distans, fart, puls och personbästa över tid."
   },
   "profile": {
-    "description": "Dina skor, grupper och inställningar.",
-    "logout": "Logga ut"
+    "description": "Din löparprofil."
   },
   "activities": {
     "retry": "Försök igen",
     "loading": "Hämtar pass …",
     "loadOlder": "Visa äldre pass",
     "week": "v. {{week}}",
-    "hrSaved": "Pulsdata sparas. Ändra på",
+    "hrSaved": "Pulsdata sparas. Ändra i",
     "empty": "Inga pass än.",
     "delete": "Ta bort",
     "deleteLabel": "Ta bort passet {{date}}",
-    "confirmDelete": "Ta bort passet? Det går inte att ångra."
+    "confirmDelete": "Ta bort passet? Det går inte att ångra.",
+    "hrNotSaved": "Pulsdata sparas inte. Ändra före uppladdning i"
   },
   "newActivity": {
     "title": "Skapa ny aktivitet",
@@ -164,12 +164,29 @@
     "invalidActivity": "Kontrollera sport, datum, tid och distans.",
     "passwordTooShort": "Använd minst 8 tecken i lösenordet.",
     "passwordUnchanged": "Välj ett annat lösenord än ditt nuvarande.",
-    "recoveryExpired": "Återställningslänken är ogiltig eller har gått ut. Begär en ny länk."
+    "recoveryExpired": "Återställningslänken är ogiltig eller har gått ut. Begär en ny länk.",
+    "stravaArchiveRequired": "Välj en Strava-export som ZIP (högst 500 MB).",
+    "invalidStravaArchive": "ZIP-filen saknar en giltig activities.csv från Strava."
   },
   "home": "Kuta – startsida",
   "footer": {
     "version": "Version {{version}}",
     "development": "utveckling"
+  },
+  "settings": {
+    "title": "Inställningar",
+    "back": "← Profil",
+    "health": "Hälsodata",
+    "strava": "Importera från Strava",
+    "stravaFile": "Strava-export (ZIP)",
+    "import": "Importera pass",
+    "importing": "Importerar …",
+    "importWait": "Importerar passen. Det kan ta flera minuter. Låt sidan vara öppen.",
+    "importHelp": "Välj hela ZIP-exporten, högst 500 MB. Namn, sammanfattningar och tillgängliga mätserier importeras. Puls sparas enligt ditt val ovan. Efter ett avbrott kan du köra importen igen; dubbletter hoppas över. Dina importerade pass finns under Pass.",
+    "importResult": "Importerade: {{imported}}. Dubbletter: {{duplicates}}. Misslyckade: {{failed}}.",
+    "failedImports": "Strava-ID för pass som inte kunde importeras",
+    "account": "Konto",
+    "logout": "Logga ut"
   },
   "dangerZone": {
     "title": "Danger zone",
