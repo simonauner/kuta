@@ -1,0 +1,42 @@
+web/src/routes/runner.tsx
+  s_cd3912a9286307::t_e767d8f3ce1ee4 43-51,53,56-93
+  s_cd3912a9286307::t_ad2d5080973d29 1,42,94
+web/src/components/activity-feed.tsx
+  s_cd3912a9286307::t_ad2d5080973d29 1
+  s_cd3912a9286307::t_d248437cc8884a 49,105
+web/src/components/privacy-places.tsx
+  s_cd3912a9286307::t_ad2d5080973d29 1,50,95
+  s_cd3912a9286307::t_e767d8f3ce1ee4 51-94
+web/src/routes/followers.tsx
+  s_cd3912a9286307::t_ad2d5080973d29 1,101,140
+  s_cd3912a9286307::t_e767d8f3ce1ee4 102-139
+web/src/locales/sv.json
+  s_cd3912a9286307::t_ad2d5080973d29 10
+web/src/locales/en.json
+  s_cd3912a9286307::t_ad2d5080973d29 10
+web/src/components/feed-empty-state.tsx
+  s_cd3912a9286307::t_ad2d5080973d29 1,19-20,27,82-83
+  s_cd3912a9286307::t_e767d8f3ce1ee4 21-24,26,28-81
+web/src/components/equipment.tsx
+  s_cd3912a9286307::t_ad2d5080973d29 1,386,476
+  s_cd3912a9286307::t_e767d8f3ce1ee4 387-403,405,407-475
+web/src/routes/activity.tsx
+  s_cd3912a9286307::t_e767d8f3ce1ee4 355-368
+  s_cd3912a9286307::t_ad2d5080973d29 1,354,369
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.7.5",
+  "base_commit_sha": "650f6b3787972ecf5596c567d39192ae04719c7c",
+  "prompts": {},
+  "sessions": {
+    "s_cd3912a9286307": {
+      "agent_id": {
+        "tool": "codex",
+        "id": "01a19402-c0b0-7051-9d67-3ace18448461",
+        "model": "gpt-6.1-sol"
+      },
+      "human_author": "Simon Aunér <simonauner@gmail.com>"
+    }
+  }
+}
