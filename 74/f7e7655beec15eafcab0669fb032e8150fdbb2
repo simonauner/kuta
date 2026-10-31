@@ -1,0 +1,43 @@
+web/src/components/multisport-preview.tsx
+  s_d6b4033b8988e3::t_470f674a0ba275 5,47-53
+api/Kuta.Api.Tests/ActivityAccessTests.cs
+  s_d6b4033b8988e3::t_2daaa5548a6eeb 30-33,62-63
+api/Kuta.Api/ActivityEndpoints.cs
+  s_d6b4033b8988e3::t_919bb3dca2bbbf 102,119
+api/Kuta.Api/RoutePrivacy.cs
+  s_d6b4033b8988e3::t_64e95391b24935 38
+  s_d6b4033b8988e3::t_919bb3dca2bbbf 1-37,39-51
+web/src/routes/activity.tsx
+  s_d6b4033b8988e3::t_470f674a0ba275 26,58-59,91,93,95-96,98
+api/Kuta.Api.Tests/RoutePrivacyTests.cs
+  s_d6b4033b8988e3::t_64e95391b24935 26
+  s_d6b4033b8988e3::t_90a48d09666b5d 43-52
+  s_d6b4033b8988e3::t_504339c0cdc681 1-25,27-42,53-80
+web/tests/multisport.test.mjs
+  s_d6b4033b8988e3::t_46bf3a46adc182 4-11,17-19,26
+  s_d6b4033b8988e3::t_c1fbaa2aa617f5 12-16,20-25
+web/tests/activity.test.mjs
+  s_d6b4033b8988e3::t_504339c0cdc681 12,16-21,30-31
+  s_d6b4033b8988e3::t_0dfb5df83bc31d 22-29
+  s_d6b4033b8988e3::t_b23412f8572b2d 32
+README.md
+  s_d6b4033b8988e3::t_504339c0cdc681 48-65
+web/src/lib/activity.ts
+  s_d6b4033b8988e3::t_470f674a0ba275 8-25
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.7.5",
+  "base_commit_sha": "74f7e7655beec15eafcab0669fb032e8150fdbb2",
+  "prompts": {},
+  "sessions": {
+    "s_d6b4033b8988e3": {
+      "agent_id": {
+        "tool": "codex",
+        "id": "01a190a9-c223-7092-a7dc-4e6f6ad29b50",
+        "model": "gpt-6.1-sol"
+      },
+      "human_author": "Simon Aunér <simonauner@gmail.com>"
+    }
+  }
+}
