@@ -1,6 +1,7 @@
 import { useMutation, useQuery } from '@tanstack/react-query'
 import { Link } from '@tanstack/react-router'
 import { useTranslation } from 'react-i18next'
+import { ActivityPrivacy } from '@/components/activity-privacy'
 import { DangerZone } from '@/components/danger-zone'
 import { ErrorMessage } from '@/components/error-message'
 import { HeartRateConsent } from '@/components/heart-rate-consent'
@@ -74,6 +75,8 @@ export function SettingsPage() {
         {t('privacyPlaces.title')}
         <span aria-hidden="true">→</span>
       </Link>
+
+      <ActivityPrivacy />
 
       <section aria-labelledby="health-heading" className="mt-8 border-t pt-6">
         <h2 id="health-heading" className="text-lg font-semibold">

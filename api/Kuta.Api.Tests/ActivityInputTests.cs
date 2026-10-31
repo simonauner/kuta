@@ -2,6 +2,16 @@ using Xunit;
 
 public class ActivityInputTests
 {
+    [Theory]
+    [InlineData("private", true)]
+    [InlineData("followers", true)]
+    [InlineData("public", true)]
+    [InlineData(null, false)]
+    [InlineData("Public", false)]
+    [InlineData("", false)]
+    public void Visibility_accepts_only_known_levels(string? value, bool valid) =>
+        Assert.Equal(valid, ActivityInput.IsValidPrivacy(value));
+
     static readonly DateTimeOffset Now = new(2026, 10, 31, 12, 0, 0, TimeSpan.Zero);
     static readonly ManualActivityRequest Valid = new("running", "Kvällsrunda", Now.AddHours(-2), 1800, 5000, 40, 150);
 

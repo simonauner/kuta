@@ -435,6 +435,16 @@
     "locationTimeout": "Det tog för lång tid att hämta din plats. Försök igen eller välj en punkt på kartan.",
     "locationUnsupported": "Platsåtkomst är inte tillgänglig i den här webbläsaren. Välj en punkt på kartan."
   },
+  "activityPrivacy": {
+    "title": "Passens synlighet",
+    "default": "Standardsynlighet för nya pass",
+    "help": "Sparas automatiskt. Gäller nya manuella pass, FIT-uppladdningar och Strava-importer. Befintliga pass behåller sin synlighet tills du tillämpar valet på alla.",
+    "applyAll": "Tillämpa på alla pass",
+    "confirm": "Ändra alla befintliga pass till ”{{visibility}}”? Detta ersätter de individuella synlighetsvalen för alla dina pass.",
+    "applying": "Tillämpar…",
+    "applied": "Alla dina pass har nu denna synlighet.",
+    "saved": "Standardsynligheten har sparats."
+  },
   "social": {
     "follow": "Be att få följa",
     "pending": "Väntar på godkännande",

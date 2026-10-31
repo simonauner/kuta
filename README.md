@@ -112,6 +112,22 @@ splitstabellen utelämnas. En avslutande rest under 50 meter visas inte.
 Diagram använder kilometer som x-axel när distansen ökar utan återställningar,
 annars förfluten tid. Tidsaxelns etikett följer appens valda språk.
 
+## Standardsynlighet för pass
+
+Profil → Inställningar har ett automatiskt sparat standardval för nya pass: privat,
+godkända följare eller alla inloggade löpare. Förvalet är privat. Manuella pass,
+FIT-uppladdningar och Strava-importer läser det aktuella valet när varje pass sparas.
+Enskilda pass kan fortfarande ändras via redigeringssidan.
+
+**Tillämpa på alla pass** kräver bekräftelse och ersätter alla egna befintliga
+synlighetsval med standardvalet. Andras pass påverkas inte. Standardvalet och
+massändringen sparas atomiskt via `PUT /api/me/activity-privacy`
+(`{ privacy: "private" | "followers" | "public", applyToAll?: boolean }`, CSRF krävs).
+`GET /api/me` returnerar `defaultActivityPrivacy`, som även ingår i exportens
+`profile.json`. Migrering 015 lägger till `users.default_activity_privacy`.
+Samma profillås som importerna gör att en pågående import inte kan spara ett
+äldre standardval efter massändringen. Importdubbletter behåller sina val.
+
 ## Dolda platser
 
 Passens läsåtkomst följer synligheten och godkända följrelationer enligt ovan.

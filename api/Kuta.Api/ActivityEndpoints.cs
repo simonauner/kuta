@@ -186,7 +186,7 @@ public static class ActivityEndpoints
         activities.MapPut("/{id:guid}", async (Guid id, ActivityUpdateRequest req,
             NpgsqlDataSource db, ClaimsPrincipal user) =>
         {
-            if (req.Privacy is not null && req.Privacy is not ("private" or "followers" or "public"))
+            if (req.Privacy is not null && !ActivityInput.IsValidPrivacy(req.Privacy))
                 return Results.BadRequest(new ApiError("Välj giltig synlighet.", "invalidPrivacy"));
             if (req.Tags is null) return Results.BadRequest(new ApiError("Välj giltiga taggar.", "invalidTags"));
             if ((ActivityInput.ValidateTitle(req.Title) ?? ActivityInput.ValidateDescription(req.Description) ?? ActivityInput.ValidateTags(req.Tags)) is { } invalid) return Results.BadRequest(invalid);

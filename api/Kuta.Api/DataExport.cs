@@ -34,7 +34,7 @@ public static class DataExport
             await using var tx = await conn.BeginTransactionAsync(ct);
             // Samma låsordning som samtyckesåterkallelse; skydda råfilerna även mot samtidig passradering.
             var profile = await conn.QuerySingleOrDefaultAsync<ExportProfile>(new CommandDefinition("""
-                select u.id, a.email, u.display_name, u.created_at, u.hr_consent_at
+                select u.id, a.email, u.display_name, u.created_at, u.hr_consent_at, u.default_activity_privacy
                 from users u join auth.users a on a.id = u.id where u.id = @userId for share of u
                 """, new { userId }, tx, cancellationToken: ct));
             var activities = await conn.QueryAsync<ExportActivity>(new CommandDefinition("""
@@ -90,7 +90,7 @@ public static class DataExport
     }
 
     private record ExportFollow(Guid FollowerId, Guid FollowingId, DateTime? AcceptedAt, DateTime CreatedAt);
-    private record ExportProfile(Guid Id, string? Email, string DisplayName, DateTime CreatedAt, DateTime? HrConsentAt);
+    private record ExportProfile(Guid Id, string? Email, string DisplayName, DateTime CreatedAt, DateTime? HrConsentAt, string DefaultActivityPrivacy);
     private record ExportActivity(Guid Id, string Source, DateTime CreatedAt, string Privacy,
         string? StravaActivityId, string? RawFileKey);
 }
