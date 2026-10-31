@@ -256,7 +256,8 @@
     "invalidDescription": "The description can be at most 10,000 characters.",
     "stravaImportInterrupted": "The import was interrupted. Saved activities are kept. Retry with the same file; duplicates are skipped.",
     "invalidPrivacyPlace": "Enter a name, a valid map point and a radius between 50 and 5,000 meters.",
-    "invalidPrivacy": "Choose a valid visibility."
+    "invalidPrivacy": "Choose a valid visibility.",
+    "invalidGoal": "Check the sport, measure, period and goal."
   },
   "home": "Kuta – home",
   "footer": {
@@ -471,5 +472,78 @@
     "profileLinkCopyFailed": "Could not copy the link. You can copy it from the field below.",
     "profileLink": "Profile link",
     "profileLinksHint": "To follow someone, open their shared profile link. You can copy your own link from your profile."
+  },
+  "goals": {
+    "new": "New goal",
+    "heading": "Goals",
+    "editTitle": "Edit goal",
+    "editLabel": "Edit goal: {{title}}",
+    "metric": "Measure",
+    "metrics": {
+      "distance": "Distance",
+      "duration": "Time",
+      "count": "Number of activities"
+    },
+    "targetLabel": {
+      "distance": "Goal (km)",
+      "duration": "Goal (minutes)",
+      "count": "Goal (activities)"
+    },
+    "period": "Period",
+    "periods": {
+      "week": "Week",
+      "month": "Month",
+      "year": "Year"
+    },
+    "repeat": "Repeat",
+    "recurring": {
+      "week": "Every week",
+      "month": "Every month",
+      "year": "Every year"
+    },
+    "onceCurrent": {
+      "week": "Once, this week",
+      "month": "Once, this month",
+      "year": "Once, this year"
+    },
+    "onceSaved": "Once",
+    "per": {
+      "week": "{{amount}} per week",
+      "month": "{{amount}} per month",
+      "year": "{{amount}} per year"
+    },
+    "once": {
+      "week": "{{amount}} in week {{week}} {{year}}",
+      "month": "{{amount}} in {{month}}",
+      "year": "{{amount}} in {{year}}"
+    },
+    "sessions_one": "{{count}} activity",
+    "sessions_other": "{{count}} activities",
+    "progress": "{{value}} of {{target}}",
+    "daysLeft_one": "{{count}} day left",
+    "daysLeft_other": "{{count}} days left",
+    "ended": "Ended",
+    "missed": "goal not reached",
+    "hooray": "Hooray! Goal reached",
+    "previous": {
+      "week": "Last week: {{amount}} ✓",
+      "month": "Last month: {{amount}} ✓",
+      "year": "Last year: {{amount}} ✓"
+    },
+    "streak": {
+      "week_one": "{{count}} week in a row",
+      "week_other": "{{count}} weeks in a row",
+      "month_one": "{{count}} month in a row",
+      "month_other": "{{count}} months in a row",
+      "year_one": "{{count}} year in a row",
+      "year_other": "{{count}} years in a row"
+    },
+    "save": "Save goal",
+    "saving": "Saving…",
+    "cancel": "Cancel",
+    "delete": "Delete goal",
+    "confirmDelete": "Delete this goal? This can't be undone.",
+    "deleteConfirmed": "Delete",
+    "deleting": "Deleting…"
   }
 }

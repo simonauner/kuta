@@ -176,6 +176,41 @@ Månader och årsgränser följer webbläsarens tidszon, och hela passet tillhö
 Statistikcachen uppdateras vid skapande, import och radering av pass och rensas när
 pulssamtycke återkallas.
 
+## Träningsmål
+
+**Pass → Nytt mål** skapar ett mål: distans (km), tid (minuter) eller antal pass per vecka,
+månad eller år, för en träningsform eller alla. Målet upprepas varje period eller gäller en gång,
+för perioden då det skapas (exempelvis 1 000 km i år). Pågående mål visas som kort med
+förloppsstapel ovanför passlistan; ett uppnått mål får ”Hurra! Målet är nått”. Upprepade mål
+visar även förra periodens resultat när det nåddes och hur många perioder i rad målet nåtts
+(från två). Ett avslutat engångsmål visas nedtonat tills det tas bort. Klick på kortet öppnar
+redigering och borttagning i samma modal. Inga mål ger ingen sektion.
+
+Summeringen följer statistikens regler: hela passet hör till perioden där det startar, tid
+inkluderar pauser, redigerade multisportdelars distans används och ett sportspecifikt mål räknar
+matchande delar av multisportpass. Utan sport räknas varje pass en gång. Veckor börjar på
+måndag och perioder följer webbläsarens tidszon. Engångsmål räknar pass inom sin period, även
+pass före skapandet. Upprepade mål räknar alla perioder, så förra perioden och raden syns direkt.
+Raden räknar uppnådda perioder bakåt från förra perioden till första missade, plus den pågående
+när den är uppnådd. Ett ändrat engångsmål behåller sitt startdatum.
+
+API (inloggning krävs; skrivningar kräver CSRF; bara egna mål, andras ger 404):
+
+- `GET /api/goals?timeZone=Europe%2FStockholm` ger målen med `current` och `previous`
+  (`{ start, end, value, achieved }`, `end` exklusivt; `previous` är null för engångsmål),
+  `streak` och `ended`.
+- `POST /api/goals` och `PUT /api/goals/{id}` tar `{ sport, metric, period, target, recurring, timeZone }`.
+  `sport` null = alla, `metric` är `distance`, `duration` eller `count`, `period` är `week`,
+  `month` eller `year`, `target` i meter, sekunder eller hela pass (högst 100 000 000 m eller s, respektive
+  10 000 pass). `timeZone` avgör startdatumet vid skapande. Ogiltiga värden ger `invalidGoal`.
+- `DELETE /api/goals/{id}`.
+
+Migrering 016 skapar `goals` med ägarkoppling, kaskadradering vid kontoradering och RLS utan
+Data API-grants. Radering av alla pass behåller målen. Målen ingår i exportens `goals.json`.
+Periodlogik och validering testas som enhetstester, summering per tidszon, sport, multisportdelar
+och ägarskap i lokal Postgres, och HTTP-testet täcker routing, statuskoder, svarskontrakt och
+att en annan användare varken ser eller ändrar målet.
+
 ## Applikationsloggar och integritet
 
 API:t ersätter .NET:s loggproviders med `PrivateLogProvider`. Den skriver JSON med fasta händelser och operationer för start, stopp, requestfel, startfel och migreringsfel. Requestfel har även HTTP-status och tidsåtgång i millisekunder. Loggformatterare, godtyckligt loggstate, scopes och kategorinamn används aldrig, även om loggnivån höjs. DbUp:s egen konsolloggning är avstängd. Samma skydd används lokalt och i drift.
@@ -400,10 +435,11 @@ till fältet; redan importerade dubbletter hoppas fortfarande över vid Strava-i
 - `profile.json`: id, e-postadress, visningsnamn, profilens skapandetid och tidpunkt för pulssamtycke.
 - `equipment.json`: all egen utrustning, även pensionerad, med startvärden och total användning.
 - `privacy-places.json`: egna dolda platser med namn, mittpunkt och radie. Listan ingår även utan pass.
+- `goals.json`: egna träningsmål med sport, typ, period, mål i SI-enheter, upprepning och startdatum.
 - `activities/<id>.json`: källa, skapandetid, synlighet, Strava-ID, sökväg till råfilen (eller `null`), `activity` med samma passdetaljer som passsidan och `bestEfforts` med passets bästa insatser. Detaljerna innehåller beskrivning, taggar, utrustnings-ID:n, tidsserier, varv samt originaldelar och redigerade multisportdelar.
 - `raw/<id>.fit` eller `.gpx`: sparade råfiler med oförändrat innehåll. Manuella pass saknar råfil. Råfiler som inte sparats utan pulssamtycke, eller som raderats vid återkallat samtycke, kan inte exporteras. Gzip-filer från Strava har packats upp vid importen.
 
-JSON använder lowerCamelCase, SI-enheter och UTC-tid. Lösenord, sessionscookies och tokens ingår inte. Ett konto utan pass får fortfarande profil, utrustningslista och dolda platser. Arkivet byggs färdigt på en tillfällig fil före HTTP-svaret; den raderas vid fel, avbrott eller när överföringen är klar. Profil och pass låses mot skrivning under bygget för att samtyckesåterkallelse eller passradering inte ska kunna ta bort en råfil mitt i exporten. Om en förväntad råfil saknas misslyckas exporten i stället för att tyst lämna bort den.
+JSON använder lowerCamelCase, SI-enheter och UTC-tid. Lösenord, sessionscookies och tokens ingår inte. Ett konto utan pass får fortfarande profil, utrustningslista, dolda platser och mål. Arkivet byggs färdigt på en tillfällig fil före HTTP-svaret; den raderas vid fel, avbrott eller när överföringen är klar. Profil och pass låses mot skrivning under bygget för att samtyckesåterkallelse eller passradering inte ska kunna ta bort en råfil mitt i exporten. Om en förväntad råfil saknas misslyckas exporten i stället för att tyst lämna bort den.
 
 Exportens innehåll, åtkomst mellan två användare, råfilernas bytes och samordningen med återkallat samtycke testas på databas-/lagringsnivå. HTTP-testet verifierar den nya routens autentisering, ZIP-svar och cache-/nedladdningsheaders; det upprepar inte innehållstesterna.
 

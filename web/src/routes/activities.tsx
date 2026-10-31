@@ -5,6 +5,9 @@ import { equipmentQuery, lastUsedShoeQuery } from '@/lib/equipment'
 import { activityTagsQuery } from '@/lib/activity-query'
 import { ErrorMessage } from '@/components/error-message'
 import { SlowLoading } from '@/components/slow-loading'
+import { GoalDialog, GoalList } from '@/components/goals'
+import type { Goal } from '@/lib/goals'
+import { useState } from 'react'
 import { useTranslation } from 'react-i18next'
 import { useInfiniteQuery, useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
 import { getRouteApi, Link } from '@tanstack/react-router'
@@ -61,6 +64,8 @@ export function ActivitiesPage() {
     getNextPageParam: (page) => page.nextCursor,
   })
   const items = activities.data?.pages.flatMap((page) => page.items) ?? []
+  // null = stängd, 'new' = nytt mål, annars målet som redigeras
+  const [goalForm, setGoalForm] = useState<Goal | 'new' | null>(null)
 
   const remove = useMutation({
     mutationFn: (id: string) => api.send('DELETE', `/api/activities/${id}`),
@@ -76,12 +81,25 @@ export function ActivitiesPage() {
     <section>
       <div className="flex items-center justify-between gap-4">
         <h1 className="text-2xl font-semibold tracking-tight">{t('nav.activities')}</h1>
-        <Button asChild size="sm">
-          <Link to="/app/activities/new" search={{ year, tag, sport }}>
-            {t('newActivity.title')}
-          </Link>
-        </Button>
+        <div className="flex flex-wrap justify-end gap-2">
+          <Button size="sm" variant="outline" onClick={() => setGoalForm('new')}>
+            {t('goals.new')}
+          </Button>
+          <Button asChild size="sm">
+            <Link to="/app/activities/new" search={{ year, tag, sport }}>
+              {t('newActivity.title')}
+            </Link>
+          </Button>
+        </div>
       </div>
+      <GoalList onSelect={setGoalForm} />
+      {goalForm && (
+        <GoalDialog
+          key={goalForm === 'new' ? 'new' : goalForm.id}
+          goal={goalForm === 'new' ? null : goalForm}
+          onClose={() => setGoalForm(null)}
+        />
+      )}
       {(availableYears.length > 1 || year !== undefined) && (
         <div className="mt-6 flex items-center gap-3">
           <label htmlFor="activity-year" className="text-sm font-medium">
