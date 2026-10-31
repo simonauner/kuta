@@ -2,6 +2,7 @@ import { useState } from 'react'
 import { useQuery } from '@tanstack/react-query'
 import { useTranslation } from 'react-i18next'
 import { ErrorMessage } from '@/components/error-message'
+import { RecordsSection } from '@/components/records'
 import { SlowLoading } from '@/components/slow-loading'
 import { Button } from '@/components/ui/button'
 import { api } from '@/lib/api'
@@ -238,6 +239,7 @@ export function StatsPage() {
             </>
           ))}
       </SlowLoading>
+      <RecordsSection year={year} />
     </section>
   )
 }
