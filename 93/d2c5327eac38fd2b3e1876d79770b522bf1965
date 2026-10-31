@@ -1,0 +1,32 @@
+api/Kuta.Api/EquipmentEndpoints.cs
+  s_e4395318a85460::t_453a0b09e7ccfe 61-73
+api/Kuta.Api.Tests/EquipmentTests.cs
+  s_e4395318a85460::t_8c913d95cd86cd 139-176
+  s_e4395318a85460::t_659c9150aaf682 138
+AGENTS.md
+  s_e4395318a85460::t_40cfa03b9c3c5f 62
+README.md
+  s_e4395318a85460::t_1db5893e0c8913 151,173
+web/src/components/equipment.tsx
+  s_e4395318a85460::t_2bfc02371b5653 24-25,34,36-46,49,81,93,99-100,149-167,204-205,207,210-211,214,256,277,279,283,287
+web/src/locales/en.json
+  s_e4395318a85460::t_7bf29841a24f0f 319
+web/src/locales/sv.json
+  s_e4395318a85460::t_228873bd57de01 319
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.7.5",
+  "base_commit_sha": "93d2c5327eac38fd2b3e1876d79770b522bf1965",
+  "prompts": {},
+  "sessions": {
+    "s_e4395318a85460": {
+      "agent_id": {
+        "tool": "codex",
+        "id": "01a18fe7-e1c6-7c32-bf13-9263c96e0dc9",
+        "model": "gpt-6.1-sol"
+      },
+      "human_author": "Simon Aunér <simonauner@gmail.com>"
+    }
+  }
+}
