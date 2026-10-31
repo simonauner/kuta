@@ -18,6 +18,15 @@ Appens URL:er är `/app` (flöde), `/app/activities`, `/app/stats` och `/app/pro
 
 Översättningar finns i `web/src/locales/sv.json` och `en.json`; lägg till samma nycklar i båda. API-felkoder översätts i webben, med ett generellt fel för okända koder. Mejlmallar och PWA-manifest är tills vidare svenska. Språkval och katalogernas täckning kontrolleras med `cd web && npm test` (Node enligt `.nvmrc`).
 
+## Passlistans sidindelning
+
+`GET /api/activities?timeZone=Europe%2FStockholm` ger `{ items, nextCursor }`, högst 25 pass
+sorterade på `startedAt` och `id` fallande. Nästa sida hämtas med `beforeStartedAt` och `beforeId`
+från `nextCursor`; null betyder att historiken är slut. Utelämnad tidszon ger UTC, webben skickar
+webbläsarens IANA-tidszon. Listans `showMonth` och `showWeek` anger om fler egna pass finns i
+samma lokala år respektive månad, även utanför sidan. Därmed ändras inte rubriknivåerna när
+”Visa äldre pass” fyller på listan. Inga tidsserier eller rutter ingår i listsvaren.
+
 ## Köra lokalt
 
 Kräver Docker, Supabase CLI, .NET SDK och nvm (Node-versionen står i `.nvmrc`). `global.json` väljer .NET SDK 10.0.402 eller senare stabil patch i 10.0.4xx-serien, både lokalt och i Dockerbygget. Allt startas med:
@@ -126,7 +135,7 @@ Alla anrop kräver inloggning och gäller bara egna pass. Skapande tar `tags` so
 JSON-array för manuella pass eller upprepade formulärfält för FIT. Ändra med
 `PUT /api/activities/{id}/tags`, exempelvis `{"tags":["race","workout"]}`; tom array
 tar bort alla taggar. Skrivningar kräver `X-CSRF-TOKEN`.
-`GET /api/activities?tag=race` filtrerar före gränsen på 50 pass.
+`GET /api/activities?tag=race` filtrerar före sidindelningen på 25 pass. Sidmarkörer och periodrubriker gäller det filtrerade urvalet.
 `GET /api/records?tag=race&year=2026` ger bästa insatsen per distans i lopp under
 UTC-året; utelämnat år ger personbästa i lopp. Filtren använder
 `tags @> ARRAY['race']`, som stöds av GIN-indexet. Ändrade taggar slår igenom i

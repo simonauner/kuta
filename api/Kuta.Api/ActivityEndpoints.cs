@@ -42,32 +42,22 @@ public static class ActivityEndpoints
 
         var activities = api.MapGroup("/activities").RequireAuthorization();
 
-        // Inloggad användares senaste pass
-        activities.MapGet("", async (string? tag, NpgsqlDataSource db, ClaimsPrincipal user) =>
+        // Inloggad användares pass, 25 åt gången med stabila rubriker för hela perioderna.
+        activities.MapGet("", async (NpgsqlDataSource db, ClaimsPrincipal user, string? timeZone, string? tag,
+            DateTimeOffset? beforeStartedAt, Guid? beforeId, CancellationToken cancellationToken) =>
         {
+            if (beforeStartedAt.HasValue != beforeId.HasValue)
+                return Results.BadRequest(new ApiError("Sidmarkören är ogiltig. Ladda om sidan.", "invalidActivityPage"));
             if (ActivityInput.ValidateTags(tag is null ? null : [tag]) is { } invalid)
                 return Results.BadRequest(invalid);
-            await using var conn = await db.OpenConnectionAsync();
-            await using var command = new NpgsqlCommand(
-                """
-                select id, sport, title, started_at, duration_s, distance_m, avg_hr, tags,
-                       array(select equipment_id from activity_equipment where activity_id = activities.id order by equipment_id) as equipment_ids
-                from activities
-                where user_id = @userId and tags @> @tags::text[]
-                order by started_at desc
-                limit 50
-                """, conn);
-            command.Parameters.AddWithValue("userId", user.GetUserId());
-            command.Parameters.AddWithValue("tags", tag is null ? Array.Empty<string>() : [tag]);
-            // Npgsql reports arrays as System.Array, which Dapper cannot match to a string[] record parameter.
-            var rows = new List<ActivitySummary>();
-            await using var reader = await command.ExecuteReaderAsync();
-            while (await reader.ReadAsync())
-                rows.Add(new ActivitySummary(reader.GetGuid(0), reader.GetString(1),
-                    reader.IsDBNull(2) ? null : reader.GetString(2), reader.GetDateTime(3), reader.GetInt32(4),
-                    reader.GetDouble(5), reader.IsDBNull(6) ? null : reader.GetInt16(6),
-                    reader.GetFieldValue<string[]>(7), reader.GetFieldValue<Guid[]>(8)));
-            return Results.Ok(rows);
+            timeZone ??= "UTC";
+            await using var conn = await db.OpenConnectionAsync(cancellationToken);
+            if (!await conn.ExecuteScalarAsync<bool>(new CommandDefinition(
+                "select exists (select 1 from pg_timezone_names where name = @timeZone)",
+                new { timeZone }, cancellationToken: cancellationToken)))
+                return Results.BadRequest(new ApiError("Tidszonen är ogiltig. Kontrollera enhetens inställningar.", "invalidTimeZone"));
+            return Results.Ok(await ActivityList.ReadAsync(conn, user.GetUserId(), timeZone,
+                beforeStartedAt, beforeId, cancellationToken, tag));
         });
 
         // Ett eget pass med tidsserier för passsidan. Någon annans pass ger 404, som ett som inte finns.

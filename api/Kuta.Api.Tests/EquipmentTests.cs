@@ -88,7 +88,7 @@ public class EquipmentTests(KutaFactory factory) : IClassFixture<KutaFactory>
             Assert.Equal(gear.Id, Assert.Single((await owner.GetFromJsonAsync<ActivityDetail>($"/api/activities/{activity.Id}", ct))!.EquipmentIds));
 
             Assert.Equal(HttpStatusCode.BadRequest, (await other.PostAsJsonAsync("/api/activities/manual", manual, ct)).StatusCode);
-            Assert.Empty((await other.GetFromJsonAsync<ActivitySummary[]>("/api/activities", ct))!);
+            Assert.Empty((await other.GetFromJsonAsync<ActivityPage>("/api/activities", ct))!.Items);
             Assert.Equal(HttpStatusCode.NotFound, (await other.PutAsJsonAsync($"/api/activities/{activity.Id}/equipment",
                 new { equipmentIds = new[] { gear.Id } }, ct)).StatusCode);
             var otherGear = await AddEquipment(conn, otherId, "Private shoe", 0, 0);
@@ -110,7 +110,7 @@ public class EquipmentTests(KutaFactory factory) : IClassFixture<KutaFactory>
             Assert.Equal(HttpStatusCode.Created, uploaded.StatusCode);
             var fit = (await uploaded.Content.ReadFromJsonAsync<ActivitySummary>(ct))!;
             Assert.Equal(gear.Id, Assert.Single(fit.EquipmentIds));
-            Assert.Equal(gear.Id, Assert.Single((await owner.GetFromJsonAsync<ActivitySummary[]>("/api/activities", ct))!.Single(a => a.Id == fit.Id).EquipmentIds));
+            Assert.Equal(gear.Id, Assert.Single((await owner.GetFromJsonAsync<ActivityPage>("/api/activities", ct))!.Items.Single(a => a.Id == fit.Id).EquipmentIds));
             Assert.Equal(HttpStatusCode.NoContent, (await owner.DeleteAsync("/api/activities", ct)).StatusCode);
             var afterDelete = Assert.Single((await owner.GetFromJsonAsync<EquipmentSummary[]>("/api/equipment", ct))!);
             Assert.Equal((1000d, 600L), (afterDelete.DistanceM, afterDelete.DurationS));
