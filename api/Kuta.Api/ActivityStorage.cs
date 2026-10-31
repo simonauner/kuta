@@ -4,6 +4,40 @@ using Npgsql;
 
 public static class ActivityStorage
 {
+    public static async Task<ActivitySummary?> SaveManualAsync(NpgsqlConnection conn, Guid userId,
+        ManualActivityRequest req, CancellationToken ct)
+    {
+        await using var tx = await conn.BeginTransactionAsync(ct);
+        // Samma profillås som återkallat samtycke: läs aldrig ett äldre samtycke före transaktionen.
+        var profile = await conn.QuerySingleOrDefaultAsync<Profile>(new CommandDefinition(
+            "select display_name, hr_consent_at is not null as hr_consent from users where id = @userId for update",
+            new { userId }, tx, cancellationToken: ct));
+        if (profile is null) return null;
+        var equipmentIds = req.EquipmentIds ?? [];
+        if (!await EquipmentEndpoints.OwnsAsync(conn, tx, userId, equipmentIds))
+            throw new InvalidEquipmentException();
+        var title = ActivityInput.NormalizeTitle(req.Title);
+        var startedAt = req.StartedAt!.Value.UtcDateTime;
+        var avgHr = profile.HrConsent ? req.AvgHr : null;
+        var tags = ActivityInput.NormalizeTags(req.Tags);
+        var id = await conn.ExecuteScalarAsync<Guid>(new CommandDefinition(
+            """
+            insert into activities (user_id, source, sport, title, started_at, duration_s, distance_m, avg_hr,
+                                    avg_speed_mps, elevation_gain_m, tags)
+            values (@userId, 'manual', @Sport, @title, @startedAt, @DurationS, @DistanceM, @avgHr,
+                    @avgSpeedMps, @ElevationGainM, @tags)
+            returning id
+            """, new
+            {
+                userId, req.Sport, title, startedAt, req.DurationS, req.DistanceM, avgHr, tags,
+                avgSpeedMps = (float)(req.DistanceM!.Value / req.DurationS!.Value), req.ElevationGainM,
+            }, tx, cancellationToken: ct));
+        await EquipmentEndpoints.AttachAsync(conn, tx, id, userId, equipmentIds);
+        await tx.CommitAsync(ct);
+        return new ActivitySummary(id, req.Sport!, title, startedAt, req.DurationS!.Value, req.DistanceM!.Value,
+            avgHr, tags, equipmentIds.Distinct().ToArray());
+    }
+
     // Samma lås används vid återkallat samtycke, så att en lång import inte kan spara puls efteråt.
     public static async Task<Guid?> SaveAsync(NpgsqlConnection conn, RawFileStore store, Guid userId,
         ParsedActivity parsed, string source, string? title, string? stravaId, byte[]? bytes, string extension,

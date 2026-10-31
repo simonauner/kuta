@@ -127,39 +127,17 @@ public static class ActivityEndpoints
         .DisableAntiforgery();
 
         // Manuellt pass utan fil: bara sammanfattning, inga tidsserier eller rekord
-        activities.MapPost("/manual", async (ManualActivityRequest req, NpgsqlDataSource db, ClaimsPrincipal user) =>
+        activities.MapPost("/manual", async (ManualActivityRequest req, NpgsqlDataSource db, ClaimsPrincipal user,
+            CancellationToken cancellationToken) =>
         {
             if (ActivityInput.Validate(req, DateTimeOffset.UtcNow) is { } invalid) return Results.BadRequest(invalid);
-            var userId = user.GetUserId();
-            await using var conn = await db.OpenConnectionAsync();
-            var profile = await MeEndpoints.LoadProfileAsync(conn, userId);
-            if (profile is null) return Results.Conflict(new ApiError("Välj ett namn först.", "nameRequired"));
-
-            await using var tx = await conn.BeginTransactionAsync();
-            var equipmentIds = req.EquipmentIds ?? [];
-            if (!await EquipmentEndpoints.OwnsAsync(conn, tx, userId, equipmentIds))
-                return Results.BadRequest(EquipmentEndpoints.InvalidEquipment);
-            var title = ActivityInput.NormalizeTitle(req.Title);
-            var startedAt = req.StartedAt!.Value.UtcDateTime;
-            var avgHr = profile.HrConsent ? req.AvgHr : null; // puls bara med samtycke, som vid filuppladdning
-            var id = await conn.ExecuteScalarAsync<Guid>(
-                """
-                insert into activities (user_id, source, sport, title, started_at, duration_s, distance_m, avg_hr,
-                                        avg_speed_mps, elevation_gain_m, tags)
-                values (@userId, 'manual', @Sport, @title, @startedAt, @DurationS, @DistanceM, @avgHr,
-                        @avgSpeedMps, @ElevationGainM, @tags)
-                returning id
-                """,
-                new
-                {
-                    userId, req.Sport, title, startedAt, req.DurationS, req.DistanceM, avgHr,
-                    tags = ActivityInput.NormalizeTags(req.Tags),
-                    avgSpeedMps = (float)(req.DistanceM!.Value / req.DurationS!.Value), req.ElevationGainM,
-                }, tx);
-            await EquipmentEndpoints.AttachAsync(conn, tx, id, userId, equipmentIds);
-            await tx.CommitAsync();
-            return Results.Created($"/api/activities/{id}", new ActivitySummary(
-                id, req.Sport!, title, startedAt, req.DurationS.Value, req.DistanceM.Value, avgHr, ActivityInput.NormalizeTags(req.Tags), equipmentIds.Distinct().ToArray()));
+            await using var conn = await db.OpenConnectionAsync(cancellationToken);
+            ActivitySummary? activity;
+            try { activity = await ActivityStorage.SaveManualAsync(conn, user.GetUserId(), req, cancellationToken); }
+            catch (InvalidEquipmentException) { return Results.BadRequest(EquipmentEndpoints.InvalidEquipment); }
+            return activity is null
+                ? Results.Conflict(new ApiError("Välj ett namn först.", "nameRequired"))
+                : Results.Created($"/api/activities/{activity.Id}", activity);
         });
 
         // Uppladdning av en FIT-fil: tolka den, spara råfilen (bara med pulssamtycke) och skriv passet med tidsserier
