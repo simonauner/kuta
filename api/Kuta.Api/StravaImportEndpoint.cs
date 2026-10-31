@@ -37,10 +37,10 @@ public static class StravaImportEndpoint
                 if (archive.Entries.Count > 100000) throw new InvalidDataException("Too many entries.");
                 entries = archive.Entries.ToDictionary(e => e.FullName, StringComparer.Ordinal);
                 if (!entries.TryGetValue("activities.csv", out var manifest)) throw new InvalidDataException("Missing activities.csv.");
-                using var csv = new MemoryStream(StravaImport.ReadFile(manifest));
+                using var csv = new MemoryStream(StravaImport.ReadFile(manifest, new StravaImport.ExpansionBudget(StravaImport.MaxFileBytes), cancellationToken));
                 rows = StravaImport.ReadManifest(csv);
                 using var shoeCsv = entries.TryGetValue("shoes.csv", out var shoeEntry)
-                    ? new MemoryStream(StravaImport.ReadFile(shoeEntry)) : null;
+                    ? new MemoryStream(StravaImport.ReadFile(shoeEntry, new StravaImport.ExpansionBudget(StravaImport.MaxFileBytes), cancellationToken)) : null;
                 shoes = StravaImport.ReadShoes(shoeCsv, rows);
             }
             catch (Exception e) when (IsInvalidFile(e) || e is ArgumentException)
@@ -56,7 +56,7 @@ public static class StravaImportEndpoint
                 var imported = 0;
                 var duplicates = 0;
                 var failed = new List<string>();
-                long expandedBytes = 0;
+                var budget = new StravaImport.ExpansionBudget(1024L * 1024 * 1024);
                 foreach (var row in rows)
                 {
                     cancellationToken.ThrowIfCancellationRequested();
@@ -69,7 +69,7 @@ public static class StravaImportEndpoint
                         duplicates++;
                         continue;
                     }
-                    if (expandedBytes > 1024L * 1024 * 1024)
+                    if (budget.Exhausted)
                     {
                         failed.Add(row.Id);
                         continue;
@@ -82,9 +82,7 @@ public static class StravaImportEndpoint
                         if (row.Filename.Length > 0)
                         {
                             if (!entries.TryGetValue(row.Filename, out var entry)) throw new InvalidDataException("Missing activity file.");
-                            bytes = StravaImport.ReadFile(entry);
-                            expandedBytes += bytes.Length;
-                            if (expandedBytes > 1024L * 1024 * 1024) throw new InvalidDataException("Archive expands too much.");
+                            bytes = StravaImport.ReadFile(entry, budget, cancellationToken);
                             var filename = row.Filename.EndsWith(".gz", StringComparison.OrdinalIgnoreCase) ? row.Filename[..^3] : row.Filename;
                             extension = Path.GetExtension(filename).ToLowerInvariant();
                             if (extension == ".fit")

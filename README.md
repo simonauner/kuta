@@ -225,7 +225,7 @@ Skor importeras före passen och kopplas med `Gear`-ID från `activities.csv`. N
 
 Efteråt visas antal importerade pass, skor, kompletterade skokopplingar och dubbletter samt Strava-ID för pass som misslyckats (till exempel en saknad, trasig eller ej stödd aktivitetsfil). Tidigare sparade pass behålls om ett senare pass misslyckas eller anslutningen bryts. Kör samma export igen för att fortsätta; Strava-ID och identiska aktivitetsfiler förhindrar dubbletter inom kontot. Passlistan visar 25 pass åt gången; resten nås med Visa fler.
 
-API: `POST /api/activities/import/strava`, multipart-fält `file`, med inloggning och CSRF-token. Svar: `{ imported, duplicates, failedActivityIds }`. Högst 20 000 pass, 100 000 ZIP-poster, 20 MB per uppackad fil och totalt 1 GiB uppackade aktivitetsfiler per anrop. Enskilda fel hindrar inte andra pass; ett ogiltigt CSV-manifest avvisar hela arkivet före lagring.
+API: `POST /api/activities/import/strava`, multipart-fält `file`, med inloggning och CSRF-token. Svar: `{ imported, duplicates, failedActivityIds }`. Högst 20 000 pass, 100 000 ZIP-poster, 20 MB per uppackad fil och totalt 1 GiB uppackade aktivitetsfiler per anrop, inklusive lästa byte från filer som avvisas. Budgeten räknas under läsningen; när den tar slut hoppas resterande pass över och rapporteras som misslyckade. Enskilda fel hindrar inte andra pass; ett ogiltigt CSV-manifest avvisar hela arkivet före lagring.
 
 ## Driftsättning (Fly.io)
 
