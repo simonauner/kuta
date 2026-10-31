@@ -4,7 +4,8 @@ using System.Xml;
 using System.Xml.Linq;
 using Microsoft.VisualBasic.FileIO;
 
-public sealed record StravaActivity(string Id, string? Title, string Filename, ParsedActivity Summary);
+public sealed record StravaActivity(string Id, string? Title, string Filename, ParsedActivity Summary,
+    string? GearId = null, string? GearName = null);
 
 // Läser bara aktivitetsdata, aldrig exportens profil, kontakter, privata anteckningar eller media.
 public static class StravaImport
@@ -63,9 +64,61 @@ public static class StravaImport
             result.Add(new StravaActivity(id, title.Length == 0 ? null : title, filename,
                 new ParsedActivity(sport, start, duration, moving, Number("Distance") ?? 0,
                     HeartRate("Average Heart Rate"), HeartRate("Max Heart Rate"), Single("Average Speed"), Single("Elevation Gain"),
-                    null, [], null, null, null, null, null, null)));
+                    null, [], null, null, null, null, null, null),
+                ShoeId(Field("Gear")), string.IsNullOrWhiteSpace(Field("Activity Gear")) ? null : Field("Activity Gear").Trim()));
         }
         if (result.Select(r => r.Id).Distinct().Count() != result.Count) throw new InvalidDataException("Duplicate activity IDs.");
+        return result;
+    }
+
+    private static string? ShoeId(string value)
+    {
+        value = value.Trim();
+        if (value.Length == 0) return null;
+        if (value.StartsWith('g')) value = value[1..];
+        if (!decimal.TryParse(value, NumberStyles.Float, Invariant, out var id) || id <= 0 || decimal.Truncate(id) != id)
+            throw new InvalidDataException("Invalid shoe ID.");
+        return "g" + id.ToString("0", Invariant);
+    }
+
+    public static List<StravaShoe> ReadShoes(Stream? csv, IReadOnlyList<StravaActivity> activities)
+    {
+        static string Label(string value) => string.Join(' ', value.Split((char[]?)null, StringSplitOptions.RemoveEmptyEntries));
+        var metadata = new List<(string Label, string Name, string? Brand)>();
+        if (csv is not null)
+        {
+            using var parser = new TextFieldParser(csv) { HasFieldsEnclosedInQuotes = true };
+            parser.SetDelimiters(",");
+            var header = parser.ReadFields() ?? throw new InvalidDataException("Missing shoe header.");
+            var columns = new[] { "Shoe Brand", "Shoe Model", "Shoe Name" }.Select(n => Array.IndexOf(header, n)).ToArray();
+            if (columns.Any(i => i < 0)) throw new InvalidDataException("Missing shoe column.");
+            while (!parser.EndOfData)
+            {
+                if (metadata.Count >= MaxActivities) throw new InvalidDataException("Too many shoes.");
+                var row = parser.ReadFields()!;
+                var parts = columns.Select(i => i < row.Length ? row[i].Trim() : "").ToArray();
+                var label = Label(string.Join(' ', parts.Where(p => p.Length > 0)));
+                if (label.Length == 0) continue;
+                var name = parts[2].Length > 0 ? parts[2] : parts[1].Length > 0 ? parts[1] : parts[0];
+                metadata.Add((label, name, parts[0].Length == 0 ? null : parts[0]));
+            }
+        }
+        var byLabel = metadata.GroupBy(m => m.Label, StringComparer.Ordinal).ToDictionary(
+            g => g.Key, g => g.Select(m => (m.Name, m.Brand)).Distinct().ToArray(), StringComparer.Ordinal);
+        var result = new List<StravaShoe>();
+        // shoes.csv saknar id: bara skor med en referens från aktiviteter kan identifieras säkert.
+        foreach (var group in activities.Where(a => a.GearId is not null).GroupBy(a => a.GearId!))
+        {
+            var label = group.OrderByDescending(a => a.Summary.StartedAt).FirstOrDefault(a => a.GearName is not null)?.GearName
+                ?? $"Strava {group.Key}";
+            var matches = byLabel.GetValueOrDefault(Label(label));
+            var shoe = matches is { Length: 1 }
+                ? new StravaShoe(group.Key, matches[0].Name, matches[0].Brand)
+                : new StravaShoe(group.Key, label, null);
+            if (EquipmentEndpoints.Validate(new EquipmentRequest(shoe.Name, shoe.Brand, "shoe")) is not null)
+                throw new InvalidDataException("Invalid shoe details.");
+            result.Add(shoe);
+        }
         return result;
     }
 
