@@ -28,6 +28,7 @@
     "method": "Tid inkluderar pauser. Tempo beräknas som total tid per kilometer för pass med distans och tid. Lägre tempo betyder snabbare fart. Snittpuls vägs med passens tid, endast för pass med sparad puls. Saknade värden visas som –. Alla sporter kombinerar även tempo och puls mellan sporter. Månader följer din enhets tidszon."
   },
   "records": {
+    "bestEfforts": "Bästa insatser",
     "title": "Löprekord",
     "description": "Bästa insatser ur dina löppass med tidsserier från fil. Tid inkluderar pauser.",
     "empty": "Inga rekord än. Rekord räknas ur löppass som laddats upp från en fil med distansdata.",
