@@ -32,6 +32,7 @@ public class ActivityAccessTests(KutaFactory factory) : IClassFixture<KutaFactor
             using var anonymous = factory.CreateClient();
             Assert.Equal(HttpStatusCode.Unauthorized, (await anonymous.GetAsync("/api/activities", ct)).StatusCode);
             Assert.Equal(HttpStatusCode.Unauthorized, (await anonymous.GetAsync("/api/activities/years", ct)).StatusCode);
+            Assert.Equal(HttpStatusCode.Unauthorized, (await anonymous.GetAsync("/api/activities/statistics?year=2026", ct)).StatusCode);
             for (var i = 0; i < userIds.Length; i++)
             {
                 using var scope = factory.Services.CreateScope();
@@ -67,6 +68,17 @@ public class ActivityAccessTests(KutaFactory factory) : IClassFixture<KutaFactor
                 Assert.Equal(HttpStatusCode.NoContent, (await client.PutAsJsonAsync(
                     $"/api/activities/{activity.Id}", new { title = activity.Title, tags = Array.Empty<string>(), equipmentIds = Array.Empty<Guid>() }, ct)).StatusCode);
                 Assert.Empty((await client.GetFromJsonAsync<ActivityDetail>($"/api/activities/{activity.Id}", ct))!.Tags);
+
+                var statistics = await client.GetFromJsonAsync<ActivityStatisticsMonth[]>(
+                    $"/api/activities/statistics?year={activity.StartedAt.Year}&sport=running&timeZone=UTC", ct);
+                Assert.Equal(12, statistics!.Length);
+                Assert.Equal(1, statistics.Sum(m => m.Count));
+                Assert.Equal(5000, statistics.Sum(m => m.DistanceM));
+                if (i == 0)
+                {
+                    foreach (var query in new[] { "year=0", "year=2026&sport=unknown", "year=2026&timeZone=NotAZone" })
+                        Assert.Equal(HttpStatusCode.BadRequest, (await client.GetAsync($"/api/activities/statistics?{query}", ct)).StatusCode);
+                }
 
                 Assert.Null(activities.NextCursor);
                 var years = await client.GetFromJsonAsync<int[]>("/api/activities/years?timeZone=UTC", ct);

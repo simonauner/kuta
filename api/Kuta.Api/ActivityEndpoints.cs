@@ -70,6 +70,20 @@ public static class ActivityEndpoints
             return Results.Ok(await ActivityList.ReadYearsAsync(conn, user.GetUserId(), timeZone, cancellationToken));
         });
 
+        activities.MapGet("/statistics", async (NpgsqlDataSource db, ClaimsPrincipal user, int year,
+            string? timeZone, string? sport, CancellationToken cancellationToken) =>
+        {
+            if (year is < 1 or > 9998)
+                return Results.BadRequest(new ApiError("Ange ett år mellan 1 och 9998.", "invalidActivityYear"));
+            if (ActivityInput.ValidateSport(sport) is { } invalid) return Results.BadRequest(invalid);
+            timeZone ??= "UTC";
+            await using var conn = await db.OpenConnectionAsync(cancellationToken);
+            if (!await ActivityList.IsValidTimeZoneAsync(conn, timeZone, cancellationToken))
+                return Results.BadRequest(new ApiError("Tidszonen är ogiltig. Kontrollera enhetens inställningar.", "invalidTimeZone"));
+            return Results.Ok(await ActivityStatistics.ReadAsync(conn, user.GetUserId(), year, timeZone,
+                sport, cancellationToken));
+        });
+
         // Ett eget pass med tidsserier för passsidan. Någon annans pass ger 404, som ett som inte finns.
         // shortcut: skickar alla mätpunkter (ett sexttimmarspass ≈ 1–2 MB JSON); glesa ut eller komprimera när det märks.
         activities.MapGet("/{id:guid}", async (Guid id, NpgsqlDataSource db, ClaimsPrincipal user,
