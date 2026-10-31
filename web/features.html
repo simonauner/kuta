@@ -8,7 +8,7 @@
     <title>Funktioner – Kuta</title>
     <meta
       name="description"
-      content="Importera FIT-filer, följ din träningsstatistik, håll koll på skorna och dela upp triathlon och swimrun i sportdelar. Se vad du kan göra i Kuta i dag."
+      content="Importera FIT-filer, följ löprekord och utveckling, se din lopp-prognos, sätt träningsmål och håll koll på skorna. Se vad du kan göra i Kuta i dag."
     />
     <link rel="canonical" href="https://kutaapp.com/features" />
     <meta property="og:type" content="website" />
@@ -17,7 +17,7 @@
     <meta property="og:title" content="Funktioner – Kuta" />
     <meta
       property="og:description"
-      content="Dina pass, din statistik och dina skor. Upptäck funktionerna som finns i Kuta i dag."
+      content="Dina pass, dina mål, din statistik och dina skor. Upptäck funktionerna som finns i Kuta i dag."
     />
     <meta property="og:url" content="https://kutaapp.com/features" />
     <meta property="og:image" content="https://kutaapp.com/images/features/statistics.png" />
@@ -53,7 +53,8 @@
         <a class="button" href="/app#signup">Kom igång med Kuta</a>
         <nav class="feature-jumps" aria-label="Sidans funktioner">
           <a href="#import">Import</a><a href="#statistik">Statistik</a
-          ><a href="#utrustning">Utrustning</a><a href="#multisport">Multisport</a>
+          ><a href="#utrustning">Utrustning</a><a href="#multisport">Multisport</a
+          ><a href="#mal">Träningsmål</a>
         </nav>
       </section>
       <section class="feature-detail" id="import" aria-labelledby="import-title">
@@ -86,24 +87,104 @@
           <p class="eyebrow">02 / DIN UTVECKLING</p>
           <h2 id="statistics-title">Se träningen<br />ta form.</h2>
           <p>
-            En årsöversikt samlar antal pass, distans och träningstid. Följ sedan utvecklingen månad
-            för månad i diagram och tabell.
+            Från årets träningsmängd till ditt snabbaste lopp. Samla löprekorden, följ hur tiderna
+            förbättras och få en prognos inför nästa startlinje.
           </p>
           <ul>
-            <li>Välj år och sport för att hitta rätt perspektiv.</li>
-            <li>Växla mellan distans, tid, snittempo och snittpuls.</li>
-            <li>Sportfilter räknar även motsvarande delar av multisportpass.</li>
+            <li>Löprekord: personbästa och årsbästa från 1 km till maraton.</li>
+            <li>Utveckling: månadsbästa och rekordhistorik för varje distans.</li>
+            <li>Prognos: uppskattade lopptider utifrån dina senaste löpinsatser.</li>
+            <li>Årsöversikt: distans, tid, snittempo och puls per månad och sport.</li>
+            <li>Passdetaljer: karta, diagram och splits för varje kilometer.</li>
           </ul>
+          <p class="detail-note">
+            Prognosen bygger på din starkaste insats på minst 5 km de senaste 90 dagarna och
+            förutsätter att du har tränat för distansen.
+          </p>
         </div>
-        <figure class="product-shot">
-          <img
-            src="/images/features/statistics.png"
-            alt="Årsstatistik med antal pass, total distans, träningstid och ett stapeldiagram över månaderna"
-            width="650"
-            height="614"
-            loading="lazy"
-          />
-          <figcaption>Statistik i appen · syntetiska exempeldata.</figcaption>
+        <figure class="product-shot statistics-carousel" aria-label="Kuta på mobilen">
+          <div class="app-phone">
+            <div class="phone-screen">
+              <div class="phone-status" aria-hidden="true">
+                <span>9:41</span>
+                <span class="phone-camera"></span>
+                <svg viewBox="0 0 56 16" width="56" height="16" fill="currentColor">
+                  <path d="M1 11h3v4H1zm5-3h3v7H6zm5-3h3v10h-3zm5-4h3v14h-3z" />
+                  <rect
+                    x="29"
+                    y="3"
+                    width="22"
+                    height="11"
+                    rx="3"
+                    fill="none"
+                    stroke="currentColor"
+                  />
+                  <rect x="31" y="5" width="18" height="7" rx="1" />
+                  <path d="M53 6h2v5h-2z" />
+                </svg>
+              </div>
+              <div class="statistics-slides" aria-live="off">
+                <img
+                  class="statistics-slide"
+                  src="/images/features/records-mobile.png"
+                  alt="Löprekord med personbästa och årsbästa från 1 km till maraton, med tempo och datum"
+                  width="1170"
+                  height="2280"
+                  loading="lazy"
+                />
+                <img
+                  class="statistics-slide"
+                  src="/images/features/development-mobile.png"
+                  alt="Utveckling på 5 km med månadsbästa, rekordkurva och historik över förbättrade tider"
+                  width="1170"
+                  height="2280"
+                  loading="lazy"
+                  hidden
+                />
+                <img
+                  class="statistics-slide"
+                  src="/images/features/predictions-mobile.png"
+                  alt="Prognos med uppskattade lopptider och tempo, baserad på en nylig löpinsats och VDOT"
+                  width="1170"
+                  height="2280"
+                  loading="lazy"
+                  hidden
+                />
+                <img
+                  class="statistics-slide"
+                  src="/images/features/statistics-mobile.png"
+                  alt="Årsstatistik med antal pass, total distans, träningstid och ett stapeldiagram över månaderna"
+                  width="1170"
+                  height="2280"
+                  loading="lazy"
+                  hidden
+                />
+                <img
+                  class="statistics-slide"
+                  src="/images/features/activity-mobile.png"
+                  alt="Ett löppass med distans, tid och tempo, utfällda splits per kilometer och rutten på en karta"
+                  width="1170"
+                  height="2280"
+                  loading="lazy"
+                  hidden
+                />
+              </div>
+              <div class="phone-home" aria-hidden="true"></div>
+            </div>
+          </div>
+          <div class="statistics-controls" hidden>
+            <div class="statistics-choices" role="group" aria-label="Välj appbild">
+              <button type="button" aria-pressed="true">Löprekord</button>
+              <button type="button" aria-pressed="false">Utveckling</button>
+              <button type="button" aria-pressed="false">Prognos</button>
+              <button type="button" aria-pressed="false">Årsöversikt</button>
+              <button type="button" aria-pressed="false">Passdetaljer</button>
+            </div>
+            <button class="statistics-rotation" type="button">Pausa bildspel</button>
+          </div>
+          <figcaption>
+            Kuta på mobilen · spara på hemskärmen.<br />Syntetiska exempeldata.
+          </figcaption>
         </figure>
       </section>
       <section class="feature-detail" id="utrustning" aria-labelledby="equipment-title">
@@ -161,6 +242,93 @@
           <figcaption>Swimrun i appen · syntetiska exempeldata.</figcaption>
         </figure>
       </section>
+      <section class="goals-feature" id="mal" aria-labelledby="goals-title">
+        <div class="detail-copy">
+          <p class="eyebrow">05 / DINA MÅL</p>
+          <h2 id="goals-title">Från plan<br />till vana.</h2>
+          <p>
+            Välj distans, tid eller antal pass, per vecka, månad eller år. Sätt ett engångsmål eller
+            låt det upprepas automatiskt. På Pass-sidan ser du hur du ligger till, när målet är nått
+            och hur många perioder i rad du har klarat.
+          </p>
+        </div>
+        <div class="goals-shots">
+          <figure class="product-shot phone-shot">
+            <div class="app-phone">
+              <div class="phone-screen">
+                <div class="phone-status" aria-hidden="true">
+                  <span>9:41</span>
+                  <span class="phone-camera"></span>
+                  <svg viewBox="0 0 56 16" width="56" height="16" fill="currentColor">
+                    <path d="M1 11h3v4H1zm5-3h3v7H6zm5-3h3v10h-3zm5-4h3v14h-3z" />
+                    <rect
+                      x="29"
+                      y="3"
+                      width="22"
+                      height="11"
+                      rx="3"
+                      fill="none"
+                      stroke="currentColor"
+                    />
+                    <rect x="31" y="5" width="18" height="7" rx="1" />
+                    <path d="M53 6h2v5h-2z" />
+                  </svg>
+                </div>
+
+                <img
+                  src="/images/features/goals-create-mobile.png"
+                  alt="Modalen Nytt mål med löpning, 30 kilometer per vecka, automatisk upprepning och privat synlighet"
+                  width="1170"
+                  height="2280"
+                  loading="lazy"
+                />
+                <div class="phone-home" aria-hidden="true"></div>
+              </div>
+            </div>
+            <figcaption>
+              <strong>Sätt ditt mål.</strong><br />Välj vad du vill mäta och hur ofta målet ska
+              gälla.
+            </figcaption>
+          </figure>
+          <figure class="product-shot phone-shot">
+            <div class="app-phone">
+              <div class="phone-screen">
+                <div class="phone-status" aria-hidden="true">
+                  <span>9:41</span>
+                  <span class="phone-camera"></span>
+                  <svg viewBox="0 0 56 16" width="56" height="16" fill="currentColor">
+                    <path d="M1 11h3v4H1zm5-3h3v7H6zm5-3h3v10h-3zm5-4h3v14h-3z" />
+                    <rect
+                      x="29"
+                      y="3"
+                      width="22"
+                      height="11"
+                      rx="3"
+                      fill="none"
+                      stroke="currentColor"
+                    />
+                    <rect x="31" y="5" width="18" height="7" rx="1" />
+                    <path d="M53 6h2v5h-2z" />
+                  </svg>
+                </div>
+
+                <img
+                  src="/images/features/goals-progress-mobile.png"
+                  alt="Pass-sidan med tre mål: 8,8 av 30 km, ett uppnått mål på 10 pass och ett tidsmål med två veckor i rad"
+                  width="1170"
+                  height="2280"
+                  loading="lazy"
+                />
+                <div class="phone-home" aria-hidden="true"></div>
+              </div>
+            </div>
+            <figcaption>
+              <strong>Se varje framsteg.</strong><br />På väg, i mål och två veckor i rad.
+            </figcaption>
+          </figure>
+        </div>
+        <p class="goals-example-note">Bilder från appen med syntetiska exempeldata.</p>
+      </section>
       <section class="more-features" aria-labelledby="more-title">
         <p class="eyebrow">OCH HELA BILDEN DÄREMELLAN</p>
         <h2 id="more-title">Mer att upptäcka.</h2>
@@ -201,5 +369,6 @@
       </section>
     </main>
     <!--kuta-footer-->
+    <script type="module" src="/src/features.ts"></script>
   </body>
 </html>
