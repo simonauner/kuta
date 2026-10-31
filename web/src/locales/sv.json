@@ -15,7 +15,7 @@
     "description": "Distans, fart, puls och personbästa över tid."
   },
   "profile": {
-    "description": "Din löparprofil."
+    "description": "Din löparprofil och utrustning."
   },
   "activities": {
     "year": "År",
@@ -169,7 +169,10 @@
     "passwordUnchanged": "Välj ett annat lösenord än ditt nuvarande.",
     "recoveryExpired": "Återställningslänken är ogiltig eller har gått ut. Begär en ny länk.",
     "stravaArchiveRequired": "Välj en Strava-export som ZIP (högst 500 MB).",
-    "invalidStravaArchive": "ZIP-filen saknar en giltig activities.csv från Strava."
+    "invalidStravaArchive": "ZIP-filen saknar en giltig activities.csv från Strava.",
+    "invalidTags": "Välj giltiga taggar.",
+    "invalidEquipment": "Välj giltig utrustning som tillhör dig.",
+    "invalidEquipmentInput": "Kontrollera namn, typ och tidigare användning."
   },
   "home": "Kuta – startsida",
   "footer": {
@@ -215,5 +218,40 @@
       "DISTANS",
       "TRÖSKEL"
     ]
+  },
+  "tagNames": {
+    "race": "Lopp",
+    "workout": "Intervaller/kvalitet",
+    "long_run": "Långpass",
+    "easy": "Lugnt"
+  },
+  "tags": {
+    "label": "Taggar",
+    "save": "Spara taggar",
+    "all": "Alla pass",
+    "empty": "Inga pass med den här taggen."
+  },
+  "equipment": {
+    "title": "Utrustning",
+    "description": "Total distans och tid från kopplade pass, inklusive tidigare användning. Tiden räknas inklusive pauser.",
+    "empty": "Du har ingen utrustning än.",
+    "add": "Lägg till utrustning",
+    "cancel": "Avbryt",
+    "save": "Spara utrustning",
+    "saveLinks": "Spara utrustning",
+    "name": "Namn",
+    "brand": "Märke (valfritt)",
+    "kind": "Typ",
+    "initialDistance": "Tidigare distans (km)",
+    "initialDuration": "Tidigare tid (h:mm:ss)",
+    "initialHint": "Har utrustningen använts tidigare? Ange användning som inte redan finns i dina Kuta-pass. Lämna tomt för ny utrustning.",
+    "distance": "Total distans",
+    "duration": "Total tid (h:mm:ss)",
+    "retired": "Pensionerad",
+    "addInProfile": "Lägg till på din profil.",
+    "loading": "Hämtar utrustning…"
+  },
+  "equipmentKinds": {
+    "shoe": "Skor"
   }
 }

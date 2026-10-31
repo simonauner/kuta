@@ -1,6 +1,6 @@
 import { queryOptions } from '@tanstack/react-query'
 import { ApiError, api } from '@/lib/api'
-import type { ActivityDetail } from '@/lib/activity'
+import type { ActivityDetail, ActivityTag } from '@/lib/activity'
 
 export const activityQuery = (activityId: string) =>
   queryOptions({
@@ -8,3 +8,9 @@ export const activityQuery = (activityId: string) =>
     queryFn: () => api.get<ActivityDetail>(`/api/activities/${activityId}`),
     retry: (count, error) => !(error instanceof ApiError && error.status === 404) && count < 1,
   })
+
+export const activityTagsQuery = {
+  queryKey: ['activityTags'],
+  queryFn: () => api.get<ActivityTag[]>('/api/activity-tags'),
+  staleTime: Infinity,
+}

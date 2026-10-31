@@ -1,3 +1,7 @@
+import { useState } from 'react'
+import { TagLabels } from '@/components/activity-tags'
+import { equipmentQuery } from '@/lib/equipment'
+import { activityTagsQuery } from '@/lib/activity-query'
 import { ErrorMessage } from '@/components/error-message'
 import { useTranslation } from 'react-i18next'
 import { useInfiniteQuery, useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
@@ -29,6 +33,8 @@ export function ActivitiesPage() {
     maximumFractionDigits: 2,
   })
   const queryClient = useQueryClient()
+  const [tag, setTag] = useState('')
+  const tagOptions = useQuery(activityTagsQuery)
   const timeZone = Intl.DateTimeFormat().resolvedOptions().timeZone
   const years = useQuery({
     queryKey: ['activities', 'years', timeZone],
@@ -37,11 +43,12 @@ export function ActivitiesPage() {
   })
   const availableYears = years.data ?? []
   const activities = useInfiniteQuery({
-    queryKey: ['activities', 'list', timeZone, year],
+    queryKey: ['activities', 'list', timeZone, year, tag],
     initialPageParam: null as ActivityCursor | null,
     queryFn: ({ pageParam }) => {
       const params = new URLSearchParams({ timeZone })
       if (year !== undefined) params.set('year', String(year))
+      if (tag) params.set('tag', tag)
       if (pageParam) {
         params.set('beforeStartedAt', pageParam.startedAt)
         params.set('beforeId', pageParam.id)
@@ -54,7 +61,11 @@ export function ActivitiesPage() {
 
   const remove = useMutation({
     mutationFn: (id: string) => api.send('DELETE', `/api/activities/${id}`),
-    onSuccess: () => queryClient.invalidateQueries({ queryKey: ['activities'] }),
+    onSuccess: () =>
+      Promise.all([
+        queryClient.invalidateQueries({ queryKey: ['activities'] }),
+        queryClient.invalidateQueries({ queryKey: equipmentQuery.queryKey }),
+      ]),
   })
 
   return (
@@ -103,6 +114,21 @@ export function ActivitiesPage() {
           </Button>
         </div>
       )}
+      <label className="mt-5 flex items-center gap-3 text-sm">
+        {t('tags.label')}
+        <select
+          className="rounded-md border bg-background px-3 py-2"
+          value={tag}
+          onChange={(e) => setTag(e.currentTarget.value)}
+        >
+          <option value="">{t('tags.all')}</option>
+          {tagOptions.data?.map((value) => (
+            <option key={value} value={value}>
+              {t(`tagNames.${value}`)}
+            </option>
+          ))}
+        </select>
+      </label>
       {remove.error && (
         <p role="alert" className="mt-4 text-sm text-destructive">
           <ErrorMessage error={remove.error} />
@@ -110,7 +136,7 @@ export function ActivitiesPage() {
       )}
 
       {activities.isSuccess && items.length === 0 && (
-        <p className="mt-8 text-muted-foreground">{t('activities.empty')}</p>
+        <p className="mt-8 text-muted-foreground">{t(tag ? 'tags.empty' : 'activities.empty')}</p>
       )}
       {activities.isPending && (
         <p role="status" className="mt-8 text-muted-foreground">
@@ -157,6 +183,7 @@ export function ActivitiesPage() {
                       {formatPace(a.durationS, a.distanceM)}
                       {a.avgHr !== null && ` · ${a.avgHr} bpm`}
                     </p>
+                    <TagLabels tags={a.tags} />
                   </div>
                   <Button
                     variant="ghost"

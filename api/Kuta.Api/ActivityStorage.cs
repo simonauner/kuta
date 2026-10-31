@@ -7,7 +7,7 @@ public static class ActivityStorage
     // Samma lås används vid återkallat samtycke, så att en lång import inte kan spara puls efteråt.
     public static async Task<Guid?> SaveAsync(NpgsqlConnection conn, RawFileStore store, Guid userId,
         ParsedActivity parsed, string source, string? title, string? stravaId, byte[]? bytes, string extension,
-        CancellationToken ct)
+        CancellationToken ct, string[]? tags = null, Guid[]? equipmentIds = null)
     {
         var hash = bytes is null ? null : SHA256.HashData(bytes);
         await using var tx = await conn.BeginTransactionAsync(ct);
@@ -18,16 +18,16 @@ public static class ActivityStorage
         var id = await conn.QuerySingleOrDefaultAsync<Guid?>(
             """
             insert into activities (user_id, source, sport, title, started_at, duration_s, moving_s, distance_m,
-                                    avg_hr, max_hr, avg_speed_mps, elevation_gain_m, route, device, raw_file_key, raw_file_sha256, strava_activity_id)
+                                    avg_hr, max_hr, avg_speed_mps, elevation_gain_m, route, device, raw_file_key, raw_file_sha256, strava_activity_id, tags)
             values (@userId, @source, @Sport, @title, @StartedAt, @DurationS, @MovingS, @DistanceM,
-                    @AvgHr, @MaxHr, @AvgSpeedMps, @ElevationGainM, @route::geography, @Device, @key, @hash, @stravaId)
+                    @AvgHr, @MaxHr, @AvgSpeedMps, @ElevationGainM, @route::geography, @Device, @key, @hash, @stravaId, @tags)
             on conflict do nothing returning id
             """,
             new
             {
                 userId, source, title, stravaId, parsed.Sport, parsed.StartedAt, parsed.DurationS, parsed.MovingS,
                 parsed.DistanceM, parsed.AvgHr, parsed.MaxHr, parsed.AvgSpeedMps, parsed.ElevationGainM,
-                route = (object?)parsed.Route ?? DBNull.Value, parsed.Device, key, hash,
+                route = (object?)parsed.Route ?? DBNull.Value, parsed.Device, key, hash, tags = ActivityInput.NormalizeTags(tags),
             }, tx);
         if (id is null) return null;
         await conn.ExecuteAsync(
@@ -47,6 +47,7 @@ public static class ActivityStorage
                 id, LapIndex = (short)i, l.StartS, l.DurationS, l.MovingS, l.DistanceM, l.AvgHr, l.MaxHr,
                 l.AscentM, l.DescentM, l.AvgCadence,
             }), tx);
+        await EquipmentEndpoints.AttachAsync(conn, tx, id.Value, userId, equipmentIds ?? []);
         await BestEfforts.ReplaceAsync(conn, tx, id.Value, userId, parsed.Sport, parsed.StartedAt, parsed.T, parsed.Dist);
         try
         {

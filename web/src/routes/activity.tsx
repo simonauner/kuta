@@ -4,6 +4,8 @@ import { useMemo, useState } from 'react'
 import { useTranslation } from 'react-i18next'
 import { ActivityCharts, type ChartSeries } from '@/components/activity-charts'
 import { BackLink } from '@/components/back-link'
+import { ActivityEquipmentEditor } from '@/components/equipment'
+import { ActivityTagEditor } from '@/components/activity-tags'
 import { ActivityMap } from '@/components/activity-map'
 import { ErrorMessage } from '@/components/error-message'
 import { ApiError } from '@/lib/api'
@@ -122,6 +124,17 @@ export function ActivityPage() {
         </span>
       </h1>
       {a.device && <p className="mt-1 text-xs text-muted-foreground">{a.device}</p>}
+
+      <ActivityEquipmentEditor
+        key={`equipment:${a.id}:${a.equipmentIds.join(',')}`}
+        activityId={a.id}
+        initialIds={a.equipmentIds}
+      />
+      <ActivityTagEditor
+        key={`tags:${a.id}:${a.tags.join(',')}`}
+        activityId={a.id}
+        initialTags={a.tags}
+      />
 
       <dl className="mt-6 grid grid-cols-3 gap-4">
         {stats.map(([label, value], i) => (
