@@ -27,6 +27,23 @@
     "chartScale": "Skala: 0–{{max}}. Alla värden finns i tabellen nedan.",
     "method": "Tid inkluderar pauser. Tempo beräknas som total tid per kilometer för pass med distans och tid. Lägre tempo betyder snabbare fart. Snittpuls vägs med passens tid, endast för pass med sparad puls. Saknade värden visas som –. Alla sporter kombinerar även tempo och puls mellan sporter. Månader följer din enhets tidszon."
   },
+  "yearComparison": {
+    "title": "År för år",
+    "description": "Ackumulerad mängd per år på samma kalender, för vald sport.",
+    "metric": "Mått",
+    "metrics": {
+      "distanceM": "Distans",
+      "durationS": "Träningstid",
+      "count": "Pass"
+    },
+    "chart": "Ackumulerad {{metric}} per år. Valt år är framhävt.",
+    "table": "{{metric}} per år",
+    "toDate": "T.o.m. {{date}}",
+    "change": "Mot året före",
+    "fullYear": "Helår",
+    "empty": "Inga pass för vald sport.",
+    "method": "Diagrammet visar valt år och upp till {{years}} senaste år. Jämförelsen gäller samma månad och dag varje år, och förändringen jämför med året före. Tid inkluderar pauser, och hela passet räknas till dagen det startar i din enhets tidszon."
+  },
   "records": {
     "title": "Löprekord",
     "description": "Bästa insatser ur dina löppass med tidsserier från fil. Tid inkluderar pauser.",

@@ -27,6 +27,23 @@
     "chartScale": "Scale: 0–{{max}}. All values are in the table below.",
     "method": "Time includes pauses. Pace is total time per kilometre for activities with distance and time. Lower pace means faster speed. Heart rate is weighted by activity duration, using only activities with saved heart rate. Missing values appear as –. All sports also combines pace and heart rate across sports. Months follow your device’s time zone."
   },
+  "yearComparison": {
+    "title": "Year over year",
+    "description": "Accumulated volume per year on the same calendar, for the selected sport.",
+    "metric": "Measure",
+    "metrics": {
+      "distanceM": "Distance",
+      "durationS": "Training time",
+      "count": "Activities"
+    },
+    "chart": "Accumulated {{metric}} per year. The selected year is highlighted.",
+    "table": "{{metric}} per year",
+    "toDate": "Up to {{date}}",
+    "change": "Vs previous year",
+    "fullYear": "Full year",
+    "empty": "No activities for the selected sport.",
+    "method": "The chart shows the selected year and up to {{years}} most recent years. The comparison uses the same month and day each year, and the change compares with the year before. Time includes pauses, and each activity counts on the day it starts in your device's time zone."
+  },
   "records": {
     "title": "Running records",
     "description": "Best efforts from your runs with recorded data from a file. Time includes pauses.",

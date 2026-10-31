@@ -4,6 +4,7 @@ import { useTranslation } from 'react-i18next'
 import { ErrorMessage } from '@/components/error-message'
 import { RecordsSection } from '@/components/records'
 import { SlowLoading } from '@/components/slow-loading'
+import { YearComparison } from '@/components/year-comparison'
 import { Button } from '@/components/ui/button'
 import { api } from '@/lib/api'
 import { formatDuration } from '@/lib/activity'
@@ -239,6 +240,7 @@ export function StatsPage() {
             </>
           ))}
       </SlowLoading>
+      <YearComparison year={year} sportGroup={sportGroup} />
       <RecordsSection year={year} />
     </section>
   )
