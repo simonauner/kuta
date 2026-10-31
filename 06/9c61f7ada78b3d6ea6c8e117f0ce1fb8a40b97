@@ -1,0 +1,99 @@
+api/Kuta.Api.Tests/RoutePrivacyTests.cs
+  s_d6b4033b8988e3::t_02e9c17e8cbcb3 25,31-32
+  s_d6b4033b8988e3::t_d48c724dee1c02 7-8,14,17-19,23,27-30,33-35,40,44,46-60,64,68,71,75,77-78,82,85,87-88,94-96
+web/src/lib/geolocation.ts
+  s_d6b4033b8988e3::t_33b5fdfbebec95 31
+  s_d6b4033b8988e3::t_9b2dbd346db32e 3-12,50
+  s_d6b4033b8988e3::t_dec1c6effa63c3 1-2,13-30,32-49
+web/src/lib/map.ts
+  s_d6b4033b8988e3::t_72454dc492afbb 1-7
+api/Kuta.Api/DataExport.cs
+  s_d6b4033b8988e3::t_43c9ef44ce3063 48
+api/Kuta.Api/RoutePrivacy.cs
+  s_d6b4033b8988e3::t_43c9ef44ce3063 4,6,15,19,21,27,29,33,36-37
+api/Kuta.Api.Tests/PrivacyPlacesTests.cs
+  s_d6b4033b8988e3::t_bd28bd24aaad22 18,92
+  s_d6b4033b8988e3::t_e970a05661a816 1-17,19-91,93-98
+web/tests/geolocation.test.mjs
+  s_d6b4033b8988e3::t_9b2dbd346db32e 1-18,35-39,56
+  s_d6b4033b8988e3::t_dec1c6effa63c3 19-34,40-55
+api/Kuta.Api.Tests/WebRoutingTests.cs
+  s_d6b4033b8988e3::t_4b2c1fa8ed2321 36
+web/src/components/privacy-places.tsx
+  s_d6b4033b8988e3::t_8fe6210c7b4a79 38,40,42
+  s_d6b4033b8988e3::t_b71a4f3398ab48 232,260-263,276-279
+  s_d6b4033b8988e3::t_9b2dbd346db32e 5,145-153,202,208,223,231,308
+  s_d6b4033b8988e3::t_58b4a9d7ec9e43 138,228-229,238-245,247-249
+  s_d6b4033b8988e3::t_c47dcf2d5022ee 12-18,37,39,41,43-45,47-134,154-172,174-184,186-201,203-207,209-222,224-227,230,233-237,250-259,264-275,280-307,309-310,312-314
+  s_d6b4033b8988e3::t_72454dc492afbb 1-4,6-11,19-36,46,135-137,139-144,173,185,311,315
+  s_d6b4033b8988e3::t_4c734d51e986b8 246
+AGENTS.md
+  s_d6b4033b8988e3::t_4b2c1fa8ed2321 63
+api/Kuta.Api.Tests/DataExportTests.cs
+  s_d6b4033b8988e3::t_e970a05661a816 25,47-49,157
+web/src/routes/privacy-places.tsx
+  s_d6b4033b8988e3::t_8fe6210c7b4a79 1-33
+web/src/components/activity-map.tsx
+  s_d6b4033b8988e3::t_72454dc492afbb 1,3
+web/privacy.html
+  s_d6b4033b8988e3::t_d80721a63a9592 73,76,287,290
+  s_d6b4033b8988e3::t_7c124b3371a2c3 74-75,288-289
+web/src/routes/settings.tsx
+  s_d6b4033b8988e3::t_8fe6210c7b4a79 54-60
+  s_d6b4033b8988e3::t_16df8a12a70717 61
+web/src/router.tsx
+  s_d6b4033b8988e3::t_8fe6210c7b4a79 77-82,93
+api/Kuta.Api/Program.cs
+  s_d6b4033b8988e3::t_43c9ef44ce3063 231
+  s_d6b4033b8988e3::t_4b2c1fa8ed2321 242
+README.md
+  s_d6b4033b8988e3::t_4b2c1fa8ed2321 52-53
+  s_d6b4033b8988e3::t_dec1c6effa63c3 55-59,80
+  s_d6b4033b8988e3::t_d80721a63a9592 17,48,54,60-70,72,76-79
+  s_d6b4033b8988e3::t_01b545f11b2d8d 320,324
+api/Kuta.Api/Migrations/014_privacy_places.sql
+  s_d6b4033b8988e3::t_43c9ef44ce3063 1-11
+web/src/locales/en.json
+  s_d6b4033b8988e3::t_dec1c6effa63c3 429-435
+  s_d6b4033b8988e3::t_723ec19b585ef4 405,422
+  s_d6b4033b8988e3::t_2f230479b76e24 260-261,282,402-404,406-421,423-428
+web/src/locales/sv.json
+  s_d6b4033b8988e3::t_2f230479b76e24 260-261,282,402-404,406-421,423-428
+  s_d6b4033b8988e3::t_723ec19b585ef4 405,422
+  s_d6b4033b8988e3::t_dec1c6effa63c3 429-435
+web/src/components/privacy-place-map.tsx
+  s_d6b4033b8988e3::t_5e76b0db06bb89 2,24,66
+  s_d6b4033b8988e3::t_58b4a9d7ec9e43 12-13,18-19,129-130,140-144
+  s_d6b4033b8988e3::t_7c124b3371a2c3 91-93,95-100
+  s_d6b4033b8988e3::t_72454dc492afbb 1,3-8,14-17,20-23,25-30,48,52-57,60-65,70-71,102-103,108,147
+  s_d6b4033b8988e3::t_05f799b716ae14 9-11,31-47,49-51,58-59,67-69,72-90,94,101,104-107,109-128,131-139,145-146
+web/tests/privacy-circle.test.mjs
+  s_d6b4033b8988e3::t_e970a05661a816 1-11,17,19-21
+  s_d6b4033b8988e3::t_63fbf0a0e32090 12-16,18
+api/Kuta.Api/PrivacyPlaces.cs
+  s_d6b4033b8988e3::t_43c9ef44ce3063 1-5,7-11,14-71
+  s_d6b4033b8988e3::t_bd28bd24aaad22 6,12-13
+web/vite.config.ts
+  s_d6b4033b8988e3::t_8fe6210c7b4a79 82
+api/Kuta.Api/ActivityEndpoints.cs
+  s_d6b4033b8988e3::t_43c9ef44ce3063 259,270,277-278
+web/src/lib/privacy-circle.ts
+  s_d6b4033b8988e3::t_72454dc492afbb 1-18
+  s_d6b4033b8988e3::t_57df831131f97e 19-20
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.7.5",
+  "base_commit_sha": "069c61f7ada78b3d6ea6c8e117f0ce1fb8a40b97",
+  "prompts": {},
+  "sessions": {
+    "s_d6b4033b8988e3": {
+      "agent_id": {
+        "tool": "codex",
+        "id": "01a190a9-c223-7092-a7dc-4e6f6ad29b50",
+        "model": "gpt-6.1-sol"
+      },
+      "human_author": "Simon Aunér <simonauner@gmail.com>"
+    }
+  }
+}
