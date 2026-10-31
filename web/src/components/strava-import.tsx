@@ -7,20 +7,33 @@ import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
 import { api } from '@/lib/api'
 
-type StravaImportResult = { imported: number; duplicates: number; failedActivityIds: string[] }
+type StravaImportResult = {
+  imported: number
+  duplicates: number
+  failedActivityIds: string[]
+  equipmentImported: number
+  equipmentLinked: number
+}
 
 export function StravaImport() {
   const { t } = useTranslation()
   const queryClient = useQueryClient()
   const [file, setFile] = useState<File | null>(null)
+  const refreshImportedData = () =>
+    queryClient.invalidateQueries({
+      predicate: ({ queryKey }) =>
+        ['activities', 'activity', 'equipment', 'equipmentLastUsedShoe'].includes(
+          String(queryKey[0]),
+        ),
+    })
   const upload = useMutation({
     mutationFn: (file: File) => {
       const form = new FormData()
       form.append('file', file)
       return api.upload<StravaImportResult>('/api/activities/import/strava', form)
     },
-    onSuccess: () => queryClient.invalidateQueries({ queryKey: ['activities'] }),
-    onError: () => queryClient.invalidateQueries({ queryKey: ['activities'] }),
+    onSuccess: refreshImportedData,
+    onError: refreshImportedData,
   })
 
   function onSubmit(e: FormEvent<HTMLFormElement>) {
@@ -71,6 +84,12 @@ export function StravaImport() {
               imported: upload.data.imported,
               duplicates: upload.data.duplicates,
               failed: upload.data.failedActivityIds.length,
+            })}
+          </p>
+          <p>
+            {t('settings.importEquipmentResult', {
+              imported: upload.data.equipmentImported,
+              linked: upload.data.equipmentLinked,
             })}
           </p>
           {upload.data.failedActivityIds.length > 0 && (

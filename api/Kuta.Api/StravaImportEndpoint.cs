@@ -1,5 +1,6 @@
 using System.IO.Compression;
 using System.Security.Claims;
+using System.Security.Cryptography;
 using System.Xml;
 using Dapper;
 using Dynastream.Fit;
@@ -7,7 +8,7 @@ using Microsoft.AspNetCore.Mvc;
 using Microsoft.VisualBasic.FileIO;
 using Npgsql;
 
-public record StravaImportResult(int Imported, int Duplicates, string[] FailedActivityIds);
+public record StravaImportResult(int Imported, int Duplicates, string[] FailedActivityIds, int EquipmentImported, int EquipmentLinked);
 
 public static class StravaImportEndpoint
 {
@@ -28,6 +29,7 @@ public static class StravaImportEndpoint
             using var stream = file.OpenReadStream();
             ZipArchive? archive = null;
             List<StravaActivity> rows;
+            List<StravaShoe> shoes;
             Dictionary<string, ZipArchiveEntry> entries;
             try
             {
@@ -37,15 +39,20 @@ public static class StravaImportEndpoint
                 if (!entries.TryGetValue("activities.csv", out var manifest)) throw new InvalidDataException("Missing activities.csv.");
                 using var csv = new MemoryStream(StravaImport.ReadFile(manifest));
                 rows = StravaImport.ReadManifest(csv);
+                using var shoeCsv = entries.TryGetValue("shoes.csv", out var shoeEntry)
+                    ? new MemoryStream(StravaImport.ReadFile(shoeEntry)) : null;
+                shoes = StravaImport.ReadShoes(shoeCsv, rows);
             }
             catch (Exception e) when (IsInvalidFile(e) || e is ArgumentException)
             {
                 archive?.Dispose();
-                return Results.BadRequest(new ApiError("ZIP-filen saknar en giltig activities.csv från Strava.", "invalidStravaArchive"));
+                return Results.BadRequest(new ApiError("ZIP-filen innehåller inte en giltig Strava-export.", "invalidStravaArchive"));
             }
 
             using (archive)
             {
+                var (equipment, equipmentImported) = await StravaEquipment.ImportAsync(conn, userId, shoes, cancellationToken);
+                var equipmentLinked = 0;
                 var imported = 0;
                 var duplicates = 0;
                 var failed = new List<string>();
@@ -53,9 +60,12 @@ public static class StravaImportEndpoint
                 foreach (var row in rows)
                 {
                     cancellationToken.ThrowIfCancellationRequested();
+                    var equipmentId = row.GearId is { } gearId ? equipment[gearId] : (Guid?)null;
                     if (await conn.ExecuteScalarAsync<bool>(
                         "select exists(select 1 from activities where user_id = @userId and strava_activity_id = @Id)", new { userId, row.Id }))
                     {
+                        if (equipmentId is { } existingShoe && await StravaEquipment.AttachMissingAsync(
+                            conn, userId, existingShoe, row.Id, null, cancellationToken)) equipmentLinked++;
                         duplicates++;
                         continue;
                     }
@@ -103,11 +113,22 @@ public static class StravaImportEndpoint
                         failed.Add(row.Id);
                         continue;
                     }
-                    var id = await ActivityStorage.SaveAsync(conn, store, userId, parsed, "strava", row.Title, row.Id,
-                        bytes, extension, cancellationToken);
-                    if (id is null) duplicates++; else imported++;
+                    try
+                    {
+                        var id = await ActivityStorage.SaveAsync(conn, store, userId, parsed, "strava", row.Title, row.Id,
+                            bytes, extension, cancellationToken, equipmentIds: equipmentId is { } shoeId ? [shoeId] : []);
+                        if (id is null)
+                        {
+                            duplicates++;
+                            if (equipmentId is { } duplicateShoe && await StravaEquipment.AttachMissingAsync(
+                                conn, userId, duplicateShoe, row.Id, bytes is null ? null : SHA256.HashData(bytes), cancellationToken))
+                                equipmentLinked++;
+                        }
+                        else imported++;
+                    }
+                    catch (InvalidEquipmentException) { failed.Add(row.Id); }
                 }
-                return Results.Ok(new StravaImportResult(imported, duplicates, failed.ToArray()));
+                return Results.Ok(new StravaImportResult(imported, duplicates, failed.ToArray(), equipmentImported, equipmentLinked));
             }
         })
         .DisableAntiforgery()

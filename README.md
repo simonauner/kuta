@@ -8,7 +8,11 @@ Löparapp med Garmin-import, statistik, rekord och socialt flöde. Se `AGENTS.md
 
 Logotypen ”Spåret” finns som fristående SVG i `web/public/brand/` (mörk och ljus variant). Bokstäverna är vektorkonturer och kräver ingen font. Symbolen i `web/public/favicon.svg` används också av PWA-manifestet. PNG-ikoner för PWA finns i `web/public/icons/` (192/512 samt maskable 512 med extra marginal). `web/public/apple-touch-icon.png` (180×180, heltäckande bakgrund) används av iOS, och `favicon-32.png` är PNG-fallback för webbläsare. Båda HTML-dokumenten länkar till ikonerna; PWA:n startar på `/app`. SVG-underlagen för hemskärmsikonerna finns i `web/public/brand/app-icon.svg` och `app-icon-maskable.svg`.
 
-React-appen öppnas på `/app`, med vyerna `/app/activities`, `/app/stats` samt `/app/profile` och `/app/settings`. `web/app.html` har `noindex`. Mejlets bekräftelselänk återvänder till `/app`. Vite bygger båda HTML-filerna, och .NET serverar dem från samma origin. PWA:n startar på `/app` och använder bara appskalet som navigeringsfallback inom `/app`.
+`/privacy` är en publik, statisk integritetspolicy (`web/privacy.html`, extra stilar i `web/src/privacy.css`) med svenska och engelska i samma dokument. Engelska kan länkas direkt med `/privacy#english`. Båda språken är läsbara utan JavaScript; React-appens länkar använder dess valda språk. Startsidan och inloggningssidan länkar till policyn.
+
+Policyn är ett utkast inför Garminansökan. Verifierat underlag, beslut, förslag och kvarvarande kontroller finns under [Integritet: underlag och öppna frågor](#integritet-underlag-och-öppna-frågor). Uppdatera båda språkversionerna när uppgifterna ändras; Garminanslutningen beskrivs som planerad tills den är implementerad.
+
+React-appen öppnas på `/app`, med vyerna `/app/activities`, `/app/stats` samt `/app/profile` och `/app/settings`. `web/app.html` har `noindex`. Mejlets bekräftelselänk återvänder till `/app`. Vite bygger de tre HTML-filerna, och .NET serverar dem från samma origin. PWA:n startar på `/app` och använder bara appskalet som navigeringsfallback inom `/app`.
 
 Profil visar löparens namn och länkar till Utrustning på `/app/profile/equipment`. Kugghjulet öppnar Inställningar på `/app/settings`, med språkval, pulssamtycke, Strava-import, e-postadress, utloggning och Danger zone för att radera alla pass. Vanlig FIT-uppladdning och manuell registrering nås via Pass → Skapa ny aktivitet. Pulssamtycket kan ändras med samma checkbox både i filmodalen och under Inställningar. Checkboxen visas även när samtycket redan är givet.
 
@@ -206,11 +210,13 @@ och kontrollerar import, omberäkning, årsskifte, kaskadradering, CSRF och äga
 
 Öppna **Profil → Inställningar** via kugghjulet. Under **Importera från Strava** väljer du Stravas kompletta ZIP-export (högst 500 MB) och trycker **Importera pass**. Ta ställning till pulssamtycket först. Låt sidan vara öppen medan importen körs; stora arkiv kan ta flera minuter. Exporten måste innehålla `activities.csv` i roten och filerna på sökvägarna i kolumnen `Filename`.
 
-Importen behåller passnamn, sport, starttid (UTC), distans i meter, tid och tillgängliga sammanfattningar från CSV. FIT och GPX, inklusive `.fit.gz` och `.gpx.gz`, ger tidsserier och rutter. Pass utan aktivitetsfil får en sammanfattning utan rutt. GPX-avstånd beräknas från GPS-punkterna; CSV-distansen behålls i sammanfattningen, så de kan skilja sig. Foton, kontakter, privata anteckningar, skor och annan utrustning importeras inte. Detta använder användarens arkiv, utan anslutning till Stravas API.
+Importen behåller passnamn, sport, starttid (UTC), distans i meter, tid och tillgängliga sammanfattningar från CSV. FIT och GPX, inklusive `.fit.gz` och `.gpx.gz`, ger tidsserier och rutter. Pass utan aktivitetsfil får en sammanfattning utan rutt. GPX-avstånd beräknas från GPS-punkterna; CSV-distansen behålls i sammanfattningen, så de kan skilja sig. Foton, kontakter, privata anteckningar och cyklar importeras inte. Detta använder användarens arkiv, utan anslutning till Stravas API.
 
 Alla importerade pass är privata. Puls och de enskilda råfilerna sparas bara med samtycke; ZIP-arkivet sparas inte som råfil. Återkallat samtycke raderar puls och råfiler även från importerade pass. Importen fyller inte på puls i redan importerade pass: ta bort och importera dem igen om de först laddades upp utan samtycke.
 
-Efteråt visas antal importerade pass och dubbletter samt Strava-ID för pass som misslyckats (till exempel en saknad, trasig eller ej stödd aktivitetsfil). Tidigare sparade pass behålls om ett senare pass misslyckas eller anslutningen bryts. Kör samma export igen för att fortsätta; Strava-ID och identiska aktivitetsfiler förhindrar dubbletter inom kontot. Passlistan visar 25 pass åt gången; resten nås med Visa fler.
+Skor importeras före passen och kopplas med `Gear`-ID från `activities.csv`. Namn och märke hämtas från `shoes.csv` när dess namn kan matchas; annars används passets utrustningsnamn. Skor med olika Strava-ID hålls isär även om namnen är lika. `shoes.csv` saknar egna ID:n, så skor som inte används på något pass kan inte importeras säkert. Exporten saknar pensionsstatus: nya skor blir aktiva. Startdistans och starttid sätts till noll; statistik räknas från de kopplade passen, utan dubbelräkning. Redan importerade skors namn, startvärden och pensionering bevaras vid återimport. Återimport kompletterar tidigare pass som saknar utrustning, även dubbletter via filhash, men skriver inte över befintliga utrustningsval. Historiska pass får kopplas till pensionerade skor.
+
+Efteråt visas antal importerade pass, skor, kompletterade skokopplingar och dubbletter samt Strava-ID för pass som misslyckats (till exempel en saknad, trasig eller ej stödd aktivitetsfil). Tidigare sparade pass behålls om ett senare pass misslyckas eller anslutningen bryts. Kör samma export igen för att fortsätta; Strava-ID och identiska aktivitetsfiler förhindrar dubbletter inom kontot. Passlistan visar 25 pass åt gången; resten nås med Visa fler.
 
 API: `POST /api/activities/import/strava`, multipart-fält `file`, med inloggning och CSRF-token. Svar: `{ imported, duplicates, failedActivityIds }`. Högst 20 000 pass, 100 000 ZIP-poster, 20 MB per uppackad fil och totalt 1 GiB uppackade aktivitetsfiler per anrop. Enskilda fel hindrar inte andra pass; ett ogiltigt CSV-manifest avvisar hela arkivet före lagring.
 
@@ -261,3 +267,54 @@ scripts/fly-secrets.sh fly.toml --stage
 ```bash
 fly deploy --ha=false
 ```
+
+## Integritet: underlag och öppna frågor
+
+Arbetsunderlag för `web/privacy.html`, kontrollerat 2026-10-31. Skilj uppgifter som Simon har bekräftat, kodgranskning, leverantörers dokumentation och återstående frågor. Policyn är fortfarande ett utkast; denna lista innebär inget godkännande av publicering eller driftändringar.
+
+### Bekräftat och beslutat
+
+- Personuppgiftsansvarig: **Hack ska du ha AB, 559369-2287**. Simon Aunér är kontaktperson.
+- `privacy@kutaapp.com` fungerar. Simon bekräftar kedjan **Cloudflare Email Routing → privat Gmail**, inte Google Workspace. Både Cloudflare och Google behandlar därför inkommande ärenden; Scaleway skickar kontomejl och är inte leverantör för inkorgen.
+- Simon uppger att Kuta ännu inte har någon egen backup. Det fastställer inte vilka kopior leverantörerna behåller.
+- Simon vill kunna genomföra **export och kontoradering inom sju dagar från begäran**. Det är målet för rutinen, inte en implementerad eller verifierad funktion. Varken fullständig export eller kontoradering är byggd. Manuell hantering kan användas, men måste först förberedas och testas. Policyn får inte lova att alla leverantörsloggar och kopior försvinner inom samma tid.
+- Lagringstider för supportmejl och avslutade/utgångna sessionsrader är **inte beslutade**. Förslagen är 12 månader efter avslutat supportärende respektive senast 30 dagar efter avslut/utgång; de ska inte beskrivas som befintliga rutiner.
+
+### Vad koden visar om loggar och sessioner
+
+Granskat: `api/Kuta.Api/Program.cs`, `PrivateLogProvider.cs`, `LogException.cs`, `appsettings.json`, `SupabaseAuthClient.cs`, `SupabaseCookieSession.cs`, `ActivityStorage.cs`, `RawFileStore.cs`, auth-/aktivitetsendpoints och `web/src/lib/api.ts`.
+
+- Kutas applikationsloggning är begränsad till granskade strukturerade driftfält och rensad undantagsmetadata; se [Applikationsloggar och integritet](#applikationsloggar-och-integritet) för tillåtna fält och testade gränser. Automatisk HTTP-klientloggning och DbUp:s konsolloggning släpps inte igenom. Ingen generell HTTP-body-loggning eller extern felrapportering är konfigurerad.
+- Detta beskriver repots kod. Faktiskt innehåll i hostade loggar, historiska loggar och eventuella driftöverstyrningar är inte kontrollerade; kodändringen måste driftsättas för att gälla nya loggar i drift.
+- Besökarens IP skickas avsiktligt till Supabase Auth med `Sb-Forwarded-For` för rate limiting. Supabases egna auth-loggar kan innehålla användar-id, IP, user-agent, tidpunkt och händelse; de är separata från Kutas loggning ([Auth Audit Logs](https://supabase.com/docs/guides/auth/audit-logs)).
+- `user_sessions` sparar användar-id, slumpat sessions-id, skapandetid, utgångstid och avslutstid. Utloggning sätter `ended_at`; automatisk städning saknas. Inloggningens 30 dagars inaktivitet/180 dagars maxgräns är inte en lagringstid för raderna.
+- Filnycklar innehåller användar-id och filhash. Sådana identifierare kan finnas i leverantörernas lagringsloggar även utan att själva filinnehållet loggas.
+
+### Avtalsunderlag från Kredovis
+
+Simon bekräftar samma leverantörer och avtal för Kuta. Underlaget är Kredovis `docs/privacy.md`, avsnitt **DPA checklist**, och `docs/transfer-assessment.md` i projektet `bokforing`. Det är dokumentation av tidigare operatörsbekräftelser och avtalsgranskning; signerade original öppnades inte i Kuta-genomgången. Kredovis särskilda systemskydd och riskbedömningar ska inte automatiskt tillskrivas Kuta.
+
+| Leverantör | Dokumenterat underlag | Vad återstår för Kuta? |
+| --- | --- | --- |
+| Supabase | Bolagets organisation/projekt och sparad DPA bekräftade 2026-10-12. DPA v1, 2026-08-01; SCC:er för överföringar, med Singapore som importör och möjlig åtkomst/loggbehandling i USA enligt Kredovis överföringsunderlag. | Bekräfta att Kutas projekt ligger under samma avtal. Anpassa beskrivningen av ändamål, pulsdata och skydd till Kuta. Kontrollera faktisk plan, loggtider, auth-auditlagring och leverantörsbackup. Projektmetadata kunde inte läsas genom Supabase-anslutningen på grund av saknad behörighet. |
+| Fly.io | DPA signerad för bolaget 2026-10-12, avtalskopia granskad i Kredovis 2026-10-22. Underlaget anger DPF och SCC:er, möjlig amerikansk support/loggbehandling samt att signerad bilaga inte beskriver avsiktliga känsliga uppgifter. | Kuta behandlar avsiktligt puls/hälsodata: kontrollera och komplettera bilaga I.B för den användningen. Fly anger att känsliga kategorier ska anges där; inget generellt förbud ([COMPLIANCE-27–28](https://fly.io/legal/security-questionnaire/)). Kontrollera samma bolagsorganisation och vilka tjänster som används. |
+| Scaleway | Bolagskonto, DPA, TEM-villkor och prenumeration på underbiträdesändringar bekräftade 2026-10-13. EU/Paris enligt leverantörens underlag. | Beskriv Kutas kontomejl, faktiska leverantörstider och hur enskilda mejlposter begärs raderade. Kredovis använder även AI-tjänster; det gör inte Kuta. |
+| Cloudflare | Kredovis dokumenterar bolagets self-servicekonto. DPA ingår i self-serviceavtalet ([Cloudflare](https://www.cloudflare.com/trust-hub/gdpr/)). | Bekräfta att Kutas Email Routing ligger på bolagets konto och omfattas av avtalet. Kontrollera routningens köer, loggtider, underbiträden och behandlingsländer; Kredovis bedömning av Turnstile/Workers ersätter inte detta. |
+| Google | Simon bekräftar privat Gmail som slutlig inkorg. Google anger att konsument-Gmail saknar biträdesavtal och att Google inte är biträde för den tjänsten ([Privacy Help Center](https://support.google.com/policies/answer/9581826/privacy-help-center)). | Välj företagsinkorg med tillämpligt biträdesavtal, till exempel Workspace, eller utred en annan hållbar avtalslösning. Kontrollera lagring, överföringar och hantering av redan mottagna ärenden. Ingen mejlflytt eller avtalsaccept är gjord. |
+
+### Leverantörernas lagring: känt och okänt
+
+- **Fly.io:** sökbara applikationsloggar sparas sju dagar enligt [Logging overview](https://docs.fly.io/monitoring/logging-overview). Detta fastställer inte alla interna säkerhets-/supportloggars tider eller lagringsländer.
+- **Scaleway TEM:** enligt [dataskyddssidan](https://www.scaleway.com/en/docs/transactional-email/reference-content/data-privacy/) raderas normalt mejlinnehåll när mottagarservern accepterar mejlet, vid permanent leveransfel eller efter 36 timmars misslyckade försök. Undantag: spam 72 timmar och blockerad domän 15 dagar; krypterade säkerhetskopior sju dagar. Avsändare, mottagare, ämne, avsändande IP, leveransstatus och tidsstämplar kan finnas i metadata/loggar. De behålls medan TEM-domänen är aktiv. Enskilda poster/adresser/loggar kan begäras raderade via support; ingen tidsfrist för sådan radering har verifierats.
+- **Supabase:** logg- och backuptider måste kontrolleras för Kutas faktiska plan och inställningar. Auth-auditposter i databasen behöver bedömas separat från dashboardloggar. [Backupdokumentationen](https://supabase.com/docs/guides/platform/backups) beskriver leverantörsbackuper; avsaknad av egen backup är inte bevis för att leverantörskopior saknas.
+- **Gmail och Cloudflare Email Routing:** faktiska tider för inkorg, papperskorg, återställningskopior, routningsköer och loggar är inte verifierade. Lova inte EU-/Sverige-exklusiv behandling.
+
+### Kvar att göra
+
+- [ ] Välj/ordna företagsinkorg och dokumentera avtal, åtkomst, överföringar och hantering av befintliga mejl. Kontrollera Cloudflare Email Routing enligt tabellen ovan.
+- [ ] Kontrollera Kutas Supabase-plan, loggtider, auditlagring, leverantörsbackuper och faktisk avtalsanknytning.
+- [ ] Komplettera/verifiera Fly-avtalets beskrivning av avsiktlig hälsodatabehandling och Kutas överföringsskydd.
+- [ ] Besluta lagringstid för supportärenden och sessionsrader; inför och verifiera motsvarande radering.
+- [ ] Förbered och testa export och kontoradering med syntetiska uppgifter: autentisering, profil, utrustning, pass, puls, råfiler, sessioner och relevanta leverantörsposter. Kontrollera två användare så att fel persons uppgifter inte exporteras/raderas. Bestäm säker leverans av exporten och dokumentera eventuella lagliga undantag/kvarvarande kopior.
+- [ ] Beskriv sju dagar som faktisk normal tidsfrist först när rutinen fungerar. GDPR kräver hantering utan onödigt dröjsmål, normalt inom en månad ([IMY](https://www.imy.se/privatperson/dataskydd/dina-rattigheter/radering/)); tidsfristen ersätter inte själva skyldigheten.
+- [ ] Ersätt öppna utkasttexter i båda språkversionerna med verifierade uppgifter före publicering. Uppdatera igen innan automatisk Garmininsamling eller annan ny behandling införs.

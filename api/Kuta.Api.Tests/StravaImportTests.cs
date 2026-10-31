@@ -26,6 +26,36 @@ public class StravaParserTests
     }
 
     [Fact]
+    public void Shoes_match_metadata_by_label_but_keep_distinct_ids_and_fall_back_without_metadata()
+    {
+        using var csv = new MemoryStream(Encoding.UTF8.GetBytes(
+            StravaFixture.Csv(StravaFixture.Row("1", "") + ",123.0,Brand Model Custom,",
+                StravaFixture.Row("2", "") + ",g456,Brand Model Custom,",
+                StravaFixture.Row("3", "") + ",789,Brand Model,",
+                StravaFixture.Row("4", "") + ",,,42",
+                StravaFixture.Row("5", "") + ",999,,")));
+        var rows = StravaImport.ReadManifest(csv);
+        using var metadata = new MemoryStream("Shoe Name,Shoe Brand,Shoe Model\nCustom,Brand,Model\n,Brand,Model"u8.ToArray());
+        var shoes = StravaImport.ReadShoes(metadata, rows);
+        Assert.Equal(new[] { "g123", "g456", "g789", "g999" }, shoes.Select(s => s.Id));
+        Assert.Equal(new StravaShoe("g123", "Custom", "Brand"), shoes[0]);
+        Assert.Equal(new StravaShoe("g456", "Custom", "Brand"), shoes[1]);
+        Assert.Equal(new StravaShoe("g789", "Model", "Brand"), shoes[2]);
+        Assert.Equal(new StravaShoe("g999", "Strava g999", null), shoes[3]);
+        Assert.Equal("Brand Model Custom", StravaImport.ReadShoes(null, rows)[0].Name);
+    }
+
+    [Theory]
+    [InlineData("-1")]
+    [InlineData("12.5")]
+    [InlineData("NaN")]
+    public void Invalid_shoe_ids_are_rejected(string id)
+    {
+        using var csv = new MemoryStream(Encoding.UTF8.GetBytes(StravaFixture.Csv(StravaFixture.Row("1", "") + $",{id},Shoe,")));
+        Assert.Throws<InvalidDataException>(() => StravaImport.ReadManifest(csv));
+    }
+
+    [Fact]
     public void Gpx_reads_namespaced_heart_rate_and_distance_without_joining_segments()
     {
         var summary = StravaFixture.Summary();
@@ -106,6 +136,10 @@ public class StravaUploadTests(KutaFactory factory) : IClassFixture<KutaFactory>
             var result = (await response.Content.ReadFromJsonAsync<StravaImportResult>(ct))!;
             Assert.Equal(3, result.Imported);
             Assert.Equal(0, result.Duplicates);
+            Assert.Equal(1, result.EquipmentImported);
+            var shoe = Assert.Single((await client.GetFromJsonAsync<EquipmentSummary[]>("/api/equipment", ct))!);
+            Assert.Equal(("Custom", "Brand", 1800d, 600L), (shoe.Name, shoe.Brand, shoe.DistanceM, shoe.DurationS));
+            Assert.Equal((0d, 0L), (shoe.InitialDistanceM, shoe.InitialDurationS));
             Assert.Equal(new[] { "4", "5" }, result.FailedActivityIds);
             var rows = (await conn.QueryAsync<(Guid Id, string? Title, string Privacy, short? Hr, string? Key)>(
                 "select id, title, privacy, avg_hr, raw_file_key from activities where user_id = (select id from auth.users where email = @runner)", new { runner })).ToArray();
@@ -135,6 +169,22 @@ public class StravaUploadTests(KutaFactory factory) : IClassFixture<KutaFactory>
             var retry = (await (await Upload(client, archive, ct)).Content.ReadFromJsonAsync<StravaImportResult>(ct))!;
             Assert.Equal(0, retry.Imported);
             Assert.Equal(3, retry.Duplicates);
+            Assert.Equal(0, retry.EquipmentImported);
+            Assert.Equal(0, retry.EquipmentLinked);
+            // An older import can gain its shoe, even if that shoe has since been retired.
+            await conn.ExecuteAsync("delete from activity_equipment where equipment_id=@Id; update equipment set retired=true where id=@Id", new { shoe.Id });
+            var backfill = (await (await Upload(client, archive, ct)).Content.ReadFromJsonAsync<StravaImportResult>(ct))!;
+            Assert.Equal(1, backfill.EquipmentLinked);
+            Assert.Equal(0, backfill.Imported);
+            var restored = Assert.Single((await client.GetFromJsonAsync<EquipmentSummary[]>("/api/equipment", ct))!);
+            Assert.True(restored.Retired);
+            Assert.Equal((1800d, 600L), (restored.DistanceM, restored.DurationS));
+
+            await conn.ExecuteAsync("delete from activities where user_id=(select id from auth.users where email=@runner) and strava_activity_id='3'", new { runner });
+            var historical = (await (await Upload(client, archive, ct)).Content.ReadFromJsonAsync<StravaImportResult>(ct))!;
+            Assert.Equal(1, historical.Imported);
+            Assert.Equal(0, historical.EquipmentImported);
+            Assert.Equal(1800, Assert.Single((await client.GetFromJsonAsync<EquipmentSummary[]>("/api/equipment", ct))!).DistanceM);
 
             var otherClient = factory.CreateClient();
             await CreateRunner(otherClient, conn, other, ct);
@@ -215,7 +265,7 @@ static class StravaFixture
         </gpx>
         """;
     public static string Csv(params string[] rows) =>
-        "Activity ID,Activity Date,Activity Name,Activity Type,Filename,Elapsed Time,Distance,Elapsed Time,Moving Time,Distance,Average Heart Rate,Max Heart Rate,Average Speed,Elevation Gain\n" + string.Join('\n', rows);
+        "Activity ID,Activity Date,Activity Name,Activity Type,Filename,Elapsed Time,Distance,Elapsed Time,Moving Time,Distance,Average Heart Rate,Max Heart Rate,Average Speed,Elevation Gain,Gear,Activity Gear,Bike\n" + string.Join('\n', rows);
     public static string Row(string id, string path) =>
         $"{id},\"Oct 1, 2026, 6:30:00 AM\",\"Morning, run\",Run,{path},600,1.80,600.0,599.0,1800.0,150,165,3,10";
     public static ParsedActivity Summary()
@@ -235,7 +285,8 @@ static class StravaFixture
                 else entry.Write(bytes);
             }
             Write("activities.csv", Encoding.UTF8.GetBytes(Csv(Row("1", "activities/1.fit.gz"), Row("2", "activities/2.gpx.gz"),
-                Row("3", ""), Row("4", "activities/missing.gpx"), Row("5", "activities/broken.fit"))));
+                Row("3", "") + ",123.0,Brand Model Custom,", Row("4", "activities/missing.gpx"), Row("5", "activities/broken.fit"))));
+            Write("shoes.csv", "Shoe Name,Shoe Brand,Shoe Model\nCustom,Brand,Model"u8.ToArray());
             Write("activities/1.fit.gz", FitFile.Run(new DateTime(2026, 10, 1, 6, 30, 0, DateTimeKind.Utc), 600), true);
             Write("activities/2.gpx.gz", Encoding.UTF8.GetBytes(Gpx), true);
             Write("activities/broken.fit", "broken"u8.ToArray());
