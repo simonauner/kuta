@@ -1,0 +1,64 @@
+web/src/lib/activity.ts
+  s_cb71bef9c40aff::t_324a54c2091c04 2,151,166
+web/src/locales/en.json
+  s_cb71bef9c40aff::t_324a54c2091c04 32-33,50,52,55-104
+  s_cb71bef9c40aff::t_6238570777a51d 34-35
+web/src/components/sport-icon.tsx
+  s_cb71bef9c40aff::t_e685facec072b1 70
+  s_cb71bef9c40aff::t_bb7484b601257c 1-69,71-85
+api/Kuta.Api/ActivitySports.cs
+  s_cb71bef9c40aff::t_324a54c2091c04 1-81
+web/src/lib/sports.ts
+  s_cb71bef9c40aff::t_324a54c2091c04 1,59
+  s_cb71bef9c40aff::t_6238570777a51d 60-66
+  s_cb71bef9c40aff::t_1fe4c6aa7dcfc7 2-58
+api/Kuta.Api/StravaImport.cs
+  s_cb71bef9c40aff::t_324a54c2091c04 52
+web/src/routes/new-activity.tsx
+  s_cb71bef9c40aff::t_324a54c2091c04 21
+api/Kuta.Api/ActivityInput.cs
+  s_cb71bef9c40aff::t_324a54c2091c04 9
+web/src/routes/activities.tsx
+  s_cb71bef9c40aff::t_0344a7dde793aa 137-152
+  s_cb71bef9c40aff::t_6238570777a51d 162
+  s_cb71bef9c40aff::t_a411e07fb50e14 1-2,40,50,56,161,163,192,194-203
+api/Kuta.Api/BestEfforts.cs
+  s_cb71bef9c40aff::t_324a54c2091c04 11
+web/src/routes/activity.tsx
+  s_cb71bef9c40aff::t_0344a7dde793aa 1-2,104
+  s_cb71bef9c40aff::t_3bd1be05fb7a4a 123,127-131
+README.md
+  s_cb71bef9c40aff::t_e685facec072b1 157-159
+  s_cb71bef9c40aff::t_7153b10acf81c0 160-161,206-207
+web/src/locales/sv.json
+  s_cb71bef9c40aff::t_6238570777a51d 34-35
+  s_cb71bef9c40aff::t_324a54c2091c04 32-33,50,52-53,55-104
+api/Kuta.Api.Tests/ActivityInputTests.cs
+  s_cb71bef9c40aff::t_86a850bc6d9478 25
+api/Kuta.Api.Tests/ActivityListTests.cs
+  s_cb71bef9c40aff::t_38e074aa5da759 176-208
+api/Kuta.Api.Tests/StravaImportTests.cs
+  s_cb71bef9c40aff::t_27b808b7ec8277 15-48
+api/Kuta.Api/ActivityEndpoints.cs
+  s_cb71bef9c40aff::t_280b2124decd7d 46,55-56,62
+api/Kuta.Api/ActivityList.cs
+  s_cb71bef9c40aff::t_f7d60a8a5801ed 24,32-33,38,46,52,66
+web/tests/activity.test.mjs
+  s_cb71bef9c40aff::t_52d1977a2c08f8 75-78
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.7.5",
+  "base_commit_sha": "b7605003b0f9297092473270d41cf7936806be3a",
+  "prompts": {},
+  "sessions": {
+    "s_cb71bef9c40aff": {
+      "agent_id": {
+        "tool": "codex",
+        "id": "01a18fad-4033-7fd2-a7ad-b411535e756f",
+        "model": "gpt-6.1-sol"
+      },
+      "human_author": "Simon Aunér <simonauner@gmail.com>"
+    }
+  }
+}
