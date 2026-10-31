@@ -14,7 +14,7 @@ public record ActivitySummary(
 public record ActivityDetail(
     Guid Id, string Sport, string? Title, System.DateTime StartedAt, int DurationS, int? MovingS, double DistanceM,
     short? AvgHr, short? MaxHr, float? AvgSpeedMps, float? ElevationGainM, string? Device, ActivityStreams? Streams,
-    IEnumerable<ActivityLap> Laps, string[] Tags, Guid[] EquipmentIds);
+    IEnumerable<ActivityLap> Laps, string[] Tags, Guid[] EquipmentIds, string? Description);
 
 // Det som formuläret förifylls med från en FIT-fil
 public record ActivityPreview(
@@ -30,7 +30,7 @@ public record ActivityLap(
     short LapIndex, int StartS, int DurationS, int? MovingS, double DistanceM, short? AvgHr, short? MaxHr,
     float? AscentM, float? DescentM, short? AvgCadence);
 
-public record ActivityUpdateRequest(string? Title, string[] Tags, Guid[] EquipmentIds);
+public record ActivityUpdateRequest(string? Title, string? Description, string[] Tags, Guid[] EquipmentIds);
 
 public static class ActivityEndpoints
 {
@@ -81,7 +81,7 @@ public static class ActivityEndpoints
                 select a.id, a.sport, a.title, a.started_at, a.duration_s, a.moving_s, a.distance_m, a.avg_hr, a.max_hr,
                        a.avg_speed_mps, a.elevation_gain_m, a.device, s.t, s.dist, s.hr, s.speed, s.alt, s.lat, s.lon,
                        s.cadence, s.temp, a.tags,
-                       array(select equipment_id from activity_equipment where activity_id = a.id order by equipment_id) as equipment_ids
+                       array(select equipment_id from activity_equipment where activity_id = a.id order by equipment_id) as equipment_ids, a.description
                 from activities a left join activity_streams s on s.activity_id = a.id
                 where a.id = @id and a.user_id = @userId
                 """, conn);
@@ -102,7 +102,7 @@ public static class ActivityEndpoints
                     reader.GetGuid(0), reader.GetString(1), Value<string>(2),
                     System.DateTime.SpecifyKind(reader.GetDateTime(3), DateTimeKind.Utc), reader.GetInt32(4),
                     Value<int?>(5), reader.GetDouble(6), Value<short?>(7), Value<short?>(8), Value<float?>(9),
-                    Value<float?>(10), Value<string>(11), streams, [], reader.GetFieldValue<string[]>(21), reader.GetFieldValue<Guid[]>(22));
+                    Value<float?>(10), Value<string>(11), streams, [], reader.GetFieldValue<string[]>(21), reader.GetFieldValue<Guid[]>(22), Value<string>(23));
             }
             var laps = await conn.QueryAsync<ActivityLap>(
                 """
@@ -147,13 +147,14 @@ public static class ActivityEndpoints
             NpgsqlDataSource db, RawFileStore store, ClaimsPrincipal user, CancellationToken cancellationToken) =>
         {
             var tags = form["tags"].Select(tag => tag!).ToArray();
+            string? description = form["description"];
             var equipmentIds = new List<Guid>();
             foreach (var value in form["equipmentIds"])
             {
                 if (!Guid.TryParse(value, out var equipmentId)) return Results.BadRequest(EquipmentEndpoints.InvalidEquipment);
                 equipmentIds.Add(equipmentId);
             }
-            if ((ActivityInput.ValidateTitle(title) ?? ActivityInput.ValidateSport(sport) ?? ActivityInput.ValidateTags(tags)) is { } invalid)
+            if ((ActivityInput.ValidateTitle(title) ?? ActivityInput.ValidateDescription(description) ?? ActivityInput.ValidateSport(sport) ?? ActivityInput.ValidateTags(tags)) is { } invalid)
                 return Results.BadRequest(invalid);
             var userId = user.GetUserId();
             await using var conn = await db.OpenConnectionAsync(cancellationToken);
@@ -167,7 +168,7 @@ public static class ActivityEndpoints
             try
             {
                 id = await ActivityStorage.SaveAsync(conn, store, userId, parsed, "fit", title, null, bytes, ".fit",
-                    cancellationToken, tags, equipmentIds.ToArray());
+                    cancellationToken, tags, equipmentIds.ToArray(), description);
             }
             catch (InvalidEquipmentException)
             {
@@ -190,7 +191,7 @@ public static class ActivityEndpoints
             NpgsqlDataSource db, ClaimsPrincipal user) =>
         {
             if (req.Tags is null) return Results.BadRequest(new ApiError("Välj giltiga taggar.", "invalidTags"));
-            if ((ActivityInput.ValidateTitle(req.Title) ?? ActivityInput.ValidateTags(req.Tags)) is { } invalid) return Results.BadRequest(invalid);
+            if ((ActivityInput.ValidateTitle(req.Title) ?? ActivityInput.ValidateDescription(req.Description) ?? ActivityInput.ValidateTags(req.Tags)) is { } invalid) return Results.BadRequest(invalid);
             if (req.EquipmentIds is null) return Results.BadRequest(EquipmentEndpoints.InvalidEquipment);
             await using var conn = await db.OpenConnectionAsync();
             await using var tx = await conn.BeginTransactionAsync();
@@ -202,8 +203,8 @@ public static class ActivityEndpoints
             await conn.ExecuteAsync("delete from activity_equipment where activity_id = @id and user_id = @userId",
                 new { id, userId }, tx);
             await EquipmentEndpoints.AttachAsync(conn, tx, id, userId, req.EquipmentIds);
-            await conn.ExecuteAsync("update activities set title = @title, tags = @tags where id = @id and user_id = @userId",
-                new { id, userId, title = ActivityInput.NormalizeTitle(req.Title), tags = ActivityInput.NormalizeTags(req.Tags) }, tx);
+            await conn.ExecuteAsync("update activities set title = @title, description = @description, tags = @tags where id = @id and user_id = @userId",
+                new { id, userId, title = ActivityInput.NormalizeTitle(req.Title), description = ActivityInput.NormalizeDescription(req.Description), tags = ActivityInput.NormalizeTags(req.Tags) }, tx);
             await tx.CommitAsync();
             return Results.NoContent();
         });

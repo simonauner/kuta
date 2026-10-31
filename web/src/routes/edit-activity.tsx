@@ -36,6 +36,7 @@ function EditActivityForm({ activity }: { activity: ActivityDetail }) {
   const navigate = useNavigate()
   const queryClient = useQueryClient()
   const [title, setTitle] = useState(activity.title ?? '')
+  const [description, setDescription] = useState(activity.description ?? '')
   const [tags, setTags] = useState(activity.tags)
   const [equipmentIds, setEquipmentIds] = useState(activity.equipmentIds)
   const destination = {
@@ -45,7 +46,7 @@ function EditActivityForm({ activity }: { activity: ActivityDetail }) {
   }
   const save = useMutation({
     mutationFn: () =>
-      api.send('PUT', `/api/activities/${activity.id}`, { title, tags, equipmentIds }),
+      api.send('PUT', `/api/activities/${activity.id}`, { title, description, tags, equipmentIds }),
     onSuccess: async () => {
       await Promise.all([
         queryClient.invalidateQueries({ queryKey: activityQuery(activity.id).queryKey }),
@@ -76,6 +77,17 @@ function EditActivityForm({ activity }: { activity: ActivityDetail }) {
             placeholder={activityTitle({ ...activity, title: null }, t)}
             onChange={(event) => setTitle(event.currentTarget.value)}
             disabled={save.isPending}
+          />
+        </label>
+        <label className="block space-y-2 text-sm font-medium">
+          <span>{t('newActivity.description')}</span>
+          <textarea
+            value={description}
+            maxLength={10000}
+            rows={3}
+            onChange={(event) => setDescription(event.currentTarget.value)}
+            disabled={save.isPending}
+            className="w-full rounded-md border border-input bg-transparent px-3 py-2 text-base shadow-xs outline-none focus-visible:border-ring focus-visible:ring-[3px] focus-visible:ring-ring/50 md:text-sm dark:bg-input/30"
           />
         </label>
         <EquipmentPicker

@@ -93,17 +93,19 @@ public class EquipmentTests(KutaFactory factory) : IClassFixture<KutaFactory>
                 new { title = activity.Title, equipmentIds = new[] { gear.Id }, tags = Array.Empty<string>() }, ct)).StatusCode);
             var otherGear = await AddEquipment(conn, otherId, "Private shoe", 0, 0);
             Assert.Equal(HttpStatusCode.BadRequest, (await owner.PutAsJsonAsync($"/api/activities/{activity.Id}",
-                new { title = "Rejected title", equipmentIds = new[] { otherGear }, tags = new[] { "race" } }, ct)).StatusCode);
+                new { title = "Rejected title", description = "Rejected description", equipmentIds = new[] { otherGear }, tags = new[] { "race" } }, ct)).StatusCode);
             var unchanged = (await owner.GetFromJsonAsync<ActivityDetail>($"/api/activities/{activity.Id}", ct))!;
             Assert.Equal(gear.Id, Assert.Single(unchanged.EquipmentIds));
             Assert.Empty(unchanged.Tags);
             Assert.Equal(activity.Title, unchanged.Title);
+            Assert.Null(unchanged.Description);
             Assert.Equal(HttpStatusCode.NoContent, (await owner.PutAsJsonAsync($"/api/activities/{activity.Id}",
                 new { title = activity.Title, equipmentIds = new[] { gear.Id }, tags = Array.Empty<string>() }, ct)).StatusCode);
             Assert.Equal(HttpStatusCode.NoContent, (await owner.PutAsJsonAsync($"/api/activities/{activity.Id}",
-                new { title = "  Renamed run  ", equipmentIds = Array.Empty<Guid>(), tags = new[] { "race" } }, ct)).StatusCode);
+                new { title = "  Renamed run  ", description = "  First line\nSecond line  ", equipmentIds = Array.Empty<Guid>(), tags = new[] { "race" } }, ct)).StatusCode);
             var updated = (await owner.GetFromJsonAsync<ActivityDetail>($"/api/activities/{activity.Id}", ct))!;
             Assert.Equal("Renamed run", updated.Title);
+            Assert.Equal("First line\nSecond line", updated.Description);
             Assert.Empty(updated.EquipmentIds);
             Assert.Equal(new[] { "race" }, updated.Tags);
 

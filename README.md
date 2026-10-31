@@ -157,14 +157,14 @@ Alla anrop kräver inloggning; skrivningar kräver `X-CSRF-TOKEN`:
 | `DELETE /api/equipment/{id}` | Raderar egen utrustning och dess kopplingar, men behåller passen. |
 | `GET /api/equipment/kinds` | Tillåtna typer. |
 | `POST /api/equipment` | Skapar utrustning med `name`, `kind`, valfritt `brand`, `initialDistanceM` och `initialDurationS`. Båda startvärdena är 0 om de utelämnas. |
-| `PUT /api/activities/{id}` | Sparar titel, taggar och utrustning tillsammans med `{"title":"Morgonpass","tags":["race"],"equipmentIds":["uuid"]}`; tomma listor tar bort respektive val. Annans eller okänt pass ger 404. |
+| `PUT /api/activities/{id}` | Sparar titel, beskrivning, taggar och utrustning tillsammans med `{"title":"Morgonpass","description":null,"tags":["race"],"equipmentIds":["uuid"]}`; tomma listor tar bort respektive val. Annans eller okänt pass ger 404. |
 
 Vid skapande av pass skickas `equipmentIds` som JSON-array (manuellt) eller
 upprepade formulärfält (FIT). Okänd eller annans utrustning avvisas utan att
 passet eller kopplingarna ändras. API:t använder SI-enheter; webben visar kilometer.
 
 Passsidan visar bara kopplad utrustning och valda taggar. Knappen Redigera aktivitet
-öppnar `/app/activities/$activityId/edit`, där titel, taggar och utrustning ändras med gemensamma Spara och
+öppnar `/app/activities/$activityId/edit`, där titel, beskrivning, taggar och utrustning ändras med gemensamma Spara och
 Avbryt. Spara uppdaterar allt i samma transaktion; Avbryt lämnar passet oförändrat.
 
 ## Taggar på aktiviteter
@@ -183,8 +183,8 @@ i vardera `tagNames` i svenska och engelska språkfilen, ingen ny migrering.
 
 Alla anrop kräver inloggning och gäller bara egna pass. Skapande tar `tags` som
 JSON-array för manuella pass eller upprepade formulärfält för FIT. Ändra med
-`PUT /api/activities/{id}` med `title`, `tags` och `equipmentIds`, exempelvis
-`{"title":"Morgonpass","tags":["race","workout"],"equipmentIds":[]}`; tom array
+`PUT /api/activities/{id}` med `title`, `description`, `tags` och `equipmentIds`, exempelvis
+`{"title":"Morgonpass","description":null,"tags":["race","workout"],"equipmentIds":[]}`; tom array
 tar bort alla taggar. Skrivningar kräver `X-CSRF-TOKEN`.
 `GET /api/activities?tag=race` filtrerar före sidindelningen på 25 pass. Sidmarkörer och periodrubriker gäller det filtrerade urvalet.
 `GET /api/records?tag=race&year=2026` ger bästa insatsen per distans i lopp under
@@ -226,11 +226,17 @@ Beräkningstesterna jämför också med en uttömmande referensberäkning på or
 strömmar. Integrationstesterna använder syntetiska FIT-filer skapade med Garmins SDK
 och kontrollerar import, omberäkning, årsskifte, kaskadradering, CSRF och ägarskap.
 
+Aktiviteter kan ha en valfri beskrivning på högst 10 000 tecken. `description`
+skickas i JSON för manuella pass och som formulärfält vid FIT-uppladdning.
+Tom text sparas som null. Beskrivningen behålls när en FIT-fil väljs i formuläret
+och visas som vanlig text med radbrytningar på passsidan. Migrering 012 lägger
+till fältet; redan importerade dubbletter hoppas fortfarande över vid Strava-import.
+
 ## Importera en Strava-export
 
 Öppna **Profil → Inställningar** via kugghjulet. Under **Importera från Strava** väljer du Stravas kompletta ZIP-export (högst 500 MB) och trycker **Importera pass**. Ta ställning till pulssamtycket först. Under importen visas antal bearbetade pass och löpande räknare för importerade, dubbletter och misslyckade. Låt sidan vara öppen medan importen körs; stora arkiv kan ta flera minuter. Exporten måste innehålla `activities.csv` i roten och filerna på sökvägarna i kolumnen `Filename`.
 
-Importen behåller passnamn, sport, starttid (UTC), distans i meter, tid och tillgängliga sammanfattningar från CSV. FIT och GPX, inklusive `.fit.gz` och `.gpx.gz`, ger tidsserier och rutter. Pass utan aktivitetsfil får en sammanfattning utan rutt. GPX-avstånd beräknas från GPS-punkterna; CSV-distansen behålls i sammanfattningen, så de kan skilja sig. Foton, kontakter, privata anteckningar och cyklar importeras inte. Detta använder användarens arkiv, utan anslutning till Stravas API.
+Importen behåller passnamn, beskrivning (kolumnen `Activity Description`), sport, starttid (UTC), distans i meter, tid och tillgängliga sammanfattningar från CSV. FIT och GPX, inklusive `.fit.gz` och `.gpx.gz`, ger tidsserier och rutter. Pass utan aktivitetsfil får en sammanfattning utan rutt. GPX-avstånd beräknas från GPS-punkterna; CSV-distansen behålls i sammanfattningen, så de kan skilja sig. Foton, kontakter, privata anteckningar och cyklar importeras inte. Detta använder användarens arkiv, utan anslutning till Stravas API.
 
 Alla importerade pass är privata. Puls och de enskilda råfilerna sparas bara med samtycke; ZIP-arkivet sparas inte som råfil. Återkallat samtycke raderar puls och råfiler även från importerade pass. Importen fyller inte på puls i redan importerade pass: ta bort och importera dem igen om de först laddades upp utan samtycke.
 

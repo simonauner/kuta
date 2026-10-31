@@ -32,6 +32,7 @@
     "hrNotSaved": "Heart rate is not saved. Change this before uploading in"
   },
   "newActivity": {
+    "description": "Description (optional)",
     "title": "Create activity",
     "upload": "Upload file",
     "file": "FIT file from your watch",
@@ -168,6 +169,7 @@
     "duplicateActivity": "This activity has already been uploaded.",
     "invalidRecordYear": "Enter a year between 1 and 9998.",
     "invalidFit": "The file could not be read as an activity from a FIT file.",
+    "invalidDescription": "The description can be at most 10,000 characters.",
     "invalidTitle": "The title can be at most 100 characters.",
     "invalidActivity": "Check the sport, date, time and distance.",
     "passwordTooShort": "Use at least 8 characters in your password.",

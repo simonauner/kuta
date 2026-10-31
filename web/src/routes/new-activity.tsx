@@ -39,7 +39,7 @@ const knownSport = (sport: string) =>
   (sportOptions as readonly string[]).includes(sport) ? sport : 'other'
 
 // Ett pass skapas antingen helt manuellt eller från en FIT-fil som fyller i fälten. Från en fil går titel,
-// sport och sko att ändra: mätvärdena hör ihop med tidsserierna (karta, diagram, splits, rekord).
+// beskrivning, sport och sko att ändra: mätvärdena hör ihop med tidsserierna (karta, diagram, splits, rekord).
 export function NewActivityPage() {
   const { t, i18n } = useTranslation()
   const navigate = useNavigate()
@@ -80,6 +80,7 @@ export function NewActivityPage() {
   const [file, setFile] = useState<File | null>(null)
   const [tags, setTags] = useState<ActivityTag[]>([])
   const [title, setTitle] = useState('')
+  const [description, setDescription] = useState('')
   const [sport, setSport] = useState<string | null>(null) // null = som filen (eller löpning)
   const [initialStartedAt] = useState(() => toDateTimeLocal(new Date()))
   const [startedAt, setStartedAt] = useState(initialStartedAt)
@@ -109,6 +110,7 @@ export function NewActivityPage() {
         const form = new FormData()
         form.append('file', file)
         form.append('title', title)
+        form.append('description', description)
         if (shoeId) form.append('equipmentIds', shoeId)
         tags.forEach((tag) => form.append('tags', tag))
         if (sport) form.append('sport', sport)
@@ -119,6 +121,7 @@ export function NewActivityPage() {
         tags,
         sport: selectedSport,
         title,
+        description,
         startedAt: new Date(startedAt).toISOString(),
         durationS: parseDuration(duration),
         distanceM: Math.round(Number(distanceKm) * 1000),
@@ -145,7 +148,7 @@ export function NewActivityPage() {
     save.mutate()
   }
 
-  // Ifyllda fält som filen skriver över; titeln behålls och varnas inte för. Startfältet räknas bara om det ändrats.
+  // Ifyllda fält som filen skriver över; titel och beskrivning behålls och varnas inte för. Startfältet räknas bara om det ändrats.
   const overwritten = [
     sport !== null && t('newActivity.sport'),
     startedAt !== initialStartedAt && t('newActivity.startedAt'),
@@ -218,6 +221,18 @@ export function NewActivityPage() {
                 maxLength={100}
                 placeholder={titlePlaceholder}
                 onChange={(e) => setTitle(e.currentTarget.value)}
+              />
+            )}
+          </Field>
+          <Field label={t('newActivity.description')} className="col-span-2">
+            {(id) => (
+              <textarea
+                id={id}
+                value={description}
+                maxLength={10000}
+                rows={3}
+                onChange={(e) => setDescription(e.currentTarget.value)}
+                className="w-full rounded-md border border-input bg-transparent px-3 py-2 text-base shadow-xs outline-none focus-visible:border-ring focus-visible:ring-[3px] focus-visible:ring-ring/50 md:text-sm dark:bg-input/30"
               />
             )}
           </Field>

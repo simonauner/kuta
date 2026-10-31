@@ -26,6 +26,26 @@ public class StravaParserTests
     }
 
     [Fact]
+    public void Csv_reads_multiline_description_without_private_notes_and_allows_missing_column()
+    {
+        var text = StravaFixture.Csv(StravaFixture.Row("1", "") + ",,,,\"First, \"\"run\"\"\nSecond\",secret")
+            .Replace("Activity Description\n", "Activity Description,Private Notes\n");
+        using var csv = new MemoryStream(Encoding.UTF8.GetBytes(text));
+        Assert.Equal("First, \"run\"\nSecond", Assert.Single(StravaImport.ReadManifest(csv)).Description);
+        using var missing = new MemoryStream(Encoding.UTF8.GetBytes(StravaFixture.Csv(StravaFixture.Row("2", ""))
+            .Replace(",Activity Description", "")));
+        Assert.Null(Assert.Single(StravaImport.ReadManifest(missing)).Description);
+    }
+
+    [Fact]
+    public void Csv_rejects_oversized_descriptions()
+    {
+        using var csv = new MemoryStream(Encoding.UTF8.GetBytes(
+            StravaFixture.Csv(StravaFixture.Row("1", "") + ",,,," + new string('a', 10001))));
+        Assert.Throws<InvalidDataException>(() => StravaImport.ReadManifest(csv));
+    }
+
+    [Fact]
     public void Shoes_match_metadata_by_label_but_keep_distinct_ids_and_fall_back_without_metadata()
     {
         using var csv = new MemoryStream(Encoding.UTF8.GetBytes(
@@ -192,6 +212,10 @@ public class StravaUploadTests(KutaFactory factory) : IClassFixture<KutaFactory>
             var details = await conn.QuerySingleAsync<(string Device, short Cadence, short Temp)>(
                 "select a.device, s.cadence[1], s.temp[1] from activities a join activity_streams s on s.activity_id=a.id where a.id=@fitId", new { fitId });
             Assert.Equal(("Garmin Fenix 5s", (short)170, (short)18), details);
+            Assert.Equal("Strava description\nSecond line", (await client.GetFromJsonAsync<ActivityDetail>($"/api/activities/{fitId}", ct))!.Description);
+            Assert.Equal(3, await conn.ExecuteScalarAsync<int>(
+                "select count(*) from activities where user_id=(select id from auth.users where email=@runner) and description=@description",
+                new { runner, description = "Strava description\nSecond line" }));
             var laps = await conn.QuerySingleAsync<(int Count, int WithHr)>(
                 "select count(*)::int, count(avg_hr)::int from activity_laps where activity_id=@fitId", new { fitId });
             Assert.Equal((10, 0), laps);
@@ -335,7 +359,7 @@ static class StravaFixture
         </gpx>
         """;
     public static string Csv(params string[] rows) =>
-        "Activity ID,Activity Date,Activity Name,Activity Type,Filename,Elapsed Time,Distance,Elapsed Time,Moving Time,Distance,Average Heart Rate,Max Heart Rate,Average Speed,Elevation Gain,Gear,Activity Gear,Bike\n" + string.Join('\n', rows);
+        "Activity ID,Activity Date,Activity Name,Activity Type,Filename,Elapsed Time,Distance,Elapsed Time,Moving Time,Distance,Average Heart Rate,Max Heart Rate,Average Speed,Elevation Gain,Gear,Activity Gear,Bike,Activity Description\n" + string.Join('\n', rows);
     public static string Row(string id, string path) =>
         $"{id},\"Oct 1, 2026, 6:30:00 AM\",\"Morning, run\",Run,{path},600,1.80,600.0,599.0,1800.0,150,165,3,10";
     public static ParsedActivity Summary()
@@ -354,8 +378,9 @@ static class StravaFixture
                 if (gzip) { using var gz = new GZipStream(entry, CompressionLevel.Fastest); gz.Write(bytes); }
                 else entry.Write(bytes);
             }
-            Write("activities.csv", Encoding.UTF8.GetBytes(Csv(Row("1", "activities/1.fit.gz"), Row("2", "activities/2.gpx.gz"),
-                Row("3", "") + ",123.0,Brand Model Custom,", Row("4", "activities/missing.gpx"), Row("5", "activities/broken.fit"))));
+            Write("activities.csv", Encoding.UTF8.GetBytes(Csv(Row("1", "activities/1.fit.gz") + ",,,,\"Strava description\nSecond line\"",
+                Row("2", "activities/2.gpx.gz") + ",,,,\"Strava description\nSecond line\"",
+                Row("3", "") + ",123.0,Brand Model Custom,,\"Strava description\nSecond line\"", Row("4", "activities/missing.gpx"), Row("5", "activities/broken.fit"))));
             Write("shoes.csv", "Shoe Name,Shoe Brand,Shoe Model\nCustom,Brand,Model"u8.ToArray());
             Write("activities/1.fit.gz", FitFile.Run(new DateTime(2026, 10, 1, 6, 30, 0, DateTimeKind.Utc), 600), true);
             Write("activities/2.gpx.gz", Encoding.UTF8.GetBytes(Gpx), true);
