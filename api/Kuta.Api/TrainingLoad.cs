@@ -18,15 +18,28 @@ public static class TrainingLoad
     const int WindowS = 30;
     const int GapS = 10;
 
-    // ∫ v² dt (m²/s) som Σ Δd²/Δt per avsnitt. Trasiga värden och återställd tid eller distans bryter strömmen.
-    public static double Intensity(int[] t, float?[]? dist)
+    // Minettis energikostnad för löpning (J/kg/m) som funktion av lutningen, uppmätt mellan −45 % och +45 %.
+    // Kvoten mot plan mark (3,6) gör farten lutningsjusterad: uppför kostar mer, svag nedförslutning mindre.
+    public static double GradeFactor(double grade)
+    {
+        var i = Math.Clamp(grade, -0.45, 0.45);
+        return ((((155.4 * i - 30.4) * i - 43.3) * i + 46.3) * i + 19.5) * i / 3.6 + 1;
+    }
+
+    // ∫ v² dt (m²/s) som Σ (Δd · f)²/Δt per avsnitt, där f är avsnittets lutningsfaktor ur höjdströmmen.
+    // Trasiga värden och återställd tid eller distans bryter strömmen; saknad höjd ger bara plan mark.
+    public static double Intensity(int[] t, float?[]? dist, float?[]? alt = null)
     {
         if (dist is null || dist.Length != t.Length) return 0;
+        if (alt?.Length != t.Length) alt = null;
         double sum = 0;
-        (int T, double D)? start = null, previous = null;
-        void Add((int T, double D) a, (int T, double D) b)
+        (int T, double D, float? A)? start = null, previous = null;
+        void Add((int T, double D, float? A) a, (int T, double D, float? A) b)
         {
-            if (b.T > a.T) sum += (b.D - a.D) * (b.D - a.D) / (b.T - a.T);
+            if (b.T <= a.T) return;
+            var d = b.D - a.D;
+            if (d > 0 && a.A is { } from && b.A is { } to) d *= GradeFactor((to - from) / d);
+            sum += d * d / (b.T - a.T);
         }
         for (var i = 0; i < t.Length; i++)
         {
@@ -37,7 +50,7 @@ public static class TrainingLoad
                 start = previous = null;
                 if (!valid) continue;
             }
-            var point = (T: t[i], D: (double)dist[i]!.Value);
+            var point = (T: t[i], D: (double)dist[i]!.Value, A: alt?[i] is { } a && float.IsFinite(a) ? a : (float?)null);
             if (previous is { } last && point.T - last.T > GapS)
             {
                 Add(start!.Value, last);
@@ -57,14 +70,14 @@ public static class TrainingLoad
     }
 
     // Löpning i ett vanligt pass, annars bara multisportpassets löpdelar.
-    public static double RunIntensity(string sport, int[] t, float?[]? dist, ActivityPart[]? parts) =>
+    public static double RunIntensity(string sport, int[] t, float?[]? dist, float?[]? alt, ActivityPart[]? parts) =>
         parts is { Length: > 0 }
             ? parts.Where(p => ActivitySports.IsRunning(p.Sport)).Sum(p =>
             {
-                var leg = Multisport.Slice(t, dist, p);
-                return Intensity(leg.T, leg.Dist);
+                var leg = Multisport.Slice(t, dist, p, alt);
+                return Intensity(leg.T, leg.Dist, leg.Alt);
             })
-            : ActivitySports.IsRunning(sport) ? Intensity(t, dist) : 0;
+            : ActivitySports.IsRunning(sport) ? Intensity(t, dist, alt) : 0;
 
     // rTSS = timmar × (v / vT)² × 100 = ∫ v² dt / vT² / 36.
     public static double Load(double intensity, double thresholdSpeed) => intensity / (thresholdSpeed * thresholdSpeed) / 36;

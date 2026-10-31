@@ -27,21 +27,9 @@ public static class BestEffortEndpoints
             var activity = await conn.QuerySingleOrDefaultAsync<EffortActivity>(
                 "select sport, started_at from activities where id = @id and user_id = @userId for update", new { id, userId }, tx);
             if (activity is null) return Results.NotFound();
-            int[] t = [];
-            float?[]? dist = null;
-            // Read nullable array elements explicitly; Dapper sees PostgreSQL arrays as System.Array.
-            await using (var command = new NpgsqlCommand("select t, dist from activity_streams where activity_id = @id", conn, tx))
-            {
-                command.Parameters.AddWithValue("id", id);
-                await using var reader = await command.ExecuteReaderAsync();
-                if (await reader.ReadAsync())
-                {
-                    t = reader.GetFieldValue<int[]>(0);
-                    dist = reader.IsDBNull(1) ? null : reader.GetFieldValue<float?[]>(1);
-                }
-            }
+            var (t, dist, alt) = await Multisport.ReadStreamAsync(conn, tx, id);
             await BestEfforts.ReplaceAsync(conn, tx, id, userId, activity.Sport, activity.StartedAt,
-                t, dist, await Multisport.LoadAsync(conn, id, tx));
+                t, dist, alt, await Multisport.LoadAsync(conn, id, tx));
             await tx.CommitAsync();
             return Results.NoContent();
         });
