@@ -1,0 +1,97 @@
+api/Kuta.Api/SocialEndpoints.cs
+  s_e62aba47c8eb30::t_5e7548248f69c9 1-7,9-101,103-114,116-117,121,139-140
+  s_e62aba47c8eb30::t_f1fd58a4d6900c 8,102,115,118-120,122-138
+api/Kuta.Api/Migrations/014_followers.sql
+  s_e62aba47c8eb30::t_5e7548248f69c9 1-11
+README.md
+  s_e62aba47c8eb30::t_e67cf6bc059a8c 38-41,65
+  s_e62aba47c8eb30::t_2b2d855ab9fdb7 75-76,228
+  s_e62aba47c8eb30::t_028f04e7eb6dbd 17
+  s_e62aba47c8eb30::t_a1fcc5169a68fb 51-57,66-67,77-78
+  s_e62aba47c8eb30::t_7ec77d93dd22d4 27-37,42-50,58-64,68-74,79-91
+web/src/locales/en.json
+  s_e62aba47c8eb30::t_a1fcc5169a68fb 409-410
+  s_e62aba47c8eb30::t_d4db8029f7f425 257-258,281-282,343-344,391-408,411-417
+web/src/locales/sv.json
+  s_e62aba47c8eb30::t_a1fcc5169a68fb 409-410
+  s_e62aba47c8eb30::t_bdfb6345e58e46 257-258,281-282,343-344,391-408,411-417
+api/Kuta.Api/BestEffortEndpoints.cs
+  s_e62aba47c8eb30::t_5e7548248f69c9 17,22
+api/Kuta.Api.Tests/SocialTests.cs
+  s_e62aba47c8eb30::t_e67cf6bc059a8c 42-45,131,135-138,156-157,181-182,222-223
+  s_e62aba47c8eb30::t_efb5846ec2c0a6 169
+  s_e62aba47c8eb30::t_fa57929347e84c 1-41,46-54,96-114,116-124,126,139-154,158-168,170-180,183-202,204-209,212-215,217-220,224-230
+  s_e62aba47c8eb30::t_a4672a4a695827 55-95,115,155
+  s_e62aba47c8eb30::t_ab6d8081b8d627 125,127-130,132-134,203,210-211,216,221
+web/privacy.html
+  s_e62aba47c8eb30::t_c6f480efcf6a0b 139-145,358-365
+  s_e62aba47c8eb30::t_a1fcc5169a68fb 137-138,356-357
+  s_e62aba47c8eb30::t_ab2626e2241e82 135-136,354-355
+web/src/routes/equipment.tsx
+  s_e62aba47c8eb30::t_028f04e7eb6dbd 25
+  s_e62aba47c8eb30::t_8bd0737a9c8b3f 26-30
+api/Kuta.Api/Program.cs
+  s_e62aba47c8eb30::t_5e7548248f69c9 234
+  s_e62aba47c8eb30::t_aa607c9dff1075 119,241
+AGENTS.md
+  s_e62aba47c8eb30::t_2b2d855ab9fdb7 32,104
+  s_e62aba47c8eb30::t_028f04e7eb6dbd 63,108
+  s_e62aba47c8eb30::t_8aaec42561dae2 55,74-75,105
+web/src/routes/followers.tsx
+  s_e62aba47c8eb30::t_028f04e7eb6dbd 81-87,90-93,95
+  s_e62aba47c8eb30::t_af075560800536 38-42,111-136
+  s_e62aba47c8eb30::t_c06bdc9f7b830f 1-37,43-80,88-89,94,96-110,137-146
+api/Kuta.Api/ActivityEndpoints.cs
+  s_e62aba47c8eb30::t_689d6aa0c43b90 131
+  s_e62aba47c8eb30::t_5e7548248f69c9 18,34,91,98,102-104,123,130,132-136,227-228,248-249
+api/Kuta.Api.Tests/SecurityHeadersTests.cs
+  s_e62aba47c8eb30::t_7c8b6a7a857e34 15
+api/Kuta.Api.Tests/WebRoutingTests.cs
+  s_e62aba47c8eb30::t_10816afab8832b 29,36
+web/src/components/activity-feed.tsx
+  s_e62aba47c8eb30::t_94595fd26a6735 1-105
+web/src/components/activity-map-preview.tsx
+  s_e62aba47c8eb30::t_c9bbd655459a52 1-43
+web/src/components/activity-map.tsx
+  s_e62aba47c8eb30::t_213f827c82ff85 18,22,40-41,43,58-64,74,81-85
+web/src/components/equipment.tsx
+  s_e62aba47c8eb30::t_c8f4a168eac8d9 380-381
+web/src/lib/activity.ts
+  s_e62aba47c8eb30::t_b61f8bc54988c6 124-126
+web/src/lib/route-preview.ts
+  s_e62aba47c8eb30::t_1c84a4e1d7dd68 1-11
+web/src/router.tsx
+  s_e62aba47c8eb30::t_d634f8f64d019a 10,14,67-72,79-84,87,99,102
+web/src/routes/activity.tsx
+  s_e62aba47c8eb30::t_d71c9762d75bca 13,45,176-185,198-208,210-214
+web/src/routes/edit-activity.tsx
+  s_e62aba47c8eb30::t_c046fb56bf74c2 12,21,34,47,57,69,109-124
+web/src/routes/feed.tsx
+  s_e62aba47c8eb30::t_543956a26b57c7 2-3,7,9
+web/src/routes/profile.tsx
+  s_e62aba47c8eb30::t_2994890e02c242 1,3,6-7,13-18,21-22,26-41,43-62
+web/src/routes/runner.tsx
+  s_e62aba47c8eb30::t_2db5217c0285b5 1-93
+web/src/routes/settings.tsx
+  s_e62aba47c8eb30::t_b85503d60d92e1 46-61
+web/tests/route-preview.test.mjs
+  s_e62aba47c8eb30::t_ddff9f32d5f444 1-22
+web/vite.config.ts
+  s_e62aba47c8eb30::t_7a4b9a852c0a79 79
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.7.5",
+  "base_commit_sha": "01110db521846c6a0f779c921974e1d8463a0527",
+  "prompts": {},
+  "sessions": {
+    "s_e62aba47c8eb30": {
+      "agent_id": {
+        "tool": "codex",
+        "id": "01a190aa-3f96-7643-bc96-975f5a5fb251",
+        "model": "gpt-6.1-sol"
+      },
+      "human_author": "Simon Aunér <simonauner@gmail.com>"
+    }
+  }
+}
