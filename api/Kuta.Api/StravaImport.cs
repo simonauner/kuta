@@ -5,7 +5,7 @@ using System.Xml.Linq;
 using Microsoft.VisualBasic.FileIO;
 
 public sealed record StravaActivity(string Id, string? Title, string Filename, ParsedActivity Summary,
-    string? GearId = null, string? GearName = null);
+    string? GearId = null, string? GearName = null, string? Description = null);
 
 // Läser bara aktivitetsdata, aldrig exportens profil, kontakter, privata anteckningar eller media.
 public static class StravaImport
@@ -49,6 +49,9 @@ public static class StravaImport
                 throw new InvalidDataException("Invalid filename.");
             var title = Field("Activity Name");
             if (title.Length > 500) throw new InvalidDataException("Title too long.");
+            var description = Field("Activity Description");
+            if (ActivityInput.ValidateDescription(description) is not null)
+                throw new InvalidDataException("Description too long.");
             var sport = ActivitySports.FromStrava(Field("Activity Type"));
             if (sport.Length is 0 or > 100) throw new InvalidDataException("Invalid sport.");
             var duration = Seconds("Elapsed Time");
@@ -59,7 +62,8 @@ public static class StravaImport
                 new ParsedActivity(sport, start, duration, moving, Number("Distance") ?? 0,
                     HeartRate("Average Heart Rate"), HeartRate("Max Heart Rate"), Single("Average Speed"), Single("Elevation Gain"),
                     null, [], null, null, null, null, null, null),
-                ShoeId(Field("Gear")), string.IsNullOrWhiteSpace(Field("Activity Gear")) ? null : Field("Activity Gear").Trim()));
+                ShoeId(Field("Gear")), string.IsNullOrWhiteSpace(Field("Activity Gear")) ? null : Field("Activity Gear").Trim(),
+                ActivityInput.NormalizeDescription(description)));
         }
         if (result.Select(r => r.Id).Distinct().Count() != result.Count) throw new InvalidDataException("Duplicate activity IDs.");
         return result;

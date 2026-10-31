@@ -1,6 +1,8 @@
+using System.Diagnostics;
 using System.IO.Compression;
 using System.Security.Claims;
 using System.Security.Cryptography;
+using System.Text.Json;
 using System.Xml;
 using Dapper;
 using Dynastream.Fit;
@@ -10,6 +12,8 @@ using Npgsql;
 
 public record StravaImportResult(int Imported, int Duplicates, string[] FailedActivityIds, int EquipmentImported, int EquipmentLinked);
 
+public record StravaImportProgress(int Processed, int Total, int Imported, int Duplicates, int Failed, StravaImportResult? Result = null);
+
 public static class StravaImportEndpoint
 {
     private const long MaxArchiveBytes = 500L * 1024 * 1024;
@@ -17,7 +21,7 @@ public static class StravaImportEndpoint
     public static void MapStravaImport(this RouteGroupBuilder activities)
     {
         activities.MapPost("/import/strava", async (IFormFile? file, NpgsqlDataSource db, RawFileStore store,
-            ClaimsPrincipal user, CancellationToken cancellationToken) =>
+            ClaimsPrincipal user, HttpContext context, CancellationToken cancellationToken) =>
         {
             if (file is null || file.Length == 0 || file.Length > MaxArchiveBytes)
                 return Results.BadRequest(new ApiError("Välj en Strava-export som ZIP (högst 500 MB).", "stravaArchiveRequired"));
@@ -51,6 +55,16 @@ public static class StravaImportEndpoint
 
             using (archive)
             {
+                context.Response.ContentType = "application/x-ndjson";
+                context.Response.Headers.CacheControl = "no-store";
+                var jsonOptions = new JsonSerializerOptions(JsonSerializerDefaults.Web);
+                async Task ReportAsync(StravaImportProgress progress)
+                {
+                    await context.Response.WriteAsync(JsonSerializer.Serialize(progress, jsonOptions) + "\n", cancellationToken);
+                    await context.Response.Body.FlushAsync(cancellationToken);
+                }
+                await ReportAsync(new(0, rows.Count, 0, 0, 0));
+                var lastReport = Stopwatch.StartNew();
                 var (equipment, equipmentImported) = await StravaEquipment.ImportAsync(conn, userId, shoes, cancellationToken);
                 var equipmentLinked = 0;
                 var imported = 0;
@@ -60,6 +74,11 @@ public static class StravaImportEndpoint
                 foreach (var row in rows)
                 {
                     cancellationToken.ThrowIfCancellationRequested();
+                    if (lastReport.ElapsedMilliseconds >= 250)
+                    {
+                        await ReportAsync(new(imported + duplicates + failed.Count, rows.Count, imported, duplicates, failed.Count));
+                        lastReport.Restart();
+                    }
                     var equipmentId = row.GearId is { } gearId ? equipment[gearId] : (Guid?)null;
                     if (await conn.ExecuteScalarAsync<bool>(
                         "select exists(select 1 from activities where user_id = @userId and strava_activity_id = @Id)", new { userId, row.Id }))
@@ -114,7 +133,7 @@ public static class StravaImportEndpoint
                     try
                     {
                         var id = await ActivityStorage.SaveAsync(conn, store, userId, parsed, "strava", row.Title, row.Id,
-                            bytes, extension, cancellationToken, equipmentIds: equipmentId is { } shoeId ? [shoeId] : []);
+                            bytes, extension, cancellationToken, equipmentIds: equipmentId is { } shoeId ? [shoeId] : [], description: row.Description);
                         if (id is null)
                         {
                             duplicates++;
@@ -126,7 +145,9 @@ public static class StravaImportEndpoint
                     }
                     catch (InvalidEquipmentException) { failed.Add(row.Id); }
                 }
-                return Results.Ok(new StravaImportResult(imported, duplicates, failed.ToArray(), equipmentImported, equipmentLinked));
+                var result = new StravaImportResult(imported, duplicates, failed.ToArray(), equipmentImported, equipmentLinked);
+                await ReportAsync(new(rows.Count, rows.Count, imported, duplicates, failed.Count, result));
+                return Results.Empty;
             }
         })
         .DisableAntiforgery()
