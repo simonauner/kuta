@@ -321,8 +321,11 @@ GitHub Actions kör frontendkontrollerna i `.github/workflows/frontend.yml` vid
 ändringar i `web/`, `.nvmrc` eller workflowfilen. API-jobbet i
 `.github/workflows/api.yml` bygger och kör hela `api/Kuta.Api.Tests` i Release vid
 ändringar i `api/`, `supabase/`, `global.json` eller workflowfilen. Båda körs på
-pull requests och push till `main`; `Dockerfile` och `.dockerignore` startar båda.
-Ändringar i enbart `.md`-filer startar inget av dessa workflows.
+pull requests med dessa sökvägsfilter; `Dockerfile`, `.dockerignore` och
+`.github/workflows/deploy.yml` startar båda.
+Ändringar i enbart `.md`-filer startar inga PR-kontroller. Vid varje push till
+`main` anropar `.github/workflows/deploy.yml` båda jobben utan sökvägsfilter och
+deployar bara om båda lyckas; se [Driftsättning](#driftsättning-flyio).
 
 API-jobbet installerar .NET enligt `global.json` och Supabase CLI 2.72.7, startar
 en tillfällig lokal Supabase med Auth, Mailpit och Storage, läser dess lokala
@@ -539,7 +542,34 @@ Förlorat certifikat förlorar ingen data, men alla måste logga in igen. Data P
 scripts/fly-secrets.sh fly.toml --stage
 ```
 
-**Deploy:** kör en maskin tills migreringar och token-förnyelse klarar flera maskiner, enligt `AGENTS.md`.
+**Automatisk deploy:** `.github/workflows/deploy.yml` kör frontendkontroller och
+API-tester på exakt den commit som pushats till `main` (inklusive merge av en PR).
+När båda lyckas bygger Fly samma commits `Dockerfile` och deployar till `kuta`
+med `--remote-only --ha=false`. Flys hälsokontroll på `/api/health` kontrollerar
+att appen kommer upp; migreringarna körs vid start. Bara en deploy körs åt gången,
+en pågående deploy avbryts inte och commits som inte längre är toppen av `main`
+hoppas över. Även en push med enbart dokumentation kör kontroller och deploy.
+
+Engångsuppsättning för CI:
+
+1. Skapa en appbegränsad Fly-deploytoken för `kuta`, med namn `github-actions-kuta`
+   och exempelvis ett års giltighet (`fly tokens create deploy --app kuta
+   --name github-actions-kuta --expiry 8760h`). För över värdet direkt till
+   GitHub Actions utan att skriva det i filer, kommandon eller chatt.
+2. Spara hela token som GitHub Actions-secret `FLY_API_TOKEN` för
+   `simonauner/kuta`, antingen som repository-secret eller som environment-secret
+   i `production`. CI behöver bara denna token; appens databas-, lagrings- och
+   certifikathemligheter ligger kvar hos Fly och hanteras via 1Password som tidigare.
+3. Begränsa environment `production` till grenen `main`. Lämna required reviewers
+   avstängt för automatisk deploy utan manuellt godkännande. Skydda `main` mot
+   direktpush om alla produktionsändringar ska gå via PR.
+
+Rotera Fly-token före utgången genom att uppdatera GitHub-secreten. Den ges bara
+till deploysteget; frontend- och API-jobben får inga produktionshemligheter.
+Saknad eller utgången token stoppar deployen. Upplägget följer
+[Flys CI-guide](https://fly.io/docs/launch/continuous-deployment-with-github-actions/).
+
+**Manuell deploy:** kör en maskin tills migreringar och token-förnyelse klarar flera maskiner, enligt `AGENTS.md`.
 
 ```bash
 fly deploy --ha=false
