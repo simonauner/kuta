@@ -1,6 +1,7 @@
 import assert from 'node:assert/strict'
 import { test } from 'node:test'
 import {
+  activitySearch,
   activityTitle,
   formatDuration,
   formatPace,
@@ -170,4 +171,11 @@ test('grouping follows the displayed local date and does not mutate the input', 
   const grouped = groupActivities(activities)
   assert.equal(grouped[0].year, 2026)
   assert.deepEqual(activities, original)
+})
+
+test('activity search keeps a valid year and defaults to all years for invalid values', () => {
+  assert.deepEqual(activitySearch({ year: '2024' }), { year: 2024 })
+  for (const year of [1, 9998]) assert.deepEqual(activitySearch({ year }), { year })
+  for (const year of [undefined, '', null, true, [2024], {}, 'older', 0, 9999, 2024.5])
+    assert.deepEqual(activitySearch({ year }), {})
 })

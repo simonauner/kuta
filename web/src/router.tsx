@@ -11,6 +11,7 @@ import { NewActivityPage } from '@/routes/new-activity'
 import { ProfilePage } from '@/routes/profile'
 import { SettingsPage } from '@/routes/settings'
 import { StatsPage } from '@/routes/stats'
+import { activitySearch } from '@/lib/activity'
 import { activityQuery } from '@/lib/activity-query'
 import { queryClient } from '@/lib/query-client'
 
@@ -24,6 +25,7 @@ const feedRoute = createRoute({
 const activitiesRoute = createRoute({
   getParentRoute: () => rootRoute,
   path: '/app/activities',
+  validateSearch: activitySearch,
   component: ActivitiesPage,
 })
 const newActivityRoute = createRoute({
@@ -35,6 +37,7 @@ const newActivityRoute = createRoute({
 const activityRoute = createRoute({
   getParentRoute: () => rootRoute,
   path: '/app/activities/$activityId',
+  validateSearch: activitySearch,
   // Vänta in titeln före ögonblicksbilden; queryn behåller passsidans felhantering.
   loader: ({ params }) => queryClient.prefetchQuery(activityQuery(params.activityId)),
   component: lazyRouteComponent(() => import('@/routes/activity'), 'ActivityPage'),

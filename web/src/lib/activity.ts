@@ -15,6 +15,12 @@ export type Activity = {
   tags: ActivityTag[]
 }
 
+export function activitySearch(search: Record<string, unknown>): { year?: number } {
+  const value = search.year
+  const year = typeof value === 'number' || typeof value === 'string' ? Number(value) : NaN
+  return Number.isInteger(year) && year >= 1 && year <= 9998 ? { year } : {}
+}
+
 export type ActivityListItem = Activity & { showMonth: boolean; showWeek: boolean }
 export type ActivityCursor = { startedAt: string; id: string }
 export type ActivityPage = { items: ActivityListItem[]; nextCursor: ActivityCursor | null }

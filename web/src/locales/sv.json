@@ -18,6 +18,8 @@
     "description": "Din löparprofil och utrustning."
   },
   "activities": {
+    "year": "År",
+    "allYears": "Alla år",
     "retry": "Försök igen",
     "loading": "Hämtar pass …",
     "loadOlder": "Visa äldre pass",
@@ -140,6 +142,7 @@
     "recoverySent": "Om adressen har ett konto får du ett mejl med en länk för att återställa lösenordet."
   },
   "errors": {
+    "invalidActivityYear": "Ange ett år mellan 1 och 9998.",
     "invalidTimeZone": "Tidszonen är ogiltig. Kontrollera enhetens inställningar.",
     "invalidActivityPage": "Sidmarkören är ogiltig. Ladda om sidan.",
     "generic": "Något gick fel. Försök igen.",

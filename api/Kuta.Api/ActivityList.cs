@@ -1,3 +1,4 @@
+using Dapper;
 using Npgsql;
 
 public record ActivityCursor(DateTime StartedAt, Guid Id);
@@ -8,16 +9,31 @@ public record ActivityListItem(
 
 public static class ActivityList
 {
+    public static Task<bool> IsValidTimeZoneAsync(NpgsqlConnection conn, string timeZone, CancellationToken ct) =>
+        conn.ExecuteScalarAsync<bool>(new CommandDefinition(
+            "select exists (select 1 from pg_timezone_names where name = @timeZone)",
+            new { timeZone }, cancellationToken: ct));
+
+    public static async Task<int[]> ReadYearsAsync(NpgsqlConnection conn, Guid userId, string timeZone, CancellationToken ct) =>
+        (await conn.QueryAsync<int>(new CommandDefinition("""
+            select distinct extract(year from started_at at time zone @timeZone)::int as year
+            from activities where user_id = @userId order by year desc
+            """, new { userId, timeZone }, cancellationToken: ct))).ToArray();
+
     public static async Task<ActivityPage> ReadAsync(NpgsqlConnection conn, Guid userId, string timeZone,
-        DateTimeOffset? beforeStartedAt = null, Guid? beforeId = null, CancellationToken ct = default, string? tag = null)
+        DateTimeOffset? beforeStartedAt = null, Guid? beforeId = null, CancellationToken ct = default, string? tag = null, int? year = null)
     {
         // Läs en extra rad för att avgöra om det finns en sida till. Markören kräver ingen kvarvarande rad.
         var cursorFilter = beforeStartedAt.HasValue ? "and (a.started_at, a.id) < (@beforeStartedAt, @beforeId)" : "";
+        var yearFilter = year.HasValue ? """
+            and a.started_at >= (make_date(@year, 1, 1)::timestamp at time zone @timeZone)
+            and a.started_at < (make_date(@year + 1, 1, 1)::timestamp at time zone @timeZone)
+            """ : "";
         await using var command = new NpgsqlCommand($"""
             with page as (
                 select a.id, a.sport, a.title, a.started_at, a.duration_s, a.distance_m, a.avg_hr, a.tags
                 from activities a
-                where a.user_id = @userId and a.tags @> @tags::text[] {cursorFilter}
+                where a.user_id = @userId and a.tags @> @tags::text[] {cursorFilter} {yearFilter}
                 order by a.started_at desc, a.id desc
                 limit 26
             )
@@ -45,6 +61,7 @@ public static class ActivityList
         command.Parameters.AddWithValue("userId", userId);
         command.Parameters.AddWithValue("timeZone", timeZone);
         command.Parameters.AddWithValue("tags", tag is null ? Array.Empty<string>() : [tag]);
+        if (year.HasValue) command.Parameters.AddWithValue("year", year.Value);
         if (beforeStartedAt.HasValue)
         {
             command.Parameters.AddWithValue("beforeStartedAt", beforeStartedAt.Value.UtcDateTime);

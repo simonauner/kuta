@@ -29,6 +29,11 @@ webbläsarens IANA-tidszon. Listans `showMonth` och `showWeek` anger om fler egn
 samma lokala år respektive månad, även utanför sidan. Därmed ändras inte rubriknivåerna när
 ”Visa äldre pass” fyller på listan. Inga tidsserier eller rutter ingår i listsvaren.
 
+`GET /api/activities/years?timeZone=Europe%2FStockholm` ger alla år med egna pass, nyaste först.
+Passlistans `year=2024` begränsar både första och efterföljande sidor till det lokala året.
+Årsväljaren visas när historiken innehåller flera år; ”Alla år” är standard. Valet sparas i
+appens URL (`/app/activities?year=2024`) och följer med till passsidan och tillbaka.
+
 ## Köra lokalt
 
 Kräver Docker, Supabase CLI, .NET SDK och nvm (Node-versionen står i `.nvmrc`). `global.json` väljer .NET SDK 10.0.402 eller senare stabil patch i 10.0.4xx-serien, både lokalt och i Dockerbygget. Allt startas med:
