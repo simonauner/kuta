@@ -1,5 +1,7 @@
 import type { TFunction } from 'i18next'
 
+export type ActivityTag = keyof typeof import('@/locales/sv.json').tagNames
+
 // Som API:t: SI-enheter (meter, sekunder, m/s). Metriskt här; imperial blir ett val per användare senare.
 export type Activity = {
   id: string
@@ -9,7 +11,13 @@ export type Activity = {
   durationS: number
   distanceM: number
   avgHr: number | null
+  equipmentIds: string[]
+  tags: ActivityTag[]
 }
+
+export type ActivityListItem = Activity & { showMonth: boolean; showWeek: boolean }
+export type ActivityCursor = { startedAt: string; id: string }
+export type ActivityPage = { items: ActivityListItem[]; nextCursor: ActivityCursor | null }
 
 // ISO-veckor räknas från måndag; torsdagen avgör vilket veckoår veckan hör till.
 function isoWeek(date: Date) {
@@ -26,16 +34,12 @@ type ActivityPeriod = {
   activities: Activity[]
 }
 
-export function groupActivities(activities: Activity[]): ActivityPeriod[] {
+export function groupActivities(activities: ActivityListItem[]): ActivityPeriod[] {
   const sorted = [...activities].sort((a, b) => Date.parse(b.startedAt) - Date.parse(a.startedAt))
-  const years = new Map<number, number>()
-  const months = new Map<string, number>()
   const dated = sorted.map((activity) => {
     const date = new Date(activity.startedAt)
     const year = date.getFullYear()
     const month = `${year}-${date.getMonth()}`
-    years.set(year, (years.get(year) ?? 0) + 1)
-    months.set(month, (months.get(month) ?? 0) + 1)
     return { activity, date, year, month, week: isoWeek(date) }
   })
   const periods: ActivityPeriod[] = []
@@ -43,8 +47,7 @@ export function groupActivities(activities: Activity[]): ActivityPeriod[] {
     const previous = dated[index - 1]
     const newYear = item.year !== previous?.year
     const newMonth = item.month !== previous?.month
-    const showMonth = years.get(item.year)! > 1
-    const showWeek = months.get(item.month)! > 1
+    const { showMonth, showWeek } = item.activity
     if (newMonth || (showWeek && item.week !== previous?.week)) {
       periods.push({
         year: newYear ? item.year : null,

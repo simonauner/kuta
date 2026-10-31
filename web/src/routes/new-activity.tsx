@@ -1,5 +1,5 @@
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
-import { Link, useNavigate } from '@tanstack/react-router'
+import { useNavigate } from '@tanstack/react-router'
 import { useId, useRef, useState, type FormEvent, type ReactNode } from 'react'
 import { useTranslation } from 'react-i18next'
 import { BackLink } from '@/components/back-link'
@@ -16,9 +16,11 @@ import {
   sports,
   toDateTimeLocal,
   type Activity,
+  type ActivityTag,
 } from '@/lib/activity'
 import { meQuery } from '@/lib/auth'
-import { shoesQuery, type Shoe } from '@/lib/shoes'
+import { equipmentQuery, lastUsedShoeQuery, type Equipment } from '@/lib/equipment'
+import { TagPicker } from '@/components/activity-tags'
 
 // Det API:t läser ur en FIT-fil, utan att spara något (POST /api/activities/preview)
 type ActivityPreview = {
@@ -42,32 +44,39 @@ export function NewActivityPage() {
   const navigate = useNavigate()
   const queryClient = useQueryClient()
   const { data: me } = useQuery(meQuery)
-  const shoes = useQuery(shoesQuery)
+  const shoes = useQuery(equipmentQuery)
   const [shoeChoice, setShoeChoice] = useState<string | null>(null)
-  const activeShoes = shoes.data?.shoes.filter((shoe) => !shoe.retired) ?? []
-  const shoeId = shoeChoice ?? shoes.data?.lastUsedShoeId ?? ''
+  const activeShoes = shoes.data?.filter((shoe) => shoe.kind === 'shoe' && !shoe.retired) ?? []
+  const lastUsedShoe = useQuery(lastUsedShoeQuery)
+  const shoeId =
+    shoeChoice ??
+    (activeShoes.some((shoe) => shoe.id === lastUsedShoe.data?.id) ? lastUsedShoe.data?.id : '') ??
+    ''
   const uploadDialog = useRef<HTMLDialogElement>(null)
   const shoeDialog = useRef<HTMLDialogElement>(null)
   const shoeSelect = useRef<HTMLSelectElement>(null)
   const [shoeName, setShoeName] = useState('')
   const [shoeBrand, setShoeBrand] = useState('')
   const addShoe = useMutation({
-    mutationFn: () => api.send<Shoe>('POST', '/api/shoes', { name: shoeName, brand: shoeBrand }),
+    mutationFn: () =>
+      api.send<Equipment>('POST', '/api/equipment', {
+        name: shoeName,
+        brand: shoeBrand,
+        kind: 'shoe',
+      }),
     onSuccess: (shoe) => {
-      queryClient.setQueryData(shoesQuery.queryKey, (current) => ({
-        shoes: [...(current?.shoes ?? []), shoe],
-        lastUsedShoeId: current?.lastUsedShoeId ?? null,
-      }))
+      queryClient.setQueryData(equipmentQuery.queryKey, (current) => [...(current ?? []), shoe])
       setShoeChoice(shoe.id)
       shoeDialog.current?.close()
       shoeSelect.current?.focus()
-      return queryClient.invalidateQueries({ queryKey: shoesQuery.queryKey })
+      return queryClient.invalidateQueries({ queryKey: equipmentQuery.queryKey })
     },
   })
 
   const [pendingFile, setPendingFile] = useState<File | null>(null) // vald i modalen, inte använd än
   const [dialogKey, setDialogKey] = useState(0)
   const [file, setFile] = useState<File | null>(null)
+  const [tags, setTags] = useState<ActivityTag[]>([])
   const [title, setTitle] = useState('')
   const [sport, setSport] = useState<string | null>(null) // null = som filen (eller löpning)
   const [initialStartedAt] = useState(() => toDateTimeLocal(new Date()))
@@ -98,12 +107,14 @@ export function NewActivityPage() {
         const form = new FormData()
         form.append('file', file)
         form.append('title', title)
-        if (shoeId) form.append('shoeId', shoeId)
+        if (shoeId) form.append('equipmentIds', shoeId)
+        tags.forEach((tag) => form.append('tags', tag))
         if (sport) form.append('sport', sport)
         return api.upload<Activity>('/api/activities', form)
       }
       return api.send<Activity>('POST', '/api/activities/manual', {
-        shoeId: shoeId || null,
+        equipmentIds: shoeId ? [shoeId] : [],
+        tags,
         sport: selectedSport,
         title,
         startedAt: new Date(startedAt).toISOString(),
@@ -116,7 +127,8 @@ export function NewActivityPage() {
     onSuccess: async (activity) => {
       await Promise.all([
         queryClient.invalidateQueries({ queryKey: ['activities'] }),
-        queryClient.invalidateQueries({ queryKey: shoesQuery.queryKey }),
+        queryClient.invalidateQueries({ queryKey: lastUsedShoeQuery.queryKey }),
+        queryClient.invalidateQueries({ queryKey: equipmentQuery.queryKey }),
       ])
       await navigate({ to: '/app/activities/$activityId', params: { activityId: activity.id } })
     },
@@ -257,14 +269,9 @@ export function NewActivityPage() {
               </select>
             )}
           </Field>
-          <p className="col-span-2 text-sm text-muted-foreground">
-            <Link to="/app/profile/equipment" className="underline underline-offset-2">
-              {t('shoes.manage')}
-            </Link>
-          </p>
-          {shoes.error && (
+          {(shoes.error || lastUsedShoe.error) && (
             <p role="alert" className="col-span-2 text-sm text-destructive">
-              <ErrorMessage error={shoes.error} />
+              <ErrorMessage error={(shoes.error || lastUsedShoe.error)!} />
             </p>
           )}
           <Field label={t('newActivity.startedAt')}>
@@ -340,6 +347,7 @@ export function NewActivityPage() {
             </Field>
           )}
         </div>
+        <TagPicker value={tags} onChange={setTags} disabled={save.isPending} />
         {fromFile && (
           <p className="text-xs text-muted-foreground">
             {fromFile.device
@@ -354,6 +362,8 @@ export function NewActivityPage() {
             save.isPending ||
             shoes.isPending ||
             !!shoes.error ||
+            lastUsedShoe.isPending ||
+            !!lastUsedShoe.error ||
             (locked && !fromFile) ||
             preview.isFetching
           }
@@ -460,17 +470,7 @@ export function NewActivityPage() {
           accept=".fit"
           onChange={(e) => setPendingFile(e.currentTarget.files?.[0] ?? null)}
         />
-        {/* Valet visas bara tills samtycke finns; därefter ändras det på profilsidan */}
-        {me?.hrConsent ? (
-          <p className="mt-2 text-xs text-muted-foreground">
-            {t('activities.hrSaved')}{' '}
-            <Link to="/app/profile" className="underline underline-offset-2">
-              {t('nav.profile')}
-            </Link>
-          </p>
-        ) : (
-          <HeartRateConsent className="mt-4" />
-        )}
+        <HeartRateConsent className="mt-4" />
         <div className="mt-6 flex flex-wrap justify-end gap-3">
           <Button type="button" variant="outline" onClick={() => uploadDialog.current?.close()}>
             {t('newActivity.cancel')}

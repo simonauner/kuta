@@ -35,6 +35,20 @@ public class ActivityInputTests
     public void Missing_or_impossible_values_are_rejected(ManualActivityRequest request) =>
         Assert.Equal("invalidActivity", ActivityInput.Validate(request, Now)?.Code);
 
+    [Fact]
+    public void Tags_are_optional_known_keys_and_normalized_as_a_set()
+    {
+        Assert.Null(ActivityInput.ValidateTags(null));
+        Assert.Null(ActivityInput.ValidateTags([]));
+        Assert.Null(ActivityInput.Validate(Valid with { Tags = ActivityInput.Tags }, Now));
+        Assert.Equal(new[] { "race", "workout" }, ActivityInput.NormalizeTags(["race", "workout", "race"]));
+        Assert.Empty(ActivityInput.NormalizeTags(null));
+    }
+
+    [Theory, InlineData("unknown"), InlineData("Race"), InlineData(""), InlineData(null)]
+    public void Unknown_tag_keys_are_rejected(string? tag) =>
+        Assert.Equal("invalidTags", ActivityInput.Validate(Valid with { Tags = [tag!] }, Now)?.Code);
+
     [Theory, InlineData(null, null), InlineData("  ", null), InlineData(" Lopp ", "Lopp")]
     public void Blank_title_means_no_custom_title(string? input, string? expected) =>
         Assert.Equal(expected, ActivityInput.NormalizeTitle(input));

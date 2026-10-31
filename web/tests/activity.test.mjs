@@ -91,53 +91,81 @@ test('datetime-local value is local time without zone', () => {
   assert.equal(toDateTimeLocal(new Date(2026, 9, 31, 7, 5)), '2026-10-31T07:05')
 })
 
-const activityAt = (date) => ({ id: date, startedAt: `${date}T12:00:00` })
-const periods = (dates) =>
-  groupActivities(dates.map(activityAt)).map((period) => ({
+const activityAt = (date, showMonth = true, showWeek = true) => ({
+  id: date,
+  startedAt: `${date}T12:00:00`,
+  showMonth,
+  showWeek,
+})
+const periods = (activities) =>
+  groupActivities(activities).map((period) => ({
     year: period.year,
     month: period.month?.getMonth() ?? null,
     week: period.week,
     dates: period.activities.map((a) => a.id),
   }))
 
-test('empty lists and one activity per year only need year headings', () => {
+test('period headings follow metadata for the complete history, even with one loaded activity', () => {
   assert.deepEqual(periods([]), [])
-  assert.deepEqual(periods(['2025-12-30', '2026-10-30']), [
+  assert.deepEqual(periods([activityAt('2026-10-30', false, false)]), [
     { year: 2026, month: null, week: null, dates: ['2026-10-30'] },
-    { year: 2025, month: null, week: null, dates: ['2025-12-30'] },
+  ])
+  assert.deepEqual(periods([activityAt('2026-10-30')]), [
+    { year: 2026, month: 9, week: 44, dates: ['2026-10-30'] },
+  ])
+  assert.deepEqual(periods([activityAt('2026-10-30', true, false)]), [
+    { year: 2026, month: 9, week: null, dates: ['2026-10-30'] },
   ])
 })
 
-test('multiple activities in a year add months; only busy months add weeks', () => {
-  assert.deepEqual(periods(['2026-09-30', '2026-10-23', '2026-10-30', '2026-10-29']), [
+test('appended pages merge within a week and add only new period headings', () => {
+  const first = activityAt('2026-10-30')
+  const second = activityAt('2026-10-29')
+  const result = periods([
+    first,
+    second,
+    activityAt('2026-09-30', true, false),
+    activityAt('2025-12-30', false, false),
+  ])
+  assert.deepEqual(result, [
     { year: 2026, month: 9, week: 44, dates: ['2026-10-30', '2026-10-29'] },
-    { year: null, month: null, week: 43, dates: ['2026-10-23'] },
     { year: null, month: 8, week: null, dates: ['2026-09-30'] },
+    { year: 2025, month: null, week: null, dates: ['2025-12-30'] },
   ])
-  assert.deepEqual(periods(['2026-10-30', '2026-09-30']), [
-    { year: 2026, month: 9, week: null, dates: ['2026-10-30'] },
-    { year: null, month: 8, week: null, dates: ['2026-09-30'] },
-  ])
+  assert.deepEqual({ ...result[0], dates: [first.id] }, periods([first])[0])
 })
 
 test('ISO weeks start on Monday and may belong to another year', () => {
-  assert.deepEqual(periods(['2021-01-03', '2021-01-04', '2020-12-31', '2020-12-28']), [
-    { year: 2021, month: 0, week: 1, dates: ['2021-01-04'] },
-    { year: null, month: null, week: 53, dates: ['2021-01-03'] },
-    { year: 2020, month: 11, week: 53, dates: ['2020-12-31', '2020-12-28'] },
-  ])
+  assert.deepEqual(
+    periods(
+      ['2021-01-03', '2021-01-04', '2020-12-31', '2020-12-28'].map((date) => activityAt(date)),
+    ),
+    [
+      { year: 2021, month: 0, week: 1, dates: ['2021-01-04'] },
+      { year: null, month: null, week: 53, dates: ['2021-01-03'] },
+      { year: 2020, month: 11, week: 53, dates: ['2020-12-31', '2020-12-28'] },
+    ],
+  )
 })
 
 test('month boundaries stay separate even within the same ISO week', () => {
-  assert.deepEqual(periods(['2026-10-01', '2026-09-30', '2026-09-29', '2026-10-02']), [
-    { year: 2026, month: 9, week: 40, dates: ['2026-10-02', '2026-10-01'] },
-    { year: null, month: 8, week: 40, dates: ['2026-09-30', '2026-09-29'] },
-  ])
+  assert.deepEqual(
+    periods(
+      ['2026-10-01', '2026-09-30', '2026-09-29', '2026-10-02'].map((date) => activityAt(date)),
+    ),
+    [
+      { year: 2026, month: 9, week: 40, dates: ['2026-10-02', '2026-10-01'] },
+      { year: null, month: 8, week: 40, dates: ['2026-09-30', '2026-09-29'] },
+    ],
+  )
 })
 
 test('grouping follows the displayed local date and does not mutate the input', () => {
   const local = new Date(2026, 0, 1, 0, 15)
-  const activities = [activityAt('2025-10-30'), { id: 'local', startedAt: local.toISOString() }]
+  const activities = [
+    activityAt('2025-10-30'),
+    { ...activityAt('2026-01-01'), startedAt: local.toISOString() },
+  ]
   const original = [...activities]
   const grouped = groupActivities(activities)
   assert.equal(grouped[0].year, 2026)

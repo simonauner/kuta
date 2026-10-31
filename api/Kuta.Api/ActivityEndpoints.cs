@@ -8,13 +8,13 @@ using Npgsql;
 // Typade records, inte dynamic: Dapper-rader serialiseras som dictionary med snake_case-nycklar.
 public record ActivitySummary(
     Guid Id, string Sport, string? Title, System.DateTime StartedAt,
-    int DurationS, double DistanceM, short? AvgHr, Guid? ShoeId);
+    int DurationS, double DistanceM, short? AvgHr, string[] Tags, Guid[] EquipmentIds);
 
 // Ett pass med tidsserier (en array per kanal, index = mätpunkt; null där klockan inte mätte).
 public record ActivityDetail(
     Guid Id, string Sport, string? Title, System.DateTime StartedAt, int DurationS, int? MovingS, double DistanceM,
     short? AvgHr, short? MaxHr, float? AvgSpeedMps, float? ElevationGainM, string? Device, ActivityStreams? Streams,
-    IEnumerable<ActivityLap> Laps);
+    IEnumerable<ActivityLap> Laps, string[] Tags, Guid[] EquipmentIds);
 
 // Det som formuläret förifylls med från en FIT-fil
 public record ActivityPreview(
@@ -30,28 +30,34 @@ public record ActivityLap(
     short LapIndex, int StartS, int DurationS, int? MovingS, double DistanceM, short? AvgHr, short? MaxHr,
     float? AscentM, float? DescentM, short? AvgCadence);
 
+public record ActivityTagsRequest(string[] Tags);
+
 public static class ActivityEndpoints
 {
     private const int MaxFitFileBytes = 20 * 1024 * 1024;
 
     public static void MapActivities(this RouteGroupBuilder api)
     {
+        api.MapGet("/activity-tags", () => Results.Ok(ActivityInput.Tags)).RequireAuthorization();
+
         var activities = api.MapGroup("/activities").RequireAuthorization();
 
-        // Inloggad användares senaste pass
-        activities.MapGet("", async (NpgsqlDataSource db, ClaimsPrincipal user) =>
+        // Inloggad användares pass, 25 åt gången med stabila rubriker för hela perioderna.
+        activities.MapGet("", async (NpgsqlDataSource db, ClaimsPrincipal user, string? timeZone, string? tag,
+            DateTimeOffset? beforeStartedAt, Guid? beforeId, CancellationToken cancellationToken) =>
         {
-            await using var conn = await db.OpenConnectionAsync();
-            var rows = await conn.QueryAsync<ActivitySummary>(
-                """
-                select id, sport, title, started_at, duration_s, distance_m, avg_hr, shoe_id
-                from activities
-                where user_id = @userId
-                order by started_at desc
-                limit 50
-                """,
-                new { userId = user.GetUserId() });
-            return Results.Ok(rows);
+            if (beforeStartedAt.HasValue != beforeId.HasValue)
+                return Results.BadRequest(new ApiError("Sidmarkören är ogiltig. Ladda om sidan.", "invalidActivityPage"));
+            if (ActivityInput.ValidateTags(tag is null ? null : [tag]) is { } invalid)
+                return Results.BadRequest(invalid);
+            timeZone ??= "UTC";
+            await using var conn = await db.OpenConnectionAsync(cancellationToken);
+            if (!await conn.ExecuteScalarAsync<bool>(new CommandDefinition(
+                "select exists (select 1 from pg_timezone_names where name = @timeZone)",
+                new { timeZone }, cancellationToken: cancellationToken)))
+                return Results.BadRequest(new ApiError("Tidszonen är ogiltig. Kontrollera enhetens inställningar.", "invalidTimeZone"));
+            return Results.Ok(await ActivityList.ReadAsync(conn, user.GetUserId(), timeZone,
+                beforeStartedAt, beforeId, cancellationToken, tag));
         });
 
         // Ett eget pass med tidsserier för passsidan. Någon annans pass ger 404, som ett som inte finns.
@@ -64,7 +70,8 @@ public static class ActivityEndpoints
                 """
                 select a.id, a.sport, a.title, a.started_at, a.duration_s, a.moving_s, a.distance_m, a.avg_hr, a.max_hr,
                        a.avg_speed_mps, a.elevation_gain_m, a.device, s.t, s.dist, s.hr, s.speed, s.alt, s.lat, s.lon,
-                       s.cadence, s.temp
+                       s.cadence, s.temp, a.tags,
+                       array(select equipment_id from activity_equipment where activity_id = a.id order by equipment_id) as equipment_ids
                 from activities a left join activity_streams s on s.activity_id = a.id
                 where a.id = @id and a.user_id = @userId
                 """, conn);
@@ -85,7 +92,7 @@ public static class ActivityEndpoints
                     reader.GetGuid(0), reader.GetString(1), Value<string>(2),
                     System.DateTime.SpecifyKind(reader.GetDateTime(3), DateTimeKind.Utc), reader.GetInt32(4),
                     Value<int?>(5), reader.GetDouble(6), Value<short?>(7), Value<short?>(8), Value<float?>(9),
-                    Value<float?>(10), Value<string>(11), streams, []);
+                    Value<float?>(10), Value<string>(11), streams, [], reader.GetFieldValue<string[]>(21), reader.GetFieldValue<Guid[]>(22));
             }
             var laps = await conn.QueryAsync<ActivityLap>(
                 """
@@ -118,110 +125,92 @@ public static class ActivityEndpoints
             var profile = await MeEndpoints.LoadProfileAsync(conn, userId);
             if (profile is null) return Results.Conflict(new ApiError("Välj ett namn först.", "nameRequired"));
 
-            if (!await ShoeEndpoints.CanUseAsync(conn, userId, req.ShoeId))
-                return Results.BadRequest(ShoeEndpoints.UnavailableShoe);
-
+            await using var tx = await conn.BeginTransactionAsync();
+            var equipmentIds = req.EquipmentIds ?? [];
+            if (!await EquipmentEndpoints.OwnsAsync(conn, tx, userId, equipmentIds))
+                return Results.BadRequest(EquipmentEndpoints.InvalidEquipment);
             var title = ActivityInput.NormalizeTitle(req.Title);
             var startedAt = req.StartedAt!.Value.UtcDateTime;
             var avgHr = profile.HrConsent ? req.AvgHr : null; // puls bara med samtycke, som vid filuppladdning
             var id = await conn.ExecuteScalarAsync<Guid>(
                 """
                 insert into activities (user_id, source, sport, title, started_at, duration_s, distance_m, avg_hr,
-                                        avg_speed_mps, elevation_gain_m, shoe_id)
+                                        avg_speed_mps, elevation_gain_m, tags)
                 values (@userId, 'manual', @Sport, @title, @startedAt, @DurationS, @DistanceM, @avgHr,
-                        @avgSpeedMps, @ElevationGainM, @ShoeId)
+                        @avgSpeedMps, @ElevationGainM, @tags)
                 returning id
                 """,
                 new
                 {
                     userId, req.Sport, title, startedAt, req.DurationS, req.DistanceM, avgHr,
-                    avgSpeedMps = (float)(req.DistanceM!.Value / req.DurationS!.Value), req.ElevationGainM, req.ShoeId,
-                });
+                    tags = ActivityInput.NormalizeTags(req.Tags),
+                    avgSpeedMps = (float)(req.DistanceM!.Value / req.DurationS!.Value), req.ElevationGainM,
+                }, tx);
+            await EquipmentEndpoints.AttachAsync(conn, tx, id, userId, equipmentIds);
+            await tx.CommitAsync();
             return Results.Created($"/api/activities/{id}", new ActivitySummary(
-                id, req.Sport!, title, startedAt, req.DurationS.Value, req.DistanceM.Value, avgHr, req.ShoeId));
+                id, req.Sport!, title, startedAt, req.DurationS.Value, req.DistanceM.Value, avgHr, ActivityInput.NormalizeTags(req.Tags), equipmentIds.Distinct().ToArray()));
         });
 
         // Uppladdning av en FIT-fil: tolka den, spara råfilen (bara med pulssamtycke) och skriv passet med tidsserier
         // i en transaktion. Samma fil igen ger 409 (raw_file_sha256 är unik per användare).
-        // Titel, sport och sko kan ändras i formuläret; mätvärdena kommer alltid från filen.
-        activities.MapPost("", async (IFormFile? file, [FromForm] string? title, [FromForm] string? sport, [FromForm] Guid? shoeId,
+        // Titel och sport kan ändras i formuläret; mätvärdena kommer alltid från filen.
+        activities.MapPost("", async (IFormFile? file, [FromForm] string? title, [FromForm] string? sport, IFormCollection form,
             NpgsqlDataSource db, RawFileStore store, ClaimsPrincipal user, CancellationToken cancellationToken) =>
         {
-            if ((ActivityInput.ValidateTitle(title) ?? ActivityInput.ValidateSport(sport)) is { } invalid)
+            var tags = form["tags"].Select(tag => tag!).ToArray();
+            var equipmentIds = new List<Guid>();
+            foreach (var value in form["equipmentIds"])
+            {
+                if (!Guid.TryParse(value, out var equipmentId)) return Results.BadRequest(EquipmentEndpoints.InvalidEquipment);
+                equipmentIds.Add(equipmentId);
+            }
+            if ((ActivityInput.ValidateTitle(title) ?? ActivityInput.ValidateSport(sport) ?? ActivityInput.ValidateTags(tags)) is { } invalid)
                 return Results.BadRequest(invalid);
             var userId = user.GetUserId();
             await using var conn = await db.OpenConnectionAsync(cancellationToken);
-            if (!await ShoeEndpoints.CanUseAsync(conn, userId, shoeId))
-                return Results.BadRequest(ShoeEndpoints.UnavailableShoe);
             var (fit, error) = await ReadFitAsync(file, conn, userId, cancellationToken);
             if (fit is null) return error!;
             var (bytes, sha256, parsed, hrConsent) = fit;
             if (sport is not null) parsed = parsed with { Sport = sport };
             title = ActivityInput.NormalizeTitle(title);
 
-            // Utan samtycke sparas varken pulsen eller råfilen (som också innehåller puls); hashen räcker för dubbletter.
-            string? key = null;
-            if (hrConsent)
-            {
-                key = $"fit/{userId}/{Convert.ToHexStringLower(sha256)}.fit";
-                await store.PutAsync(key, bytes, cancellationToken);
-            }
-
-            await using var tx = await conn.BeginTransactionAsync(cancellationToken);
-            Guid id;
+            Guid? id;
             try
             {
-                id = await conn.ExecuteScalarAsync<Guid>(
-                    """
-                    insert into activities (user_id, source, sport, title, started_at, duration_s, moving_s, distance_m,
-                                            avg_hr, max_hr, avg_speed_mps, elevation_gain_m, route, device,
-                                            raw_file_key, raw_file_sha256, shoe_id)
-                    values (@userId, 'fit', @Sport, @title, @StartedAt, @DurationS, @MovingS, @DistanceM,
-                            @AvgHr, @MaxHr, @AvgSpeedMps, @ElevationGainM, @route::geography, @Device, @key, @sha256, @shoeId)
-                    returning id
-                    """,
-                    new
-                    {
-                        userId, parsed.Sport, title, parsed.StartedAt, parsed.DurationS, parsed.MovingS, parsed.DistanceM,
-                        parsed.AvgHr, parsed.MaxHr, parsed.AvgSpeedMps, parsed.ElevationGainM,
-                        route = (object?)parsed.Route ?? DBNull.Value, parsed.Device, key, sha256, shoeId,
-                    }, tx);
+                id = await ActivityStorage.SaveAsync(conn, store, userId, parsed, "fit", title, null, bytes, ".fit",
+                    cancellationToken, tags, equipmentIds.ToArray());
             }
-            catch (PostgresException e) when (e.SqlState == PostgresErrorCodes.UniqueViolation)
+            catch (InvalidEquipmentException)
             {
-                // Samma fil uppladdad samtidigt i en annan förfrågan
-                return Results.Conflict(new ApiError("Det här passet är redan uppladdat.", "duplicateActivity"));
+                return Results.BadRequest(EquipmentEndpoints.InvalidEquipment);
             }
-            await conn.ExecuteAsync(
-                """
-                insert into activity_streams (activity_id, t, dist, hr, speed, alt, lat, lon, cadence, temp)
-                values (@id, @T, @Dist, @Hr, @Speed, @Alt, @Lat, @Lon, @Cadence, @Temp)
-                """,
-                new
-                {
-                    id, parsed.T, parsed.Dist, parsed.Hr, parsed.Speed, parsed.Alt, parsed.Lat, parsed.Lon,
-                    parsed.Cadence, parsed.Temp,
-                }, tx);
-            await conn.ExecuteAsync(
-                """
-                insert into activity_laps (activity_id, lap_index, start_s, duration_s, moving_s, distance_m, avg_hr, max_hr,
-                                           ascent_m, descent_m, avg_cadence)
-                values (@id, @LapIndex, @StartS, @DurationS, @MovingS, @DistanceM, @AvgHr, @MaxHr,
-                        @AscentM, @DescentM, @AvgCadence)
-                """,
-                (parsed.Laps ?? []).Select((l, i) => new
-                {
-                    id, LapIndex = (short)i, l.StartS, l.DurationS, l.MovingS, l.DistanceM, l.AvgHr, l.MaxHr,
-                    l.AscentM, l.DescentM, l.AvgCadence,
-                }), tx);
-            await BestEfforts.ReplaceAsync(conn, tx, id, userId, parsed.Sport, parsed.StartedAt, parsed.T, parsed.Dist);
-            await tx.CommitAsync(cancellationToken);
+            catch (PostgresException e) when (e.SqlState == PostgresErrorCodes.ForeignKeyViolation && e.TableName == "activity_equipment")
+            {
+                // Composite foreign keys reject unknown equipment and equipment owned by another user.
+                return Results.BadRequest(EquipmentEndpoints.InvalidEquipment);
+            }
+            if (id is null) return Results.Conflict(new ApiError("Det här passet är redan uppladdat.", "duplicateActivity"));
 
             return Results.Created($"/api/activities/{id}", new ActivitySummary(
-                id, parsed.Sport, title, parsed.StartedAt, parsed.DurationS, parsed.DistanceM, parsed.AvgHr, shoeId));
+                id.Value, parsed.Sport, title, parsed.StartedAt, parsed.DurationS, parsed.DistanceM, parsed.AvgHr, ActivityInput.NormalizeTags(tags), equipmentIds.Distinct().ToArray()));
         })
         // CSRF-token kontrolleras av filtret i AuthEndpoints (X-CSRF-TOKEN), inte av ramverkets formulärkontroll
         .DisableAntiforgery();
+
+        activities.MapPut("/{id:guid}/tags", async (Guid id, ActivityTagsRequest req,
+            NpgsqlDataSource db, ClaimsPrincipal user) =>
+        {
+            if (req.Tags is null)
+                return Results.BadRequest(new ApiError("Välj giltiga taggar.", "invalidTags"));
+            if (ActivityInput.ValidateTags(req.Tags) is { } invalid) return Results.BadRequest(invalid);
+            await using var conn = await db.OpenConnectionAsync();
+            var updated = await conn.ExecuteAsync(
+                "update activities set tags = @tags where id = @id and user_id = @userId",
+                new { id, userId = user.GetUserId(), tags = ActivityInput.NormalizeTags(req.Tags) });
+            return updated == 0 ? Results.NotFound() : Results.NoContent();
+        });
+        activities.MapStravaImport();
 
         activities.MapDelete("", async (NpgsqlDataSource db, RawFileStore store, ClaimsPrincipal user,
             CancellationToken cancellationToken) =>

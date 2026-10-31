@@ -15,16 +15,19 @@
     "description": "Distans, fart, puls och personbästa över tid."
   },
   "profile": {
-    "description": "Dina skor, grupper och inställningar.",
-    "logout": "Logga ut"
+    "description": "Din löparprofil och utrustning."
   },
   "activities": {
+    "retry": "Försök igen",
+    "loading": "Hämtar pass …",
+    "loadOlder": "Visa äldre pass",
     "week": "v. {{week}}",
-    "hrSaved": "Pulsdata sparas. Ändra på",
+    "hrSaved": "Pulsdata sparas. Ändra i",
     "empty": "Inga pass än.",
     "delete": "Ta bort",
     "deleteLabel": "Ta bort passet {{date}}",
-    "confirmDelete": "Ta bort passet? Det går inte att ångra."
+    "confirmDelete": "Ta bort passet? Det går inte att ångra.",
+    "hrNotSaved": "Pulsdata sparas inte. Ändra före uppladdning i"
   },
   "newActivity": {
     "title": "Skapa ny aktivitet",
@@ -137,6 +140,8 @@
     "recoverySent": "Om adressen har ett konto får du ett mejl med en länk för att återställa lösenordet."
   },
   "errors": {
+    "invalidTimeZone": "Tidszonen är ogiltig. Kontrollera enhetens inställningar.",
+    "invalidActivityPage": "Sidmarkören är ogiltig. Ladda om sidan.",
     "generic": "Något gick fel. Försök igen.",
     "network": "Kunde inte nå Kuta. Kontrollera anslutningen och försök igen.",
     "rateLimited": "För många försök. Försök igen om en stund.",
@@ -160,13 +165,31 @@
     "passwordTooShort": "Använd minst 8 tecken i lösenordet.",
     "passwordUnchanged": "Välj ett annat lösenord än ditt nuvarande.",
     "recoveryExpired": "Återställningslänken är ogiltig eller har gått ut. Begär en ny länk.",
-    "invalidShoe": "Ange skons namn och högst 100 tecken per fält.",
-    "unavailableShoe": "Välj en av dina aktiva skor eller ingen sko."
+    "stravaArchiveRequired": "Välj en Strava-export som ZIP (högst 500 MB).",
+    "invalidStravaArchive": "ZIP-filen saknar en giltig activities.csv från Strava.",
+    "invalidTags": "Välj giltiga taggar.",
+    "invalidEquipment": "Välj giltig utrustning som tillhör dig.",
+    "invalidEquipmentInput": "Kontrollera namn, typ och tidigare användning."
   },
   "home": "Kuta – startsida",
   "footer": {
     "version": "Version {{version}}",
     "development": "utveckling"
+  },
+  "settings": {
+    "title": "Inställningar",
+    "back": "← Profil",
+    "health": "Hälsodata",
+    "strava": "Importera från Strava",
+    "stravaFile": "Strava-export (ZIP)",
+    "import": "Importera pass",
+    "importing": "Importerar …",
+    "importWait": "Importerar passen. Det kan ta flera minuter. Låt sidan vara öppen.",
+    "importHelp": "Välj hela ZIP-exporten, högst 500 MB. Namn, sammanfattningar och tillgängliga mätserier importeras. Puls sparas enligt ditt val ovan. Efter ett avbrott kan du köra importen igen; dubbletter hoppas över. Dina importerade pass finns under Pass.",
+    "importResult": "Importerade: {{imported}}. Dubbletter: {{duplicates}}. Misslyckade: {{failed}}.",
+    "failedImports": "Strava-ID för pass som inte kunde importeras",
+    "account": "Konto",
+    "logout": "Logga ut"
   },
   "dangerZone": {
     "title": "Danger zone",
@@ -193,6 +216,41 @@
       "TRÖSKEL"
     ]
   },
+  "tagNames": {
+    "race": "Lopp",
+    "workout": "Intervaller/kvalitet",
+    "long_run": "Långpass",
+    "easy": "Lugnt"
+  },
+  "tags": {
+    "label": "Taggar",
+    "save": "Spara taggar",
+    "all": "Alla pass",
+    "empty": "Inga pass med den här taggen."
+  },
+  "equipment": {
+    "title": "Utrustning",
+    "description": "Total distans och tid från kopplade pass, inklusive tidigare användning. Tiden räknas inklusive pauser.",
+    "empty": "Du har ingen utrustning än.",
+    "add": "Lägg till utrustning",
+    "cancel": "Avbryt",
+    "save": "Spara utrustning",
+    "saveLinks": "Spara utrustning",
+    "name": "Namn",
+    "brand": "Märke (valfritt)",
+    "kind": "Typ",
+    "initialDistance": "Tidigare distans (km)",
+    "initialDuration": "Tidigare tid (h:mm:ss)",
+    "initialHint": "Har utrustningen använts tidigare? Ange användning som inte redan finns i dina Kuta-pass. Lämna tomt för ny utrustning.",
+    "distance": "Total distans",
+    "duration": "Total tid (h:mm:ss)",
+    "retired": "Pensionerad",
+    "addInProfile": "Lägg till på din profil.",
+    "loading": "Hämtar utrustning…"
+  },
+  "equipmentKinds": {
+    "shoe": "Skor"
+  },
   "shoes": {
     "title": "Skor",
     "name": "Namn på skon",
@@ -203,7 +261,6 @@
     "retired": "Pensionerad",
     "empty": "Du har inga skor än.",
     "none": "Ingen sko",
-    "manage": "Hantera skor under Utrustning",
     "loading": "Hämtar skor …",
     "delete": "Radera",
     "deleteLabel": "Radera {{name}}",
@@ -213,8 +270,5 @@
     "deleting": "Raderar …",
     "createNew": "Skapa ny"
   },
-  "breadcrumbs": "Brödsmulor",
-  "equipment": {
-    "title": "Utrustning"
-  }
+  "breadcrumbs": "Brödsmulor"
 }

@@ -32,7 +32,7 @@ public class FitUploadTests(KutaFactory factory) : IClassFixture<KutaFactory>
             Assert.Equal((1800d, 600, "Garmin Fenix 5s", JsonValueKind.Null), (previewed.GetProperty("distanceM").GetDouble(),
                 previewed.GetProperty("durationS").GetInt32(), previewed.GetProperty("device").GetString(),
                 previewed.GetProperty("avgHr").ValueKind));
-            Assert.Empty((await client.GetFromJsonAsync<JsonElement[]>("/api/activities", ct))!);
+            Assert.Empty((await client.GetFromJsonAsync<ActivityPage>("/api/activities", ct))!.Items);
 
             // Utan samtycke: passet sparas, men varken puls eller råfil (som innehåller puls). Titeln från formuläret följer med.
             var upload = await Upload(client, morning, ct, title: " Morgonrunda ");
@@ -86,13 +86,13 @@ public class FitUploadTests(KutaFactory factory) : IClassFixture<KutaFactory>
                 """, new { runner }));
             Assert.Equal(0, await StoredFiles(conn, runner));
 
-            var list = await client.GetFromJsonAsync<JsonElement[]>("/api/activities", ct);
-            Assert.Equal(2, list!.Length);
+            var list = await client.GetFromJsonAsync<ActivityPage>("/api/activities", ct);
+            Assert.Equal(2, list!.Items.Count);
 
             // En annan användare ser inte passen
             var otherClient = factory.CreateClient();
             await SignUpAsync(otherClient, other, "Någon annan", ct);
-            Assert.Empty((await otherClient.GetFromJsonAsync<JsonElement[]>("/api/activities", ct))!);
+            Assert.Empty((await otherClient.GetFromJsonAsync<ActivityPage>("/api/activities", ct))!.Items);
         }
         finally
         {
@@ -165,7 +165,7 @@ public class FitUploadTests(KutaFactory factory) : IClassFixture<KutaFactory>
             var run = new ManualActivityRequest("running", "Löpband",
                 DateTimeOffset.Parse("2026-10-01T18:00:00+02:00"), 1800, 5000, 0, 150);
 
-            var created = await client.PostAsJsonAsync("/api/activities/manual", run, ct);
+            var created = await client.PostAsJsonAsync("/api/activities/manual", run with { Tags = ["workout"] }, ct);
             Assert.Equal(HttpStatusCode.Created, created.StatusCode);
             var id = (await created.Content.ReadFromJsonAsync<JsonElement>(ct)).GetProperty("id").GetGuid();
             var detail = await client.GetFromJsonAsync<JsonElement>($"/api/activities/{id}", ct);
@@ -173,6 +173,7 @@ public class FitUploadTests(KutaFactory factory) : IClassFixture<KutaFactory>
                 (detail.GetProperty("title").GetString(), detail.GetProperty("startedAt").GetString(),
                  detail.GetProperty("distanceM").GetDouble(), detail.GetProperty("avgHr").ValueKind,
                  detail.GetProperty("streams").ValueKind));
+            Assert.Equal("workout", Assert.Single(detail.GetProperty("tags").EnumerateArray()).GetString());
             Assert.Equal("manual", await conn.ExecuteScalarAsync<string>("select source from activities where id = @id", new { id }));
 
             await client.PutAsync("/api/me/hr-consent", null, ct);
