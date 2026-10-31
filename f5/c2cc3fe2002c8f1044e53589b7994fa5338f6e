@@ -1,0 +1,19 @@
+web/index.html
+  s_525e53eeb21a67::t_cfdcea671d1351 30
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.7.5",
+  "base_commit_sha": "f5c2cc3fe2002c8f1044e53589b7994fa5338f6e",
+  "prompts": {},
+  "sessions": {
+    "s_525e53eeb21a67": {
+      "agent_id": {
+        "tool": "codex",
+        "id": "01a19409-12a3-7ab0-ba1e-d1afa0f2c73f",
+        "model": "unknown"
+      },
+      "human_author": "Simon Aunér <simonauner@gmail.com>"
+    }
+  }
+}
