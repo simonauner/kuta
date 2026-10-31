@@ -42,8 +42,9 @@ static async Task<int> RunAsync(string[] args)
     // Npgsql med PostGIS/NetTopologySuite
     var dataSourceBuilder = new NpgsqlDataSourceBuilder(connectionString);
     dataSourceBuilder.UseNetTopologySuite();
-    var dataSource = dataSourceBuilder.Build();
-    builder.Services.AddSingleton(dataSource);
+    // Fabriksregistrering: containern äger då poolen och stänger dess anslutningar när appen avslutas.
+    // En färdig instans kasseras aldrig, så varje testapp lämnade annars sina anslutningar öppna.
+    builder.Services.AddSingleton(_ => dataSourceBuilder.Build());
 
     builder.Services.ConfigureHttpJsonOptions(o =>
         o.SerializerOptions.PropertyNamingPolicy = System.Text.Json.JsonNamingPolicy.CamelCase);
