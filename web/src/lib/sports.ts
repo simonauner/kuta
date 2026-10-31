@@ -1,4 +1,7 @@
 export const sportIcons = {
+  triathlon: 'fitness',
+  swimrun: 'fitness',
+  multisport: 'fitness',
   running: 'run',
   'trail run': 'run',
   cycling: 'bike',

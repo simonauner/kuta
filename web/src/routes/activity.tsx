@@ -7,6 +7,8 @@ import { ChevronDown } from 'lucide-react'
 import { useTranslation } from 'react-i18next'
 import { ActivityCharts, type ChartSeries } from '@/components/activity-charts'
 import { BackLink } from '@/components/back-link'
+import { MultisportEditor } from '@/components/multisport-editor'
+import { partStreams, sportNameKey, sportColors, type ActivityPart } from '@/lib/multisport'
 import { Button } from '@/components/ui/button'
 import { equipmentQuery } from '@/lib/equipment'
 import { TagLabels } from '@/components/activity-tags'
@@ -19,19 +21,19 @@ import {
   chartAxis,
   average,
   formatDuration,
-  formatPace,
+  formatSportPace,
   splits,
 } from '@/lib/activity'
 
 // Tempo ur hastigheten, utjämnat över ~15 s så att GPS-brus inte ger spikar; stillastående blir lucka.
-function paceSeries(speed: (number | null)[]) {
+function paceSeries(speed: (number | null)[], minSpeed = 0.5) {
   const window = 15
   return speed.map((_, i) => {
     const values = speed
       .slice(Math.max(0, i - window + 1), i + 1)
       .filter((v): v is number => v !== null)
     const avg = values.length ? values.reduce((a, b) => a + b, 0) / values.length : 0
-    return avg > 0.5 ? 1000 / avg : null
+    return avg > minSpeed ? 1000 / avg : null
   })
 }
 
@@ -43,9 +45,14 @@ export function ActivityPage() {
   const [lapsOpen, setLapsOpen] = useState(false)
   const lapsId = useId()
   const activity = useQuery(activityQuery(activityId))
+  const [selection, setSelection] = useState<{ id: string; part: ActivityPart | null } | null>(null)
+  const selectedPart = selection?.id === activityId ? selection.part : null
+  const selectedSport = selectedPart?.sport ?? activity.data?.sport
+  const mixed = (activity.data?.parts.length ?? 0) > 0 && !selectedPart
 
   const view = useMemo(() => {
-    const streams = activity.data?.streams
+    const original = activity.data?.streams
+    const streams = original && selectedPart ? partStreams(original, selectedPart) : original
     if (!streams) return null
     const coordinates = (streams.lat ?? []).flatMap((lat, i): [number, number][] => {
       const lon = streams.lon?.[i]
@@ -59,21 +66,49 @@ export function ActivityPage() {
         color: '#868e96',
         fill: true,
       })
-    if (streams.speed)
+    if (streams.speed && !mixed)
       series.push({
-        label: t('activity.chartPace'),
-        values: paceSeries(streams.speed),
+        label:
+          selectedSport === 'cycling'
+            ? `${t('activity.speed')} (km/h)`
+            : `${t('activity.chartPace')} (${selectedSport === 'swimming' ? '/100 m' : '/km'})`,
+        values:
+          selectedSport === 'cycling'
+            ? streams.speed.map((v) => (v === null ? null : v * 3.6))
+            : paceSeries(streams.speed, selectedSport === 'swimming' ? 0.05 : 0.5).map((v) =>
+                v === null ? null : v / (selectedSport === 'swimming' ? 10 : 1),
+              ),
         color: '#1c7ed6',
-        pace: true,
+        pace: selectedSport !== 'cycling',
       })
     if (streams.hr)
       series.push({ label: t('activity.chartHr'), values: streams.hr, color: '#e03131' })
-    if (streams.cadence)
+    if (streams.cadence && !mixed)
       series.push({ label: t('activity.chartCadence'), values: streams.cadence, color: '#ae3ec9' })
     if (streams.temp)
       series.push({ label: t('activity.chartTemp'), values: streams.temp, color: '#f08c00' })
-    return { coordinates, series, axis: chartAxis(streams), splits: splits(streams) }
-  }, [activity.data, t])
+    const routes =
+      !selectedPart && activity.data?.parts.length
+        ? activity.data.parts.map((p) => {
+            const leg = partStreams(original!, p)
+            return {
+              color: sportColors[p.sport] ?? '#ae3ec9',
+              coordinates: (leg.lat ?? []).flatMap((lat, i): [number, number][] => {
+                const lon = leg.lon?.[i]
+                return lat != null && lon != null ? [[lon, lat]] : []
+              }),
+            }
+          })
+        : undefined
+    return {
+      coordinates,
+      routes,
+      streams,
+      series,
+      axis: chartAxis(streams),
+      splits: mixed ? [] : splits(streams),
+    }
+  }, [activity.data, selectedPart, selectedSport, mixed, t])
 
   if (activity.isPending) return null
   if (activity.isError)
@@ -90,7 +125,23 @@ export function ActivityPage() {
       </section>
     )
 
-  const a = activity.data
+  const original = activity.data
+  const a = selectedPart
+    ? {
+        ...original,
+        sport: selectedPart.sport,
+        distanceM: selectedPart.distanceM,
+        durationS: selectedPart.endS - selectedPart.startS,
+        movingS: null,
+        avgHr: average(view?.streams.hr ?? null),
+        maxHr: null,
+        elevationGainM: null,
+        streams: view?.streams ?? null,
+        laps: original.laps.filter(
+          (l) => l.startS >= selectedPart.startS && l.startS + l.durationS <= selectedPart.endS,
+        ),
+      }
+    : original
   const number = new Intl.NumberFormat(i18n.resolvedLanguage, {
     maximumFractionDigits: 2,
     minimumFractionDigits: 2,
@@ -106,12 +157,15 @@ export function ActivityPage() {
   const stats = [
     [t('activity.distance'), `${number.format(a.distanceM / 1000)} km`],
     [t('activity.time'), formatDuration(a.durationS)],
-    [t('activity.pace'), formatPace(a.movingS ?? a.durationS, a.distanceM)],
+    !mixed && [
+      t(a.sport === 'cycling' ? 'activity.speed' : 'activity.pace'),
+      formatSportPace(a.sport, a.movingS ?? a.durationS, a.distanceM, i18n.resolvedLanguage),
+    ],
     a.elevationGainM !== null && [t('activity.elevation'), `${Math.round(a.elevationGainM)} m`],
     a.movingS !== null && [t('activity.movingTime'), formatDuration(a.movingS)],
     a.avgHr !== null && [t('activity.avgHr'), `${a.avgHr} bpm`],
     a.maxHr !== null && [t('activity.maxHr'), `${a.maxHr} bpm`],
-    cadence !== null && [t('activity.avgCadence'), `${cadence} ${cadenceUnit}`],
+    !mixed && cadence !== null && [t('activity.avgCadence'), `${cadence} ${cadenceUnit}`],
     temp !== null && [t('activity.avgTemp'), `${temp} °C`],
   ].filter((s): s is [string, string] => !!s)
 
@@ -122,7 +176,7 @@ export function ActivityPage() {
       <div className="mt-1 flex flex-wrap items-center justify-between gap-3">
         <h1 className="flex min-w-0 items-center gap-3 text-2xl font-semibold tracking-tight">
           <span className="wrap-anywhere" style={{ viewTransitionName: `activity-title-${a.id}` }}>
-            {activityTitle(a, t)}
+            {activityTitle(original, t)}
           </span>
           <SportIcon
             sport={a.sport}
@@ -145,6 +199,43 @@ export function ActivityPage() {
       {a.description && (
         <p className="mt-4 whitespace-pre-wrap text-sm wrap-anywhere">{a.description}</p>
       )}
+      <MultisportEditor
+        key={`${original.id}:${original.partsEdited}:${JSON.stringify(original.parts)}`}
+        activity={original}
+        onPreview={(part) => {
+          setSelection({ id: activityId, part })
+          setLapsOpen(false)
+        }}
+      />
+      {selectedPart && (
+        <p className="mt-4 text-sm font-medium">
+          {t('multisport.selected', {
+            number: selectedPart.partIndex + 1,
+            sport: t(sportNameKey(selectedPart.sport)),
+          })}
+        </p>
+      )}
+      {mixed && (
+        <dl
+          aria-label={t('multisport.distanceBySport')}
+          className="mt-4 flex flex-wrap gap-4 text-sm"
+        >
+          {[...new Set(original.parts.map((p) => p.sport))].map((sport) => (
+            <div key={sport}>
+              <dt>{t(sportNameKey(sport))}</dt>
+              <dd className="font-semibold">
+                {number.format(
+                  original.parts
+                    .filter((p) => p.sport === sport)
+                    .reduce((sum, p) => sum + p.distanceM, 0) / 1000,
+                )}{' '}
+                km
+              </dd>
+            </div>
+          ))}
+        </dl>
+      )}
+
       {a.equipmentIds.length > 0 && (
         <div className="mt-5">
           <h2 className="text-sm font-medium">{t('equipment.title')}</h2>
@@ -189,7 +280,7 @@ export function ActivityPage() {
         ))}
       </dl>
 
-      {a.laps.length > 0 && (
+      {!mixed && a.laps.length > 0 && (
         <div className="mt-8">
           <Button
             id={`${lapsId}-toggle`}
@@ -241,7 +332,12 @@ export function ActivityPage() {
                         <td className="py-1.5">{number.format(l.distanceM / 1000)} km</td>
                         <td className="py-1.5">{formatDuration(l.movingS ?? l.durationS)}</td>
                         <td className="py-1.5">
-                          {formatPace(l.movingS ?? l.durationS, l.distanceM)}
+                          {formatSportPace(
+                            a.sport,
+                            l.movingS ?? l.durationS,
+                            l.distanceM,
+                            i18n.resolvedLanguage,
+                          )}
                         </td>
                         <td className="py-1.5">
                           {l.ascentM === null && l.descentM === null
@@ -266,7 +362,11 @@ export function ActivityPage() {
 
       <div className="mt-8">
         {view && view.coordinates.length > 1 ? (
-          <ActivityMap coordinates={view.coordinates} label={t('activity.map')} />
+          <ActivityMap
+            coordinates={view.coordinates}
+            routes={view.routes}
+            label={t('activity.map')}
+          />
         ) : (
           <p className="text-sm text-muted-foreground">{t('activity.noRoute')}</p>
         )}
@@ -297,7 +397,9 @@ export function ActivityPage() {
                   <td className="py-1.5">
                     {s.distanceM < 950 ? number.format(s.distanceM / 1000) : s.km}
                   </td>
-                  <td className="py-1.5">{formatPace(s.durationS, s.distanceM)}</td>
+                  <td className="py-1.5">
+                    {formatSportPace(a.sport, s.durationS, s.distanceM, i18n.resolvedLanguage)}
+                  </td>
                   <td className="py-1.5">
                     {s.elevationM === null ? '–' : `${Math.round(s.elevationM)} m`}
                   </td>

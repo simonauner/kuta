@@ -14,7 +14,7 @@ import {
   activityTitle,
   activitySearch,
   formatDuration,
-  formatPace,
+  formatSportPace,
   groupActivities,
   type ActivityCursor,
   type ActivityPage,
@@ -214,7 +214,7 @@ export function ActivitiesPage() {
                       </p>
                       <p className="mt-1 text-sm text-muted-foreground">
                         {kmFormat.format(a.distanceM / 1000)} km · {formatDuration(a.durationS)} ·{' '}
-                        {formatPace(a.durationS, a.distanceM)}
+                        {formatSportPace(a.sport, a.durationS, a.distanceM, i18n.resolvedLanguage)}
                         {a.avgHr !== null && ` · ${a.avgHr} bpm`}
                       </p>
                       <TagLabels tags={a.tags} />
