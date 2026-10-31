@@ -1,3 +1,4 @@
+import { FormField } from '@/components/ui/form-field'
 import { useState } from 'react'
 import { useQuery } from '@tanstack/react-query'
 import { Link } from '@tanstack/react-router'
@@ -132,20 +133,26 @@ export function RecordsSection({ year }: { year: number }) {
         ))}
 
       <div className="mt-6 rounded-xl border bg-card p-4">
-        <label className="flex flex-wrap items-center justify-between gap-3 text-sm font-medium">
-          {t('records.trend')}
-          <select
-            className={selectClass}
-            value={distance}
-            onChange={(e) => setDistance(Number(e.target.value) as RecordDistance)}
-          >
-            {recordDistances.map(([d]) => (
-              <option key={d} value={d}>
-                {distanceLabel(d)}
-              </option>
-            ))}
-          </select>
-        </label>
+        <FormField
+          layout="inline"
+          label={t('records.trend')}
+          className="justify-between text-sm font-medium"
+        >
+          {(id) => (
+            <select
+              id={id}
+              className={selectClass}
+              value={distance}
+              onChange={(e) => setDistance(Number(e.target.value) as RecordDistance)}
+            >
+              {recordDistances.map(([d]) => (
+                <option key={d} value={d}>
+                  {distanceLabel(d)}
+                </option>
+              ))}
+            </select>
+          )}
+        </FormField>
         {trend.error && <QueryError error={trend.error} retry={() => void trend.refetch()} />}
         {trend.isSuccess && (
           <RecordTrendView trend={trend.data} distanceLabel={distanceLabel(distance)} />

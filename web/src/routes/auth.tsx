@@ -5,7 +5,7 @@ import { useMutation, useQueryClient } from '@tanstack/react-query'
 import { useState, type FormEvent, type ReactNode } from 'react'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
-import { Label } from '@/components/ui/label'
+import { FormField } from '@/components/ui/form-field'
 import { api } from '@/lib/api'
 import { useSessionChanged, type Me } from '@/lib/auth'
 
@@ -90,22 +90,22 @@ export function AuthPage() {
         </p>
       )}
       <form onSubmit={onSubmit} className="space-y-4">
-        <div className="space-y-2">
-          <Label htmlFor="email">{t('auth.email')}</Label>
-          <Input id="email" name="email" type="email" autoComplete="email" required />
-        </div>
+        <FormField label={t('auth.email')}>
+          {(id) => <Input id={id} name="email" type="email" autoComplete="email" required />}
+        </FormField>
         {mode !== 'recover' && (
-          <div className="space-y-2">
-            <Label htmlFor="password">{t('auth.password')}</Label>
-            <Input
-              id="password"
-              name="password"
-              type="password"
-              autoComplete={mode === 'login' ? 'current-password' : 'new-password'}
-              minLength={mode === 'signup' ? 8 : undefined}
-              required
-            />
-          </div>
+          <FormField label={t('auth.password')}>
+            {(id) => (
+              <Input
+                id={id}
+                name="password"
+                type="password"
+                autoComplete={mode === 'login' ? 'current-password' : 'new-password'}
+                minLength={mode === 'signup' ? 8 : undefined}
+                required
+              />
+            )}
+          </FormField>
         )}
         {submit.error && (
           <p role="alert" className="text-sm text-destructive">
@@ -180,15 +180,18 @@ export function ResetPasswordPage() {
         }}
       >
         <div className="space-y-2">
-          <Label htmlFor="new-password">{t('auth.newPassword')}</Label>
-          <Input
-            id="new-password"
-            name="password"
-            type="password"
-            autoComplete="new-password"
-            minLength={8}
-            required
-          />
+          <FormField label={t('auth.newPassword')}>
+            {(id) => (
+              <Input
+                id={id}
+                name="password"
+                type="password"
+                autoComplete="new-password"
+                minLength={8}
+                required
+              />
+            )}
+          </FormField>
           <p className="text-sm text-muted-foreground">{t('auth.minPassword')}</p>
         </div>
         {save.error && (
@@ -224,10 +227,11 @@ export function ChooseNamePage() {
   return (
     <AuthShell title={t('auth.welcome')}>
       <form onSubmit={onSubmit} className="space-y-4">
-        <div className="space-y-2">
-          <Label htmlFor="displayName">{t('auth.name')}</Label>
-          <Input id="displayName" name="displayName" autoComplete="name" maxLength={100} required />
-        </div>
+        <FormField label={t('auth.name')}>
+          {(id) => (
+            <Input id={id} name="displayName" autoComplete="name" maxLength={100} required />
+          )}
+        </FormField>
         {save.error && (
           <p role="alert" className="text-sm text-destructive">
             <ErrorMessage error={save.error} />

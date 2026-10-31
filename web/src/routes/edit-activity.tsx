@@ -1,3 +1,4 @@
+import { FormField } from '@/components/ui/form-field'
 import { MultisportEditor } from '@/components/multisport-editor'
 import { multisportView, partsFromForm, type MultisportDraft } from '@/lib/multisport'
 import { useState } from 'react'
@@ -86,43 +87,51 @@ function EditActivityForm({ activity }: { activity: ActivityDetail }) {
           if (!save.isPending) save.mutate(partsFromForm(split, event.currentTarget))
         }}
       >
-        <label className="block space-y-2 text-sm font-medium">
-          <span>{t('newActivity.name')}</span>
-          <Input
-            value={title}
-            maxLength={100}
-            placeholder={activityTitle({ ...activity, title: null }, t)}
-            onChange={(event) => setTitle(event.currentTarget.value)}
-            disabled={save.isPending}
-          />
-        </label>
-        <label className="block space-y-2 text-sm font-medium">
-          <span>{t('newActivity.description')}</span>
-          <textarea
-            value={description}
-            maxLength={10000}
-            rows={3}
-            onChange={(event) => setDescription(event.currentTarget.value)}
-            disabled={save.isPending}
-            className="w-full rounded-md border border-input bg-transparent px-3 py-2 text-base shadow-xs outline-none focus-visible:border-ring focus-visible:ring-[3px] focus-visible:ring-ring/50 md:text-sm dark:bg-input/30"
-          />
-        </label>
-        <label className="block space-y-2 text-sm font-medium">
-          <span>{t('social.visibility')}</span>
-          <select
-            className="block w-full rounded-md border bg-background px-3 py-2"
-            value={privacy}
-            disabled={save.isPending}
-            onChange={(event) => setPrivacy(event.target.value as ActivityDetail['privacy'])}
-          >
-            <option value="private">{t('social.private')}</option>
-            <option value="followers">{t('social.followersVisibility')}</option>
-            <option value="public">{t('social.public')}</option>
-          </select>
-          <span className="block text-xs font-normal text-muted-foreground">
-            {t('social.sharingHint')}
-          </span>
-        </label>
+        <FormField label={t('newActivity.name')} className="text-sm font-medium">
+          {(id) => (
+            <Input
+              id={id}
+              value={title}
+              maxLength={100}
+              placeholder={activityTitle({ ...activity, title: null }, t)}
+              onChange={(event) => setTitle(event.currentTarget.value)}
+              disabled={save.isPending}
+            />
+          )}
+        </FormField>
+        <FormField label={t('newActivity.description')} className="text-sm font-medium">
+          {(id) => (
+            <textarea
+              id={id}
+              value={description}
+              maxLength={10000}
+              rows={3}
+              onChange={(event) => setDescription(event.currentTarget.value)}
+              disabled={save.isPending}
+              className="w-full rounded-md border border-input bg-transparent px-3 py-2 text-base shadow-xs outline-none focus-visible:border-ring focus-visible:ring-[3px] focus-visible:ring-ring/50 md:text-sm dark:bg-input/30"
+            />
+          )}
+        </FormField>
+        <FormField label={t('social.visibility')} className="text-sm font-medium">
+          {(id) => (
+            <>
+              <select
+                id={id}
+                className="block w-full rounded-md border bg-background px-3 py-2"
+                value={privacy}
+                disabled={save.isPending}
+                onChange={(event) => setPrivacy(event.target.value as ActivityDetail['privacy'])}
+              >
+                <option value="private">{t('social.private')}</option>
+                <option value="followers">{t('social.followersVisibility')}</option>
+                <option value="public">{t('social.public')}</option>
+              </select>
+              <span className="mt-2 block text-xs font-normal text-muted-foreground">
+                {t('social.sharingHint')}
+              </span>
+            </>
+          )}
+        </FormField>
         <MultisportEditor
           activity={multisportView(activity, split)}
           onChange={setSplit}

@@ -1,3 +1,4 @@
+import { FormField } from '@/components/ui/form-field'
 import { useState } from 'react'
 import { useQuery } from '@tanstack/react-query'
 import { useTranslation } from 'react-i18next'
@@ -69,35 +70,39 @@ export function StatsPage() {
       <h1 className="text-2xl font-semibold tracking-tight">{t('nav.stats')}</h1>
       <p className="mt-2 text-muted-foreground">{t('stats.description')}</p>
       <div className="mt-6 flex flex-wrap gap-4">
-        <label className="grid gap-1 text-sm font-medium">
-          {t('activities.year')}
-          <select
-            className={selectClass}
-            value={year}
-            onChange={(e) => setYear(Number(e.target.value))}
-          >
-            {availableYears.map((value) => (
-              <option key={value} value={value}>
-                {value}
-              </option>
-            ))}
-          </select>
-        </label>
-        <label className="grid gap-1 text-sm font-medium">
-          {t('newActivity.sport')}
-          <select
-            className={selectClass}
-            value={sportGroup}
-            onChange={(e) => setSportGroup(e.target.value)}
-          >
-            <option value="">{t('stats.allSports')}</option>
-            {(sportGroups.data ?? (sportGroup ? [{ key: sportGroup }] : [])).map(({ key }) => (
-              <option key={key} value={key}>
-                {sportGroupLabel(key, t)}
-              </option>
-            ))}
-          </select>
-        </label>
+        <FormField label={t('activities.year')} className="text-sm font-medium">
+          {(id) => (
+            <select
+              id={id}
+              className={selectClass}
+              value={year}
+              onChange={(e) => setYear(Number(e.target.value))}
+            >
+              {availableYears.map((value) => (
+                <option key={value} value={value}>
+                  {value}
+                </option>
+              ))}
+            </select>
+          )}
+        </FormField>
+        <FormField label={t('newActivity.sport')} className="text-sm font-medium">
+          {(id) => (
+            <select
+              id={id}
+              className={selectClass}
+              value={sportGroup}
+              onChange={(e) => setSportGroup(e.target.value)}
+            >
+              <option value="">{t('stats.allSports')}</option>
+              {(sportGroups.data ?? (sportGroup ? [{ key: sportGroup }] : [])).map(({ key }) => (
+                <option key={key} value={key}>
+                  {sportGroupLabel(key, t)}
+                </option>
+              ))}
+            </select>
+          )}
+        </FormField>
       </div>
       {sportGroups.error && (
         <p role="alert" className="mt-4 text-sm text-destructive">
@@ -141,20 +146,26 @@ export function StatsPage() {
                 ))}
               </dl>
               <div className="mt-6 rounded-xl border bg-card p-4">
-                <label className="flex flex-wrap items-center justify-between gap-3 text-sm font-medium">
-                  {t('stats.monthly')}
-                  <select
-                    className={selectClass}
-                    value={metric}
-                    onChange={(e) => setMetric(e.target.value as Metric)}
-                  >
-                    {metrics.map((key) => (
-                      <option key={key} value={key}>
-                        {t(`stats.${key}`)}
-                      </option>
-                    ))}
-                  </select>
-                </label>
+                <FormField
+                  layout="inline"
+                  label={t('stats.monthly')}
+                  className="justify-between text-sm font-medium"
+                >
+                  {(id) => (
+                    <select
+                      id={id}
+                      className={selectClass}
+                      value={metric}
+                      onChange={(e) => setMetric(e.target.value as Metric)}
+                    >
+                      {metrics.map((key) => (
+                        <option key={key} value={key}>
+                          {t(`stats.${key}`)}
+                        </option>
+                      ))}
+                    </select>
+                  )}
+                </FormField>
                 <p className="mt-3 text-xs text-muted-foreground">
                   {t('stats.chartScale', { max: format(maximum, metric) })}
                 </p>

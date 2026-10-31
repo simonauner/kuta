@@ -1,3 +1,4 @@
+import { FormField } from '@/components/ui/form-field'
 import { useRef } from 'react'
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
 import { useTranslation } from 'react-i18next'
@@ -40,27 +41,29 @@ export function ActivityPrivacy() {
       <h2 id="activity-privacy-heading" className="text-lg font-semibold">
         {t('activityPrivacy.title')}
       </h2>
-      <label className="mt-4 block space-y-2 text-sm font-medium">
-        <span>{t('activityPrivacy.default')}</span>
-        <select
-          className="block w-full rounded-md border bg-background px-3 py-2"
-          value={privacy}
-          disabled={!me || save.isPending}
-          aria-describedby="activity-privacy-help"
-          onChange={(event) =>
-            save.mutate({
-              privacy: event.target.value as Me['defaultActivityPrivacy'],
-              applyToAll: false,
-            })
-          }
-        >
-          {Object.entries(labels).map(([value, label]) => (
-            <option key={value} value={value}>
-              {label}
-            </option>
-          ))}
-        </select>
-      </label>
+      <FormField label={t('activityPrivacy.default')} className="text-sm font-medium mt-4">
+        {(id) => (
+          <select
+            id={id}
+            className="block w-full rounded-md border bg-background px-3 py-2"
+            value={privacy}
+            disabled={!me || save.isPending}
+            aria-describedby="activity-privacy-help"
+            onChange={(event) =>
+              save.mutate({
+                privacy: event.target.value as Me['defaultActivityPrivacy'],
+                applyToAll: false,
+              })
+            }
+          >
+            {Object.entries(labels).map(([value, label]) => (
+              <option key={value} value={value}>
+                {label}
+              </option>
+            ))}
+          </select>
+        )}
+      </FormField>
       <p id="activity-privacy-help" className="mt-2 text-sm text-muted-foreground">
         {t('activityPrivacy.help')}
       </p>

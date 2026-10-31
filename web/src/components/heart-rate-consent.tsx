@@ -1,8 +1,8 @@
+import { FormField } from '@/components/ui/form-field'
 import { ErrorMessage } from '@/components/error-message'
 import { useTranslation } from 'react-i18next'
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
-import { useId, type ChangeEvent } from 'react'
-import { Label } from '@/components/ui/label'
+import { type ChangeEvent } from 'react'
 import { api } from '@/lib/api'
 import { meQuery, type Me } from '@/lib/auth'
 import { clearHeartRateQueries } from '@/lib/activity-query'
@@ -12,7 +12,6 @@ export function HeartRateConsent({ className }: { className?: string }) {
   const { t } = useTranslation()
   const queryClient = useQueryClient()
   const { data: me } = useQuery(meQuery)
-  const id = useId()
 
   const change = useMutation({
     mutationFn: (consent: boolean) =>
@@ -32,20 +31,28 @@ export function HeartRateConsent({ className }: { className?: string }) {
 
   return (
     <div className={`rounded-lg border p-4 ${className ?? ''}`}>
-      <div className="flex items-start gap-3">
-        <input
-          id={id}
-          type="checkbox"
-          className="mt-1 size-4 accent-primary"
-          checked={me?.hrConsent ?? false}
-          disabled={change.isPending}
-          onChange={onChange}
-        />
-        <Label htmlFor={id} className="block font-normal leading-relaxed">
-          <span className="font-medium">{t('consent.title')}</span>{' '}
-          <span className="text-muted-foreground">{t('consent.description')}</span>
-        </Label>
-      </div>
+      <FormField
+        layout="choice"
+        className="items-start"
+        labelClassName="font-normal leading-relaxed"
+        label={
+          <>
+            <span className="font-medium">{t('consent.title')}</span>{' '}
+            <span className="text-muted-foreground">{t('consent.description')}</span>
+          </>
+        }
+      >
+        {(id) => (
+          <input
+            id={id}
+            type="checkbox"
+            className="mt-1 size-4 accent-primary"
+            checked={me?.hrConsent ?? false}
+            disabled={change.isPending}
+            onChange={onChange}
+          />
+        )}
+      </FormField>
       {change.error && (
         <p role="alert" className="mt-2 text-sm text-destructive">
           <ErrorMessage error={change.error} />

@@ -1,3 +1,4 @@
+import { FormField } from '@/components/ui/form-field'
 import { useMutation, useQuery } from '@tanstack/react-query'
 import { Link } from '@tanstack/react-router'
 import { Settings, Share2 } from 'lucide-react'
@@ -51,12 +52,16 @@ export function ProfilePage() {
           <p role="alert" className="text-sm text-destructive">
             {t('social.profileLinkCopyFailed')}
           </p>
-          <Input
-            aria-label={t('social.profileLink')}
-            value={profileUrl}
-            readOnly
-            onFocus={(event) => event.currentTarget.select()}
-          />
+          <FormField label={t('social.profileLink')} hideLabel>
+            {(id) => (
+              <Input
+                id={id}
+                value={profileUrl}
+                readOnly
+                onFocus={(event) => event.currentTarget.select()}
+              />
+            )}
+          </FormField>
         </div>
       )}
       {me && <GoalList runnerId={me.id} />}
