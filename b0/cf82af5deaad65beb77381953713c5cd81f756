@@ -1,0 +1,37 @@
+web/src/features.css
+  s_8acf4917bf2353::t_85f4c6a41bb344 143,200,203-204,207,209,213-229,231-233,235-240,243-244,246-252,297
+  s_8acf4917bf2353::t_133664bbb46d0b 144-145,151,253-296
+  s_8acf4917bf2353::t_ad86a94e80de5e 146-150,152-157,161-199,202,230,234,241-242,245
+  s_8acf4917bf2353::t_c5e7a52011c809 201,205-206,208,210-212
+  s_8acf4917bf2353::t_3a7c203b0c816c 158-160
+web/features.html
+  s_8acf4917bf2353::t_3a7c203b0c816c 113-121,127-161,171
+  s_8acf4917bf2353::t_85f4c6a41bb344 90-91,94-97,175-180,182-184,372
+  s_8acf4917bf2353::t_b5c7e4b5af2a32 185-187
+  s_8acf4917bf2353::t_133664bbb46d0b 245-249,253-256,277,287,292-293,314,324,328-331
+  s_8acf4917bf2353::t_ca72f7730f1e90 98,105,162-170,181
+  s_8acf4917bf2353::t_ad86a94e80de5e 107-112,122-126,172-174
+  s_8acf4917bf2353::t_d808b8b3923507 20,56-57,250-252,257-276,278-286,288-291,294-313,315-323,325-327
+  s_8acf4917bf2353::t_c5e7a52011c809 100-103
+  s_8acf4917bf2353::t_32d127bcf9b690 11,106
+web/src/features.ts
+  s_8acf4917bf2353::t_85f4c6a41bb344 1-70
+README.md
+  s_8acf4917bf2353::t_133664bbb46d0b 7
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.7.5",
+  "base_commit_sha": "b0cf82af5deaad65beb77381953713c5cd81f756",
+  "prompts": {},
+  "sessions": {
+    "s_8acf4917bf2353": {
+      "agent_id": {
+        "tool": "codex",
+        "id": "01a192cc-34a0-7d33-a5df-abecc6ea5b92",
+        "model": "gpt-6.1-sol"
+      },
+      "human_author": "Simon Aunér <simonauner@gmail.com>"
+    }
+  }
+}
