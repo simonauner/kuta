@@ -1,3 +1,5 @@
+import { Menu } from '@base-ui/react/menu'
+import { EllipsisVertical } from 'lucide-react'
 import { Modal } from '@/components/ui/modal'
 import { useRef, useState, type FormEvent } from 'react'
 import { Link } from '@tanstack/react-router'
@@ -128,32 +130,37 @@ export function EquipmentSection() {
                   {item.brand && ` · ${item.brand}`}
                 </p>
               </div>
-              <div className="flex shrink-0 flex-wrap items-center justify-end gap-2">
-                <Button
-                  size="sm"
-                  variant="outline"
-                  disabled={setRetired.isPending}
-                  aria-label={t(item.retired ? 'shoes.reactivateLabel' : 'shoes.retireLabel', {
-                    name: item.name,
-                  })}
-                  onClick={() => setRetired.mutate({ id: item.id, retired: !item.retired })}
+              <Menu.Root>
+                <Menu.Trigger
+                  render={<Button size="icon-sm" variant="ghost" />}
+                  aria-label={t('equipment.actionsLabel', { name: item.name })}
                 >
-                  {t(item.retired ? 'shoes.reactivate' : 'shoes.retire')}
-                </Button>
-                <Button
-                  size="sm"
-                  variant="ghost"
-                  className="text-destructive"
-                  aria-label={t('shoes.deleteLabel', { name: item.name })}
-                  onClick={() => {
-                    setDeleting(item)
-                    remove.reset()
-                    deleteDialog.current?.showModal()
-                  }}
-                >
-                  {t('shoes.delete')}
-                </Button>
-              </div>
+                  <EllipsisVertical aria-hidden="true" />
+                </Menu.Trigger>
+                <Menu.Portal>
+                  <Menu.Positioner align="end" sideOffset={4} className="z-50">
+                    <Menu.Popup className="min-w-40 rounded-md border bg-popover p-1 text-popover-foreground shadow-md outline-none">
+                      <Menu.Item
+                        className="cursor-default rounded-sm px-2 py-1.5 text-sm outline-none data-highlighted:bg-accent data-highlighted:text-accent-foreground data-disabled:opacity-50"
+                        disabled={setRetired.isPending}
+                        onClick={() => setRetired.mutate({ id: item.id, retired: !item.retired })}
+                      >
+                        {t(item.retired ? 'shoes.reactivate' : 'shoes.retire')}
+                      </Menu.Item>
+                      <Menu.Item
+                        className="cursor-default rounded-sm px-2 py-1.5 text-sm text-destructive outline-none data-highlighted:bg-destructive/10"
+                        onClick={() => {
+                          setDeleting(item)
+                          remove.reset()
+                          deleteDialog.current?.showModal()
+                        }}
+                      >
+                        {t('shoes.delete')}
+                      </Menu.Item>
+                    </Menu.Popup>
+                  </Menu.Positioner>
+                </Menu.Portal>
+              </Menu.Root>
             </div>
             <dl className="mt-2 flex gap-8 text-sm tabular-nums">
               <div>

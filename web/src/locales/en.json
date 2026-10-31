@@ -229,6 +229,7 @@
     "empty": "No activities with this tag."
   },
   "equipment": {
+    "actionsLabel": "Actions for {{name}}",
     "title": "Equipment",
     "description": "Total distance and time from linked activities, including prior use. Time includes pauses.",
     "empty": "You have no equipment yet.",
