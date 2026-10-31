@@ -310,16 +310,21 @@ export function EquipmentSection() {
 
 export function EquipmentPicker({
   value,
+  initialIds,
   onChange,
   disabled = false,
 }: {
   value: string[]
+  initialIds: string[]
   onChange: (ids: string[]) => void
   disabled?: boolean
 }) {
   const { t } = useTranslation()
   const equipment = useQuery(equipmentQuery)
-  const options = equipment.data?.filter((item) => !item.retired || value.includes(item.id)) ?? []
+  const options =
+    equipment.data?.filter(
+      (item) => !item.retired || value.includes(item.id) || initialIds.includes(item.id),
+    ) ?? []
   const label = (item: Equipment) =>
     `${item.name}${item.retired ? ` · ${t('equipment.retired')}` : ''}`
   return (

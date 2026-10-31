@@ -1,6 +1,8 @@
+using System.Diagnostics;
 using System.IO.Compression;
 using System.Security.Claims;
 using System.Security.Cryptography;
+using System.Text.Json;
 using System.Xml;
 using Dapper;
 using Dynastream.Fit;
@@ -10,6 +12,8 @@ using Npgsql;
 
 public record StravaImportResult(int Imported, int Duplicates, string[] FailedActivityIds, int EquipmentImported, int EquipmentLinked);
 
+public record StravaImportProgress(int Processed, int Total, int Imported, int Duplicates, int Failed, StravaImportResult? Result = null);
+
 public static class StravaImportEndpoint
 {
     private const long MaxArchiveBytes = 500L * 1024 * 1024;
@@ -17,7 +21,7 @@ public static class StravaImportEndpoint
     public static void MapStravaImport(this RouteGroupBuilder activities)
     {
         activities.MapPost("/import/strava", async (IFormFile? file, NpgsqlDataSource db, RawFileStore store,
-            ClaimsPrincipal user, CancellationToken cancellationToken) =>
+            ClaimsPrincipal user, HttpContext context, CancellationToken cancellationToken) =>
         {
             if (file is null || file.Length == 0 || file.Length > MaxArchiveBytes)
                 return Results.BadRequest(new ApiError("Välj en Strava-export som ZIP (högst 500 MB).", "stravaArchiveRequired"));
@@ -37,10 +41,10 @@ public static class StravaImportEndpoint
                 if (archive.Entries.Count > 100000) throw new InvalidDataException("Too many entries.");
                 entries = archive.Entries.ToDictionary(e => e.FullName, StringComparer.Ordinal);
                 if (!entries.TryGetValue("activities.csv", out var manifest)) throw new InvalidDataException("Missing activities.csv.");
-                using var csv = new MemoryStream(StravaImport.ReadFile(manifest));
+                using var csv = new MemoryStream(StravaImport.ReadFile(manifest, new StravaImport.ExpansionBudget(StravaImport.MaxFileBytes), cancellationToken));
                 rows = StravaImport.ReadManifest(csv);
                 using var shoeCsv = entries.TryGetValue("shoes.csv", out var shoeEntry)
-                    ? new MemoryStream(StravaImport.ReadFile(shoeEntry)) : null;
+                    ? new MemoryStream(StravaImport.ReadFile(shoeEntry, new StravaImport.ExpansionBudget(StravaImport.MaxFileBytes), cancellationToken)) : null;
                 shoes = StravaImport.ReadShoes(shoeCsv, rows);
             }
             catch (Exception e) when (IsInvalidFile(e) || e is ArgumentException)
@@ -51,15 +55,30 @@ public static class StravaImportEndpoint
 
             using (archive)
             {
+                context.Response.ContentType = "application/x-ndjson";
+                context.Response.Headers.CacheControl = "no-store";
+                var jsonOptions = new JsonSerializerOptions(JsonSerializerDefaults.Web);
+                async Task ReportAsync(StravaImportProgress progress)
+                {
+                    await context.Response.WriteAsync(JsonSerializer.Serialize(progress, jsonOptions) + "\n", cancellationToken);
+                    await context.Response.Body.FlushAsync(cancellationToken);
+                }
+                await ReportAsync(new(0, rows.Count, 0, 0, 0));
+                var lastReport = Stopwatch.StartNew();
                 var (equipment, equipmentImported) = await StravaEquipment.ImportAsync(conn, userId, shoes, cancellationToken);
                 var equipmentLinked = 0;
                 var imported = 0;
                 var duplicates = 0;
                 var failed = new List<string>();
-                long expandedBytes = 0;
+                var budget = new StravaImport.ExpansionBudget(1024L * 1024 * 1024);
                 foreach (var row in rows)
                 {
                     cancellationToken.ThrowIfCancellationRequested();
+                    if (lastReport.ElapsedMilliseconds >= 250)
+                    {
+                        await ReportAsync(new(imported + duplicates + failed.Count, rows.Count, imported, duplicates, failed.Count));
+                        lastReport.Restart();
+                    }
                     var equipmentId = row.GearId is { } gearId ? equipment[gearId] : (Guid?)null;
                     if (await conn.ExecuteScalarAsync<bool>(
                         "select exists(select 1 from activities where user_id = @userId and strava_activity_id = @Id)", new { userId, row.Id }))
@@ -69,7 +88,7 @@ public static class StravaImportEndpoint
                         duplicates++;
                         continue;
                     }
-                    if (expandedBytes > 1024L * 1024 * 1024)
+                    if (budget.Exhausted)
                     {
                         failed.Add(row.Id);
                         continue;
@@ -82,9 +101,7 @@ public static class StravaImportEndpoint
                         if (row.Filename.Length > 0)
                         {
                             if (!entries.TryGetValue(row.Filename, out var entry)) throw new InvalidDataException("Missing activity file.");
-                            bytes = StravaImport.ReadFile(entry);
-                            expandedBytes += bytes.Length;
-                            if (expandedBytes > 1024L * 1024 * 1024) throw new InvalidDataException("Archive expands too much.");
+                            bytes = StravaImport.ReadFile(entry, budget, cancellationToken);
                             var filename = row.Filename.EndsWith(".gz", StringComparison.OrdinalIgnoreCase) ? row.Filename[..^3] : row.Filename;
                             extension = Path.GetExtension(filename).ToLowerInvariant();
                             if (extension == ".fit")
@@ -128,7 +145,9 @@ public static class StravaImportEndpoint
                     }
                     catch (InvalidEquipmentException) { failed.Add(row.Id); }
                 }
-                return Results.Ok(new StravaImportResult(imported, duplicates, failed.ToArray(), equipmentImported, equipmentLinked));
+                var result = new StravaImportResult(imported, duplicates, failed.ToArray(), equipmentImported, equipmentLinked);
+                await ReportAsync(new(rows.Count, rows.Count, imported, duplicates, failed.Count, result));
+                return Results.Empty;
             }
         })
         .DisableAntiforgery()

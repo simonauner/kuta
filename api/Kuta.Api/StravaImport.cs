@@ -122,22 +122,39 @@ public static class StravaImport
         return result;
     }
 
-    public static byte[] ReadFile(ZipArchiveEntry entry)
+    public sealed class ExpansionBudget(long maxBytes)
     {
-        if (entry.Length > MaxFileBytes) throw new InvalidDataException("File too large.");
-        using var input = entry.Open();
-        if (!entry.Name.EndsWith(".gz", StringComparison.OrdinalIgnoreCase)) return ReadBounded(input);
-        using var gzip = new GZipStream(input, CompressionMode.Decompress);
-        return ReadBounded(gzip);
+        private long remainingBytes = maxBytes;
+        public bool Exhausted => remainingBytes <= 0;
+
+        public void Consume(int bytes)
+        {
+            remainingBytes -= bytes;
+            if (remainingBytes < 0) throw new InvalidDataException("Archive expands too much.");
+        }
     }
 
-    public static byte[] ReadBounded(Stream input)
+    public static byte[] ReadFile(ZipArchiveEntry entry, ExpansionBudget budget, CancellationToken ct)
+    {
+        ct.ThrowIfCancellationRequested();
+        if (entry.Length > MaxFileBytes) throw new InvalidDataException("File too large.");
+        using var input = entry.Open();
+        if (!entry.Name.EndsWith(".gz", StringComparison.OrdinalIgnoreCase)) return ReadBounded(input, budget, ct);
+        using var gzip = new GZipStream(input, CompressionMode.Decompress);
+        return ReadBounded(gzip, budget, ct);
+    }
+
+    private static byte[] ReadBounded(Stream input, ExpansionBudget budget, CancellationToken ct)
     {
         using var output = new MemoryStream();
         var buffer = new byte[81920];
-        int read;
-        while ((read = input.Read(buffer)) > 0)
+        while (true)
         {
+            ct.ThrowIfCancellationRequested();
+            var read = input.Read(buffer);
+            if (read == 0) break;
+            // Även byte från filer som senare avvisas förbrukar arkivets gemensamma budget.
+            budget.Consume(read);
             if (output.Length + read > MaxFileBytes) throw new InvalidDataException("File too large.");
             output.Write(buffer, 0, read);
         }

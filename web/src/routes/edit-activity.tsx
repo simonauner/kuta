@@ -10,7 +10,7 @@ import { Input } from '@/components/ui/input'
 import { ApiError, api } from '@/lib/api'
 import { activityQuery } from '@/lib/activity-query'
 import { activityTitle, type ActivityDetail } from '@/lib/activity'
-import { equipmentQuery } from '@/lib/equipment'
+import { equipmentQuery, lastUsedShoeQuery } from '@/lib/equipment'
 
 export function EditActivityPage() {
   const { activityId } = useParams({ from: '/app/activities/$activityId/edit' })
@@ -32,7 +32,7 @@ export function EditActivityPage() {
 
 function EditActivityForm({ activity }: { activity: ActivityDetail }) {
   const { t } = useTranslation()
-  const { year } = useSearch({ from: '/app/activities/$activityId/edit' })
+  const { year, tag } = useSearch({ from: '/app/activities/$activityId/edit' })
   const navigate = useNavigate()
   const queryClient = useQueryClient()
   const [title, setTitle] = useState(activity.title ?? '')
@@ -41,7 +41,7 @@ function EditActivityForm({ activity }: { activity: ActivityDetail }) {
   const destination = {
     to: '/app/activities/$activityId' as const,
     params: { activityId: activity.id },
-    search: { year },
+    search: { year, tag },
   }
   const save = useMutation({
     mutationFn: () =>
@@ -52,6 +52,7 @@ function EditActivityForm({ activity }: { activity: ActivityDetail }) {
         queryClient.invalidateQueries({ queryKey: ['activities'] }),
         queryClient.invalidateQueries({ queryKey: ['records'] }),
         queryClient.invalidateQueries({ queryKey: equipmentQuery.queryKey }),
+        queryClient.invalidateQueries({ queryKey: lastUsedShoeQuery.queryKey }),
       ])
       await navigate(destination)
     },
@@ -79,6 +80,7 @@ function EditActivityForm({ activity }: { activity: ActivityDetail }) {
         </label>
         <EquipmentPicker
           value={equipmentIds}
+          initialIds={activity.equipmentIds}
           onChange={setEquipmentIds}
           disabled={save.isPending}
         />

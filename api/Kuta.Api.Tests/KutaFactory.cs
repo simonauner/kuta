@@ -1,3 +1,7 @@
+using Dapper;
+using Microsoft.AspNetCore.Http;
+using Microsoft.Extensions.DependencyInjection;
+using Npgsql;
 using System.Net.Http.Json;
 using System.Text.Json;
 using System.Text.RegularExpressions;
@@ -34,14 +38,21 @@ public static class TestSession
         client.DefaultRequestHeaders.Add("X-CSRF-TOKEN", token.GetProperty("token").GetString());
     }
 
-    // Registrerar, bekräftar via mejlet i Mailpit och skapar profilen; klienten är inloggad efteråt.
-    public static async Task SignUpAsync(HttpClient client, string email, string displayName, CancellationToken ct)
+    // Förbered aktivitetstester under HTTP-nivån; bara auth-testerna behöver registrering och mejl.
+    public static async Task CreateRunnerAsync(KutaFactory factory, HttpClient client, NpgsqlConnection conn,
+        string email, string displayName, CancellationToken ct)
     {
+        var id = Guid.NewGuid();
+        await conn.ExecuteAsync(new CommandDefinition("""
+            insert into auth.users (id, email) values (@id, @email);
+            insert into users (id, display_name) values (@id, @displayName)
+            """, new { id, email, displayName }, cancellationToken: ct));
+        using var scope = factory.Services.CreateScope();
+        var http = new DefaultHttpContext { RequestServices = scope.ServiceProvider };
+        await SupabaseCookieSession.SignInAsync(http, new AuthSession(id, email, "synthetic-access", "synthetic-refresh",
+            DateTimeOffset.UtcNow.AddHours(1)), ct);
+        client.DefaultRequestHeaders.Add("Cookie", string.Join("; ", http.Response.Headers.SetCookie.Select(c => c!.Split(';')[0])));
         await UseCsrfToken(client, ct);
-        (await client.PostAsJsonAsync("/api/auth/signup", new { email, password = Password }, ct)).EnsureSuccessStatusCode();
-        (await client.GetAsync($"/api/auth/confirm?token_hash={await ConfirmationTokenHash(email, ct)}", ct)).Dispose();
-        await UseCsrfToken(client, ct);
-        (await client.PutAsJsonAsync("/api/me", new { displayName }, ct)).EnsureSuccessStatusCode();
     }
 
     public static async Task<string> ConfirmationTokenHash(string email, CancellationToken ct)

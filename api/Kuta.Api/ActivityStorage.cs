@@ -4,6 +4,57 @@ using Npgsql;
 
 public static class ActivityStorage
 {
+    public static async Task<bool> DeleteAsync(NpgsqlConnection conn, RawFileStore store, Guid userId, Guid id,
+        CancellationToken ct)
+    {
+        await using var tx = await conn.BeginTransactionAsync(ct);
+        var activity = await conn.QuerySingleOrDefaultAsync<OwnedFile>(new CommandDefinition(
+            "select id, raw_file_key from activities where id = @id and user_id = @userId for update",
+            new { id, userId }, tx, cancellationToken: ct));
+        if (activity is null) return false;
+        if (activity.RawFileKey is { } key) await store.DeleteAsync([key], ct);
+        await conn.ExecuteAsync(new CommandDefinition("delete from activities where id = @id and user_id = @userId",
+            new { id, userId }, tx, cancellationToken: ct));
+        await tx.CommitAsync(ct);
+        return true;
+    }
+
+    private record OwnedFile(Guid Id, string? RawFileKey);
+
+    public static async Task<ActivitySummary?> SaveManualAsync(NpgsqlConnection conn, Guid userId,
+        ManualActivityRequest req, CancellationToken ct)
+    {
+        await using var tx = await conn.BeginTransactionAsync(ct);
+        // Samma profillås som återkallat samtycke: läs aldrig ett äldre samtycke före transaktionen.
+        var profile = await conn.QuerySingleOrDefaultAsync<Profile>(new CommandDefinition(
+            "select display_name, hr_consent_at is not null as hr_consent from users where id = @userId for update",
+            new { userId }, tx, cancellationToken: ct));
+        if (profile is null) return null;
+        var equipmentIds = req.EquipmentIds ?? [];
+        if (!await EquipmentEndpoints.OwnsAsync(conn, tx, userId, equipmentIds))
+            throw new InvalidEquipmentException();
+        var title = ActivityInput.NormalizeTitle(req.Title);
+        var startedAt = req.StartedAt!.Value.UtcDateTime;
+        var avgHr = profile.HrConsent ? req.AvgHr : null;
+        var tags = ActivityInput.NormalizeTags(req.Tags);
+        var id = await conn.ExecuteScalarAsync<Guid>(new CommandDefinition(
+            """
+            insert into activities (user_id, source, sport, title, started_at, duration_s, distance_m, avg_hr,
+                                    avg_speed_mps, elevation_gain_m, tags)
+            values (@userId, 'manual', @Sport, @title, @startedAt, @DurationS, @DistanceM, @avgHr,
+                    @avgSpeedMps, @ElevationGainM, @tags)
+            returning id
+            """, new
+            {
+                userId, req.Sport, title, startedAt, req.DurationS, req.DistanceM, avgHr, tags,
+                avgSpeedMps = (float)(req.DistanceM!.Value / req.DurationS!.Value), req.ElevationGainM,
+            }, tx, cancellationToken: ct));
+        await EquipmentEndpoints.AttachAsync(conn, tx, id, userId, equipmentIds);
+        await tx.CommitAsync(ct);
+        return new ActivitySummary(id, req.Sport!, title, startedAt, req.DurationS!.Value, req.DistanceM!.Value,
+            avgHr, tags, equipmentIds.Distinct().ToArray());
+    }
+
     // Samma lås används vid återkallat samtycke, så att en lång import inte kan spara puls efteråt.
     public static async Task<Guid?> SaveAsync(NpgsqlConnection conn, RawFileStore store, Guid userId,
         ParsedActivity parsed, string source, string? title, string? stravaId, byte[]? bytes, string extension,
@@ -58,9 +109,28 @@ public static class ActivityStorage
         }
         catch
         {
-            if (key is not null) await store.DeleteAsync([key], CancellationToken.None);
+            await tx.DisposeAsync();
+            if (key is not null) await CleanupUnreferencedFileAsync(conn, store, userId, key);
             throw;
         }
         return id;
     }
+
+    public static async Task CleanupUnreferencedFileAsync(NpgsqlConnection failedConnection, RawFileStore store,
+        Guid userId, string key)
+    {
+        // Ett förlorat commitsvar betyder inte rollback. Kontrollera utfallet innan filen raderas.
+        using var completion = new CancellationTokenSource(TimeSpan.FromSeconds(30));
+        await using var conn = failedConnection.CloneWith(failedConnection.ConnectionString);
+        await conn.OpenAsync(completion.Token);
+        await using var tx = await conn.BeginTransactionAsync(completion.Token);
+        // Hindra en ny import från att återanvända nyckeln mellan kontroll och radering.
+        await conn.ExecuteAsync(new CommandDefinition("select id from users where id = @userId for update",
+            new { userId }, tx, cancellationToken: completion.Token));
+        var referenced = await conn.ExecuteScalarAsync<bool>(new CommandDefinition(
+            "select exists (select 1 from activities where user_id = @userId and raw_file_key = @key)",
+            new { userId, key }, tx, cancellationToken: completion.Token));
+        if (!referenced) await store.DeleteAsync([key], completion.Token);
+    }
+
 }

@@ -22,7 +22,7 @@ public class FitUploadTests(KutaFactory factory) : IClassFixture<KutaFactory>
         await using var conn = await factory.Services.GetRequiredService<NpgsqlDataSource>().OpenConnectionAsync(ct);
         try
         {
-            await SignUpAsync(client, runner, "Löparen", ct);
+            await CreateRunnerAsync(factory, client, conn, runner, "Löparen", ct);
             var start = new System.DateTime(2026, 10, 1, 6, 30, 0, DateTimeKind.Utc);
             var morning = FitFile.Run(start, seconds: 600);
 
@@ -91,7 +91,7 @@ public class FitUploadTests(KutaFactory factory) : IClassFixture<KutaFactory>
 
             // En annan användare ser inte passen
             var otherClient = factory.CreateClient();
-            await SignUpAsync(otherClient, other, "Någon annan", ct);
+            await CreateRunnerAsync(factory, otherClient, conn, other, "Någon annan", ct);
             Assert.Empty((await otherClient.GetFromJsonAsync<ActivityPage>("/api/activities", ct))!.Items);
         }
         finally
@@ -111,7 +111,7 @@ public class FitUploadTests(KutaFactory factory) : IClassFixture<KutaFactory>
         await using var conn = await factory.Services.GetRequiredService<NpgsqlDataSource>().OpenConnectionAsync(ct);
         try
         {
-            await SignUpAsync(client, runner, "Löparen", ct);
+            await CreateRunnerAsync(factory, client, conn, runner, "Löparen", ct);
             await client.PutAsync("/api/me/hr-consent", null, ct);
             var fit = FitFile.Run(new System.DateTime(2026, 9, 1, 7, 0, 0, DateTimeKind.Utc), seconds: 120);
             var id = (await (await Upload(client, fit, ct)).Content.ReadFromJsonAsync<JsonElement>(ct)).GetProperty("id").GetGuid();
@@ -131,7 +131,7 @@ public class FitUploadTests(KutaFactory factory) : IClassFixture<KutaFactory>
             Assert.Equal(155, detailLaps[0].GetProperty("avgHr").GetInt32());
 
             // Någon annan kan varken se eller ta bort passet, och får inte veta att det finns
-            await SignUpAsync(otherClient, other, "Någon annan", ct);
+            await CreateRunnerAsync(factory, otherClient, conn, other, "Någon annan", ct);
             Assert.Equal(HttpStatusCode.NotFound, (await otherClient.GetAsync($"/api/activities/{id}", ct)).StatusCode);
             Assert.Equal(HttpStatusCode.NotFound, (await otherClient.DeleteAsync($"/api/activities/{id}", ct)).StatusCode);
             Assert.Equal(1, await conn.ExecuteScalarAsync<int>("select count(*) from activities where id = @id", new { id }));
@@ -161,7 +161,7 @@ public class FitUploadTests(KutaFactory factory) : IClassFixture<KutaFactory>
         await using var conn = await factory.Services.GetRequiredService<NpgsqlDataSource>().OpenConnectionAsync(ct);
         try
         {
-            await SignUpAsync(client, runner, "Löparen", ct);
+            await CreateRunnerAsync(factory, client, conn, runner, "Löparen", ct);
             var run = new ManualActivityRequest("running", "Löpband",
                 DateTimeOffset.Parse("2026-10-01T18:00:00+02:00"), 1800, 5000, 0, 150);
 

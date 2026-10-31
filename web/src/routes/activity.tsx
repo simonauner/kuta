@@ -13,11 +13,11 @@ import { ApiError } from '@/lib/api'
 import { activityQuery } from '@/lib/activity-query'
 import {
   activityTitle,
+  chartAxis,
   average,
   formatDuration,
   formatPace,
   splits,
-  type ActivityStreams,
 } from '@/lib/activity'
 
 // Tempo ur hastigheten, utjämnat över ~15 s så att GPS-brus inte ger spikar; stillastående blir lucka.
@@ -32,16 +32,10 @@ function paceSeries(speed: (number | null)[]) {
   })
 }
 
-// x-axeln måste vara stigande utan luckor: fyll en saknad distans med föregående.
-function distanceKm(streams: ActivityStreams) {
-  let last = 0
-  return (streams.dist ?? streams.t.map(() => null)).map((d) => (last = d ?? last) / 1000)
-}
-
 export function ActivityPage() {
   const { activityId } = useParams({ from: '/app/activities/$activityId' })
   const { t, i18n } = useTranslation()
-  const { year } = useSearch({ from: '/app/activities/$activityId' })
+  const { year, tag } = useSearch({ from: '/app/activities/$activityId' })
   const equipment = useQuery(equipmentQuery)
   const [tab, setTab] = useState<'overview' | 'laps'>('overview')
   const activity = useQuery(activityQuery(activityId))
@@ -74,7 +68,7 @@ export function ActivityPage() {
       series.push({ label: t('activity.chartCadence'), values: streams.cadence, color: '#ae3ec9' })
     if (streams.temp)
       series.push({ label: t('activity.chartTemp'), values: streams.temp, color: '#f08c00' })
-    return { coordinates, series, distanceKm: distanceKm(streams), splits: splits(streams) }
+    return { coordinates, series, axis: chartAxis(streams), splits: splits(streams) }
   }, [activity.data, t])
 
   if (activity.isPending) return null
@@ -133,7 +127,7 @@ export function ActivityPage() {
           <Link
             to="/app/activities/$activityId/edit"
             params={{ activityId: a.id }}
-            search={{ year }}
+            search={{ year, tag }}
           >
             {t('activity.edit')}
           </Link>
@@ -252,7 +246,7 @@ export function ActivityPage() {
           {view && view.series.length > 0 && (
             <div className="mt-8">
               <h2 className="mb-2 text-lg font-semibold">{t('activity.charts')}</h2>
-              <ActivityCharts distanceKm={view.distanceKm} series={view.series} />
+              <ActivityCharts axis={view.axis} series={view.series} />
             </div>
           )}
 

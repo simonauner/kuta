@@ -5,6 +5,7 @@ import { useId, type ChangeEvent } from 'react'
 import { Label } from '@/components/ui/label'
 import { api } from '@/lib/api'
 import { meQuery, type Me } from '@/lib/auth'
+import { clearHeartRateQueries } from '@/lib/activity-query'
 
 // Puls är hälsodata: sparas bara med uttryckligt samtycke, som går att återkalla (då raderas all sparad puls).
 export function HeartRateConsent({ className }: { className?: string }) {
@@ -17,6 +18,7 @@ export function HeartRateConsent({ className }: { className?: string }) {
     mutationFn: (consent: boolean) =>
       api.send<Me>(consent ? 'PUT' : 'DELETE', '/api/me/hr-consent'),
     onSuccess: async (updated) => {
+      if (!updated.hrConsent) await clearHeartRateQueries(queryClient)
       queryClient.setQueryData(['me'], updated)
       await queryClient.invalidateQueries({ queryKey: ['activities'] })
     },
