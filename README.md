@@ -10,7 +10,7 @@ Logotypen ”Spåret” finns som fristående SVG i `web/public/brand/` (mörk o
 
 `/privacy` är en publik, statisk integritetspolicy (`web/privacy.html`, extra stilar i `web/src/privacy.css`) med svenska och engelska i samma dokument. Engelska kan länkas direkt med `/privacy#english`. Båda språken är läsbara utan JavaScript; React-appens länkar använder dess valda språk. Startsidan och inloggningssidan länkar till policyn.
 
-Policyn är ett utkast inför Garminansökan. Kontaktadressen är `privacy@kutaapp.com` (fungerande inkorg bekräftad av Simon). Lagringstider är ännu inte beslutade. Före publicering: fastställ lagringstider och raderingsrutiner för sessionsrader, supportmejl, driftloggar och säkerhetskopior, och verifiera personuppgiftsbiträdesavtal samt faktiska tredjelandsöverföringar och skyddsåtgärder för leverantörerna. Ersätt utkaststexterna i båda språkversionerna med de verifierade uppgifterna. Garminanslutningen beskrivs som planerad tills den är implementerad. Uppdatera policyn när databehandlingen ändras.
+Policyn är ett utkast inför Garminansökan. Verifierat underlag, beslut, förslag och kvarvarande kontroller finns under [Integritet: underlag och öppna frågor](#integritet-underlag-och-öppna-frågor). Uppdatera båda språkversionerna när uppgifterna ändras; Garminanslutningen beskrivs som planerad tills den är implementerad.
 
 React-appen öppnas på `/app`, med vyerna `/app/activities`, `/app/stats` samt `/app/profile` och `/app/settings`. `web/app.html` har `noindex`. Mejlets bekräftelselänk återvänder till `/app`. Vite bygger de tre HTML-filerna, och .NET serverar dem från samma origin. PWA:n startar på `/app` och använder bara appskalet som navigeringsfallback inom `/app`.
 
@@ -247,3 +247,55 @@ scripts/fly-secrets.sh fly.toml --stage
 ```bash
 fly deploy --ha=false
 ```
+
+## Integritet: underlag och öppna frågor
+
+Arbetsunderlag för `web/privacy.html`, kontrollerat 2026-10-31. Skilj uppgifter som Simon har bekräftat, kodgranskning, leverantörers dokumentation och återstående frågor. Policyn är fortfarande ett utkast; denna lista innebär inget godkännande av publicering eller driftändringar.
+
+### Bekräftat och beslutat
+
+- Personuppgiftsansvarig: **Hack ska du ha AB, 559369-2287**. Simon Aunér är kontaktperson.
+- `privacy@kutaapp.com` fungerar. Simon bekräftar kedjan **Cloudflare Email Routing → privat Gmail**, inte Google Workspace. Både Cloudflare och Google behandlar därför inkommande ärenden; Scaleway skickar kontomejl och är inte leverantör för inkorgen.
+- Simon uppger att Kuta ännu inte har någon egen backup. Det fastställer inte vilka kopior leverantörerna behåller.
+- Simon vill kunna genomföra **export och kontoradering inom sju dagar från begäran**. Det är målet för rutinen, inte en implementerad eller verifierad funktion. Varken fullständig export eller kontoradering är byggd. Manuell hantering kan användas, men måste först förberedas och testas. Policyn får inte lova att alla leverantörsloggar och kopior försvinner inom samma tid.
+- Lagringstider för supportmejl och avslutade/utgångna sessionsrader är **inte beslutade**. Förslagen är 12 månader efter avslutat supportärende respektive senast 30 dagar efter avslut/utgång; de ska inte beskrivas som befintliga rutiner.
+
+### Vad koden visar om loggar och sessioner
+
+Granskat: `api/Kuta.Api/Program.cs`, `appsettings.json`, `SupabaseAuthClient.cs`, `SupabaseCookieSession.cs`, `ActivityStorage.cs`, `RawFileStore.cs`, auth-/aktivitetsendpoints och `web/src/lib/api.ts`.
+
+- Ingen egen loggning av e-postadresser, lösenord, puls, GPS-rutter eller uppladdade filers innehåll hittades. Ingen generell HTTP-body-loggning eller extern felrapportering är konfigurerad i den granskade koden.
+- Standardnivån är `Information`, med `Microsoft.AspNetCore` på `Warning`. `AddHttpClient<SupabaseAuthClient>()` använder .NET:s HTTP-klientloggning, som kan skriva metod, adress, status och tidsåtgång. Auth-anropens uppgifter skickas i body/headers, inte i användarspecifika utgående URL:er. Detta är ingen garanti för att alla felmeddelanden är fria från personuppgifter.
+- Ohanterade undantag kan ge felmeddelanden, stackspår och tekniska identifierare. DbUp skriver migrationsstatus till konsolen och migrationsfel via `Console.Error`. Faktiskt innehåll i hostade loggar och eventuella driftöverstyrningar är inte kontrollerade.
+- Besökarens IP skickas avsiktligt till Supabase Auth med `Sb-Forwarded-For` för rate limiting. Supabases egna auth-loggar kan innehålla användar-id, IP, user-agent, tidpunkt och händelse; de är separata från Kutas loggning ([Auth Audit Logs](https://supabase.com/docs/guides/auth/audit-logs)).
+- `user_sessions` sparar användar-id, slumpat sessions-id, skapandetid, utgångstid och avslutstid. Utloggning sätter `ended_at`; automatisk städning saknas. Inloggningens 30 dagars inaktivitet/180 dagars maxgräns är inte en lagringstid för raderna.
+- Filnycklar innehåller användar-id och filhash. Sådana identifierare kan finnas i leverantörernas lagringsloggar även utan att själva filinnehållet loggas.
+
+### Avtalsunderlag från Kredovis
+
+Simon bekräftar samma leverantörer och avtal för Kuta. Underlaget är Kredovis `docs/privacy.md`, avsnitt **DPA checklist**, och `docs/transfer-assessment.md` i projektet `bokforing`. Det är dokumentation av tidigare operatörsbekräftelser och avtalsgranskning; signerade original öppnades inte i Kuta-genomgången. Kredovis särskilda systemskydd och riskbedömningar ska inte automatiskt tillskrivas Kuta.
+
+| Leverantör | Dokumenterat underlag | Vad återstår för Kuta? |
+| --- | --- | --- |
+| Supabase | Bolagets organisation/projekt och sparad DPA bekräftade 2026-10-12. DPA v1, 2026-08-01; SCC:er för överföringar, med Singapore som importör och möjlig åtkomst/loggbehandling i USA enligt Kredovis överföringsunderlag. | Bekräfta att Kutas projekt ligger under samma avtal. Anpassa beskrivningen av ändamål, pulsdata och skydd till Kuta. Kontrollera faktisk plan, loggtider, auth-auditlagring och leverantörsbackup. Projektmetadata kunde inte läsas genom Supabase-anslutningen på grund av saknad behörighet. |
+| Fly.io | DPA signerad för bolaget 2026-10-12, avtalskopia granskad i Kredovis 2026-10-22. Underlaget anger DPF och SCC:er, möjlig amerikansk support/loggbehandling samt att signerad bilaga inte beskriver avsiktliga känsliga uppgifter. | Kuta behandlar avsiktligt puls/hälsodata: kontrollera och komplettera bilaga I.B för den användningen. Fly anger att känsliga kategorier ska anges där; inget generellt förbud ([COMPLIANCE-27–28](https://fly.io/legal/security-questionnaire/)). Kontrollera samma bolagsorganisation och vilka tjänster som används. |
+| Scaleway | Bolagskonto, DPA, TEM-villkor och prenumeration på underbiträdesändringar bekräftade 2026-10-13. EU/Paris enligt leverantörens underlag. | Beskriv Kutas kontomejl, faktiska leverantörstider och hur enskilda mejlposter begärs raderade. Kredovis använder även AI-tjänster; det gör inte Kuta. |
+| Cloudflare | Kredovis dokumenterar bolagets self-servicekonto. DPA ingår i self-serviceavtalet ([Cloudflare](https://www.cloudflare.com/trust-hub/gdpr/)). | Bekräfta att Kutas Email Routing ligger på bolagets konto och omfattas av avtalet. Kontrollera routningens köer, loggtider, underbiträden och behandlingsländer; Kredovis bedömning av Turnstile/Workers ersätter inte detta. |
+| Google | Simon bekräftar privat Gmail som slutlig inkorg. Google anger att konsument-Gmail saknar biträdesavtal och att Google inte är biträde för den tjänsten ([Privacy Help Center](https://support.google.com/policies/answer/9581826/privacy-help-center)). | Välj företagsinkorg med tillämpligt biträdesavtal, till exempel Workspace, eller utred en annan hållbar avtalslösning. Kontrollera lagring, överföringar och hantering av redan mottagna ärenden. Ingen mejlflytt eller avtalsaccept är gjord. |
+
+### Leverantörernas lagring: känt och okänt
+
+- **Fly.io:** sökbara applikationsloggar sparas sju dagar enligt [Logging overview](https://docs.fly.io/monitoring/logging-overview). Detta fastställer inte alla interna säkerhets-/supportloggars tider eller lagringsländer.
+- **Scaleway TEM:** enligt [dataskyddssidan](https://www.scaleway.com/en/docs/transactional-email/reference-content/data-privacy/) raderas normalt mejlinnehåll när mottagarservern accepterar mejlet, vid permanent leveransfel eller efter 36 timmars misslyckade försök. Undantag: spam 72 timmar och blockerad domän 15 dagar; krypterade säkerhetskopior sju dagar. Avsändare, mottagare, ämne, avsändande IP, leveransstatus och tidsstämplar kan finnas i metadata/loggar. De behålls medan TEM-domänen är aktiv. Enskilda poster/adresser/loggar kan begäras raderade via support; ingen tidsfrist för sådan radering har verifierats.
+- **Supabase:** logg- och backuptider måste kontrolleras för Kutas faktiska plan och inställningar. Auth-auditposter i databasen behöver bedömas separat från dashboardloggar. [Backupdokumentationen](https://supabase.com/docs/guides/platform/backups) beskriver leverantörsbackuper; avsaknad av egen backup är inte bevis för att leverantörskopior saknas.
+- **Gmail och Cloudflare Email Routing:** faktiska tider för inkorg, papperskorg, återställningskopior, routningsköer och loggar är inte verifierade. Lova inte EU-/Sverige-exklusiv behandling.
+
+### Kvar att göra
+
+- [ ] Välj/ordna företagsinkorg och dokumentera avtal, åtkomst, överföringar och hantering av befintliga mejl. Kontrollera Cloudflare Email Routing enligt tabellen ovan.
+- [ ] Kontrollera Kutas Supabase-plan, loggtider, auditlagring, leverantörsbackuper och faktisk avtalsanknytning.
+- [ ] Komplettera/verifiera Fly-avtalets beskrivning av avsiktlig hälsodatabehandling och Kutas överföringsskydd.
+- [ ] Besluta lagringstid för supportärenden och sessionsrader; inför och verifiera motsvarande radering.
+- [ ] Förbered och testa export och kontoradering med syntetiska uppgifter: autentisering, profil, utrustning, pass, puls, råfiler, sessioner och relevanta leverantörsposter. Kontrollera två användare så att fel persons uppgifter inte exporteras/raderas. Bestäm säker leverans av exporten och dokumentera eventuella lagliga undantag/kvarvarande kopior.
+- [ ] Beskriv sju dagar som faktisk normal tidsfrist först när rutinen fungerar. GDPR kräver hantering utan onödigt dröjsmål, normalt inom en månad ([IMY](https://www.imy.se/privatperson/dataskydd/dina-rattigheter/radering/)); tidsfristen ersätter inte själva skyldigheten.
+- [ ] Ersätt öppna utkasttexter i båda språkversionerna med verifierade uppgifter före publicering. Uppdatera igen innan automatisk Garmininsamling eller annan ny behandling införs.

@@ -150,6 +150,13 @@
             i Frankrike.
           </li>
           <li>
+            <strong>Cloudflare Email Routing och Google Gmail:</strong> inkommande mejl till
+            privacy@kutaapp.com vidarebefordras via Cloudflare till ett privat Gmail-konto. Det
+            innebär behandling av avsändare, mottagare, innehåll och eventuella bilagor. Denna
+            mejllösning är under översyn; en företagsinkorg med tillämpligt biträdesavtal och dess
+            lagringsvillkor behöver fastställas före publicering.
+          </li>
+          <li>
             <strong>OpenFreeMap:</strong> levererar kartbilder när du öppnar en passkarta. Din
             webbläsare skickar IP-adress och förfrågningar om kartområden direkt till leverantören.
             Det kan avslöja ungefär var passet gick; själva rutten ritas i din webbläsare.
@@ -187,8 +194,21 @@
           Sessionens giltighet upphör efter 30 dagars inaktivitet och senast efter 180 dagar. Det är
           en giltighetstid för inloggningen, inte ett löfte om att sessionsrader automatiskt raderas
           då. Uppgifter kan behöva bevaras längre för rättsliga skyldigheter eller rättsliga
-          anspråk. Lagringstider och raderingsrutiner för sessionsrader, supportmejl, driftloggar
-          och säkerhetskopior återstår att fastställa före publicering.
+          anspråk. Automatisk städning av sessionsrader saknas. Lagringstider och raderingsrutiner
+          för dessa rader och supportmejl återstår att besluta och införa före publicering.
+        </p>
+
+        <p>
+          Fly.io anger sju dagars lagring för sökbara applikationsloggar. Scaleway behåller
+          mejlmetadata, till exempel mottagare, ämne och leveransstatus, medan mejldomänen är aktiv;
+          enskilda poster kan begäras raderade via deras support. Mejlinnehåll raderas normalt när
+          leveransen avslutas, med särskilda tider för leveransfel, spam och blockerade domäner,
+          samt sju dagars lagring av krypterade säkerhetskopior enligt
+          <a
+            href="https://www.scaleway.com/en/docs/transactional-email/reference-content/data-privacy/"
+            >Scaleways information</a
+          >. Kuta har ännu ingen egen backup. Supabases faktiska logg- och backuptider samt
+          mejlvidarebefordringens lagring behöver fortfarande kontrolleras.
         </p>
 
         <h3>7. Kakor och lokal lagring</h3>
@@ -216,6 +236,12 @@
             >Integritetsskyddsmyndigheten (IMY)</a
           >
           eller din lokala tillsynsmyndighet inom EU/EES.
+        </p>
+
+        <p>
+          Planerad rutin, ännu inte färdig: målet är att genomföra export och kontoradering inom sju
+          dagar från begäran. Detta är ännu inte ett verifierat servicelöfte och innebär inte att
+          alla leverantörsloggar eller säkerhetskopior raderas inom sju dagar.
         </p>
 
         <h3>9. Ändringar</h3>
@@ -335,6 +361,13 @@
             data in France.
           </li>
           <li>
+            <strong>Cloudflare Email Routing and Google Gmail:</strong> incoming emails to
+            privacy@kutaapp.com are forwarded through Cloudflare to a personal Gmail account. This
+            involves processing sender, recipient, message content and any attachments. This
+            arrangement is under review; a business mailbox with applicable data processing terms
+            and its retention arrangements must be established before publication.
+          </li>
+          <li>
             <strong>OpenFreeMap:</strong> provides map tiles when you open an activity map. Your
             browser sends your IP address and requests for map areas directly to the provider. This
             may reveal the approximate activity location; the route itself is drawn in your browser.
@@ -373,8 +406,23 @@
           Sign-in expires after 30 days of inactivity and no later than 180 days. These are sign-in
           validity periods, not a promise that session database records are automatically deleted
           then. Information may need to be retained longer for legal obligations or legal claims.
-          Retention periods and deletion procedures for session records, support emails, operational
-          logs and backups still need to be established before publication.
+          Automatic cleanup of session records is not implemented. Retention periods and deletion
+          procedures for those records and support emails still need to be decided and implemented
+          before publication.
+        </p>
+
+        <p>
+          Fly.io states a seven-day retention period for searchable application logs. Scaleway
+          retains email metadata, such as recipient, subject and delivery status, while the email
+          domain remains active; individual records can be requested for deletion through support.
+          Email content is normally deleted when delivery processing ends, with separate periods for
+          delivery failures, spam and blocked domains, and seven-day retention for encrypted backups
+          as described in
+          <a
+            href="https://www.scaleway.com/en/docs/transactional-email/reference-content/data-privacy/"
+            >Scaleway's information</a
+          >. Kuta does not yet operate its own backups. Supabase's actual log and backup retention
+          and the email forwarding service's retention still need to be checked.
         </p>
 
         <h3>7. Cookies and local storage</h3>
@@ -401,6 +449,12 @@
             >Swedish Authority for Privacy Protection (IMY)</a
           >
           or your local EU/EEA supervisory authority.
+        </p>
+
+        <p>
+          Planned procedure, not yet complete: our aim is to carry out exports and account deletion
+          within seven days of a request. This is not yet a verified service commitment and does not
+          mean that all provider logs or backups are deleted within seven days.
         </p>
 
         <h3>9. Changes</h3>
