@@ -147,6 +147,12 @@ Välj **Glömt lösenord?** på inloggningssidan. Mejlet finns i instansens Mail
 
 Den lokala mejlmallen anges i `supabase/config.toml`. Om en redan körande miljö saknar återställningsmallen måste dess ägare stoppa och starta just den Supabase-instansen för att läsa in konfigurationen. Ändra inte en lånad instans.
 
+### Mejlmallar
+
+`supabase/templates/confirmation.html` och `recovery.html` är fristående svenska HTML-mallar för de två mejlflöden som appen använder. De följer appens neutrala ytor, rundade hörn och orange primärfärg, med inline-stilar som grund och mörkt tema i mejlklienter som stöder `prefers-color-scheme`. De använder systemtypsnitt och inga bilder eller externa typsnitt. Layouten är tabellbaserad och anpassas till skärmbredden; varje knapp har en kopierbar reservlänk.
+
+Behåll `{{ .SiteURL }}` och `{{ .TokenHash }}` i både knappen och reservlänken: bekräftelse går till `/api/auth/confirm`, återställning till `/api/auth/reset-password`. Ersätt inte dessa med `{{ .ConfirmationURL }}`, eftersom Kutas API ska ta hand om sessionen. Ämnesraderna finns i `supabase/config.toml`; kopiera även dem när mallarna läggs in i det hostade projektets **Authentication → Email Templates**. En ändring i repot uppdaterar inte hostade mallar automatiskt. Kontrollera båda mejlen i lokal Mailpit enligt [lokal körning](#köra-lokalt), och i faktiska mejlklienter före driftsättning eftersom deras HTML- och mörkerlägesstöd varierar.
+
 Tester (kräver `supabase start`, med Storage påslaget): `dotnet test --project api/Kuta.Api.Tests`, eller `KUTA_PORTS=BAS dotnet test …` mot en egen instans.
 
 API-jobbet i GitHub Actions använder `KUTA_PORTS=18000` och flyttar Supabase-konfigurationens portar i jobbets checkout. Portarna 18020–18029 ligger utanför Linux normala intervall för tillfälliga utgående anslutningar, så nedladdning av Docker-images inte kan ta databasporten före start. Lokal standardkonfiguration ligger kvar på 553xx.
