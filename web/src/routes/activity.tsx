@@ -53,7 +53,7 @@ function paceSeries(speed: (number | null)[], minSpeed = 0.5) {
 export function ActivityPage() {
   const { activityId } = useParams({ from: '/app/activities/$activityId' })
   const { t, i18n } = useTranslation()
-  const { year, tag } = useSearch({ from: '/app/activities/$activityId' })
+  const search = useSearch({ from: '/app/activities/$activityId' })
   const { data: me } = useQuery(meQuery)
   const equipment = useQuery(equipmentQuery)
   const [openPanel, setOpenPanel] = useState<'laps' | 'splits' | 'efforts' | null>(null)
@@ -290,7 +290,7 @@ export function ActivityPage() {
             <Link
               to="/app/activities/$activityId/edit"
               params={{ activityId: a.id }}
-              search={{ year, tag }}
+              search={search}
             >
               {t('activity.edit')}
             </Link>

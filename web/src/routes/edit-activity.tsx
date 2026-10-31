@@ -37,7 +37,7 @@ export function EditActivityPage() {
 
 function EditActivityForm({ activity }: { activity: ActivityDetail }) {
   const { t } = useTranslation()
-  const { year, tag } = useSearch({ from: '/app/activities/$activityId/edit' })
+  const search = useSearch({ from: '/app/activities/$activityId/edit' })
   const navigate = useNavigate()
   const queryClient = useQueryClient()
   const [split, setSplit] = useState<MultisportDraft>(undefined)
@@ -50,7 +50,7 @@ function EditActivityForm({ activity }: { activity: ActivityDetail }) {
   const destination = {
     to: '/app/activities/$activityId' as const,
     params: { activityId: activity.id },
-    search: { year, tag },
+    search,
   }
   const save = useMutation({
     mutationFn: (draft: MultisportDraft) =>
