@@ -5,7 +5,7 @@ import { ErrorMessage } from '@/components/error-message'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
-import { api } from '@/lib/api'
+import { api, ApiError } from '@/lib/api'
 
 type StravaImportResult = {
   imported: number
@@ -15,9 +15,19 @@ type StravaImportResult = {
   equipmentLinked: number
 }
 
+type StravaImportProgress = {
+  processed: number
+  total: number
+  imported: number
+  duplicates: number
+  failed: number
+  result: StravaImportResult | null
+}
+
 export function StravaImport() {
   const { t } = useTranslation()
   const queryClient = useQueryClient()
+  const [progress, setProgress] = useState<StravaImportProgress | null>(null)
   const [file, setFile] = useState<File | null>(null)
   const refreshImportedData = () =>
     queryClient.invalidateQueries({
@@ -27,10 +37,26 @@ export function StravaImport() {
         ),
     })
   const upload = useMutation({
-    mutationFn: (file: File) => {
+    mutationFn: async (file: File): Promise<StravaImportResult> => {
+      setProgress(null)
       const form = new FormData()
       form.append('file', file)
-      return api.upload<StravaImportResult>('/api/activities/import/strava', form)
+      let result: StravaImportResult | null = null
+      try {
+        await api.uploadStream<StravaImportProgress>(
+          '/api/activities/import/strava',
+          form,
+          (message) => {
+            setProgress(message)
+            if (message.result) result = message.result
+          },
+        )
+      } catch (error) {
+        if (error instanceof ApiError && error.status !== 502) throw error
+        throw new ApiError(502, 'Import interrupted', 'stravaImportInterrupted')
+      }
+      if (!result) throw new ApiError(502, 'Import interrupted', 'stravaImportInterrupted')
+      return result
     },
     onSuccess: refreshImportedData,
     onError: refreshImportedData,
@@ -73,9 +99,28 @@ export function StravaImport() {
         </p>
       )}
       {upload.isPending && (
-        <p role="status" className="mt-2 text-sm text-muted-foreground">
-          {t('settings.importWait')}
-        </p>
+        <div className="mt-3 text-sm text-muted-foreground">
+          <p role="status">
+            {progress
+              ? t('settings.importProgress', {
+                  processed: progress.processed,
+                  total: progress.total,
+                })
+              : t('settings.importPreparing')}
+          </p>
+          {progress && (
+            <>
+              <progress
+                className="mt-2 h-2 w-full appearance-none overflow-hidden rounded-full bg-muted [&::-moz-progress-bar]:bg-primary [&::-webkit-progress-bar]:bg-muted [&::-webkit-progress-value]:bg-primary"
+                aria-label={t('settings.importing')}
+                max={Math.max(progress.total, 1)}
+                value={progress.processed}
+              />
+              <p className="mt-2">{t('settings.importResult', progress)}</p>
+            </>
+          )}
+          <p className="mt-2">{t('settings.importWait')}</p>
+        </div>
       )}
       {upload.data && (
         <div role="status" className="mt-4 text-sm">
