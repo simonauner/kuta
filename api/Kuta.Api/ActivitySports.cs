@@ -78,4 +78,5 @@ public static class ActivitySports
         StravaNames.GetValueOrDefault(Normalize(value), value.ToLowerInvariant());
 
     public static bool IsRunning(string sport) => sport is "running" or "trail run" or "virtual run";
+
 }

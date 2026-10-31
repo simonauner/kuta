@@ -161,20 +161,71 @@ lämnas till andra mottagare. Ingen ny åtkomst följer av själva klippningen.
 ## Statistik över tid
 
 `/app/stats` visar årsstatistik med månadsdiagram och tabell för distans, träningstid,
-snittempo och snittpuls samt antal pass. Välj år och sport; löpning och innevarande år är
-förval. Årsväljaren innehåller hela den egna historiken. Tomma månader har noll mängd,
+snittempo och snittpuls samt antal pass. Välj år och sportgrupp (se [Sportgrupper](#sportgrupper));
+löpning och innevarande år är förval. Årsväljaren innehåller hela den egna historiken. Tomma månader har noll mängd,
 men saknat tempo och puls visas som `–`.
 
-`GET /api/activities/statistics?year=2026&sport=running&timeZone=Europe%2FStockholm`
-ger tolv månadsrader för den inloggade användaren. År krävs (1–9998), utelämnad sport
-betyder alla sporter och utelämnad tidszon UTC. Summeringen sker i Postgres över hela
+`GET /api/activities/statistics?year=2026&sportGroup=running&timeZone=Europe%2FStockholm`
+ger tolv månadsrader för den inloggade användaren. År krävs (1–9998), utelämnad sportgrupp
+betyder alla sporter (okänd grupp ger `invalidSportGroup`) och utelämnad tidszon UTC. Summeringen sker i Postgres över hela
 året, oberoende av passlistans sidindelning, utan att skicka tidsserier eller rutter till webben.
 Tid inkluderar pauser. Tempo är summan av tid delad med summan av distans för pass med
 positiv tid och distans (sekunder per kilometer). Snittpuls tidsvägs bara över pass med
-positiv tid och sparad puls. Alla sporter kombinerar även tempo och puls mellan sporter; samlade multisportpass ingår inte i snittempot. Vid sportfilter räknas motsvarande delar av multisportpass, med puls från delens mätpunkter. Totalvyn räknar varje pass en gång.
+positiv tid och sparad puls. Alla sporter kombinerar även tempo och puls mellan sporter; samlade multisportpass ingår inte i snittempot. Vid gruppfilter räknas hela pass i gruppen och motsvarande delar av multisportpass i andra grupper, med puls från delens mätpunkter. Totalvyn räknar varje pass en gång.
 Månader och årsgränser följer webbläsarens tidszon, och hela passet tillhör startmånaden.
 Statistikcachen uppdateras vid skapande, import och radering av pass och rensas när
 pulssamtycke återkallas.
+
+## Träningsmål
+
+**Pass → Nytt mål** skapar ett mål: distans (km), tid (minuter) eller antal pass per vecka,
+månad eller år, för en grupp av träningsformer eller alla. Målet upprepas varje period eller gäller en gång,
+för perioden då det skapas (exempelvis 1 000 km i år). Pågående mål visas som kort med
+förloppsstapel ovanför passlistan; ett uppnått mål får ”Hurra! Målet är nått”. Upprepade mål
+visar även förra periodens resultat när det nåddes och hur många perioder i rad målet nåtts
+(från två). Ett avslutat engångsmål visas nedtonat tills det tas bort. Klick på kortet öppnar
+redigering och borttagning i samma modal. Inga mål ger ingen sektion.
+
+Mål gäller [sportgrupper](#sportgrupper), inte exakta sporter, och dialogen visar vilka
+träningsformer den valda gruppen räknar.
+
+Summeringen följer statistikens regler: hela passet hör till perioden där det startar, tid
+inkluderar pauser, redigerade multisportdelars distans används och ett gruppmål räknar
+matchande delar av multisportpass. Utan grupp räknas varje pass en gång. Veckor börjar på
+måndag och perioder följer webbläsarens tidszon. Ett mål räknas från början av perioden då det
+skapas, även pass före skapandet (ett årsmål i oktober räknar från 1 januari), men aldrig
+tidigare perioder. Ett nytt upprepat mål visar därför förra perioden och raden först från nästa
+period. Raden räknar uppnådda perioder bakåt från förra perioden till första missade eller
+startperioden, plus den pågående när den är uppnådd. Ett ändrat mål behåller sitt startdatum.
+
+API (inloggning krävs; skrivningar kräver CSRF; bara egna mål, andras ger 404):
+
+- `GET /api/goals?timeZone=Europe%2FStockholm` ger målen med `current` och `previous`
+  (`{ start, end, value, achieved }`, `end` exklusivt; `previous` är null för engångsmål och under startperioden),
+  `streak` och `ended`.
+- `POST /api/goals` och `PUT /api/goals/{id}` tar `{ sportGroup, metric, period, target, recurring, timeZone }`.
+  `sportGroup` är en gruppnyckel eller null = alla, `metric` är `distance`, `duration` eller `count`, `period` är `week`,
+  `month` eller `year`, `target` i meter, sekunder eller hela pass (högst 100 000 000 m eller s, respektive
+  10 000 pass). `timeZone` avgör startdatumet vid skapande. Ogiltiga värden ger `invalidGoal`.
+- `DELETE /api/goals/{id}`.
+
+Migrering 016 skapar `goals` med ägarkoppling, kaskadradering vid kontoradering och RLS utan
+Data API-grants. Radering av alla pass behåller målen. Målen ingår i exportens `goals.json`.
+Periodlogik, grupper och validering testas som enhetstester, summering per tidszon, sportgrupp, multisportdelar
+och ägarskap i lokal Postgres, och HTTP-testet täcker routing, statuskoder, svarskontrakt och
+att en annan användare varken ser eller ändrar målet.
+
+## Sportgrupper
+
+Mål och statistik räknar grupper av träningsformer, inte exakta sporter: Löpning räknar löpning,
+terränglöpning och virtuell löpning; Cykling alla cykeltyper inklusive virtuell; Gång och
+vandring även snöskovandring; Längdskidåkning även topptur och rullskidor; Paddling kanot, kajak
+och SUP; Rodd även virtuell rodd. Simning i bassäng och öppet vatten är samma sport (`swimming`),
+eftersom Garmin anger vattentypen som undertyp och Strava inte skiljer dem åt. Övriga sporter är
+egna grupper med sportens nyckel. Grupperna definieras bara i `SportGroups.cs`, även med Garmins
+råa sportnamn (exempelvis `crosscountryskiing`); `GET /api/activities/sport-groups` ger
+`[{ key, sports }]` och webben namnger grupperna under `sportGroups` i språkfilerna. Passlistans
+sportfilter och passens egna sport är oförändrade.
 
 ## Applikationsloggar och integritet
 
@@ -400,10 +451,11 @@ till fältet; redan importerade dubbletter hoppas fortfarande över vid Strava-i
 - `profile.json`: id, e-postadress, visningsnamn, profilens skapandetid och tidpunkt för pulssamtycke.
 - `equipment.json`: all egen utrustning, även pensionerad, med startvärden och total användning.
 - `privacy-places.json`: egna dolda platser med namn, mittpunkt och radie. Listan ingår även utan pass.
+- `goals.json`: egna träningsmål med sportgrupp, typ, period, mål i SI-enheter, upprepning och startdatum.
 - `activities/<id>.json`: källa, skapandetid, synlighet, Strava-ID, sökväg till råfilen (eller `null`), `activity` med samma passdetaljer som passsidan och `bestEfforts` med passets bästa insatser. Detaljerna innehåller beskrivning, taggar, utrustnings-ID:n, tidsserier, varv samt originaldelar och redigerade multisportdelar.
 - `raw/<id>.fit` eller `.gpx`: sparade råfiler med oförändrat innehåll. Manuella pass saknar råfil. Råfiler som inte sparats utan pulssamtycke, eller som raderats vid återkallat samtycke, kan inte exporteras. Gzip-filer från Strava har packats upp vid importen.
 
-JSON använder lowerCamelCase, SI-enheter och UTC-tid. Lösenord, sessionscookies och tokens ingår inte. Ett konto utan pass får fortfarande profil, utrustningslista och dolda platser. Arkivet byggs färdigt på en tillfällig fil före HTTP-svaret; den raderas vid fel, avbrott eller när överföringen är klar. Profil och pass låses mot skrivning under bygget för att samtyckesåterkallelse eller passradering inte ska kunna ta bort en råfil mitt i exporten. Om en förväntad råfil saknas misslyckas exporten i stället för att tyst lämna bort den.
+JSON använder lowerCamelCase, SI-enheter och UTC-tid. Lösenord, sessionscookies och tokens ingår inte. Ett konto utan pass får fortfarande profil, utrustningslista, dolda platser och mål. Arkivet byggs färdigt på en tillfällig fil före HTTP-svaret; den raderas vid fel, avbrott eller när överföringen är klar. Profil och pass låses mot skrivning under bygget för att samtyckesåterkallelse eller passradering inte ska kunna ta bort en råfil mitt i exporten. Om en förväntad råfil saknas misslyckas exporten i stället för att tyst lämna bort den.
 
 Exportens innehåll, åtkomst mellan två användare, råfilernas bytes och samordningen med återkallat samtycke testas på databas-/lagringsnivå. HTTP-testet verifierar den nya routens autentisering, ZIP-svar och cache-/nedladdningsheaders; det upprepar inte innehållstesterna.
 

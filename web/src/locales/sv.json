@@ -256,7 +256,9 @@
     "invalidDescription": "Beskrivningen får vara högst 10 000 tecken.",
     "stravaImportInterrupted": "Importen avbröts. Redan sparade pass finns kvar. Försök igen med samma fil; dubbletter hoppas över.",
     "invalidPrivacyPlace": "Ange ett namn, en giltig kartpunkt och en radie mellan 50 och 5 000 meter.",
-    "invalidPrivacy": "Välj giltig synlighet."
+    "invalidPrivacy": "Välj giltig synlighet.",
+    "invalidGoal": "Kontrollera sport, typ, period och mål.",
+    "invalidSportGroup": "Välj en giltig träningsform."
   },
   "home": "Kuta – startsida",
   "footer": {
@@ -471,5 +473,88 @@
     "profileLinkCopyFailed": "Kunde inte kopiera länken. Du kan kopiera den från fältet nedan.",
     "profileLink": "Profillänk",
     "profileLinksHint": "För att följa någon öppnar du personens delade profillänk. Din egen länk kopierar du från din profil."
+  },
+  "goals": {
+    "new": "Nytt mål",
+    "heading": "Mål",
+    "editTitle": "Redigera mål",
+    "editLabel": "Redigera mål: {{title}}",
+    "metric": "Mät",
+    "metrics": {
+      "distance": "Distans",
+      "duration": "Tid",
+      "count": "Antal pass"
+    },
+    "targetLabel": {
+      "distance": "Mål (km)",
+      "duration": "Mål (minuter)",
+      "count": "Mål (pass)"
+    },
+    "period": "Period",
+    "periods": {
+      "week": "Vecka",
+      "month": "Månad",
+      "year": "År"
+    },
+    "repeat": "Upprepning",
+    "recurring": {
+      "week": "Varje vecka",
+      "month": "Varje månad",
+      "year": "Varje år"
+    },
+    "onceCurrent": {
+      "week": "En gång, den här veckan",
+      "month": "En gång, den här månaden",
+      "year": "En gång, i år"
+    },
+    "onceSaved": "En gång",
+    "per": {
+      "week": "{{amount}} per vecka",
+      "month": "{{amount}} per månad",
+      "year": "{{amount}} per år"
+    },
+    "once": {
+      "week": "{{amount}} v. {{week}} {{year}}",
+      "month": "{{amount}} i {{month}}",
+      "year": "{{amount}} {{year}}"
+    },
+    "sessions_one": "{{count}} pass",
+    "sessions_other": "{{count}} pass",
+    "progress": "{{value}} av {{target}}",
+    "daysLeft_one": "{{count}} dag kvar",
+    "daysLeft_other": "{{count}} dagar kvar",
+    "ended": "Avslutat",
+    "missed": "målet nåddes inte",
+    "hooray": "Hurra! Målet är nått",
+    "previous": {
+      "week": "Förra veckan: {{amount}} ✓",
+      "month": "Förra månaden: {{amount}} ✓",
+      "year": "Förra året: {{amount}} ✓"
+    },
+    "streak": {
+      "week_one": "{{count}} vecka i rad",
+      "week_other": "{{count}} veckor i rad",
+      "month_one": "{{count}} månad i rad",
+      "month_other": "{{count}} månader i rad",
+      "year_one": "{{count}} år i rad",
+      "year_other": "{{count}} år i rad"
+    },
+    "save": "Spara mål",
+    "saving": "Sparar…",
+    "cancel": "Avbryt",
+    "delete": "Ta bort mål",
+    "confirmDelete": "Ta bort målet? Det går inte att ångra.",
+    "deleteConfirmed": "Ta bort",
+    "deleting": "Tar bort…",
+    "includes": "Räknar {{sports}}."
+  },
+  "sportGroups": {
+    "running": "Löpning",
+    "cycling": "Cykling",
+    "swimming": "Simning",
+    "walking": "Gång och vandring",
+    "cross-country skiing": "Längdskidåkning",
+    "paddling": "Paddling",
+    "rowing": "Rodd"
   }
 }

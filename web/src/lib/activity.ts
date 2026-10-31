@@ -57,7 +57,7 @@ export type ActivityCursor = { startedAt: string; id: string }
 export type ActivityPage = { items: ActivityListItem[]; nextCursor: ActivityCursor | null }
 
 // ISO-veckor räknas från måndag; torsdagen avgör vilket veckoår veckan hör till.
-function isoWeek(date: Date) {
+export function isoWeek(date: Date) {
   const thursday = new Date(Date.UTC(date.getFullYear(), date.getMonth(), date.getDate()))
   thursday.setUTCDate(thursday.getUTCDate() + 4 - (thursday.getUTCDay() || 7))
   const yearStart = Date.UTC(thursday.getUTCFullYear(), 0, 1)

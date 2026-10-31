@@ -6,6 +6,8 @@ import { SlowLoading } from '@/components/slow-loading'
 import { Button } from '@/components/ui/button'
 import { api } from '@/lib/api'
 import { formatDuration } from '@/lib/activity'
+import { sportGroupsQuery } from '@/lib/activity-query'
+import { sportGroupLabel } from '@/lib/sport-groups'
 
 type StatisticsMonth = {
   month: number
@@ -16,7 +18,6 @@ type StatisticsMonth = {
   avgHr: number | null
 }
 
-const sports = ['running', 'cycling', 'walking', 'hiking', 'other'] as const
 const metrics = ['distanceM', 'durationS', 'paceSPerKm', 'avgHr'] as const
 type Metric = (typeof metrics)[number]
 
@@ -24,7 +25,9 @@ export function StatsPage() {
   const { t, i18n } = useTranslation()
   const [currentYear] = useState(() => new Date().getFullYear())
   const [year, setYear] = useState(currentYear)
-  const [sport, setSport] = useState('running')
+  // Sportgrupp: löpning räknar även terräng- och virtuell löpning osv. Tom = alla.
+  const [sportGroup, setSportGroup] = useState('running')
+  const sportGroups = useQuery(sportGroupsQuery)
   const [metric, setMetric] = useState<Metric>('distanceM')
   const timeZone = Intl.DateTimeFormat().resolvedOptions().timeZone
   const years = useQuery({
@@ -32,10 +35,10 @@ export function StatsPage() {
     queryFn: () => api.get<number[]>(`/api/activities/years?${new URLSearchParams({ timeZone })}`),
   })
   const statistics = useQuery({
-    queryKey: ['activities', 'statistics', timeZone, year, sport],
+    queryKey: ['activities', 'statistics', timeZone, year, sportGroup],
     queryFn: () => {
       const params = new URLSearchParams({ timeZone, year: String(year) })
-      if (sport) params.set('sport', sport)
+      if (sportGroup) params.set('sportGroup', sportGroup)
       return api.get<StatisticsMonth[]>(`/api/activities/statistics?${params}`)
     },
   })
@@ -80,16 +83,25 @@ export function StatsPage() {
         </label>
         <label className="grid gap-1 text-sm font-medium">
           {t('newActivity.sport')}
-          <select className={selectClass} value={sport} onChange={(e) => setSport(e.target.value)}>
+          <select
+            className={selectClass}
+            value={sportGroup}
+            onChange={(e) => setSportGroup(e.target.value)}
+          >
             <option value="">{t('stats.allSports')}</option>
-            {sports.map((value) => (
-              <option key={value} value={value}>
-                {t(`newActivity.sports.${value}`)}
+            {(sportGroups.data ?? (sportGroup ? [{ key: sportGroup }] : [])).map(({ key }) => (
+              <option key={key} value={key}>
+                {sportGroupLabel(key, t)}
               </option>
             ))}
           </select>
         </label>
       </div>
+      {sportGroups.error && (
+        <p role="alert" className="mt-4 text-sm text-destructive">
+          <ErrorMessage error={sportGroups.error} />
+        </p>
+      )}
       {years.error && (
         <p role="alert" className="mt-4 text-sm text-destructive">
           <ErrorMessage error={years.error} />{' '}

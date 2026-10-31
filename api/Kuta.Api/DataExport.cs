@@ -50,6 +50,7 @@ public static class DataExport
                     where follower_id = @userId or following_id = @userId order by follower_id, following_id
                     """, new { userId }, tx, cancellationToken: ct)), ct);
                 await WriteJsonAsync(zip, "privacy-places.json", await PrivacyPlaces.LoadAsync(conn, userId, ct, tx), ct);
+                await WriteJsonAsync(zip, "goals.json", await Goals.LoadStoredAsync(conn, userId, ct, tx), ct);
                 foreach (var activity in activities)
                 {
                     ct.ThrowIfCancellationRequested();

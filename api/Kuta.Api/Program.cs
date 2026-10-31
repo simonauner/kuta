@@ -236,6 +236,7 @@ static async Task<int> RunAsync(string[] args)
     api.MapSocial();
     api.MapEquipment();
     api.MapBestEfforts();
+    api.MapGoals();
 
     app.MapFallbackToFile("/privacy", "privacy.html", staticFiles);
     app.MapFallbackToFile("/features", "features.html", staticFiles);
