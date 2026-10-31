@@ -14,7 +14,7 @@ Policyn är ett utkast inför Garminansökan. Verifierat underlag, beslut, förs
 
 React-appen öppnas på `/app`, med vyerna `/app/activities`, `/app/stats` samt `/app/profile` och `/app/settings`. `web/app.html` har `noindex`. Mejlets bekräftelselänk återvänder till `/app`. Vite bygger de tre HTML-filerna, och .NET serverar dem från samma origin. PWA:n startar på `/app` och använder bara appskalet som navigeringsfallback inom `/app`.
 
-Profil visar löparens namn och länkar till Utrustning på `/app/profile/equipment`. Kugghjulet öppnar Inställningar på `/app/settings`, med språkval, pulssamtycke, Strava-import, e-postadress, utloggning och Danger zone för att radera alla pass. Vanlig FIT-uppladdning och manuell registrering nås via Pass → Skapa ny aktivitet. Pulssamtycket kan ändras med samma checkbox både i filmodalen och under Inställningar. Checkboxen visas även när samtycket redan är givet.
+Profil visar löparens namn och länkar till Utrustning på `/app/profile/equipment`. Kugghjulet öppnar Inställningar på `/app/settings`, med språkval, pulssamtycke, Strava-import, e-postadress, utloggning och Danger zone för att radera alla pass eller kontot. Vanlig FIT-uppladdning och manuell registrering nås via Pass → Skapa ny aktivitet. Pulssamtycket kan ändras med samma checkbox både i filmodalen och under Inställningar. Checkboxen visas även när samtycket redan är givet.
 
 ## Språk och URL:er
 
@@ -115,6 +115,12 @@ Flyttar hela portserien: webben på BAS, API:t på BAS+2 och en egen Supabase-st
 | Supabase Studio | http://127.0.0.1:55323 |
 
 Kommer bekräftelsemejlet ändå på engelska med en länk till Supabase har auth-containern startat före Kong (skriptet hanterar det när det själv startar Supabase): `docker restart supabase_auth_kuta` och registrera igen.
+
+### Kontoradering
+
+Inställningar → Danger zone → **Radera konto** kräver att användaren skriver ett slumpat löparord. `DELETE /api/me` kräver inloggning och CSRF-token och använder endast den inloggade användarens id. Under samma profillås som importen raderas råfilerna via objektlagringen, därefter raderas `auth.users` direkt i databastransaktionen. Befintliga FK-kaskader tar bort profil, utrustning, pass, tidsserier, varv, sportdelar, rekord och Supabase-/Kuta-sessioner. Cookien och webbens sessionscache rensas; gamla cookies avvisas vid nästa anrop.
+
+Om filrensningen misslyckas behålls kontot och filreferenserna för ett nytt försök. Redan raderade filer kan inte återställas om ett senare steg misslyckas, men raderingen kan köras igen. Leverantörsloggar och säkerhetskopior omfattas inte av appens radering; se integritetsunderlaget nedan. Ingen ny migrering eller separat Auth-adminnyckel behövs.
 
 ### Lösenordsåterställning
 
@@ -341,7 +347,7 @@ Arbetsunderlag för `web/privacy.html`, kontrollerat 2026-10-31. Skilj uppgifter
 - Personuppgiftsansvarig: **Hack ska du ha AB, 559369-2287**. Simon Aunér är kontaktperson.
 - `privacy@kutaapp.com` fungerar. Simon bekräftar kedjan **Cloudflare Email Routing → privat Gmail**, inte Google Workspace. Både Cloudflare och Google behandlar därför inkommande ärenden; Scaleway skickar kontomejl och är inte leverantör för inkorgen.
 - Simon uppger att Kuta ännu inte har någon egen backup. Det fastställer inte vilka kopior leverantörerna behåller.
-- Simon vill kunna genomföra **export och kontoradering inom sju dagar från begäran**. Det är målet för rutinen, inte en implementerad eller verifierad funktion. Varken fullständig export eller kontoradering är byggd. Manuell hantering kan användas, men måste först förberedas och testas. Policyn får inte lova att alla leverantörsloggar och kopior försvinner inom samma tid.
+- Simon vill kunna genomföra **export och kontoradering inom sju dagar från begäran**. Det är målet för rutinen, inte en implementerad eller verifierad funktion. Kontoradering av autentisering, appdata och råfiler finns i Inställningar och är verifierad lokalt med syntetiska uppgifter. Fullständig export och hantering av relevanta leverantörsposter måste fortfarande förberedas och testas. Policyn får inte lova att alla leverantörsloggar och kopior försvinner inom samma tid.
 - Lagringstider för supportmejl och avslutade/utgångna sessionsrader är **inte beslutade**. Förslagen är 12 månader efter avslutat supportärende respektive senast 30 dagar efter avslut/utgång; de ska inte beskrivas som befintliga rutiner.
 
 ### Vad koden visar om loggar och sessioner
