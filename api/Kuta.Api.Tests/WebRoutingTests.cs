@@ -12,6 +12,7 @@ public class WebRoutingTests
         Directory.CreateDirectory(webRoot);
         var ct = TestContext.Current.CancellationToken;
         await File.WriteAllTextAsync(Path.Combine(webRoot, "index.html"), "<h1>Public landing</h1>", ct);
+        await File.WriteAllTextAsync(Path.Combine(webRoot, "features.html"), "<h1>Available features</h1>", ct);
         await File.WriteAllTextAsync(Path.Combine(webRoot, "privacy.html"), "<h1>Privacy policy</h1>", ct);
         await File.WriteAllTextAsync(Path.Combine(webRoot, "app.html"), "<meta name=\"robots\" content=\"noindex\"><div>App shell</div>", ct);
         try
@@ -26,7 +27,13 @@ public class WebRoutingTests
                 Assert.Contains("Privacy policy", html);
                 Assert.DoesNotContain("App shell", html);
             }
-            foreach (var path in new[] { "/app", "/app/", "/app/activities", "/app/activities/new", $"/app/activities/{Guid.NewGuid()}", $"/app/activities/{Guid.NewGuid()}/edit", "/app/stats", "/app/profile", "/app/settings/equipment", "/app/settings/followers", $"/app/runners/{Guid.NewGuid()}", "/app/settings", "/app?confirm=failed", "/app?reset=password", "/app?reset=failed" })
+            foreach (var path in new[] { "/features", "/features/" })
+            {
+                var html = await client.GetStringAsync(path, ct);
+                Assert.Contains("Available features", html);
+                Assert.DoesNotContain("App shell", html);
+            }
+            foreach (var path in new[] { "/app", "/app/", "/app/activities", "/app/activities/new", $"/app/activities/{Guid.NewGuid()}", $"/app/activities/{Guid.NewGuid()}/edit", "/app/stats", "/app/profile", "/app/settings/equipment", "/app/settings/followers", $"/app/runners/{Guid.NewGuid()}", "/app/settings", "/app/settings/privacy-places", "/app?confirm=failed", "/app?reset=password", "/app?reset=failed" })
             {
                 var html = await client.GetStringAsync(path, ct);
                 Assert.Contains("App shell", html);

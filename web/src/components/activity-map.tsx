@@ -1,16 +1,10 @@
-import { LngLatBounds, Map, NavigationControl, setWorkerUrl } from 'maplibre-gl'
-import 'maplibre-gl/dist/maplibre-gl.css'
-import workerUrl from 'maplibre-gl/dist/maplibre-gl-worker.mjs?url'
+import { LngLatBounds, Map, NavigationControl } from 'maplibre-gl'
 import { useEffect, useRef } from 'react'
+import { mapStyle } from '@/lib/map'
 
 // Kartbilder från OpenFreeMap (OpenStreetMap-data, ingen nyckel). Leverantören ser vilka kartbitar som hämtas,
 // alltså ungefär var passet gick. shortcut: byt till egen PMTiles-fil (AGENTS.md) när det ska stanna hos Kuta.
 // Origins för stil, kartbitar, typsnitt och ikoner finns i CSP:n i vite.config.ts.
-const mapStyle = 'https://tiles.openfreemap.org/styles/liberty'
-
-// MapLibre v6 hittar inte sin worker när Vite paketerar om biblioteket; peka ut filen (från vår egen origin).
-setWorkerUrl(workerUrl)
-
 export function ActivityMap({
   coordinates,
   label,

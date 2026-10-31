@@ -7,17 +7,24 @@ import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
 import { api } from '@/lib/api'
+import { useSessionChanged } from '@/lib/auth'
 
-export function DeleteAllActivities() {
+export function DangerZone() {
   const { t } = useTranslation()
   const queryClient = useQueryClient()
+  const sessionChanged = useSessionChanged()
+  const [target, setTarget] = useState<'activities' | 'account'>('activities')
   const dialog = useRef<HTMLDialogElement>(null)
   const [word, setWord] = useState<string | null>(null)
   const [confirmation, setConfirmation] = useState('')
   const confirmed = word !== null && confirmation.trim().toUpperCase() === word
   const remove = useMutation({
-    mutationFn: () => api.send('DELETE', '/api/activities'),
+    mutationFn: () => api.send('DELETE', target === 'account' ? '/api/me' : '/api/activities'),
     onSuccess: async () => {
+      if (target === 'account') {
+        await sessionChanged()
+        return
+      }
       await queryClient.invalidateQueries({
         predicate: (query) =>
           ['activities', 'activity', 'records', 'equipment', 'equipmentLastUsedShoe'].includes(
@@ -33,7 +40,8 @@ export function DeleteAllActivities() {
     else dialog.current?.close()
   }, [word])
 
-  function openDialog() {
+  function openDialog(target: 'activities' | 'account') {
+    setTarget(target)
     const words = t('dangerZone.words', { returnObjects: true })
     setWord(words[Math.floor(Math.random() * words.length)])
     setConfirmation('')
@@ -54,9 +62,15 @@ export function DeleteAllActivities() {
         {t('dangerZone.title')}
       </h2>
       <p className="mt-2 text-sm text-muted-foreground">{t('dangerZone.description')}</p>
-      <Button variant="destructive" className="mt-4" onClick={openDialog}>
+      <Button variant="destructive" className="mt-4" onClick={() => openDialog('activities')}>
         {t('dangerZone.delete')}
       </Button>
+      <div className="mt-6 border-t border-destructive/20 pt-4">
+        <p className="text-sm text-muted-foreground">{t('dangerZone.accountDescription')}</p>
+        <Button variant="destructive" className="mt-4" onClick={() => openDialog('account')}>
+          {t('dangerZone.deleteAccount')}
+        </Button>
+      </div>
       <Modal
         ref={dialog}
         aria-labelledby="delete-all-title"
@@ -67,10 +81,12 @@ export function DeleteAllActivities() {
         }}
       >
         <h2 id="delete-all-title" className="text-xl font-semibold">
-          {t('dangerZone.confirmTitle')}
+          {target === 'account'
+            ? t('dangerZone.accountConfirmTitle')
+            : t('dangerZone.confirmTitle')}
         </h2>
         <p id="delete-all-warning" className="mt-3 text-sm leading-relaxed text-muted-foreground">
-          {t('dangerZone.warning')}
+          {target === 'account' ? t('dangerZone.accountWarning') : t('dangerZone.warning')}
         </p>
         <form onSubmit={onSubmit} className="mt-5">
           <Label htmlFor="delete-confirmation" className="block leading-relaxed">
@@ -102,7 +118,11 @@ export function DeleteAllActivities() {
             </Button>
 
             <Button type="submit" variant="destructive" disabled={!confirmed || remove.isPending}>
-              {remove.isPending ? t('dangerZone.deleting') : t('dangerZone.delete')}
+              {remove.isPending
+                ? t('dangerZone.deleting')
+                : target === 'account'
+                  ? t('dangerZone.deleteAccount')
+                  : t('dangerZone.delete')}
             </Button>
           </div>
         </form>

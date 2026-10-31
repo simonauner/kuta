@@ -84,6 +84,11 @@ public class SocialTests(KutaFactory factory) : IClassFixture<KutaFactory>
                 """, new { id, json = shared.RouteGeoJson }, tx);
             Assert.True(distance >= 500, $"Preview entered protected zone: {distance} m");
         }
+        await conn.ExecuteAsync("insert into privacy_places (user_id, name, latitude, longitude, radius_m) values (@owner, 'Synthetic private place', 0.002, 0.02, 200)", new { owner }, tx);
+        var masked = Assert.Single((await SocialEndpoints.ReadFeedAsync(conn, viewer)).Items);
+        var placeDistance = await conn.ExecuteScalarAsync<double>("select st_distance(st_geomfromgeojson(@json)::geography, st_setsrid(st_makepoint(0.02, 0.002), 4326)::geography)", new { json = masked.RouteGeoJson }, tx);
+        Assert.True(placeDistance >= 200);
+        Assert.Equal(own.RouteGeoJson, Assert.Single((await SocialEndpoints.ReadFeedAsync(conn, owner)).Items).RouteGeoJson);
         await conn.ExecuteAsync("update activities set route = st_geogfromtext('LINESTRING(0 0,0.001 0)') where id = @id", new { id }, tx);
         Assert.Null(Assert.Single((await SocialEndpoints.ReadFeedAsync(conn, viewer)).Items).RouteGeoJson);
         Assert.NotNull(Assert.Single((await SocialEndpoints.ReadFeedAsync(conn, owner)).Items).RouteGeoJson);

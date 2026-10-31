@@ -1,3 +1,7 @@
+import { createElement } from 'react'
+import { renderToStaticMarkup } from 'react-dom/server'
+import { Footer } from './src/components/footer.tsx'
+import sv from './src/locales/sv.json' with { type: 'json' }
 import tailwindcss from '@tailwindcss/vite'
 import react from '@vitejs/plugin-react'
 import path from 'node:path'
@@ -31,6 +35,8 @@ function configureHtmlRoutes(server: ViteDevServer | PreviewServer) {
       req.url = `/app.html${url.search}`
     else if (url.pathname === '/privacy' || url.pathname === '/privacy/')
       req.url = `/privacy.html${url.search}`
+    else if (url.pathname === '/features' || url.pathname === '/features/')
+      req.url = `/features.html${url.search}`
     next()
   })
 }
@@ -42,6 +48,7 @@ export default defineConfig({
       input: {
         landing: path.resolve(import.meta.dirname, 'index.html'),
         privacy: path.resolve(import.meta.dirname, 'privacy.html'),
+        features: path.resolve(import.meta.dirname, 'features.html'),
         app: path.resolve(import.meta.dirname, 'app.html'),
       },
     },
@@ -53,6 +60,14 @@ export default defineConfig({
   },
   plugins: [
     react(),
+    {
+      name: 'public-footer',
+      transformIndexHtml: (html) =>
+        html.replace(
+          '<!--kuta-footer-->',
+          renderToStaticMarkup(createElement(Footer, { variant: 'public', labels: sv.footer })),
+        ),
+    },
     {
       name: 'app-html-routes',
       configureServer: configureHtmlRoutes,
@@ -76,7 +91,7 @@ export default defineConfig({
       workbox: {
         navigateFallback: '/app.html',
         navigateFallbackAllowlist: [
-          /^\/app(?:\/(?:activities|stats|profile|runners\/[0-9a-f-]{36}|settings(?:\/(?:equipment|followers))?))?\/?(?:\?|$)/,
+          /^\/app(?:\/(?:activities|stats|profile|runners\/[0-9a-f-]{36}|settings(?:\/(?:equipment|followers|privacy-places))?))?\/?(?:\?|$)/,
         ],
       },
       includeAssets: [

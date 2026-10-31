@@ -94,46 +94,8 @@ public static class ActivityEndpoints
             CancellationToken cancellationToken) =>
         {
             await using var conn = await db.OpenConnectionAsync(cancellationToken);
-            await using var command = new NpgsqlCommand(
-                $"""
-                select a.id, a.sport, a.title, a.started_at, a.duration_s, a.moving_s, coalesce((select sum(p.distance_m) from activity_parts p where p.activity_id = a.id and p.original = not a.parts_edited), a.distance_m), a.avg_hr, a.max_hr,
-                       a.avg_speed_mps, a.elevation_gain_m, a.device, s.t, s.dist, s.hr, s.speed, s.alt, s.lat, s.lon,
-                       s.cadence, s.temp, a.tags,
-                       array(select equipment_id from activity_equipment where activity_id = a.id order by equipment_id) as equipment_ids, a.parts_edited, a.description, coalesce(a.original_sport, a.sport), a.user_id, u.display_name, a.privacy
-                from activities a join users u on u.id = a.user_id left join activity_streams s on s.activity_id = a.id
-                where a.id = @id and {SocialEndpoints.CanRead}
-                """, conn);
-            command.Parameters.AddWithValue("id", id);
-            command.Parameters.AddWithValue("userId", user.GetUserId());
-            ActivityDetail detail;
-            await using (var reader = await command.ExecuteReaderAsync(cancellationToken))
-            {
-                if (!await reader.ReadAsync(cancellationToken)) return Results.NotFound();
-
-                // Läses för hand: Dapper/Npgsql klarar inte null-element i arrayer utan typen float?[] osv.
-                T? Value<T>(int i) => reader.IsDBNull(i) ? default : reader.GetFieldValue<T>(i);
-                var streams = reader.IsDBNull(12) ? null : new ActivityStreams(
-                    reader.GetFieldValue<int[]>(12), Value<float?[]>(13), Value<short?[]>(14), Value<float?[]>(15),
-                    Value<float?[]>(16), Value<double?[]>(17), Value<double?[]>(18), Value<short?[]>(19),
-                    Value<short?[]>(20));
-                detail = new ActivityDetail(
-                    reader.GetGuid(0), reader.GetString(1), Value<string>(2),
-                    System.DateTime.SpecifyKind(reader.GetDateTime(3), DateTimeKind.Utc), reader.GetInt32(4),
-                    Value<int?>(5), reader.GetDouble(6), Value<short?>(7), Value<short?>(8), Value<float?>(9),
-                    Value<float?>(10), Value<string>(11), streams, [], reader.GetFieldValue<string[]>(21), reader.GetFieldValue<Guid[]>(22), [], reader.GetBoolean(23), streams is not null && Multisport.CanSplit(streams.T, streams.Dist), Value<string>(24), [], reader.GetString(25), reader.GetGuid(26), reader.GetString(27), reader.GetString(28));
-            }
-            var laps = await conn.QueryAsync<ActivityLap>(
-                """
-                select lap_index, start_s, duration_s, moving_s, distance_m, avg_hr, max_hr, ascent_m, descent_m, avg_cadence
-                from activity_laps where activity_id = @id order by lap_index
-                """, new { id });
-            detail = detail with { Laps = laps, Parts = await Multisport.LoadAsync(conn, id), OriginalParts = await Multisport.LoadAsync(conn, id, original: true) };
-            // Full GPS streams and heart rate remain owner-only; feed map previews have separate privacy clipping.
-            if (detail.UserId != user.GetUserId())
-                detail = detail with { AvgHr = null, MaxHr = null, Device = null, EquipmentIds = [],
-                    Streams = detail.Streams is { } streams ? streams with { Hr = null, Lat = null, Lon = null } : null,
-                    Laps = detail.Laps.Select(l => l with { AvgHr = null, MaxHr = null }).ToArray() };
-            return Results.Ok(detail);
+            var detail = await ReadDetailAsync(conn, user.GetUserId(), id, cancellationToken);
+            return detail is null ? Results.NotFound() : Results.Ok(detail);
         });
 
         // Förhandsvisning för formuläret "Skapa ny aktivitet": tolkar filen utan att spara något.
@@ -279,6 +241,55 @@ public static class ActivityEndpoints
             return await ActivityStorage.DeleteAsync(conn, store, user.GetUserId(), id, cancellationToken)
                 ? Results.NoContent() : Results.NotFound();
         });
+    }
+
+    public static async Task<ActivityDetail?> ReadDetailAsync(NpgsqlConnection conn, Guid userId, Guid id,
+        CancellationToken cancellationToken, NpgsqlTransaction? tx = null)
+    {
+        await using var command = new NpgsqlCommand(
+            $"""
+            select a.id, a.sport, a.title, a.started_at, a.duration_s, a.moving_s, coalesce((select sum(p.distance_m) from activity_parts p where p.activity_id = a.id and p.original = not a.parts_edited), a.distance_m), a.avg_hr, a.max_hr,
+                   a.avg_speed_mps, a.elevation_gain_m, a.device, s.t, s.dist, s.hr, s.speed, s.alt, s.lat, s.lon,
+                   s.cadence, s.temp, a.tags,
+                   array(select equipment_id from activity_equipment where activity_id = a.id order by equipment_id) as equipment_ids, a.parts_edited, a.description, coalesce(a.original_sport, a.sport), a.user_id, u.display_name, a.privacy
+            from activities a join users u on u.id = a.user_id left join activity_streams s on s.activity_id = a.id
+            where a.id = @id and {SocialEndpoints.CanRead}
+            """, conn, tx);
+        command.Parameters.AddWithValue("id", id);
+        command.Parameters.AddWithValue("userId", userId);
+        ActivityDetail detail;
+        Guid ownerId;
+        await using (var reader = await command.ExecuteReaderAsync(cancellationToken))
+        {
+            if (!await reader.ReadAsync(cancellationToken)) return null;
+
+            // Läses för hand: Dapper/Npgsql klarar inte null-element i arrayer utan typen float?[] osv.
+            T? Value<T>(int i) => reader.IsDBNull(i) ? default : reader.GetFieldValue<T>(i);
+            var streams = reader.IsDBNull(12) ? null : new ActivityStreams(
+                reader.GetFieldValue<int[]>(12), Value<float?[]>(13), Value<short?[]>(14), Value<float?[]>(15),
+                Value<float?[]>(16), Value<double?[]>(17), Value<double?[]>(18), Value<short?[]>(19),
+                Value<short?[]>(20));
+            ownerId = reader.GetGuid(26);
+            detail = new ActivityDetail(
+                reader.GetGuid(0), reader.GetString(1), Value<string>(2),
+                System.DateTime.SpecifyKind(reader.GetDateTime(3), DateTimeKind.Utc), reader.GetInt32(4),
+                Value<int?>(5), reader.GetDouble(6), Value<short?>(7), Value<short?>(8), Value<float?>(9),
+                Value<float?>(10), Value<string>(11), streams, [], reader.GetFieldValue<string[]>(21), reader.GetFieldValue<Guid[]>(22), [], reader.GetBoolean(23), streams is not null && Multisport.CanSplit(streams.T, streams.Dist), Value<string>(24), [], reader.GetString(25), ownerId, reader.GetString(27), reader.GetString(28));
+        }
+        var places = ownerId == userId ? [] : await PrivacyPlaces.LoadAsync(conn, ownerId, cancellationToken, tx);
+        detail = detail with { Streams = RoutePrivacy.ForViewer(detail.Streams, ownerId, userId, places) };
+        var laps = await conn.QueryAsync<ActivityLap>(
+            """
+            select lap_index, start_s, duration_s, moving_s, distance_m, avg_hr, max_hr, ascent_m, descent_m, avg_cadence
+            from activity_laps where activity_id = @id order by lap_index
+            """, new { id }, tx);
+        detail = detail with { Laps = laps, Parts = await Multisport.LoadAsync(conn, id, tx), OriginalParts = await Multisport.LoadAsync(conn, id, tx, original: true) };
+        // Full GPS streams and heart rate remain owner-only; feed map previews have separate privacy clipping.
+        if (ownerId != userId)
+            detail = detail with { AvgHr = null, MaxHr = null, Device = null, EquipmentIds = [],
+                Streams = detail.Streams is { } streams ? streams with { Hr = null, Lat = null, Lon = null } : null,
+                Laps = detail.Laps.Select(l => l with { AvgHr = null, MaxHr = null }).ToArray() };
+        return detail;
     }
 
     private record OwnedActivity(Guid Id, string? RawFileKey);

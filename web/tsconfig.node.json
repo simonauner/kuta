@@ -12,6 +12,8 @@
     "verbatimModuleSyntax": true,
     "moduleDetection": "force",
     "noEmit": true,
+    "jsx": "react-jsx",
+    "resolveJsonModule": true,
 
     /* Linting */
     "noUnusedLocals": true,

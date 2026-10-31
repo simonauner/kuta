@@ -125,12 +125,20 @@ public static class SocialEndpoints
                 case when st_isempty(preview.route) then null else st_asgeojson(preview.route, 6) end as route_geo_json
             from page
             cross join lateral (
+                select st_unaryunion(st_collect(zone)) as areas from (
+                    select st_buffer(st_startpoint(route::geometry)::geography, 510)::geometry as zone
+                    union all
+                    select st_buffer(st_endpoint(route::geometry)::geography, 510)::geometry
+                    union all
+                    select st_buffer(st_setsrid(st_makepoint(longitude, latitude), 4326)::geography, radius_m + 10)::geometry
+                    from privacy_places where user_id = page.user_id
+                ) hidden where page.user_id <> @userId
+            ) zones
+            cross join lateral (
                 select case when user_id = @userId then st_simplifypreservetopology(route::geometry, 0.0001)
                 else st_collectionextract(st_difference(
                     st_simplifypreservetopology(route::geometry, 0.0001),
-                    st_union(
-                        st_buffer(st_startpoint(route::geometry)::geography, 510)::geometry,
-                        st_buffer(st_endpoint(route::geometry)::geography, 510)::geometry)), 2) end as route
+                    zones.areas), 2) end as route
             ) preview
             order by started_at desc, id desc
             """, new { userId, beforeStartedAt, beforeId, runnerId })).ToList();

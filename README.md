@@ -4,7 +4,7 @@ Löparapp med Garmin-import, statistik, rekord och socialt flöde. Se `AGENTS.md
 
 ## Publik startsida och app
 
-`/` är en statisk, svenskspråkig startsida (`web/index.html`, stilar i `web/src/landing.css`). Fotot i `web/public/images/forest-trail.webp` tillhör Simon Auner och serveras lokalt som WebP, utan beroende av Stravas bildserver; produktillustrationerna är designskisser med syntetiska exempeldata. Startsidan och appen delar färgvariabler i `web/src/theme.css` och följer systemets ljusa eller mörka tema med neutrala ytor och orange accent. Innehåll och SEO-metadata finns i HTML utan JavaScript. `robots.txt` och `sitemap.xml` finns i `web/public/`; canonical och sitemap använder `https://kutaapp.com/`.
+`/` är en statisk, svenskspråkig startsida (`web/index.html`, stilar i `web/src/landing.css`). Fotot i `web/public/images/forest-trail.webp` tillhör Simon Auner och serveras lokalt som WebP, utan beroende av Stravas bildserver; produktillustrationerna är designskisser med syntetiska exempeldata. `/features` är en statisk svensk funktionssida (`web/features.html`, `web/src/features.css`), länkad från startsidans funktionssektion. Bilderna i `web/public/images/features/` är lokala skärmdumpar med syntetiska data i mörkt tema. De publika sidorna och appen delar systemtypsnitt och färgvariabler i `web/src/theme.css`; publika knappar följer appens storlek och hörnradie, och sidfotslänkarna staplas till höger. `Footer` i `web/src/components/footer.tsx` och dess CSS delas av alla sidor: Vite renderar varianten `public` till statisk HTML, medan appens `Layout` använder varianten `app` med valt språk och version. Sidorna följer systemets ljusa eller mörka tema med neutrala ytor och orange accent. Innehåll och SEO-metadata finns i HTML utan JavaScript. `robots.txt` och `sitemap.xml` finns i `web/public/`; canonical och sitemap använder `https://kutaapp.com/`.
 
 Logotypen ”Spåret” finns som fristående SVG i `web/public/brand/` (mörk och ljus variant). Bokstäverna är vektorkonturer och kräver ingen font. Symbolen i `web/public/favicon.svg` används också av PWA-manifestet. PNG-ikoner för PWA finns i `web/public/icons/` (192/512 samt maskable 512 med extra marginal). `web/public/apple-touch-icon.png` (180×180, heltäckande bakgrund) används av iOS, och `favicon-32.png` är PNG-fallback för webbläsare. Båda HTML-dokumenten länkar till ikonerna; PWA:n startar på `/app`. SVG-underlagen för hemskärmsikonerna finns i `web/public/brand/app-icon.svg` och `app-icon-maskable.svg`.
 
@@ -14,7 +14,7 @@ Policyn är ett utkast inför Garminansökan. Verifierat underlag, beslut, förs
 
 React-appen öppnas på `/app`, med vyerna `/app/activities`, `/app/stats` samt `/app/profile` och `/app/settings`. `web/app.html` har `noindex`. Mejlets bekräftelselänk återvänder till `/app`. Vite bygger de tre HTML-filerna, och .NET serverar dem från samma origin. PWA:n startar på `/app` och använder bara appskalet som navigeringsfallback inom `/app`.
 
-Profil visar löparens namn och egna pass med samma passkort och kartminiatyrer som andra löparprofiler, inklusive privata pass. Kugghjulet öppnar Inställningar på `/app/settings`, med länkar till Följare på `/app/settings/followers` och Utrustning på `/app/settings/equipment`, språkval, pulssamtycke, Strava-import, e-postadress, utloggning och Danger zone för att radera alla pass. Undersidorna visar hela hierarkin i brödsmulorna: Profil → Inställningar → Följare respektive Profil → Inställningar → Utrustning. Vanlig FIT-uppladdning och manuell registrering nås via Pass → Skapa ny aktivitet. Pulssamtycket kan ändras med samma checkbox både i filmodalen och under Inställningar. Checkboxen visas även när samtycket redan är givet.
+Profil visar löparens namn och egna pass med samma passkort och kartminiatyrer som andra löparprofiler, inklusive privata pass. Kugghjulet öppnar Inställningar på `/app/settings`, med länkar till Följare på `/app/settings/followers` och Utrustning på `/app/settings/equipment`, språkval, dolda platser, pulssamtycke, Strava-import, dataexport, e-postadress, utloggning och Danger zone för att radera alla pass eller kontot. Undersidorna visar hela hierarkin i brödsmulorna: Profil → Inställningar → Följare respektive Profil → Inställningar → Utrustning. Vanlig FIT-uppladdning och manuell registrering nås via Pass → Skapa ny aktivitet. Pulssamtycket kan ändras med samma checkbox både i filmodalen och under Inställningar. Checkboxen visas även när samtycket redan är givet.
 
 ## Språk och URL:er
 
@@ -51,7 +51,7 @@ Delade pass visar beskrivning, taggar, sportdelar, träningsdata och passets bä
 Puls (även tidsserier och varv), fullständiga GPS-tidsserier, klockmodell och utrustning
 skickas bara till ägaren. Flödets och profilens passkort visar kartminiatyrer från den sparade
 förenklade rutten. För andra än ägaren klipper PostGIS bort minst 500 meter runt originalets
-start- och slutpunkt, även vid återbesök; förenkling sker före klippning och separata delar
+start- och slutpunkt samt ägarens sparade dolda platser med respektive radie, även vid återbesök; förenkling sker före klippning och separata delar
 förblir separata. Helt dolda eller saknade rutter ger ingen karta. Ägaren ser hela rutten.
 Kartorna använder samma OpenFreeMap-leverantör som passsidan och laddas bara nära skärmen;
 rullning och beröring styr sidan, inte miniatyrkartan. Titel och beskrivning är
@@ -103,12 +103,44 @@ Passlistans `year=2024` begränsar både första och efterföljande sidor till d
 Årsväljaren visas när historiken innehåller flera år; ”Alla år” är standard. Valet sparas i
 appens URL (`/app/activities?year=2024`) och följer med till passsidan och tillbaka.
 
-Passsidans kilometersplits interpolerar tid och höjd vid varje kilometergräns mellan
+Passsidans kilometersplits visas både i en utfällbar panel ovanför kartan och under diagrammen.
+Knapparna Varv och Splits ligger bredvid varandra; högst en av panelerna kan vara öppen åt gången.
+De interpolerar tid och höjd vid varje kilometergräns mellan
 mätpunkterna; snittpulsen vägs med tiden. Ingen sträcka eller tid läggs till utanför
 inspelningens uppmätta ändpunkter. Återställd distans eller icke stigande tid gör att
 splitstabellen utelämnas. En avslutande rest under 50 meter visas inte.
 Diagram använder kilometer som x-axel när distansen ökar utan återställningar,
 annars förfluten tid. Tidsaxelns etikett följer appens valda språk.
+
+## Dolda platser
+
+Passens läsåtkomst följer synligheten och godkända följrelationer enligt ovan.
+**Profil → Inställningar → Dolda platser** öppnar `/app/settings/privacy-places`, med
+brödsmulan Profil → Inställningar → Dolda platser, där användaren kan spara flera namngivna
+platser, till exempel Hem och Arbetsplats. Kartpunkten väljs genom klick, kartans
+mittpunkt, webbläsarens platsåtkomst via **Använd min plats**, eller koordinatfält.
+Platsåtkomst begärs bara vid knapptryck och hämtar en enda aktuell position, med
+hög noggrannhet och 10 sekunders timeout. Punkten sparas först med Spara plats. Nekad/otillgänglig platsåtkomst och timeout visas
+på valt språk utan att tidigare koordinater skrivs över. Varje plats har en radie på 50–5 000 meter, förval 200.
+Platser kan redigeras och tas bort. Bara ägaren kan läsa och ändra dem via
+`GET`/`POST /api/me/privacy-places` och `PUT`/`DELETE /api/me/privacy-places/{id}`.
+Listan har `Cache-Control: no-store`. Migrering 014 skapar `privacy_places` med
+ägarkoppling, kaskadradering, koordinat-/radiekrav och RLS utan Data API-grants.
+
+Delade kartminiatyrer i flöde och profiler klipps i PostGIS mot ägarens aktuella platser,
+med respektive radie, och minst 500 meter runt start och mål. Förenklingen sker före
+klippningen; separata linjer sammanfogas aldrig över skyddade områden. Det gäller även
+äldre pass. Ägaren får hela rutten, och delade detaljsvar utelämnar GPS-tidsserier helt.
+Sparade privata platsers namn och mittpunkter skickas aldrig till andra mottagare.
+
+Projektionen ändrar bara svarets koordinater. Sparad rutt, råfil, tidsserier, rekord,
+splits och totalsiffror behålls. Dolda platser är inte en garanti för anonymitet.
+Namn och mittpunkter lämnas aldrig till andra användare. Kartbilderna kommer från
+OpenFreeMap, som ser vilket område användaren tittar på; namn och sparade platser
+skickas inte dit som data. Ingen extern adressökning eller automatisk platsåtkomst används; platsåtkomst kräver
+användarens knapptryck och webbläsarens behörighet.
+Alla nya rutt-/export-/kartändpunkter måste använda samma skydd; originalrutt och råfil får inte
+lämnas till andra mottagare. Ingen ny åtkomst följer av själva klippningen.
 
 ## Statistik över tid
 
@@ -181,11 +213,23 @@ Flyttar hela portserien: webben på BAS, API:t på BAS+2 och en egen Supabase-st
 
 Kommer bekräftelsemejlet ändå på engelska med en länk till Supabase har auth-containern startat före Kong (skriptet hanterar det när det själv startar Supabase): `docker restart supabase_auth_kuta` och registrera igen.
 
+### Kontoradering
+
+Inställningar → Danger zone → **Radera konto** kräver att användaren skriver ett slumpat löparord. `DELETE /api/me` kräver inloggning och CSRF-token och använder endast den inloggade användarens id. Under samma profillås som importen raderas råfilerna via objektlagringen, därefter raderas `auth.users` direkt i databastransaktionen. Befintliga FK-kaskader tar bort profil, utrustning, pass, tidsserier, varv, sportdelar, rekord och Supabase-/Kuta-sessioner. Cookien och webbens sessionscache rensas; gamla cookies avvisas vid nästa anrop.
+
+Om filrensningen misslyckas behålls kontot och filreferenserna för ett nytt försök. Redan raderade filer kan inte återställas om ett senare steg misslyckas, men raderingen kan köras igen. Leverantörsloggar och säkerhetskopior omfattas inte av appens radering; se integritetsunderlaget nedan. Ingen ny migrering eller separat Auth-adminnyckel behövs.
+
 ### Lösenordsåterställning
 
 Välj **Glömt lösenord?** på inloggningssidan. Mejlet finns i instansens Mailpit och länkar till `/api/auth/reset-password`. API:t verifierar länken och ger en separat krypterad HttpOnly-cookie som gäller i högst 15 minuter och bara för lösenordsbytet. Efter bytet avslutas kontots Kuta-sessioner och användaren loggar in med det nya lösenordet. Om anslutningen bryts under lösenordsbytet avslutas sessionerna också, eftersom bytet kan ha hunnit lyckas hos Supabase. Begär då en ny återställningslänk vid behov. Både begäran och lösenordsbytet kräver CSRF-token; ogiltiga, använda och utgångna länkar kräver en ny begäran.
 
 Den lokala mejlmallen anges i `supabase/config.toml`. Om en redan körande miljö saknar återställningsmallen måste dess ägare stoppa och starta just den Supabase-instansen för att läsa in konfigurationen. Ändra inte en lånad instans.
+
+### Mejlmallar
+
+`supabase/templates/confirmation.html` och `recovery.html` är fristående svenska HTML-mallar för de två mejlflöden som appen använder. De följer appens neutrala ytor, rundade hörn och orange primärfärg, med inline-stilar som grund och mörkt tema i mejlklienter som stöder `prefers-color-scheme`. De använder systemtypsnitt och inga bilder eller externa typsnitt. Layouten är tabellbaserad och anpassas till skärmbredden; varje knapp har en kopierbar reservlänk.
+
+Behåll `{{ .SiteURL }}` och `{{ .TokenHash }}` i både knappen och reservlänken: bekräftelse går till `/api/auth/confirm`, återställning till `/api/auth/reset-password`. Ersätt inte dessa med `{{ .ConfirmationURL }}`, eftersom Kutas API ska ta hand om sessionen. Ämnesraderna finns i `supabase/config.toml`; kopiera även dem när mallarna läggs in i det hostade projektets **Authentication → Email Templates**. En ändring i repot uppdaterar inte hostade mallar automatiskt. Kontrollera båda mejlen i lokal Mailpit enligt [lokal körning](#köra-lokalt), och i faktiska mejlklienter före driftsättning eftersom deras HTML- och mörkerlägesstöd varierar.
 
 Tester (kräver `supabase start`, med Storage påslaget): `dotnet test --project api/Kuta.Api.Tests`, eller `KUTA_PORTS=BAS dotnet test …` mot en egen instans.
 
@@ -333,6 +377,20 @@ Tom text sparas som null. Beskrivningen behålls när en FIT-fil väljs i formul
 och visas som vanlig text med radbrytningar på passsidan. Migrering 012 lägger
 till fältet; redan importerade dubbletter hoppas fortfarande över vid Strava-import.
 
+## Exportera data
+
+Öppna **Profil → Inställningar → Exportera data → Ladda ner ZIP**. Låt sidan vara öppen medan arkivet förbereds. `GET /api/me/export` kräver inloggning och hämtar bara det egna kontots data, oberoende av filter och sidindelning i passlistan. Svaret är en nedladdningsbar `kuta-export.zip` med `Cache-Control: no-store`.
+
+- `profile.json`: id, e-postadress, visningsnamn, profilens skapandetid och tidpunkt för pulssamtycke.
+- `equipment.json`: all egen utrustning, även pensionerad, med startvärden och total användning.
+- `privacy-places.json`: egna dolda platser med namn, mittpunkt och radie. Listan ingår även utan pass.
+- `activities/<id>.json`: källa, skapandetid, synlighet, Strava-ID, sökväg till råfilen (eller `null`), `activity` med samma passdetaljer som passsidan och `bestEfforts` med passets bästa insatser. Detaljerna innehåller beskrivning, taggar, utrustnings-ID:n, tidsserier, varv samt originaldelar och redigerade multisportdelar.
+- `raw/<id>.fit` eller `.gpx`: sparade råfiler med oförändrat innehåll. Manuella pass saknar råfil. Råfiler som inte sparats utan pulssamtycke, eller som raderats vid återkallat samtycke, kan inte exporteras. Gzip-filer från Strava har packats upp vid importen.
+
+JSON använder lowerCamelCase, SI-enheter och UTC-tid. Lösenord, sessionscookies och tokens ingår inte. Ett konto utan pass får fortfarande profil, utrustningslista och dolda platser. Arkivet byggs färdigt på en tillfällig fil före HTTP-svaret; den raderas vid fel, avbrott eller när överföringen är klar. Profil och pass låses mot skrivning under bygget för att samtyckesåterkallelse eller passradering inte ska kunna ta bort en råfil mitt i exporten. Om en förväntad råfil saknas misslyckas exporten i stället för att tyst lämna bort den.
+
+Exportens innehåll, åtkomst mellan två användare, råfilernas bytes och samordningen med återkallat samtycke testas på databas-/lagringsnivå. HTTP-testet verifierar den nya routens autentisering, ZIP-svar och cache-/nedladdningsheaders; det upprepar inte innehållstesterna.
+
 ## Importera en Strava-export
 
 Öppna **Profil → Inställningar** via kugghjulet. Under **Importera från Strava** väljer du Stravas kompletta ZIP-export (högst 500 MB) och trycker **Importera pass**. Ta ställning till pulssamtycket först. Under importen visas antal bearbetade pass och löpande räknare för importerade, dubbletter och misslyckade. Låt sidan vara öppen medan importen körs; stora arkiv kan ta flera minuter. Exporten måste innehålla `activities.csv` i roten och filerna på sökvägarna i kolumnen `Filename`.
@@ -406,7 +464,7 @@ Arbetsunderlag för `web/privacy.html`, kontrollerat 2026-10-31. Skilj uppgifter
 - Personuppgiftsansvarig: **Hack ska du ha AB, 559369-2287**. Simon Aunér är kontaktperson.
 - `privacy@kutaapp.com` fungerar. Simon bekräftar kedjan **Cloudflare Email Routing → privat Gmail**, inte Google Workspace. Både Cloudflare och Google behandlar därför inkommande ärenden; Scaleway skickar kontomejl och är inte leverantör för inkorgen.
 - Simon uppger att Kuta ännu inte har någon egen backup. Det fastställer inte vilka kopior leverantörerna behåller.
-- Simon vill kunna genomföra **export och kontoradering inom sju dagar från begäran**. Det är målet för rutinen, inte en implementerad eller verifierad funktion. Varken fullständig export eller kontoradering är byggd. Manuell hantering kan användas, men måste först förberedas och testas. Policyn får inte lova att alla leverantörsloggar och kopior försvinner inom samma tid.
+- Simon vill kunna genomföra **export och kontoradering inom sju dagar från begäran**. Det är målet för rutinen, inte en implementerad eller verifierad funktion. Kontoradering av autentisering, appdata och råfiler finns i Inställningar och är verifierad lokalt med syntetiska uppgifter. Fullständig export och hantering av relevanta leverantörsposter måste fortfarande förberedas och testas. Policyn får inte lova att alla leverantörsloggar och kopior försvinner inom samma tid.
 - Lagringstider för supportmejl och avslutade/utgångna sessionsrader är **inte beslutade**. Förslagen är 12 månader efter avslutat supportärende respektive senast 30 dagar efter avslut/utgång; de ska inte beskrivas som befintliga rutiner.
 
 ### Vad koden visar om loggar och sessioner

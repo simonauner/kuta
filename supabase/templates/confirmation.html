@@ -1,3 +1,60 @@
-<h2>Bekräfta din e-postadress</h2>
-<p>Klicka på länken för att aktivera ditt Kuta-konto:</p>
-<p><a href="{{ .SiteURL }}/api/auth/confirm?token_hash={{ .TokenHash }}">Bekräfta e-postadress</a></p>
+<!doctype html>
+<html lang="sv">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <meta name="color-scheme" content="light dark" />
+    <meta name="supported-color-schemes" content="light dark" />
+    <title>Bekräfta din e-postadress · Kuta</title>
+    <style>
+      @media (prefers-color-scheme: dark) {
+        .background { background-color: #121212 !important; }
+        .card { background-color: #1b1b1b !important; border-color: #333333 !important; }
+        .text { color: #f5f5f5 !important; }
+        .muted { color: #989898 !important; }
+        .divider { border-color: #333333 !important; }
+        .button { background-color: #ff8155 !important; color: #121212 !important; }
+      }
+    </style>
+  </head>
+  <body class="background" style="margin: 0; padding: 0; background-color: #fafafa; color: #171717; font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Arial, sans-serif; -webkit-text-size-adjust: 100%;">
+    <div style="display: none; max-height: 0; overflow: hidden; mso-hide: all;">Välkommen till Kuta. Bekräfta din e-postadress för att komma igång.</div>
+    <table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0">
+      <tr>
+        <td align="center" style="padding: 40px 16px;">
+          <!-- Fixed width for classic Outlook; other clients use the fluid table below. -->
+          <!--[if mso]><table role="presentation" width="560" cellpadding="0" cellspacing="0" border="0"><tr><td><![endif]-->
+          <table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0" style="max-width: 560px;">
+            <tr>
+              <td class="card" style="padding: 32px 24px; background-color: #ffffff; border: 1px solid #e5e5e5; border-radius: 12px;">
+                <h1 class="text" style="margin: 0 0 16px; color: #171717; font-size: 24px; line-height: 1.25; font-weight: 600; letter-spacing: -0.6px;">Bekräfta din e-postadress</h1>
+                <p class="muted" style="margin: 0 0 24px; color: #636363; font-size: 16px; line-height: 1.6;">Välkommen till Kuta! Bekräfta din e-postadress för att komma igång och samla din träning på ett ställe.</p>
+                <table role="presentation" cellpadding="0" cellspacing="0" border="0">
+                  <tr>
+                    <td class="button" align="center" bgcolor="#e96835" style="border-radius: 8px; mso-padding-alt: 14px 24px;">
+                      <a class="button" href="{{ .SiteURL }}/api/auth/confirm?token_hash={{ .TokenHash }}" style="display: inline-block; padding: 14px 24px; background-color: #e96835; border-radius: 8px; color: #171717; font-size: 16px; line-height: 20px; font-weight: 600; text-decoration: none; mso-padding-alt: 0;">Bekräfta e-postadress</a>
+                    </td>
+                  </tr>
+                </table>
+                <p class="muted" style="margin: 24px 0 0; color: #636363; font-size: 14px; line-height: 1.6;">Om du inte har skapat ett konto på Kuta kan du ignorera det här mejlet.</p>
+                <div class="divider" style="margin-top: 24px; padding-top: 24px; border-top: 1px solid #e5e5e5;">
+                  <p class="muted" style="margin: 0 0 8px; color: #636363; font-size: 12px; line-height: 1.6;">Fungerar inte knappen? Kopiera länken och klistra in den i din webbläsare:</p>
+                  <p style="margin: 0; font-size: 12px; line-height: 1.6; overflow-wrap: anywhere; word-break: break-all;">
+                    <a class="muted" href="{{ .SiteURL }}/api/auth/confirm?token_hash={{ .TokenHash }}" style="color: #636363; text-decoration: underline;">{{ .SiteURL }}/api/auth/confirm?token_hash={{ .TokenHash }}</a>
+                  </p>
+                </div>
+              </td>
+            </tr>
+            <tr>
+              <td class="muted" style="padding: 24px 0 0; color: #636363; font-size: 12px; line-height: 1.6;">
+                <p style="margin: 0 0 8px;">Kuta</p>
+                <a class="muted" href="{{ .SiteURL }}/privacy" style="color: #636363; text-decoration: underline;">Integritetspolicy</a>
+              </td>
+            </tr>
+          </table>
+          <!--[if mso]></td></tr></table><![endif]-->
+        </td>
+      </tr>
+    </table>
+  </body>
+</html>
