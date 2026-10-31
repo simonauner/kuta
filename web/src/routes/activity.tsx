@@ -2,7 +2,8 @@ import { knownSport, sportIcons } from '@/lib/sports'
 import { SportIcon } from '@/components/sport-icon'
 import { useQuery } from '@tanstack/react-query'
 import { Link, useParams, useSearch } from '@tanstack/react-router'
-import { useMemo, useState } from 'react'
+import { useId, useMemo, useState } from 'react'
+import { ChevronDown } from 'lucide-react'
 import { useTranslation } from 'react-i18next'
 import { ActivityCharts, type ChartSeries } from '@/components/activity-charts'
 import { BackLink } from '@/components/back-link'
@@ -41,7 +42,8 @@ export function ActivityPage() {
   const { t, i18n } = useTranslation()
   const { year, tag } = useSearch({ from: '/app/activities/$activityId' })
   const equipment = useQuery(equipmentQuery)
-  const [tab, setTab] = useState<'overview' | 'laps'>('overview')
+  const [lapsOpen, setLapsOpen] = useState(false)
+  const lapsId = useId()
   const activity = useQuery(activityQuery(activityId))
   const [selection, setSelection] = useState<{ id: string; part: ActivityPart | null } | null>(null)
   const selectedPart = selection?.id === activityId ? selection.part : null
@@ -171,24 +173,38 @@ export function ActivityPage() {
     <section>
       <BackLink />
       <p className="mt-4 text-sm text-muted-foreground">{when.format(new Date(a.startedAt))}</p>
-      <h1 className="mt-1 flex items-center gap-3 text-2xl font-semibold tracking-tight">
-        <span className="inline-block" style={{ viewTransitionName: `activity-title-${a.id}` }}>
-          {activityTitle(original, t)}
-        </span>
-        <SportIcon
-          sport={a.sport}
-          className="size-9"
-          style={{ viewTransitionName: `activity-sport-${a.id}` }}
-        />
-      </h1>
+      <div className="mt-1 flex flex-wrap items-center justify-between gap-3">
+        <h1 className="flex min-w-0 items-center gap-3 text-2xl font-semibold tracking-tight">
+          <span className="wrap-anywhere" style={{ viewTransitionName: `activity-title-${a.id}` }}>
+            {activityTitle(original, t)}
+          </span>
+          <SportIcon
+            sport={a.sport}
+            className="size-9 shrink-0"
+            style={{ viewTransitionName: `activity-sport-${a.id}` }}
+          />
+        </h1>
+        <Button asChild size="sm" variant="outline" className="ml-auto">
+          <Link
+            to="/app/activities/$activityId/edit"
+            params={{ activityId: a.id }}
+            search={{ year, tag }}
+          >
+            {t('activity.edit')}
+          </Link>
+        </Button>
+      </div>
       {a.device && <p className="mt-1 text-xs text-muted-foreground">{a.device}</p>}
 
+      {a.description && (
+        <p className="mt-4 whitespace-pre-wrap text-sm wrap-anywhere">{a.description}</p>
+      )}
       <MultisportEditor
         key={`${original.id}:${original.partsEdited}:${JSON.stringify(original.parts)}`}
         activity={original}
         onPreview={(part) => {
           setSelection({ id: activityId, part })
-          setTab('overview')
+          setLapsOpen(false)
         }}
       />
       {selectedPart && (
@@ -220,21 +236,6 @@ export function ActivityPage() {
         </dl>
       )}
 
-      {a.description && (
-        <p className="mt-4 whitespace-pre-wrap text-sm wrap-anywhere">{a.description}</p>
-      )}
-
-      <div className="mt-4">
-        <Button asChild size="sm" variant="outline">
-          <Link
-            to="/app/activities/$activityId/edit"
-            params={{ activityId: a.id }}
-            search={{ year, tag }}
-          >
-            {t('activity.edit')}
-          </Link>
-        </Button>
-      </div>
       {a.equipmentIds.length > 0 && (
         <div className="mt-5">
           <h2 className="text-sm font-medium">{t('equipment.title')}</h2>
@@ -280,121 +281,134 @@ export function ActivityPage() {
       </dl>
 
       {!mixed && a.laps.length > 0 && (
-        <div role="tablist" className="mt-8 flex gap-1 border-b">
-          {(['overview', 'laps'] as const).map((value) => (
-            <button
-              key={value}
-              role="tab"
-              type="button"
-              aria-selected={tab === value}
-              onClick={() => setTab(value)}
-              className={`-mb-px border-b-2 px-3 py-2 text-sm ${tab === value ? 'border-primary font-medium' : 'border-transparent text-muted-foreground'}`}
-            >
-              {t(`activity.tab.${value}`)}
-            </button>
-          ))}
+        <div className="mt-8">
+          <Button
+            id={`${lapsId}-toggle`}
+            type="button"
+            variant="outline"
+            aria-expanded={lapsOpen}
+            aria-controls={lapsId}
+            onClick={() => setLapsOpen((open) => !open)}
+          >
+            {t('activity.tab.laps')}
+            <ChevronDown
+              aria-hidden="true"
+              className={`transition-transform duration-250 motion-reduce:transition-none ${lapsOpen ? 'rotate-180' : ''}`}
+            />
+          </Button>
+          <div
+            id={lapsId}
+            aria-hidden={!lapsOpen}
+            inert={!lapsOpen}
+            className={`grid transition-[grid-template-rows] duration-250 ease-out motion-reduce:transition-none ${lapsOpen ? 'grid-rows-[1fr]' : 'grid-rows-[0fr]'}`}
+          >
+            <div className="min-h-0 overflow-hidden">
+              <div
+                role="region"
+                aria-labelledby={`${lapsId}-toggle`}
+                tabIndex={lapsOpen ? 0 : -1}
+                className="mt-3 max-h-[min(16rem,25svh)] overflow-auto overscroll-contain rounded-lg border px-3 focus-visible:outline-2 focus-visible:outline-ring"
+              >
+                <table className="w-full text-sm whitespace-nowrap tabular-nums [&_td]:pr-4 [&_th]:pr-4">
+                  <thead className="sticky top-0 bg-background text-left text-xs text-muted-foreground">
+                    <tr>
+                      <th className="py-1 font-normal">{t('activity.lap')}</th>
+                      <th className="py-1 font-normal">{t('activity.distance')}</th>
+                      <th className="py-1 font-normal">{t('activity.time')}</th>
+                      <th className="py-1 font-normal">{t('activity.pace')}</th>
+                      <th className="py-1 font-normal">{t('activity.splitElevation')}</th>
+                      {a.laps.some((l) => l.avgHr !== null) && (
+                        <th className="py-1 font-normal">{t('activity.splitHr')}</th>
+                      )}
+                      {a.laps.some((l) => l.avgCadence !== null) && (
+                        <th className="py-1 font-normal">{t('activity.cadence')}</th>
+                      )}
+                    </tr>
+                  </thead>
+                  <tbody className="divide-y">
+                    {a.laps.map((l) => (
+                      <tr key={l.lapIndex}>
+                        <td className="py-1.5">{l.lapIndex + 1}</td>
+                        <td className="py-1.5">{number.format(l.distanceM / 1000)} km</td>
+                        <td className="py-1.5">{formatDuration(l.movingS ?? l.durationS)}</td>
+                        <td className="py-1.5">
+                          {formatSportPace(
+                            a.sport,
+                            l.movingS ?? l.durationS,
+                            l.distanceM,
+                            i18n.resolvedLanguage,
+                          )}
+                        </td>
+                        <td className="py-1.5">
+                          {l.ascentM === null && l.descentM === null
+                            ? '–'
+                            : `${Math.round((l.ascentM ?? 0) - (l.descentM ?? 0))} m`}
+                        </td>
+                        {a.laps.some((x) => x.avgHr !== null) && (
+                          <td className="py-1.5">{l.avgHr ?? '–'}</td>
+                        )}
+                        {a.laps.some((x) => x.avgCadence !== null) && (
+                          <td className="py-1.5">{l.avgCadence ?? '–'}</td>
+                        )}
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+              </div>
+            </div>
+          </div>
         </div>
       )}
 
-      {tab === 'laps' ? (
-        <table className="mt-6 w-full text-sm tabular-nums">
-          <thead className="text-left text-xs text-muted-foreground">
-            <tr>
-              <th className="py-1 font-normal">{t('activity.lap')}</th>
-              <th className="py-1 font-normal">{t('activity.distance')}</th>
-              <th className="py-1 font-normal">{t('activity.time')}</th>
-              <th className="py-1 font-normal">{t('activity.pace')}</th>
-              <th className="py-1 font-normal">{t('activity.splitElevation')}</th>
-              {a.laps.some((l) => l.avgHr !== null) && (
-                <th className="py-1 font-normal">{t('activity.splitHr')}</th>
-              )}
-              {a.laps.some((l) => l.avgCadence !== null) && (
-                <th className="py-1 font-normal">{t('activity.cadence')}</th>
-              )}
-            </tr>
-          </thead>
-          <tbody className="divide-y">
-            {a.laps.map((l) => (
-              <tr key={l.lapIndex}>
-                <td className="py-1.5">{l.lapIndex + 1}</td>
-                <td className="py-1.5">{number.format(l.distanceM / 1000)} km</td>
-                <td className="py-1.5">{formatDuration(l.movingS ?? l.durationS)}</td>
-                <td className="py-1.5">
-                  {formatSportPace(
-                    a.sport,
-                    l.movingS ?? l.durationS,
-                    l.distanceM,
-                    i18n.resolvedLanguage,
-                  )}
-                </td>
-                <td className="py-1.5">
-                  {l.ascentM === null && l.descentM === null
-                    ? '–'
-                    : `${Math.round((l.ascentM ?? 0) - (l.descentM ?? 0))} m`}
-                </td>
-                {a.laps.some((x) => x.avgHr !== null) && (
-                  <td className="py-1.5">{l.avgHr ?? '–'}</td>
-                )}
-                {a.laps.some((x) => x.avgCadence !== null) && (
-                  <td className="py-1.5">{l.avgCadence ?? '–'}</td>
-                )}
+      <div className="mt-8">
+        {view && view.coordinates.length > 1 ? (
+          <ActivityMap
+            coordinates={view.coordinates}
+            routes={view.routes}
+            label={t('activity.map')}
+          />
+        ) : (
+          <p className="text-sm text-muted-foreground">{t('activity.noRoute')}</p>
+        )}
+      </div>
+
+      {view && view.series.length > 0 && (
+        <div className="mt-8">
+          <h2 className="mb-2 text-lg font-semibold">{t('activity.charts')}</h2>
+          <ActivityCharts axis={view.axis} series={view.series} />
+        </div>
+      )}
+
+      {view && view.splits.length > 0 && (
+        <div className="mt-8">
+          <h2 className="mb-2 text-lg font-semibold">{t('activity.splits')}</h2>
+          <table className="w-full text-sm tabular-nums">
+            <thead className="text-left text-xs text-muted-foreground">
+              <tr>
+                <th className="py-1 font-normal">{t('activity.splitKm')}</th>
+                <th className="py-1 font-normal">{t('activity.splitPace')}</th>
+                <th className="py-1 font-normal">{t('activity.splitElevation')}</th>
+                {a.streams?.hr && <th className="py-1 font-normal">{t('activity.splitHr')}</th>}
               </tr>
-            ))}
-          </tbody>
-        </table>
-      ) : (
-        <>
-          <div className="mt-8">
-            {view && view.coordinates.length > 1 ? (
-              <ActivityMap
-                coordinates={view.coordinates}
-                routes={view.routes}
-                label={t('activity.map')}
-              />
-            ) : (
-              <p className="text-sm text-muted-foreground">{t('activity.noRoute')}</p>
-            )}
-          </div>
-
-          {view && view.series.length > 0 && (
-            <div className="mt-8">
-              <h2 className="mb-2 text-lg font-semibold">{t('activity.charts')}</h2>
-              <ActivityCharts axis={view.axis} series={view.series} />
-            </div>
-          )}
-
-          {view && view.splits.length > 0 && (
-            <div className="mt-8">
-              <h2 className="mb-2 text-lg font-semibold">{t('activity.splits')}</h2>
-              <table className="w-full text-sm tabular-nums">
-                <thead className="text-left text-xs text-muted-foreground">
-                  <tr>
-                    <th className="py-1 font-normal">{t('activity.splitKm')}</th>
-                    <th className="py-1 font-normal">{t('activity.splitPace')}</th>
-                    <th className="py-1 font-normal">{t('activity.splitElevation')}</th>
-                    {a.streams?.hr && <th className="py-1 font-normal">{t('activity.splitHr')}</th>}
-                  </tr>
-                </thead>
-                <tbody className="divide-y">
-                  {view.splits.map((s) => (
-                    <tr key={s.km}>
-                      <td className="py-1.5">
-                        {s.distanceM < 950 ? number.format(s.distanceM / 1000) : s.km}
-                      </td>
-                      <td className="py-1.5">
-                        {formatSportPace(a.sport, s.durationS, s.distanceM, i18n.resolvedLanguage)}
-                      </td>
-                      <td className="py-1.5">
-                        {s.elevationM === null ? '–' : `${Math.round(s.elevationM)} m`}
-                      </td>
-                      {a.streams?.hr && <td className="py-1.5">{s.avgHr ?? '–'}</td>}
-                    </tr>
-                  ))}
-                </tbody>
-              </table>
-            </div>
-          )}
-        </>
+            </thead>
+            <tbody className="divide-y">
+              {view.splits.map((s) => (
+                <tr key={s.km}>
+                  <td className="py-1.5">
+                    {s.distanceM < 950 ? number.format(s.distanceM / 1000) : s.km}
+                  </td>
+                  <td className="py-1.5">
+                    {formatSportPace(a.sport, s.durationS, s.distanceM, i18n.resolvedLanguage)}
+                  </td>
+                  <td className="py-1.5">
+                    {s.elevationM === null ? '–' : `${Math.round(s.elevationM)} m`}
+                  </td>
+                  {a.streams?.hr && <td className="py-1.5">{s.avgHr ?? '–'}</td>}
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        </div>
       )}
     </section>
   )

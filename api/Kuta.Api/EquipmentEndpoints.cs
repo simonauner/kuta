@@ -58,6 +58,19 @@ public static class EquipmentEndpoints
                 "delete from equipment where id = @id and user_id = @userId", new { id, userId = user.GetUserId() });
             return deleted == 0 ? Results.NotFound() : Results.NoContent();
         });
+        equipment.MapPut("/{id:guid}", async (Guid id, EquipmentRequest req, NpgsqlDataSource db, ClaimsPrincipal user) =>
+        {
+            if (Validate(req) is { } invalid) return Results.BadRequest(invalid);
+            await using var conn = await db.OpenConnectionAsync();
+            var updated = await conn.ExecuteAsync(
+                """
+                update equipment set name = @name, brand = @brand, kind = @Kind,
+                    initial_distance_m = @InitialDistanceM, initial_duration_s = @InitialDurationS
+                where id = @id and user_id = @userId
+                """, new { id, userId = user.GetUserId(), name = req.Name!.Trim(),
+                    brand = ActivityInput.NormalizeTitle(req.Brand), req.Kind, req.InitialDistanceM, req.InitialDurationS });
+            return updated == 0 ? Results.NotFound() : Results.NoContent();
+        });
         equipment.MapPost("", async (EquipmentRequest req, NpgsqlDataSource db, ClaimsPrincipal user) =>
         {
             if (Validate(req) is { } invalid) return Results.BadRequest(invalid);

@@ -325,6 +325,7 @@
     "title": "Equipment",
     "description": "Total distance and time from linked activities, including prior use. Time includes pauses.",
     "empty": "You have no equipment yet.",
+    "edit": "Edit equipment",
     "add": "Add equipment",
     "cancel": "Cancel",
     "save": "Save equipment",
