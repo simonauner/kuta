@@ -110,6 +110,10 @@ static async Task<int> RunAsync(string[] args)
         o.AddPolicy("uploads", ctx => RateLimitPartition.GetFixedWindowLimiter(
             ctx.User.FindFirstValue(ClaimTypes.NameIdentifier) ?? "anonymous",
             _ => new FixedWindowRateLimiterOptions { PermitLimit = 30, Window = TimeSpan.FromMinutes(5) }));
+        // Data export copies every raw file: 5 per hour and user.
+        o.AddPolicy("exports", ctx => RateLimitPartition.GetFixedWindowLimiter(
+            ctx.User.FindFirstValue(ClaimTypes.NameIdentifier) ?? "anonymous",
+            _ => new FixedWindowRateLimiterOptions { PermitLimit = 5, Window = TimeSpan.FromHours(1) }));
         // Follow requests: 20 per hour and user, against mass requests to shared profile links.
         o.AddPolicy("follows", ctx => RateLimitPartition.GetFixedWindowLimiter(
             ctx.User.FindFirstValue(ClaimTypes.NameIdentifier) ?? "anonymous",

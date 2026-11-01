@@ -6,16 +6,33 @@ using Npgsql;
 
 public static class DataExport
 {
+    // Each export copies every raw file to a temporary file on the machine's disk, kept until the download has finished.
+    private static readonly SemaphoreSlim Exports = new(2);
+
     public static void MapDataExport(this RouteGroupBuilder api)
     {
         api.MapGet("/me/export", async (NpgsqlDataSource db, RawFileStore store, ClaimsPrincipal user,
             HttpResponse response, CancellationToken ct) =>
         {
-            await using var conn = await db.OpenConnectionAsync(ct);
-            var archive = await CreateAsync(conn, store, user.GetUserId(), ct);
-            response.Headers.CacheControl = "no-store";
-            return Results.File(archive, "application/zip", "kuta-export.zip");
-        }).RequireAuthorization();
+            if (!await Exports.WaitAsync(0, ct))
+                return Results.Json(new ApiError("Många exporter pågår just nu. Försök igen om en stund.", "exportBusy"),
+                    statusCode: StatusCodes.Status503ServiceUnavailable);
+            var released = false;
+            void Release() { if (!released) { released = true; Exports.Release(); } }
+            try
+            {
+                await using var conn = await db.OpenConnectionAsync(ct);
+                var archive = await CreateAsync(conn, store, user.GetUserId(), ct);
+                response.Headers.CacheControl = "no-store";
+                response.OnCompleted(() => { Release(); return Task.CompletedTask; });
+                return Results.File(archive, "application/zip", "kuta-export.zip");
+            }
+            catch
+            {
+                Release();
+                throw;
+            }
+        }).RequireAuthorization().RequireRateLimiting("exports");
     }
 
     public static async Task<FileStream> CreateAsync(NpgsqlConnection conn, RawFileStore store, Guid userId,

@@ -167,7 +167,7 @@ public class DataExportTests(KutaFactory factory) : IClassFixture<KutaFactory>
     }
 
     [Fact]
-    public async Task Http_export_requires_a_session_and_returns_a_private_zip_even_with_no_activities()
+    public async Task Http_export_requires_a_session_returns_a_private_zip_and_is_limited_per_user()
     {
         var ct = TestContext.Current.CancellationToken;
         using var client = factory.CreateClient();
@@ -186,6 +186,10 @@ public class DataExportTests(KutaFactory factory) : IClassFixture<KutaFactory>
             using var zip = new ZipArchive(stream);
             Assert.Equal(6, zip.Entries.Count);
             Assert.Equal(email, (await ReadJsonAsync(zip, "profile.json", ct)).GetProperty("email").GetString());
+            // More exports than the two global slots: each finished download frees its slot, until the hourly limit.
+            for (var i = 0; i < 4; i++)
+                Assert.Equal(HttpStatusCode.OK, (await client.GetAsync("/api/me/export", ct)).StatusCode);
+            Assert.Equal(HttpStatusCode.TooManyRequests, (await client.GetAsync("/api/me/export", ct)).StatusCode);
         }
         finally { await conn.ExecuteAsync("delete from auth.users where email = @email", new { email }); }
     }
