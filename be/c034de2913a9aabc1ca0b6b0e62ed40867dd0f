@@ -1,0 +1,19 @@
+api/Kuta.Api/StravaImport.cs
+  s_4b41d6b2cbe45c::t_f5939b126c487f 188-189,198-199,201-225,230,232,236-237,240,247
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.7.5",
+  "base_commit_sha": "bec034de2913a9aabc1ca0b6b0e62ed40867dd0f",
+  "prompts": {},
+  "sessions": {
+    "s_4b41d6b2cbe45c": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "666b8b83-04cc-4497-9a36-a615f20592fd",
+        "model": "claude-opus-5-5"
+      },
+      "human_author": "Simon Aunér <simonauner@gmail.com>"
+    }
+  }
+}
