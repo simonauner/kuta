@@ -41,6 +41,10 @@
     "copyProfileLink": "Kopiera min profillänk"
   },
   "stats": {
+    "views": "Vyer i statistiken",
+    "overview": "Översikt",
+    "analysis": "Analys",
+    "analysisDescription": "Din form och prognos just nu, utifrån de senaste veckornas pass.",
     "description": "Följ din träningsmängd, distans, tempo och puls över tid.",
     "allSports": "Alla sporter",
     "count": "Pass",

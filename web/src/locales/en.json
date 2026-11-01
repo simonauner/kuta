@@ -41,6 +41,10 @@
     "copyProfileLink": "Copy my profile link"
   },
   "stats": {
+    "views": "Statistics views",
+    "overview": "Overview",
+    "analysis": "Analysis",
+    "analysisDescription": "Your current form and race prediction, based on recent weeks of training.",
     "description": "Track your training volume, distance, pace and heart rate over time.",
     "allSports": "All sports",
     "count": "Activities",
