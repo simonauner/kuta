@@ -20,6 +20,17 @@ public static class EquipmentEndpoints
         || req.InitialDurationS is < 0 or > 100L * 365 * 24 * 3600
             ? new ApiError("Kontrollera namn, typ och tidigare användning.", "invalidEquipmentInput") : null;
 
+    // The active shoe on the most recent activity; the activity form and the Garmin import preselect it.
+    public static Task<Guid?> LastUsedShoeAsync(NpgsqlConnection conn, Guid userId) =>
+        conn.QuerySingleOrDefaultAsync<Guid?>(
+            """
+            select e.id from equipment e
+            join activity_equipment ae on ae.equipment_id = e.id and ae.user_id = e.user_id
+            join activities a on a.id = ae.activity_id and a.user_id = ae.user_id
+            where e.user_id = @userId and e.kind = 'shoe' and not e.retired
+            order by a.started_at desc, a.created_at desc, a.id desc, e.id limit 1
+            """, new { userId });
+
     public static void MapEquipment(this RouteGroupBuilder api)
     {
         var equipment = api.MapGroup("/equipment").RequireAuthorization();
@@ -32,15 +43,7 @@ public static class EquipmentEndpoints
         equipment.MapGet("/last-used-shoe", async (NpgsqlDataSource db, ClaimsPrincipal user) =>
         {
             await using var conn = await db.OpenConnectionAsync();
-            var id = await conn.QuerySingleOrDefaultAsync<Guid?>(
-                """
-                select e.id from equipment e
-                join activity_equipment ae on ae.equipment_id = e.id and ae.user_id = e.user_id
-                join activities a on a.id = ae.activity_id and a.user_id = ae.user_id
-                where e.user_id = @userId and e.kind = 'shoe' and not e.retired
-                order by a.started_at desc, a.created_at desc, a.id desc, e.id limit 1
-                """, new { userId = user.GetUserId() });
-            return Results.Ok(new LastUsedShoe(id));
+            return Results.Ok(new LastUsedShoe(await LastUsedShoeAsync(conn, user.GetUserId())));
         });
         equipment.MapMethods("/{id:guid}/retire", ["PUT", "DELETE"], async (Guid id, HttpRequest request, NpgsqlDataSource db, ClaimsPrincipal user) =>
         {

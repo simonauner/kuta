@@ -5,7 +5,7 @@ public record ActivityCursor(DateTime StartedAt, Guid Id);
 public record ActivityPage(IReadOnlyList<ActivityListItem> Items, ActivityCursor? NextCursor);
 public record ActivityListItem(
     Guid Id, string Sport, string? Title, DateTime StartedAt,
-    int DurationS, double DistanceM, short? AvgHr, string[] Tags, Guid[] EquipmentIds, bool ShowMonth, bool ShowWeek, string? Attribution);
+    int DurationS, double DistanceM, short? AvgHr, string[] Tags, Guid[] EquipmentIds, bool ShowMonth, bool ShowWeek, string? Attribution, bool Unreviewed);
 
 public static class ActivityList
 {
@@ -34,7 +34,7 @@ public static class ActivityList
         await using var command = new NpgsqlCommand($"""
             with page as (
                 select a.id, a.sport, a.title, a.started_at, a.duration_s, coalesce((select sum(p.distance_m) from activity_parts p where p.activity_id = a.id and p.original = not a.parts_edited), a.distance_m) as distance_m, a.avg_hr, a.tags,
-                    {GarminAttribution.Sql("a")} as attribution
+                    {GarminAttribution.Sql("a")} as attribution, a.reviewed_at is null as unreviewed
                 from activities a
                 where a.user_id = @userId and a.tags @> @tags::text[] {cursorFilter} {yearFilter} {sportFilter}
                 order by a.started_at desc, a.id desc
@@ -53,7 +53,7 @@ public static class ActivityList
                     where other.user_id = @userId and other.id <> a.id and other.tags @> @tags::text[] {otherSportFilter}
                       and other.started_at >= (period.month_start at time zone @timeZone)
                       and other.started_at < ((period.month_start + interval '1 month') at time zone @timeZone)
-                ) as show_week, a.attribution
+                ) as show_week, a.attribution, a.unreviewed
             from page a
             cross join lateral (
                 select date_trunc('year', a.started_at at time zone @timeZone) as year_start,
@@ -79,7 +79,7 @@ public static class ActivityList
                 reader.IsDBNull(2) ? null : reader.GetString(2), reader.GetDateTime(3), reader.GetInt32(4),
                 reader.GetDouble(5), reader.IsDBNull(6) ? null : reader.GetInt16(6),
                 reader.GetFieldValue<string[]>(7), reader.GetFieldValue<Guid[]>(8), reader.GetBoolean(9), reader.GetBoolean(10),
-                reader.IsDBNull(11) ? null : reader.GetString(11)));
+                reader.IsDBNull(11) ? null : reader.GetString(11), reader.GetBoolean(12)));
         var items = rows.Take(25).ToList();
         var cursor = rows.Count > 25 ? new ActivityCursor(items[^1].StartedAt, items[^1].Id) : null;
         return new ActivityPage(items, cursor);

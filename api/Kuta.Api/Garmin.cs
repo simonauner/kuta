@@ -174,8 +174,11 @@ public static class Garmin
         if (parsed is null) return false;
         // Garmin's attribution should show the device name from the API; manual activities have 'unknown'.
         if (file.DeviceName is { Length: > 0 } device and not "unknown") parsed = parsed with { Device = device };
+        // Like the activity form: runs get the last used active shoe, so shoe distance is right even if never edited.
+        Guid[] equipment = SportGroups.GroupOf(parsed.Sport) == "running"
+            && await EquipmentEndpoints.LastUsedShoeAsync(conn, userId) is { } shoe ? [shoe] : [];
         return await ActivityStorage.SaveAsync(conn, store, userId, parsed, "garmin", ActivityInput.NormalizeTitle(file.ActivityName), null, bytes,
-            ".fit", ct, description: file.ActivityDescription) is not null;
+            ".fit", ct, equipmentIds: equipment, description: file.ActivityDescription) is not null;
     }
 
     public static async Task EnqueueIfPendingAsync(NpgsqlConnection conn, Guid userId, CancellationToken ct)
