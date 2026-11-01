@@ -62,7 +62,8 @@ public class SocialTests(KutaFactory factory) : IClassFixture<KutaFactory>
         var id = Guid.NewGuid();
         await conn.ExecuteAsync("""
             insert into auth.users (id) values (@owner), (@viewer);
-            insert into users (id, display_name) values (@owner, 'Owner'), (@viewer, 'Viewer');
+            insert into users (id, display_name, privacy_seed)
+            values (@owner, 'Owner', '00000000-0000-0000-0000-000000000003'), (@viewer, 'Viewer', gen_random_uuid());
             insert into follows (follower_id, following_id, accepted_at) values (@viewer, @owner, now());
             insert into activities (id, user_id, source, started_at, duration_s, distance_m, privacy, route)
             values (@id, @owner, 'manual', now(), 1800, 5000, 'followers',
@@ -84,6 +85,13 @@ public class SocialTests(KutaFactory factory) : IClassFixture<KutaFactory>
                 """, new { id, json = shared.RouteGeoJson }, tx);
             Assert.True(distance >= 500, $"Preview entered protected zone: {distance} m");
         }
+        // The seed moves the zone about 125 m south-east: the clip points are no longer 710 m from the true start,
+        // so they cannot be fitted to a circle around it.
+        var startDistance = await conn.ExecuteScalarAsync<double>("""
+            select st_distance(st_geomfromgeojson(@json)::geography, st_startpoint(route::geometry)::geography)
+            from activities where id = @id
+            """, new { id, json = shared.RouteGeoJson }, tx);
+        Assert.True(startDistance > 715, $"Zone is centred on the start: {startDistance} m");
         await conn.ExecuteAsync("insert into privacy_places (user_id, name, latitude, longitude, radius_m) values (@owner, 'Synthetic private place', 0.002, 0.02, 200)", new { owner }, tx);
         var masked = Assert.Single((await SocialEndpoints.ReadFeedAsync(conn, viewer)).Items);
         var placeDistance = await conn.ExecuteScalarAsync<double>("select st_distance(st_geomfromgeojson(@json)::geography, st_setsrid(st_makepoint(0.02, 0.002), 4326)::geography)", new { json = masked.RouteGeoJson }, tx);
