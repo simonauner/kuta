@@ -1,0 +1,64 @@
+README.md
+  s_bee2e5fcf7ec11::t_625058a3854081 82
+  s_bee2e5fcf7ec11::t_b7ec830775ad34 34-48
+api/Kuta.Api/Program.cs
+  s_bee2e5fcf7ec11::t_1e55fdf85de7a1 279
+  s_bee2e5fcf7ec11::t_12c28bc7b7d248 125-128,265
+web/src/locales/en.json
+  s_bee2e5fcf7ec11::t_1e55fdf85de7a1 680
+  s_bee2e5fcf7ec11::t_47c31709c5176e 681-686
+web/src/components/share-profile.tsx
+  s_bee2e5fcf7ec11::t_e3c20dffe18e05 87-120,124-129
+  s_bee2e5fcf7ec11::t_2a8ed5a1d56f1e 47
+  s_bee2e5fcf7ec11::t_f564b4e5f2d19d 3
+  s_bee2e5fcf7ec11::t_1ec81694e1bf20 9-10,121-123
+  s_bee2e5fcf7ec11::t_96361e69472aab 1,5,11-15,19,22-38,58-63,83-86,130-132
+web/src/locales/sv.json
+  s_bee2e5fcf7ec11::t_1e55fdf85de7a1 680
+  s_bee2e5fcf7ec11::t_dd58715251b362 684
+  s_bee2e5fcf7ec11::t_38d19832aa1445 681-683,685-686
+api/Kuta.Api/SocialEndpoints.cs
+  s_bee2e5fcf7ec11::t_dd58715251b362 69-78
+AGENTS.md
+  s_bee2e5fcf7ec11::t_1e55fdf85de7a1 80
+api/Kuta.Api.Tests/WebRoutingTests.cs
+  s_bee2e5fcf7ec11::t_1e55fdf85de7a1 43
+  s_bee2e5fcf7ec11::t_7e26e05196ddc9 50
+web/src/components/layout.tsx
+  s_bee2e5fcf7ec11::t_dd58715251b362 45
+web/src/routes/shared-profile.tsx
+  s_bee2e5fcf7ec11::t_dd58715251b362 7-20
+  s_bee2e5fcf7ec11::t_0cfff84805e59b 1-6,21-40
+api/Kuta.Api.Tests/PublicProfileTests.cs
+  s_bee2e5fcf7ec11::t_2a8ed5a1d56f1e 41-45
+api/Kuta.Api/DataExport.cs
+  s_bee2e5fcf7ec11::t_dc6516967c34d9 56,121
+web/src/routes/settings.tsx
+  s_bee2e5fcf7ec11::t_8c0dc5e97ff2e0 10,65-66
+api/Kuta.Api.Tests/DataExportTests.cs
+  s_bee2e5fcf7ec11::t_686bfc457deac3 25-26,60
+api/Kuta.Api.Tests/ShareCodeTests.cs
+  s_bee2e5fcf7ec11::t_f4f9b9d04da994 1-80
+api/Kuta.Api/Migrations/028_share_codes.sql
+  s_bee2e5fcf7ec11::t_cd2f45576953ef 1-3
+api/Kuta.Api/ShareCodes.cs
+  s_bee2e5fcf7ec11::t_25ef1200ae45ae 1-53
+web/src/router.tsx
+  s_bee2e5fcf7ec11::t_c356815b9e6866 15,80-85,126
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.7.5",
+  "base_commit_sha": "80985b172d54e7e0d8704f120b0c9875c0f78103",
+  "prompts": {},
+  "sessions": {
+    "s_bee2e5fcf7ec11": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "cd696b42-7e9f-47b1-8f97-a4d814189962",
+        "model": "claude-opus-5-5"
+      },
+      "human_author": "Simon Aunér <simonauner@gmail.com>"
+    }
+  }
+}
