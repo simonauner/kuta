@@ -1,3 +1,4 @@
+import { GarminDerivedNote } from '@/components/garmin'
 import { Link } from '@tanstack/react-router'
 import { useTranslation } from 'react-i18next'
 import { EquipmentSection } from '@/components/equipment'
@@ -34,6 +35,7 @@ export function EquipmentPage() {
         </BreadcrumbList>
       </Breadcrumb>
       <h1 className="text-2xl font-semibold tracking-tight">{t('equipment.title')}</h1>
+      <GarminDerivedNote className="mt-1" />
       <EquipmentSection />
     </section>
   )

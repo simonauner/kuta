@@ -5,7 +5,8 @@ using Npgsql;
 public record Runner(Guid Id, string DisplayName, string Status, string? SupporterTier);
 public record FollowLists(IEnumerable<Runner> Following, IEnumerable<Runner> Followers);
 public record FeedItem(Guid Id, Guid UserId, string DisplayName, string Sport, string? Title,
-    DateTime StartedAt, int DurationS, double DistanceM, string Privacy, string? RouteGeoJson, string? SupporterTier);
+    DateTime StartedAt, int DurationS, double DistanceM, string Privacy, string? RouteGeoJson, string? SupporterTier,
+    string? Attribution);
 public record FeedPage(IReadOnlyList<FeedItem> Items, ActivityCursor? NextCursor);
 
 public static class SocialEndpoints
@@ -127,7 +128,7 @@ public static class SocialEndpoints
                 select a.id, a.user_id, u.display_name, a.sport, a.title, a.started_at, a.duration_s,
                     coalesce((select sum(p.distance_m) from activity_parts p where p.activity_id = a.id
                         and p.original = not a.parts_edited), a.distance_m) as distance_m, a.privacy, a.route, u.privacy_seed,
-                    {Supporters.VisibleTier} as supporter_tier
+                    {Supporters.VisibleTier} as supporter_tier, {GarminAttribution.Sql("a")} as attribution
                 from activities a join users u on u.id = a.user_id
                 where {CanRead} and (
                     (@runnerId::uuid is not null and a.user_id = @runnerId) or
@@ -138,7 +139,7 @@ public static class SocialEndpoints
             )
             select id, user_id, display_name, sport, title, started_at, duration_s, distance_m, privacy,
                 case when st_isempty(preview.route) then null else st_asgeojson(preview.route, 4) end as route_geo_json,
-                supporter_tier
+                supporter_tier, attribution
             from page
             cross join lateral (
                 select st_unaryunion(st_collect(zone)) as areas from (

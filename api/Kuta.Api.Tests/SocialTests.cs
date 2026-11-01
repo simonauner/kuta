@@ -52,6 +52,35 @@ public class SocialTests(KutaFactory factory) : IClassFixture<KutaFactory>
     }
 
     [Fact]
+    public async Task Garmin_attribution_shows_watch_only_to_owner()
+    {
+        var ct = TestContext.Current.CancellationToken;
+        await using var conn = await factory.Services.GetRequiredService<NpgsqlDataSource>().OpenConnectionAsync(ct);
+        await using var tx = await conn.BeginTransactionAsync(ct);
+        var owner = Guid.NewGuid();
+        var viewer = Guid.NewGuid();
+        var id = Guid.NewGuid();
+        await conn.ExecuteAsync("""
+            insert into auth.users (id) values (@owner), (@viewer);
+            insert into users (id, display_name) values (@owner, 'Owner'), (@viewer, 'Viewer');
+            insert into follows (follower_id, following_id, accepted_at) values (@viewer, @owner, now());
+            insert into activities (id, user_id, source, device, started_at, duration_s, distance_m, privacy)
+            values (@id, @owner, 'garmin', 'Forerunner 965', now(), 1800, 5000, 'followers')
+            """, new { owner, viewer, id }, tx);
+        Assert.Equal("Garmin Forerunner 965", Assert.Single((await SocialEndpoints.ReadFeedAsync(conn, owner)).Items).Attribution);
+        Assert.Equal("Garmin", Assert.Single((await SocialEndpoints.ReadFeedAsync(conn, viewer)).Items).Attribution);
+        Assert.Equal("Garmin", (await ActivityEndpoints.ReadDetailAsync(conn, viewer, id, ct, tx))!.Attribution);
+        // Utan produktnamn sparas tillverkare + kod, som redan börjar med Garmin.
+        await conn.ExecuteAsync("update activities set device = 'Garmin 4315' where id = @id", new { id }, tx);
+        Assert.Equal("Garmin 4315", (await ActivityEndpoints.ReadDetailAsync(conn, owner, id, ct, tx))!.Attribution);
+        await conn.ExecuteAsync("update activities set device = 'unknown' where id = @id", new { id }, tx);
+        Assert.Equal("Garmin", (await ActivityEndpoints.ReadDetailAsync(conn, owner, id, ct, tx))!.Attribution);
+        await conn.ExecuteAsync("update activities set source = 'fit' where id = @id", new { id }, tx);
+        Assert.Null((await ActivityEndpoints.ReadDetailAsync(conn, owner, id, ct, tx))!.Attribution);
+        await tx.RollbackAsync(ct);
+    }
+
+    [Fact]
     public async Task Map_previews_hide_start_end_zones_and_never_bridge_return_visits()
     {
         var ct = TestContext.Current.CancellationToken;

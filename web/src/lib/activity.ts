@@ -34,6 +34,8 @@ export type Activity = {
   avgHr: number | null
   equipmentIds: string[]
   tags: ActivityTag[]
+  // "Garmin [klockmodell]" för pass från Garmin-API:t; Garmin kräver att den visas under titeln
+  attribution: string | null
 }
 
 export function activitySearch(search: Record<string, unknown>): {

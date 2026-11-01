@@ -170,6 +170,10 @@ export function ActivityPage() {
         ),
       }
     : original
+  // Garmin kräver märkningen i varje utfälld vy och delvy, inte bara under titeln
+  const sourceNote = a.attribution && (
+    <p className="mb-2 text-xs text-muted-foreground">{a.attribution}</p>
+  )
   const number = new Intl.NumberFormat(i18n.resolvedLanguage, {
     maximumFractionDigits: 2,
     minimumFractionDigits: 2,
@@ -297,12 +301,14 @@ export function ActivityPage() {
           </Button>
         )}
       </div>
+      {(a.attribution ?? a.device) && (
+        <p className="mt-1 text-xs text-muted-foreground">{a.attribution ?? a.device}</p>
+      )}
       {original.userId !== me?.id && (
         <p className="mt-3 text-sm text-muted-foreground">
           {t('social.sharedDetail', { name: original.displayName })}
         </p>
       )}
-      {a.device && <p className="mt-1 text-xs text-muted-foreground">{a.device}</p>}
 
       {a.description && (
         <p className="mt-4 whitespace-pre-wrap text-body wrap-anywhere">{a.description}</p>
@@ -396,6 +402,7 @@ export function ActivityPage() {
           <Heading level={2} id="activity-records-title">
             {t('records.activityRecords')}
           </Heading>
+          {sourceNote}
           <ul className="mt-3 grid gap-3 sm:grid-cols-2">
             {bestEfforts.data
               .filter((e) => e.recordStatus)
@@ -475,6 +482,7 @@ export function ActivityPage() {
               </Button>
             )}
           </div>
+          {openPanel && sourceNote}
           {!mixed && a.laps.length > 0 && (
             <div
               id={lapsId}
@@ -598,6 +606,7 @@ export function ActivityPage() {
           <Heading level={2} className="mb-2">
             {t('activity.charts')}
           </Heading>
+          {sourceNote}
           <ActivityCharts axis={view.axis} series={view.series} />
         </div>
       )}
@@ -607,6 +616,7 @@ export function ActivityPage() {
           <Heading level={2} className="mb-2">
             {t('activity.splits')}
           </Heading>
+          {sourceNote}
           {splitTable}
         </div>
       )}
@@ -616,6 +626,7 @@ export function ActivityPage() {
           <Heading level={2} className="mb-2">
             {t('records.bestEfforts')}
           </Heading>
+          {sourceNote}
           {effortTable}
         </div>
       )}

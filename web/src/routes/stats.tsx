@@ -1,3 +1,4 @@
+import { GarminDerivedNote } from '@/components/garmin'
 import { FormField } from '@/components/ui/form-field'
 import { Heading } from '@/components/ui/heading'
 import { useState } from 'react'
@@ -83,6 +84,7 @@ export function StatsPage() {
     <section>
       <Heading level={1}>{t('nav.stats')}</Heading>
       <p className="mt-2 text-muted-foreground">{t('stats.description')}</p>
+      <GarminDerivedNote className="mt-1" />
       <div className="mt-6 flex flex-wrap gap-4">
         <FormField label={t('activities.year')} className="text-sm font-medium">
           {(id) => (

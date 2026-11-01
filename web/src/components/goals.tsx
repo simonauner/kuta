@@ -1,3 +1,4 @@
+import { GarminDerivedNote } from '@/components/garmin'
 import { FormField } from '@/components/ui/form-field'
 import { Heading } from '@/components/ui/heading'
 import { useEffect, useRef, useState, type FormEvent } from 'react'
@@ -91,6 +92,7 @@ export function GoalList({
       <Heading level={2} id="goals-heading" className="mb-3">
         {t('goals.heading')}
       </Heading>
+      {!runnerId && <GarminDerivedNote className="-mt-2 mb-3" />}
       <ul className="grid gap-3 sm:grid-cols-2">
         {goals.data.map((goal) => (
           <li key={goal.id}>

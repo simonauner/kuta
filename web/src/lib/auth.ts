@@ -17,6 +17,8 @@ export type Me = {
     until: string | null
     badgePrivacy: 'private' | 'followers' | 'public'
   }
+  // Styr Garmins märkning av vyer som härleds ur passen (statistik, rekord, mål)
+  hasGarminData: boolean
 }
 
 // null = inte inloggad

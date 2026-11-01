@@ -15,7 +15,7 @@ public record ActivitySummary(
 public record ActivityDetail(
     Guid Id, string Sport, string? Title, System.DateTime StartedAt, int DurationS, int? MovingS, double DistanceM,
     short? AvgHr, short? MaxHr, float? AvgSpeedMps, float? ElevationGainM, string? Device, ActivityStreams? Streams,
-    IEnumerable<ActivityLap> Laps, string[] Tags, Guid[] EquipmentIds, ActivityPart[] Parts, bool PartsEdited, bool CanSplit, string? Description, ActivityPart[] OriginalParts, string OriginalSport, Guid UserId, string DisplayName, string Privacy, bool ExcludeFromRecords);
+    IEnumerable<ActivityLap> Laps, string[] Tags, Guid[] EquipmentIds, ActivityPart[] Parts, bool PartsEdited, bool CanSplit, string? Description, ActivityPart[] OriginalParts, string OriginalSport, Guid UserId, string DisplayName, string Privacy, bool ExcludeFromRecords, string? Attribution);
 
 // Det som formuläret förifylls med från en FIT-fil
 public record ActivityPreview(
@@ -267,7 +267,8 @@ public static class ActivityEndpoints
             select a.id, a.sport, a.title, a.started_at, a.duration_s, a.moving_s, coalesce((select sum(p.distance_m) from activity_parts p where p.activity_id = a.id and p.original = not a.parts_edited), a.distance_m), a.avg_hr, a.max_hr,
                    a.avg_speed_mps, a.elevation_gain_m, a.device, s.t, s.dist, s.hr, s.speed, s.alt, s.lat, s.lon,
                    s.cadence, s.temp, a.tags,
-                   array(select equipment_id from activity_equipment where activity_id = a.id order by equipment_id) as equipment_ids, a.parts_edited, a.description, coalesce(a.original_sport, a.sport), a.user_id, u.display_name, a.privacy, a.exclude_from_records
+                   array(select equipment_id from activity_equipment where activity_id = a.id order by equipment_id) as equipment_ids, a.parts_edited, a.description, coalesce(a.original_sport, a.sport), a.user_id, u.display_name, a.privacy, a.exclude_from_records,
+                   {GarminAttribution.Sql("a")}
             from activities a join users u on u.id = a.user_id left join activity_streams s on s.activity_id = a.id
             where a.id = @id and {SocialEndpoints.CanRead}
             """, conn, tx);
@@ -290,7 +291,7 @@ public static class ActivityEndpoints
                 reader.GetGuid(0), reader.GetString(1), Value<string>(2),
                 System.DateTime.SpecifyKind(reader.GetDateTime(3), DateTimeKind.Utc), reader.GetInt32(4),
                 Value<int?>(5), reader.GetDouble(6), Value<short?>(7), Value<short?>(8), Value<float?>(9),
-                Value<float?>(10), Value<string>(11), streams, [], reader.GetFieldValue<string[]>(21), reader.GetFieldValue<Guid[]>(22), [], reader.GetBoolean(23), streams is not null && Multisport.CanSplit(streams.T, streams.Dist), Value<string>(24), [], reader.GetString(25), ownerId, reader.GetString(27), reader.GetString(28), reader.GetBoolean(29));
+                Value<float?>(10), Value<string>(11), streams, [], reader.GetFieldValue<string[]>(21), reader.GetFieldValue<Guid[]>(22), [], reader.GetBoolean(23), streams is not null && Multisport.CanSplit(streams.T, streams.Dist), Value<string>(24), [], reader.GetString(25), ownerId, reader.GetString(27), reader.GetString(28), reader.GetBoolean(29), Value<string>(30));
         }
         var places = ownerId == userId ? [] : await PrivacyPlaces.LoadAsync(conn, ownerId, cancellationToken, tx);
         detail = detail with { Streams = RoutePrivacy.ForViewer(detail.Streams, ownerId, userId, places) };
