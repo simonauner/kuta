@@ -300,7 +300,8 @@
     "edit": "Edit activity",
     "save": "Save changes",
     "cancel": "Cancel",
-    "noRecordsWithoutFile": "Records only come from runs uploaded from a file with distance data."
+    "noRecordsWithoutFile": "Records only come from runs uploaded from a file with distance data.",
+    "backToRunner": "Back to the profile"
   },
   "consent": {
     "title": "Save heart rate from my activities.",
@@ -774,7 +775,8 @@
     "dismissSingle": "OK, got it"
   },
   "common": {
-    "cancel": "Cancel"
+    "cancel": "Cancel",
+    "back": "Back"
   },
   "emptyState": {
     "activities": {

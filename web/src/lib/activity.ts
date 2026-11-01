@@ -56,6 +56,14 @@ export function activitySearch(search: Record<string, unknown>): {
   return filters
 }
 
+// The activity page also remembers where it was opened from, so Back returns there. Only in-app paths are kept.
+export function activityPageSearch(search: Record<string, unknown>) {
+  const returnTo = search.returnTo
+  return typeof returnTo === 'string' && returnTo.startsWith('/app') && !returnTo.startsWith('//')
+    ? { ...activitySearch(search), returnTo }
+    : activitySearch(search)
+}
+
 export type ActivityListItem = Activity & {
   showMonth: boolean
   showWeek: boolean

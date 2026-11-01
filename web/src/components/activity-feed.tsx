@@ -3,7 +3,7 @@ import type { ReactNode } from 'react'
 import { FeedEmptyState } from '@/components/feed-empty-state'
 import { ActivityMapPreview } from '@/components/activity-map-preview'
 import { useInfiniteQuery } from '@tanstack/react-query'
-import { Link } from '@tanstack/react-router'
+import { Link, useRouterState } from '@tanstack/react-router'
 import { useTranslation } from 'react-i18next'
 import { ErrorMessage } from '@/components/error-message'
 import { SportIcon } from '@/components/sport-icon'
@@ -40,6 +40,7 @@ export function ActivityFeed({
   visitor?: boolean
 }) {
   const { t, i18n } = useTranslation()
+  const returnTo = useRouterState({ select: (s) => s.location.href })
   const feed = useInfiniteQuery({
     queryKey: runnerId ? ['feed', runnerId, visitor] : ['feed'],
     initialPageParam: null as ActivityCursor | null,
@@ -96,6 +97,7 @@ export function ActivityFeed({
               <Link
                 to="/app/activities/$activityId"
                 params={{ activityId: activity.id }}
+                search={{ returnTo }}
                 className="mt-3 flex items-center gap-3 font-semibold underline-offset-4 underline"
               >
                 <SportIcon sport={activity.sport} className="size-6 shrink-0" />

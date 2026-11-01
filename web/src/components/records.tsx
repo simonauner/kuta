@@ -2,7 +2,7 @@ import { FormField } from '@/components/ui/form-field'
 import { Heading } from '@/components/ui/heading'
 import { useState } from 'react'
 import { useQuery } from '@tanstack/react-query'
-import { Link } from '@tanstack/react-router'
+import { Link, useRouterState } from '@tanstack/react-router'
 import { useTranslation } from 'react-i18next'
 import { HelpPopover } from '@/components/help-popover'
 import { ErrorMessage } from '@/components/error-message'
@@ -35,10 +35,12 @@ function QueryError({ error, retry }: { error: Error; retry: () => void }) {
 }
 
 function EffortLink({ effort }: { effort: { activityId: string; elapsedS: number } }) {
+  const returnTo = useRouterState({ select: (s) => s.location.href })
   return (
     <Link
       to="/app/activities/$activityId"
       params={{ activityId: effort.activityId }}
+      search={{ returnTo }}
       className="font-medium underline-offset-2 underline"
     >
       {formatDuration(effort.elapsedS)}
@@ -49,6 +51,7 @@ function EffortLink({ effort }: { effort: { activityId: string; elapsedS: number
 // Running records: personal and yearly bests, progress per distance and prediction (VDOT).
 export function RecordsSection({ year }: { year: number }) {
   const { t, i18n } = useTranslation()
+  const returnTo = useRouterState({ select: (s) => s.location.href })
   const timeZone = Intl.DateTimeFormat().resolvedOptions().timeZone
   const [distance, setDistance] = useState<RecordDistance>(5000)
   const date = new Intl.DateTimeFormat(i18n.resolvedLanguage, { dateStyle: 'medium' })
@@ -200,6 +203,7 @@ export function RecordsSection({ year }: { year: number }) {
                   <Link
                     to="/app/activities/$activityId"
                     params={{ activityId: predictions.data.basis.activityId }}
+                    search={{ returnTo }}
                     className="underline underline-offset-2"
                   >
                     {t('records.showActivity')}
@@ -231,6 +235,7 @@ export function RecordsSection({ year }: { year: number }) {
 
 function RecordTrendView({ trend, distanceLabel }: { trend: RecordTrend; distanceLabel: string }) {
   const { t, i18n } = useTranslation()
+  const returnTo = useRouterState({ select: (s) => s.location.href })
   const date = new Intl.DateTimeFormat(i18n.resolvedLanguage, { dateStyle: 'medium' })
   const width = 600
   const height = 200
@@ -337,6 +342,7 @@ function RecordTrendView({ trend, distanceLabel }: { trend: RecordTrend; distanc
                       <Link
                         to="/app/activities/$activityId"
                         params={{ activityId: effort.activityId }}
+                        search={{ returnTo }}
                         className="underline-offset-2 underline"
                       >
                         {date.format(new Date(effort.achievedAt))}

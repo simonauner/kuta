@@ -300,7 +300,8 @@
     "edit": "Redigera aktivitet",
     "save": "Spara ändringar",
     "cancel": "Avbryt",
-    "noRecordsWithoutFile": "Rekord räknas bara ur löprundor som laddats upp från en fil med distansdata."
+    "noRecordsWithoutFile": "Rekord räknas bara ur löprundor som laddats upp från en fil med distansdata.",
+    "backToRunner": "Tillbaka till profilen"
   },
   "consent": {
     "title": "Spara puls från mina aktiviteter.",
@@ -774,7 +775,8 @@
     "dismissSingle": "Ok, då vet jag"
   },
   "common": {
-    "cancel": "Avbryt"
+    "cancel": "Avbryt",
+    "back": "Tillbaka"
   },
   "emptyState": {
     "activities": {

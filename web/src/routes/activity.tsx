@@ -283,9 +283,7 @@ export function ActivityPage() {
           ← {original.displayName}
         </Link>
       ) : (
-        <Link to="/app" className="text-sm text-muted-foreground underline-offset-2 underline">
-          ← {t('nav.feed')}
-        </Link>
+        <BackLink fallback="feed" />
       )}
       <p className="mt-4 text-sm text-muted-foreground">{when.format(new Date(a.startedAt))}</p>
       <div className="mt-1 flex flex-wrap items-center justify-between gap-3">
