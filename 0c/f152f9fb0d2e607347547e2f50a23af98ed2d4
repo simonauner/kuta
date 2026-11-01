@@ -1,0 +1,71 @@
+api/Kuta.Api/Supporters.cs
+  s_4b41d6b2cbe45c::t_d7ecccead5a6b8 6
+api/Kuta.Api/SocialEndpoints.cs
+  s_4b41d6b2cbe45c::t_d7ecccead5a6b8 25
+  s_4b41d6b2cbe45c::t_368257fb19fdd5 15-21,35-36,38-40,47,51,58-59
+api/Kuta.Api/Goals.cs
+  s_4b41d6b2cbe45c::t_d7ecccead5a6b8 168
+  s_4b41d6b2cbe45c::t_f92a6a817dfc69 98,107-108
+AGENTS.md
+  s_4b41d6b2cbe45c::t_8ee8f04607e1d9 70-72,82-83
+README.md
+  s_4b41d6b2cbe45c::t_a7f0b3977b3aef 7,189-190,242,553-554
+api/Kuta.Api.Tests/RunnerProfileTests.cs
+  s_4b41d6b2cbe45c::t_92c1189b2d38bd 1-177
+api/Kuta.Api.Tests/WebRoutingTests.cs
+  s_4b41d6b2cbe45c::t_917a085bd5c35b 43
+api/Kuta.Api/Program.cs
+  s_4b41d6b2cbe45c::t_06dc2c3dd879a0 256,269
+api/Kuta.Api/RunnerProfile.cs
+  s_4b41d6b2cbe45c::t_a7bcc6b4508f15 1-91
+web/features.html
+  s_4b41d6b2cbe45c::t_93f6322b640d4c 57,355-402
+web/index.html
+  s_4b41d6b2cbe45c::t_457cfd2f318819 226-270
+web/src/components/activity-feed.tsx
+  s_4b41d6b2cbe45c::t_58a07a46f0b538 33,35,38,40-41,45,49,86,120
+web/src/components/goals.tsx
+  s_4b41d6b2cbe45c::t_6e854c55ae2abb 68,72,76,79
+web/src/components/records.tsx
+  s_4b41d6b2cbe45c::t_82f2b2c5a78052 49,170-172,174-189,196,199
+web/src/components/runner-summary.tsx
+  s_4b41d6b2cbe45c::t_61d4cfe48a7169 1-206
+web/src/components/training-load.tsx
+  s_4b41d6b2cbe45c::t_31ee234db9ccbe 50-54
+web/src/landing.css
+  s_4b41d6b2cbe45c::t_0fa23bb567d0ec 271-273,539-541
+web/src/lib/activity-calendar.ts
+  s_4b41d6b2cbe45c::t_61535e46e53446 1-53
+web/src/lib/activity-query.ts
+  s_4b41d6b2cbe45c::t_99c256919d2c2a 67-69
+web/src/locales/en.json
+  s_4b41d6b2cbe45c::t_457ea705c2f8a4 44-47,410-411,749-787
+web/src/locales/sv.json
+  s_4b41d6b2cbe45c::t_cd82ab523d06ed 44-47,410-411,749-787
+web/src/router.tsx
+  s_4b41d6b2cbe45c::t_0c95cf699f6548 17,61-65,109
+web/src/routes/profile.tsx
+  s_4b41d6b2cbe45c::t_043662f5354c1a 3-4,6,8-9,12,14-19,22-23,28-36,43,54-73,75-100
+web/src/routes/runner.tsx
+  s_4b41d6b2cbe45c::t_4bc7ca772ff37f 6,97-99
+web/src/routes/stats.tsx
+  s_4b41d6b2cbe45c::t_5bf70359b17bc7 6,9,32-68,113-114,125-126
+web/tests/activity-calendar.test.mjs
+  s_4b41d6b2cbe45c::t_b09baa03d974b5 1-48
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.7.5",
+  "base_commit_sha": "0cf152f9fb0d2e607347547e2f50a23af98ed2d4",
+  "prompts": {},
+  "sessions": {
+    "s_4b41d6b2cbe45c": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "666b8b83-04cc-4497-9a36-a615f20592fd",
+        "model": "claude-opus-5-5"
+      },
+      "human_author": "Simon Aunér <simonauner@gmail.com>"
+    }
+  }
+}
