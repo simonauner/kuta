@@ -1,3 +1,4 @@
+using Microsoft.AspNetCore.DataProtection;
 using Npgsql;
 
 // Arkivfiler för köade Strava-importer ligger på maskinens lokala disk medan jobbet väntar och körs. Driften har en
@@ -79,6 +80,8 @@ public sealed class JobWorker(IServiceProvider services, IConfiguration configur
     {
         await using var conn = await services.GetRequiredService<NpgsqlDataSource>().OpenConnectionAsync(ct);
         await JobQueue.PruneAsync(conn, ct);
+        await Garmin.MaintainAsync(conn, services.GetRequiredService<GarminClient>(),
+            services.GetRequiredService<IDataProtectionProvider>(), ct);
         var active = await Dapper.SqlMapper.QueryAsync<Guid>(conn, new Dapper.CommandDefinition(
             "select id from jobs where kind = @kind and status in ('queued', 'running')",
             new { kind = JobKinds.StravaImport }, cancellationToken: ct));
@@ -106,10 +109,15 @@ public sealed class JobWorker(IServiceProvider services, IConfiguration configur
                 JobKinds.StravaImport => JobQueue.Serialize(await StravaImportJob.RunAsync(
                     conn, services.GetRequiredService<RawFileStore>(), files, job, ct)),
                 JobKinds.Recalculate => JobQueue.Serialize(await RecalculationJob.RunAsync(conn, job, ct)),
+                JobKinds.GarminImport => JobQueue.Serialize(await Garmin.RunImportAsync(conn,
+                    services.GetRequiredService<RawFileStore>(), services.GetRequiredService<GarminClient>(),
+                    services.GetRequiredService<IDataProtectionProvider>(), job, ct)),
                 _ => throw new JobFailedException("jobFailed"),
             };
             await JobQueue.CompleteAsync(conn, job.Id, result, CancellationToken.None);
             if (job.Kind == JobKinds.StravaImport) files.Delete(job.Id);
+            // Aviseringar som kom medan jobbet körde fick inget eget jobb (högst ett aktivt per användare).
+            if (job.Kind == JobKinds.GarminImport) await Garmin.EnqueueIfPendingAsync(conn, job.UserId, CancellationToken.None);
         }
         catch (OperationCanceledException) when (ct.IsCancellationRequested)
         {

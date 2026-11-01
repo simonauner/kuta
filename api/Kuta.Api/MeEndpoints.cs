@@ -2,6 +2,7 @@ using System.Security.Claims;
 using Dapper;
 using Microsoft.AspNetCore.Authentication;
 using Microsoft.AspNetCore.Authentication.Cookies;
+using Microsoft.AspNetCore.DataProtection;
 using Npgsql;
 
 public record UpdateMeRequest(string? DisplayName);
@@ -24,11 +25,13 @@ public static class MeEndpoints
     {
         var me = api.MapGroup("/me").RequireAuthorization();
 
-        me.MapDelete("", async (NpgsqlDataSource db, RawFileStore store, ImportFiles files, HttpContext http,
-            CancellationToken cancellationToken) =>
+        me.MapDelete("", async (NpgsqlDataSource db, RawFileStore store, ImportFiles files, GarminClient garmin,
+            IDataProtectionProvider provider, HttpContext http, CancellationToken cancellationToken) =>
         {
             await using var conn = await db.OpenConnectionAsync(cancellationToken);
             var userId = http.User.GetUserId();
+            // Garmin kräver avregistrering när kontot raderas; anslutningen kaskadraderas sedan med kontot.
+            await Garmin.DeregisterAsync(conn, garmin, provider, userId, cancellationToken);
             // Köade importarkiv kaskadraderas inte med jobben; ta bort dem efter kontot (arbetaren städar resten).
             var imports = (await conn.QueryAsync<Guid>("select id from jobs where user_id = @userId and kind = @kind",
                 new { userId, kind = JobKinds.StravaImport })).ToList();
@@ -80,7 +83,7 @@ public static class MeEndpoints
                 return Results.Conflict(new ApiError("Välj ett namn först.", "nameRequired"));
             if (req.ApplyToAll)
                 await conn.ExecuteAsync(new CommandDefinition(
-                    "update activities set privacy = @Privacy where user_id = @id and privacy <> @Privacy",
+                    "update activities set privacy = @Privacy where user_id = @id and privacy <> @Privacy and source <> 'garmin'",
                     new { id, req.Privacy }, tx, cancellationToken: ct));
             await tx.CommitAsync(ct);
             return Results.Ok(await LoadAsync(conn, user));
@@ -163,7 +166,7 @@ public static class MeEndpoints
         var profile = await LoadProfileAsync(conn, user.GetUserId());
         var privacy = profile?.DefaultActivityPrivacy ?? "private";
         var (allMatch, hasGarminData) = await conn.QuerySingleAsync<(bool, bool)>("""
-            select not exists (select 1 from activities where user_id = @id and privacy <> @privacy),
+            select not exists (select 1 from activities where user_id = @id and privacy <> @privacy and source <> 'garmin'),
                 exists (select 1 from activities where user_id = @id and source = 'garmin')
             """, new { id = user.GetUserId(), privacy });
         var supporter = await conn.QuerySingleOrDefaultAsync<Supporter>("""

@@ -231,7 +231,7 @@ public static class ActivityEndpoints
             await conn.ExecuteAsync("delete from activity_equipment where activity_id = @id and user_id = @userId",
                 new { id, userId }, tx);
             await EquipmentEndpoints.AttachAsync(conn, tx, id, userId, req.EquipmentIds);
-            await conn.ExecuteAsync("update activities set title = @title, description = @description, tags = @tags, privacy = coalesce(@Privacy, privacy), exclude_from_records = coalesce(@ExcludeFromRecords, exclude_from_records) where id = @id and user_id = @userId",
+            await conn.ExecuteAsync("update activities set title = @title, description = @description, tags = @tags, privacy = case when source = 'garmin' then privacy else coalesce(@Privacy, privacy) end, exclude_from_records = coalesce(@ExcludeFromRecords, exclude_from_records) where id = @id and user_id = @userId",
                 new { id, userId, req.Privacy, req.ExcludeFromRecords, title = ActivityInput.NormalizeTitle(req.Title), description = ActivityInput.NormalizeDescription(req.Description), tags = ActivityInput.NormalizeTags(req.Tags) }, tx);
             await tx.CommitAsync();
             return Results.NoContent();
