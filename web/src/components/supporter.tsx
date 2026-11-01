@@ -155,9 +155,7 @@ export function SupporterSection() {
             value={supporter?.badgePrivacy ?? 'private'}
             disabled={!me || save.isPending}
             aria-describedby="supporter-badge-help"
-            onChange={(event) =>
-              save.mutate(event.target.value as Me['supporter']['badgePrivacy'])
-            }
+            onChange={(event) => save.mutate(event.target.value as Me['supporter']['badgePrivacy'])}
           >
             <option value="private">{t('social.private')}</option>
             <option value="followers">{t('social.followersVisibility')}</option>
