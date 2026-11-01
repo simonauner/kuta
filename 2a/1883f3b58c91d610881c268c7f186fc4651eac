@@ -1,0 +1,21 @@
+README.md
+  s_18157bd3682cdd::t_27b5811b5adb74 620-621,720
+AGENTS.md
+  s_18157bd3682cdd::t_27b5811b5adb74 44-45,77
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.7.5",
+  "base_commit_sha": "2a1883f3b58c91d610881c268c7f186fc4651eac",
+  "prompts": {},
+  "sessions": {
+    "s_18157bd3682cdd": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "c8e5873c-f510-4ac1-8363-b864b8cfaff4",
+        "model": "claude-opus-5-5"
+      },
+      "human_author": "Simon Aunér <simonauner@gmail.com>"
+    }
+  }
+}
