@@ -31,10 +31,21 @@ När flödet är tomt visas genvägar till ett första pass, Strava-importen i I
 Flödet på `/app` visar egna pass och pass från löpare du följer efter deras godkännande,
 nyaste först, 25 åt gången. **Inställningar → Följare** innehåller inkommande förfrågningar
 och listor över följare/följda. Det finns ingen användarkatalog eller namnsökning, varken i
-webben eller API:t. **Dela profil** på den egna profilen kopierar en direktlänk till
-`/app/runners/{id}` på aktuell origin, med bekräftelse och ett manuellt kopieringsfält om
-webbläsaren nekar clipboard-åtkomst. Mottagaren loggar in för att se profilen och kan skicka
-en följförfrågan därifrån. Länken ändrar inte passens synlighet eller följgodkännandet.
+webben eller API:t. **Dela profil** på den egna profilen kopierar en kort länk
+`/app/r/{kod}` på aktuell origin, med bekräftelse och ett manuellt kopieringsfält om
+webbläsaren nekar clipboard-åtkomst. Mottagaren loggar in, koden slås upp och webben går vidare
+till `/app/runners/{id}`, där en följförfrågan kan skickas. Länken ändrar inte passens synlighet
+eller följgodkännandet.
+
+Koden (`users.share_code`, migrering 028, `ShareCodes.cs`) är 8 tecken ur `a–z` och `2–9` utan
+förväxlingsbara tecken (0/o, 1/l/i), slumpas med kryptografisk RNG och skapas först när den behövs:
+`POST /api/me/share-code` ger egen kod (skapar den vid behov; POST eftersom GET aldrig ändrar data),
+`POST /api/me/share-code/replace` ersätter den och `GET /api/share-codes/{kod}` ger `{ runnerId }`
+eller 404. Uppslaget kräver inloggning och har rate limiten `shareCodes`, 30 anrop/timme/användare,
+så att koder inte kan gissas fram. **Inställningar → Profillänk → Skapa ny länk** byter kod efter en
+bekräftelse; den gamla länken slutar då fungera. Den som redan hittat profilen (flöde, följlistor,
+`/app/runners/{id}`) kommer fortfarande åt den: koden hittar bara profilen, och blockering och
+synlighet styr läsningen. Koden ingår i `profile.json` i exporten.
 Godkänn eller avböj förfrågningar, avbryt egna förfrågningar, sluta följa eller ta bort följare.
 Relationerna är riktade: ett godkännande innebär inte att båda automatiskt följer varandra.
 Namn i flödet och följarlistorna länkar till `/app/runners/{id}`. Profilsidan visar löparens
