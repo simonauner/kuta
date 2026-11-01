@@ -5,7 +5,9 @@ import { useTranslation } from 'react-i18next'
 import { Button } from '@/components/ui/button'
 import { ActivitiesEmptyState } from '@/components/activities-empty-state'
 import { ActivityFeed } from '@/components/activity-feed'
+import { GarminDerivedNote } from '@/components/garmin'
 import { GoalList } from '@/components/goals'
+import { ActivityCalendar } from '@/components/runner-summary'
 import { ShareProfile } from '@/components/share-profile'
 import { SupporterBadge } from '@/components/supporter'
 import { meQuery } from '@/lib/auth'
@@ -30,6 +32,8 @@ export function ProfilePage() {
           </Button>
         </div>
       </div>
+      {me && <ActivityCalendar runnerId={me.id} />}
+      <GarminDerivedNote />
       {me && <GoalList runnerId={me.id} />}
       <h2 className="text-lg font-semibold">{t('nav.activities')}</h2>
       {me && (

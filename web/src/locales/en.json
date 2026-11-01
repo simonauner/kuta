@@ -735,6 +735,19 @@
       "connectionsDescription": "Share your profile link or ask a friend for theirs to start following each other.",
       "privacyTitle": "You choose what to share",
       "privacyDescription": "Choose who can see each activity and goal: only you, your followers or everyone on Kuta."
+    },
+    "calendar": {
+      "title": "Last year",
+      "activeDays_one": "{{count}} active day",
+      "activeDays_other": "{{count}} active days",
+      "streak_one": "{{count}} week in a row",
+      "streak_other": "{{count}} weeks in a row",
+      "longest_one": "longest streak {{count}} week",
+      "longest_other": "longest streak {{count}} weeks",
+      "summary_one": "Activity calendar: {{count}} day with activities in the last year",
+      "summary_other": "Activity calendar: {{count}} days with activities in the last year",
+      "day_one": "{{count}} activity, {{distance}} km",
+      "day_other": "{{count}} activities, {{distance}} km"
     }
   },
   "onboarding": {

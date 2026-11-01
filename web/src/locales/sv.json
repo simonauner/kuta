@@ -735,6 +735,19 @@
       "connectionsDescription": "Dela din profillänk eller be en vän om deras för att börja följa varandra.",
       "privacyTitle": "Du väljer vad du delar",
       "privacyDescription": "Bestäm för varje pass och mål om bara du, dina följare eller alla på Kuta får se det."
+    },
+    "calendar": {
+      "title": "Senaste året",
+      "activeDays_one": "{{count}} aktiv dag",
+      "activeDays_other": "{{count}} aktiva dagar",
+      "streak_one": "{{count}} vecka i rad",
+      "streak_other": "{{count}} veckor i rad",
+      "longest_one": "längsta svit {{count}} vecka",
+      "longest_other": "längsta svit {{count}} veckor",
+      "summary_one": "Aktivitetskalender: {{count}} dag med pass det senaste året",
+      "summary_other": "Aktivitetskalender: {{count}} dagar med pass det senaste året",
+      "day_one": "{{count}} pass, {{distance}} km",
+      "day_other": "{{count}} pass, {{distance}} km"
     }
   },
   "onboarding": {
