@@ -5,11 +5,11 @@ using Microsoft.AspNetCore.Antiforgery;
 using Microsoft.AspNetCore.Mvc;
 
 public record Credentials(string? Email, string? Password);
-public record SignUpRequest(string? Email, string? Password, bool AcceptTerms);
+public record SignUpRequest(string? Email, string? Password, bool AcceptTerms, string? TurnstileToken = null);
 public record ApiError(string Error, string? Code = null);
 public record ApiMessage(string Message);
 public record AntiforgeryToken(string Token);
-public record RecoveryRequest(string? Email);
+public record RecoveryRequest(string? Email, string? TurnstileToken = null);
 public record ResetPasswordRequest(string? Password);
 
 public static class AuthEndpoints
@@ -51,6 +51,9 @@ public static class AuthEndpoints
     public static void MapAntiforgery(this RouteGroupBuilder api)
     {
         // Antiforgery sets no-store on the response itself
+        // The public Turnstile site key for the sign-up and password forms; null when the check is off.
+        api.MapGet("/turnstile", (TurnstileVerifier turnstile) => Results.Ok(new { siteKey = turnstile.SiteKey }));
+
         api.MapGet("/antiforgery", (HttpContext http, IAntiforgery antiforgery) =>
             Results.Ok(new AntiforgeryToken(antiforgery.GetAndStoreTokens(http).RequestToken!)));
 
@@ -86,13 +89,16 @@ public static class AuthEndpoints
             }
         });
 
-        auth.MapPost("/signup", async (SignUpRequest req, SupabaseAuthClient supabase, HttpContext http,
-            CancellationToken cancellationToken) =>
+        auth.MapPost("/signup", async (SignUpRequest req, SupabaseAuthClient supabase, TurnstileVerifier turnstile,
+            HttpContext http, CancellationToken cancellationToken) =>
         {
             if (string.IsNullOrWhiteSpace(req.Email) || string.IsNullOrEmpty(req.Password))
                 return Results.BadRequest(new ApiError("Ange e-post och lösenord.", "credentialsRequired"));
             if (!req.AcceptTerms)
                 return Results.BadRequest(new ApiError("Godkänn användarvillkoren och integritetspolicyn för att skapa ett konto.", "termsRequired"));
+            if (TurnstileVerifier.Refusal(await turnstile.CheckAsync(req.TurnstileToken, http.Connection.RemoteIpAddress,
+                    cancellationToken)) is { } refusal)
+                return refusal;
 
             var (result, session) = await supabase.SignUpAsync(req.Email.Trim(), req.Password, cancellationToken);
             switch (result)
@@ -142,11 +148,15 @@ public static class AuthEndpoints
             return Results.NoContent();
         });
 
-        auth.MapPost("/recover", async (RecoveryRequest req, SupabaseAuthClient supabase, CancellationToken ct) =>
+        auth.MapPost("/recover", async (RecoveryRequest req, SupabaseAuthClient supabase, TurnstileVerifier turnstile,
+            HttpContext http, CancellationToken ct) =>
         {
             if (string.IsNullOrWhiteSpace(req.Email) || !System.Net.Mail.MailAddress.TryCreate(req.Email.Trim(), out var address)
                 || address.Address != req.Email.Trim())
                 return Results.BadRequest(new ApiError("Ange en giltig e-postadress.", "invalidEmail"));
+            if (TurnstileVerifier.Refusal(await turnstile.CheckAsync(req.TurnstileToken, http.Connection.RemoteIpAddress, ct))
+                is { } refusal)
+                return refusal;
             if (LimitPerEmail(address.Address) is { } limited) return limited;
             await supabase.RecoverAsync(address.Address, ct);
             return Results.Accepted(null, new ApiMessage("Om adressen har ett konto får du ett mejl med en länk för att återställa lösenordet."));

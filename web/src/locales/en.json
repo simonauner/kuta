@@ -347,7 +347,8 @@
     "continue": "Continue",
     "confirmSent": "Check your email and click the link to activate your account.",
     "recoverySent": "If this address has an account, you will receive an email with a link to reset your password.",
-    "acceptTerms": "I accept the <terms>terms of use</terms> and <privacy>privacy policy</privacy>."
+    "acceptTerms": "I accept the <terms>terms of use</terms> and <privacy>privacy policy</privacy>.",
+    "turnstileNotice": "We use Cloudflare Turnstile to check that you are a person. Read more in the <privacy>privacy policy</privacy>."
   },
   "errors": {
     "invalidActivityYear": "Enter a year between 1 and 9998.",
@@ -364,6 +365,8 @@
     "signupFailed": "Could not create the account. Check your email address.",
     "emailNotConfirmed": "Confirm your email address first — check your inbox.",
     "invalidCredentials": "Incorrect email or password.",
+    "turnstileFailed": "The check that you are a person did not pass. Please try again.",
+    "turnstileUnavailable": "The check can't be done right now. Please try again in a while.",
     "passwordRequired": "Enter your password.",
     "wrongPassword": "Incorrect password.",
     "invalidEmail": "Enter a valid email address.",

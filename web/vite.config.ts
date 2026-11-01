@@ -13,7 +13,10 @@ import { VitePWA } from 'vite-plugin-pwa'
 // frame-ancestors doesn't work in a meta tag and is set as a header where the web is hosted.
 const contentSecurityPolicy = [
   "default-src 'self'",
-  "script-src 'self'",
+  // Cloudflare Turnstile on the sign-up and password forms (src/components/turnstile.tsx); loaded only when the API
+  // has a site key. The app is one page, so the origin is allowed throughout it.
+  "script-src 'self' https://challenges.cloudflare.com",
+  'frame-src https://challenges.cloudflare.com',
   "style-src 'self'",
   // OpenFreeMap: map style, tiles, fonts and icons for the activity map (src/components/activity-map.tsx)
   "img-src 'self' data: blob: https://tiles.openfreemap.org",
