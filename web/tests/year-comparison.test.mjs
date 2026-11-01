@@ -30,7 +30,7 @@ test('years accumulate newest first and the current year stops today', () => {
 })
 
 test('same date compares month and day, so leap days do not shift the cutoff', () => {
-  // 1 mars är dag 61 under skottår och dag 60 annars; jämförelsen ska ändå ta med passet den 1 mars.
+  // 1 March is day 61 in leap years and day 60 otherwise; the comparison must still include the 1 March activity.
   const [leap, normal] = yearComparison(
     [total('2024-03-01', 1000), total('2024-03-02', 1000), total('2023-03-01', 4000)],
     'distanceM',

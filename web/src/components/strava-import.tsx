@@ -25,7 +25,7 @@ type StravaImportProgress = {
   failed: number
 }
 
-// Hämtar om passen en gång när ett jobb av slaget går från aktivt till avslutat.
+// Refetches activities once when a job of the kind goes from active to finished.
 function useRefreshWhenFinished(job: Job | undefined) {
   const queryClient = useQueryClient()
   const wasActive = useRef(false)

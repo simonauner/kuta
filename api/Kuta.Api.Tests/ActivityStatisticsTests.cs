@@ -45,7 +45,7 @@ public class ActivityStatisticsTests(KutaFactory factory) : IClassFixture<KutaFa
             Assert.Equal(150, january.AvgHr);
             Assert.Equal(0, months[1].Count);
             Assert.Null(months[1].AvgHr);
-            // Löpgruppen räknar även terränglöpning.
+            // The running group also counts trail running.
             Assert.Equal((2, 350d), (months[2].Count, months[2].PaceSPerKm));
             Assert.Null(months[2].AvgHr);
             Assert.Equal(0, months[11].Count);

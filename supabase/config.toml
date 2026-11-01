@@ -103,7 +103,7 @@ port = 55324
 # sender_name = "Admin"
 
 [storage]
-# Råa FIT-filer via S3-protokollet (i drift R2 eller Supabase Storage, se README)
+# Raw FIT files via the S3 protocol (in production R2 or Supabase Storage, see README)
 enabled = true
 # The maximum file size allowed (e.g. "5MB", "500KB").
 file_size_limit = "50MiB"
@@ -188,7 +188,7 @@ anonymous_users = 30
 # Number of sessions that can be refreshed in a 5 minute interval per IP address.
 token_refresh = 150
 # Number of sign up and sign-in requests that can be made in a 5 minute interval per IP address (excludes anonymous users).
-# Höjt lokalt så att upprepade testkörningar inte slår i gränsen; behåll standard i det hostade projektet.
+# Raised locally so repeated test runs do not hit the limit; keep the default in the hosted project.
 sign_in_sign_ups = 300
 # Number of OTP / Magic link verifications that can be made in a 5 minute interval per IP address.
 token_verifications = 30
@@ -228,8 +228,8 @@ otp_expiry = 3600
 # admin_email = "admin@email.com"
 # sender_name = "Admin"
 
-# Länken går till vårt API (/api/auth/confirm), som byter token_hash mot en session i en cookie.
-# Samma mall måste läggas in i det hostade projektet (Authentication → Email Templates).
+# The link goes to our API (/api/auth/confirm), which exchanges token_hash for a session in a cookie.
+# The same template must be added in the hosted project (Authentication → Email Templates).
 [auth.email.template.confirmation]
 subject = "Bekräfta din e-postadress för Kuta"
 content_path = "./supabase/templates/confirmation.html"

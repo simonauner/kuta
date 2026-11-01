@@ -18,14 +18,14 @@ public record StravaImportProgress(int Processed, int Total, int Imported, int D
 public static class StravaImportEndpoint
 {
     private const long MaxArchiveBytes = 500L * 1024 * 1024;
-    // Arkiven ligger på maskinens disk tills arbetaren (ett jobb i taget) hunnit köra dem: högst så här många köade
-    // eller pågående importer plus två samtidiga uppladdningar, alltså några GB.
+    // Archives stay on the machine's disk until the worker (one job at a time) has run them: at most this many queued
+    // or running imports plus two concurrent uploads, i.e. a few GB.
     private const int MaxQueuedImports = 4;
     private static readonly SemaphoreSlim Uploads = new(2);
 
-    // Uppladdningen sparar arkivet, kontrollerar manifestet och köar importen. Själva importen körs av JobWorker.
-    // Kroppen läses som ström först efter kontrollerna: med IFormFile buffrar ramverket hela arkivet till disk innan
-    // handlern körs, så att parallella anrop fyllde disken trots att bara en import i taget köas.
+    // The upload saves the archive, checks the manifest and queues the import. The import itself is run by JobWorker.
+    // The body is read as a stream only after the checks: with IFormFile the framework buffers the whole archive to disk before
+    // the handler runs, so parallel calls filled the disk even though only one import at a time is queued.
     public static void MapStravaImport(this RouteGroupBuilder activities)
     {
         activities.MapPost("/import/strava", async (HttpRequest request, NpgsqlDataSource db, ImportFiles files,
@@ -40,7 +40,7 @@ public static class StravaImportEndpoint
             var userId = user.GetUserId();
             if (await MeEndpoints.LoadProfileAsync(conn, userId) is null)
                 return Results.Conflict(new ApiError("Välj ett namn först.", "nameRequired"));
-            // Sessionslås per användare under hela uppladdningen; släpps uttryckligen eftersom anslutningen är poolad.
+            // Session lock per user for the whole upload; released explicitly since the connection is pooled.
             if (!await conn.ExecuteScalarAsync<bool>("select pg_try_advisory_lock(hashtext('strava-import:' || @userId))", new { userId }))
                 return inProgress;
             var uploading = false;
@@ -83,13 +83,13 @@ public static class StravaImportEndpoint
                 await conn.ExecuteAsync("select pg_advisory_unlock(hashtext('strava-import:' || @userId))", new { userId });
             }
         })
-        // CSRF-token kontrolleras av filtret i AuthEndpoints; kroppen läses som ström i stället för formulär
+        // The CSRF token is checked by the filter in AuthEndpoints; the body is read as a stream instead of a form
         .DisableAntiforgery()
         .RequireRateLimiting("uploads")
         .WithMetadata(new RequestSizeLimitAttribute(MaxArchiveBytes + 1024 * 1024));
     }
 
-    // Sparar fältet "file" ur multipart-kroppen. False när fältet saknas, är tomt eller större än 500 MB.
+    // Saves the "file" field from the multipart body. False when the field is missing, empty or larger than 500 MB.
     static async Task<bool> SaveArchiveAsync(Stream body, string boundary, ImportFiles files, Guid jobId, CancellationToken ct)
     {
         var reader = new MultipartReader(boundary, body);
@@ -105,7 +105,7 @@ public static class StravaImportEndpoint
         return false;
     }
 
-    // Slutar läsa strax efter gränsen, så att ett för stort arkiv aldrig skrivs klart till disk.
+    // Stops reading just past the limit, so an oversized archive is never fully written to disk.
     sealed class LimitedStream(Stream inner, long limit) : Stream
     {
         public long BytesRead { get; private set; }
@@ -159,7 +159,7 @@ public static class StravaImportJob
         }
     }
 
-    // Importen är idempotent (dubbletter via Strava-ID eller filhash), så ett avbrutet jobb körs om från början.
+    // The import is idempotent (duplicates via Strava ID or file hash), so an interrupted job reruns from the start.
     public static async Task<StravaImportResult> RunAsync(NpgsqlConnection conn, RawFileStore store, ImportFiles files,
         JobRow job, CancellationToken cancellationToken)
     {

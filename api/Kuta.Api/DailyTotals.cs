@@ -5,8 +5,8 @@ public sealed record DailyTotal(DateOnly Day, int Count, double DistanceM, doubl
 
 public static class DailyTotals
 {
-    // Summor per lokal dag över hela historiken, för jämförelser år för år. Samma regler som målen: hela passet hör
-    // till startdagen, en grupp räknar matchande delar av multisportpass, och utan grupp räknas varje pass en gång.
+    // Totals per local day over the whole history, for year-over-year comparisons. Same rules as goals: the whole activity belongs
+    // to its start day, a group counts matching parts of multisport activities, and without a group each activity counts once.
     public static async Task<IReadOnlyList<DailyTotal>> ReadAsync(NpgsqlConnection conn, Guid userId, string timeZone,
         string? sportGroup, CancellationToken ct) =>
         (await conn.QueryAsync<DailyTotal>(new CommandDefinition($"""

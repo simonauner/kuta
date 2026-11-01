@@ -124,7 +124,7 @@ public class ActivityAccessTests(KutaFactory factory) : IClassFixture<KutaFactor
         }
     }
 
-    // Målformuläret varnar när ett synligt mål räknar pass som tittaren inte får se; listan gäller bara egna pass.
+    // The goal form warns when a visible goal counts activities the viewer may not see; the list covers own activities only.
     [Fact]
     public async Task Activity_privacies_lists_only_own_visibilities()
     {

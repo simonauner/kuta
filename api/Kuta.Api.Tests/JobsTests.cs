@@ -25,7 +25,7 @@ public class JobsTests(KutaFactory factory) : IClassFixture<KutaFactory>
             Assert.NotNull(await JobQueue.EnqueueAsync(conn, otherId, JobKinds.Recalculate, ct: ct));
             Assert.Null(await JobQueue.GetAsync(conn, job.Id, otherId, ct));
 
-            // Två samtidiga arbetare får aldrig samma jobb.
+            // Two concurrent workers never get the same job.
             await using var second = await db.OpenConnectionAsync(ct);
             await using var tx = await conn.BeginTransactionAsync(ct);
             var claimed = await conn.QuerySingleAsync<Guid>("""
@@ -40,11 +40,11 @@ public class JobsTests(KutaFactory factory) : IClassFixture<KutaFactory>
             Assert.Null(await JobQueue.ClaimAsync(second, userId, ct));
             Assert.True(await JobQueue.HeartbeatAsync(conn, job.Id, """{"processed":1}""", ct));
 
-            // Ett utgånget lås (arbetaren dog) gör jobbet körbart igen.
+            // An expired lock (the worker died) makes the job runnable again.
             await conn.ExecuteAsync("update jobs set locked_until = now() - interval '1 second' where id = @Id", job);
             Assert.Equal(2, (await JobQueue.ClaimAsync(second, userId, ct))!.Attempts);
 
-            // Tillfälliga fel försöks igen senare; efter sista försöket är jobbet misslyckat med en stabil kod.
+            // Transient errors are retried later; after the last attempt the job has failed with a stable code.
             Assert.False(await JobQueue.FailAsync(conn, job.Id, "jobFailed", retry: true, ct));
             var retry = (await JobQueue.GetAsync(conn, job.Id, userId, ct))!;
             Assert.Equal(("queued", (string?)null), (retry.Status, retry.ErrorCode));
@@ -57,14 +57,14 @@ public class JobsTests(KutaFactory factory) : IClassFixture<KutaFactory>
             Assert.Equal(("failed", "jobFailed"), (failed.Status, failed.ErrorCode));
             Assert.NotNull(failed.FinishedAt);
 
-            // Ett avslutat jobb frigör platsen; gamla avslutade jobb rensas.
+            // A finished job frees the slot; old finished jobs are purged.
             Assert.NotNull(await JobQueue.EnqueueAsync(conn, userId, JobKinds.Recalculate, ct: ct));
             await conn.ExecuteAsync("update jobs set finished_at = now() - @age where id = @Id",
                 new { job.Id, age = JobQueue.Retention + TimeSpan.FromDays(1) });
             await JobQueue.PruneAsync(conn, ct);
             Assert.Null(await JobQueue.GetAsync(conn, job.Id, userId, ct));
 
-            // Raderat konto: jobben kaskadraderas och en pågående körning märker det vid nästa förlopp.
+            // Deleted account: the jobs are cascade-deleted and a running job notices at the next progress update.
             var active = (await JobQueue.ClaimAsync(conn, userId, ct))!;
             await conn.ExecuteAsync("delete from auth.users where id = @userId", new { userId });
             Assert.False(await JobQueue.HeartbeatAsync(conn, active.Id, null, ct));
@@ -86,7 +86,7 @@ public class JobsTests(KutaFactory factory) : IClassFixture<KutaFactory>
         {
             foreach (var id in new[] { userId, otherId })
                 await conn.ExecuteAsync("insert into auth.users (id) values (@id); insert into users (id, display_name) values (@id, 'Synthetic runner')", new { id });
-            // Fyra pass i 3 m/s utan beräknade värden, varav ett hos en annan användare och ett manuellt utan tidsserier.
+            // Four activities at 3 m/s without computed values, one belonging to another user and one manual without time series.
             var ids = new List<Guid>();
             foreach (var owner in new[] { userId, userId, userId, otherId })
             {
@@ -121,7 +121,7 @@ public class JobsTests(KutaFactory factory) : IClassFixture<KutaFactory>
                 select a.id, a.run_intensity, (select count(*)::int from best_efforts b where b.activity_id = a.id)
                 from activities a where a.id = any(@ids)
                 """, new { ids })).ToDictionary(r => r.Id);
-            // Det sparade förloppet hoppar över det första passet; den andra användarens pass rörs inte.
+            // The saved progress skips the first activity; the other user's activity is not touched.
             Assert.Equal((null, 0), (intensities[own[0]].Intensity, intensities[own[0]].Efforts));
             Assert.All(own.Skip(1), id => Assert.Equal((9000d, 2), (Math.Round(intensities[id].Intensity!.Value), intensities[id].Efforts)));
             Assert.Equal((null, 0), (intensities[ids[3]].Intensity, intensities[ids[3]].Efforts));
@@ -150,7 +150,7 @@ public class JobsTests(KutaFactory factory) : IClassFixture<KutaFactory>
             Assert.Equal(HttpStatusCode.Accepted, first.StatusCode);
             var job = (await first.Content.ReadFromJsonAsync<JobResponse>(ct))!;
             Assert.Equal(("recalculate", "queued"), (job.Kind, job.Status));
-            // Ett aktivt jobb återanvänds i stället för att köa ett till.
+            // An active job is reused instead of queueing another.
             using var again = await owner.PostAsync("/api/activities/recalculate", null, ct);
             Assert.Equal(job.Id, (await again.Content.ReadFromJsonAsync<JobResponse>(ct))!.Id);
 

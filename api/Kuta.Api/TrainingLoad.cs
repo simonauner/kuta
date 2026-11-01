@@ -1,33 +1,33 @@
 public sealed record TrainingLoadDay(DateOnly Day, double Load, double Fitness, double Fatigue, double Form);
 
-// Fartbaserad träningsbelastning för löpning (rTSS) och Banisters modell i TrainingPeaks förenkling:
-// kondition (CTL) och trötthet (ATL) är exponentiella medelvärden av daglig belastning över 42 respektive 7 dagar,
-// och form (TSB) är skillnaden. Ett pass i tröskelfart i en timme ger 100.
+// Pace-based training load for running (rTSS) and Banister's model in TrainingPeaks' simplification:
+// fitness (CTL) and fatigue (ATL) are exponential averages of daily load over 42 and 7 days respectively,
+// and form (TSB) is the difference. One hour at threshold pace gives 100.
 public static class TrainingLoad
 {
     public const int FitnessDays = 42;
     public const int FatigueDays = 7;
 
-    // Varningen gäller en kondition som ökar snabbare än så här per vecka, och först när historiken räcker
-    // för att konditionen inte bara ska stiga från noll.
+    // The warning applies to fitness rising faster than this per week, and only once the history is long enough
+    // that fitness isn't just rising from zero.
     public const double RampWarningPerWeek = 7;
     public const int MinimumHistoryDays = FitnessDays;
 
-    // Farten jämnas ut över minst 30 s, så att GPS-brus inte blåser upp kvadraten. Uppehåll längre än 10 s
-    // (klockans autopaus) bildar egna avsnitt med sin egen, låga fart.
+    // Speed is smoothed over at least 30 s, so GPS noise doesn't inflate the square. Gaps longer than 10 s
+    // (the watch's auto-pause) form their own segments with their own low speed.
     const int WindowS = 30;
     const int GapS = 10;
 
-    // Minettis energikostnad för löpning (J/kg/m) som funktion av lutningen, uppmätt mellan −45 % och +45 %.
-    // Kvoten mot plan mark (3,6) gör farten lutningsjusterad: uppför kostar mer, svag nedförslutning mindre.
+    // Minetti's energy cost of running (J/kg/m) as a function of grade, measured between −45 % and +45 %.
+    // The ratio to flat ground (3.6) makes the speed grade-adjusted: uphill costs more, gentle downhill less.
     public static double GradeFactor(double grade)
     {
         var i = Math.Clamp(grade, -0.45, 0.45);
         return ((((155.4 * i - 30.4) * i - 43.3) * i + 46.3) * i + 19.5) * i / 3.6 + 1;
     }
 
-    // ∫ v² dt (m²/s) som Σ (Δd · f)²/Δt per avsnitt, där f är avsnittets lutningsfaktor ur höjdströmmen.
-    // Trasiga värden och återställd tid eller distans bryter strömmen; saknad höjd ger bara plan mark.
+    // ∫ v² dt (m²/s) as Σ (Δd · f)²/Δt per segment, where f is the segment's grade factor from the altitude stream.
+    // Corrupt values and reset time or distance break the stream; missing altitude just means flat ground.
     public static double Intensity(int[] t, float?[]? dist, float?[]? alt = null)
     {
         if (dist is null || dist.Length != t.Length) return 0;
@@ -69,7 +69,7 @@ public static class TrainingLoad
         return sum;
     }
 
-    // Löpning i ett vanligt pass, annars bara multisportpassets löpdelar.
+    // Running in a regular activity, otherwise only the multisport activity's running legs.
     public static double RunIntensity(string sport, int[] t, float?[]? dist, float?[]? alt, ActivityPart[]? parts) =>
         parts is { Length: > 0 }
             ? parts.Where(p => ActivitySports.IsRunning(p.Sport)).Sum(p =>
@@ -79,10 +79,10 @@ public static class TrainingLoad
             })
             : ActivitySports.IsRunning(sport) ? Intensity(t, dist, alt) : 0;
 
-    // rTSS = timmar × (v / vT)² × 100 = ∫ v² dt / vT² / 36.
+    // rTSS = hours × (v / vT)² × 100 = ∫ v² dt / vT² / 36.
     public static double Load(double intensity, double thresholdSpeed) => intensity / (thresholdSpeed * thresholdSpeed) / 36;
 
-    // Daglig serie från första dagen med belastning till idag. Dagar utan pass har belastning 0.
+    // Daily series from the first day with load until today. Days without activities have load 0.
     public static IReadOnlyList<TrainingLoadDay> Series(IReadOnlyDictionary<DateOnly, double> loads, DateOnly today)
     {
         if (loads.Count == 0) return [];
@@ -99,7 +99,7 @@ public static class TrainingLoad
         return days;
     }
 
-    // Konditionens förändring den senaste veckan; null innan historiken räcker.
+    // Change in fitness over the last week; null until the history is long enough.
     public static double? RampPerWeek(IReadOnlyList<TrainingLoadDay> days) =>
         days.Count > MinimumHistoryDays ? days[^1].Fitness - days[^8].Fitness : null;
 }

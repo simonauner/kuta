@@ -26,7 +26,7 @@ export type RacePredictions = {
   predictions: { distanceM: number; elapsedS: number }[]
 }
 
-// Etikett (API:ts distanceM) → exakt längd, som rekordmotorn räknar med.
+// Label (the API's distanceM) → exact length, as the record engine uses.
 export const recordDistances = [
   [1000, 1000],
   [1609, 1609.344],
@@ -50,7 +50,7 @@ export type TrendPoint = {
   achievedAt: string
 }
 
-// Snabbast överst. x följer tiden så att glesa perioder syns som luckor; en ensam punkt hamnar i mitten.
+// Fastest on top. x follows time so sparse periods show as gaps; a lone point lands in the middle.
 export function trendChart(
   trend: RecordTrend,
   { width, height, padding }: { width: number; height: number; padding: number },
@@ -60,7 +60,7 @@ export function trendChart(
   const times = all.map((p) => Date.parse(p.achievedAt))
   const firstTime = Math.min(...times)
   const lastTime = Math.max(...times)
-  // Månadsresultat får inte trycka ihop rekordutvecklingen.
+  // Monthly results must not squash the record progression.
   const scale = trend.progression.length > 0 ? trend.progression : trend.months
   const fastest = Math.min(...scale.map((p) => p.elapsedS))
   const slowest = Math.max(...scale.map((p) => p.elapsedS))
@@ -80,7 +80,7 @@ export function trendChart(
     achievedAt: p.achievedAt,
   })
   const records = trend.progression.map(point)
-  // Trappsteg: ett rekord gäller tills nästa slår det, och det senaste till diagrammets slut.
+  // Steps: a record holds until the next beats it, and the latest until the chart's end.
   const steps = records
     .flatMap((p, i) => {
       const nextX = i + 1 < records.length ? records[i + 1].x : x(lastTime)

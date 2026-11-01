@@ -94,7 +94,7 @@ public class PrivateLoggingTests
         var error = new AggregateException(Enumerable.Range(0, 20).Select(_ => ThrownException(40)));
         provider.CreateLogger(PrivateLogProvider.Category).LogError(PrivateLogProvider.RequestFailed, error, "");
         var root = Assert.Single(Entries(output)).GetProperty("exception");
-        Assert.Equal(7, root.GetProperty("inner").GetArrayLength()); // Högst åtta undantag totalt.
+        Assert.Equal(7, root.GetProperty("inner").GetArrayLength()); // At most eight exceptions in total.
         Assert.All(root.GetProperty("inner").EnumerateArray(),
             child => Assert.Equal(32, child.GetProperty("frames").GetArrayLength()));
         AssertNoSensitiveData(output.ToString());
@@ -133,7 +133,7 @@ public class PrivateLoggingTests
             UseShellExecute = false,
         };
         start.ArgumentList.Add(typeof(Program).Assembly.Location);
-        start.Environment["ConnectionStrings__Default"] = Sensitive; // Ogiltig anslutningssträng, före nätverksåtkomst.
+        start.Environment["ConnectionStrings__Default"] = Sensitive; // Invalid connection string, before network access.
         using var process = Process.Start(start)!;
         var stdout = process.StandardOutput.ReadToEndAsync(TestContext.Current.CancellationToken);
         var stderr = process.StandardError.ReadToEndAsync(TestContext.Current.CancellationToken);
@@ -147,7 +147,7 @@ public class PrivateLoggingTests
         AssertNoSensitiveData(await stderr);
     }
 
-    // HTTP verifierar att ramverkets felhantering använder samma projektion och mäter det faktiska svaret.
+    // HTTP verifies that the framework's error handling uses the same projection and measures the actual response.
     [Fact]
     public async Task Unexpected_request_errors_return_neutral_json_and_log_sanitized_metadata_and_metrics()
     {
@@ -157,7 +157,7 @@ public class PrivateLoggingTests
             {
                 services.AddHttpClient<SupabaseAuthClient>()
                     .ConfigurePrimaryHttpMessageHandler(() => new FailingHandler());
-                // Byt bara providerns utmatning så att samma produktionskod kan kontrolleras.
+                // Replace only the provider's output so the same production code can be checked.
                 services.Replace(ServiceDescriptor.Singleton<ILoggerProvider>(new PrivateLogProvider(output)));
             }));
         using var client = factory.CreateClient();

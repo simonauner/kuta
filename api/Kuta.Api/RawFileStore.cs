@@ -3,9 +3,9 @@ using Amazon.Runtime;
 using Amazon.S3;
 using Amazon.S3.Model;
 
-// Råa FIT-filer i S3-kompatibel objektlagring: lokalt Supabase Storage, i drift R2 eller Supabase Storage.
-// activities.raw_file_key pekar på nyckeln, så att importen kan köras om när logiken ändras.
-// Råfilen innehåller puls (hälsodata), så den sparas bara med samtycke och raderas när samtycket återkallas.
+// Raw FIT files in S3-compatible object storage: locally Supabase Storage, in production R2 or Supabase Storage.
+// activities.raw_file_key points to the key, so the import can be rerun when the logic changes.
+// The raw file contains heart rate (health data), so it is stored only with consent and deleted when consent is withdrawn.
 public sealed class RawFileStore
 {
     private readonly string bucket;
@@ -14,7 +14,7 @@ public sealed class RawFileStore
     public RawFileStore(IConfiguration configuration)
     {
         string Required(string key) => configuration[$"Storage:{key}"]
-            ?? throw new InvalidOperationException($"Storage:{key} saknas (Storage__{key})");
+            ?? throw new InvalidOperationException($"Storage:{key} is missing (Storage__{key})");
         bucket = Required("Bucket");
         client = new AmazonS3Client(
             new BasicAWSCredentials(Required("AccessKeyId"), Required("SecretAccessKey")),
@@ -23,7 +23,7 @@ public sealed class RawFileStore
                 ServiceURL = Required("ServiceUrl"),
                 AuthenticationRegion = Required("Region"),
                 ForcePathStyle = true,
-                // R2 och Supabase Storage stöder inte SDK:ns standardchecksummor (CRC32 i trailer)
+                // R2 and Supabase Storage don't support the SDK's default checksums (CRC32 in trailer)
                 RequestChecksumCalculation = RequestChecksumCalculation.WHEN_REQUIRED,
                 ResponseChecksumValidation = ResponseChecksumValidation.WHEN_REQUIRED,
             });
@@ -38,7 +38,7 @@ public sealed class RawFileStore
             Key = key,
             InputStream = stream,
             ContentType = "application/octet-stream",
-            // Strömmande signering (aws-chunked) stöds inte av R2/Supabase; filerna är små
+            // Streaming signing (aws-chunked) isn't supported by R2/Supabase; the files are small
             UseChunkEncoding = false,
         }, cancellationToken);
     }

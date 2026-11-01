@@ -7,7 +7,7 @@ import { api } from '@/lib/api'
 import { meQuery, type Me } from '@/lib/auth'
 import { clearHeartRateQueries } from '@/lib/activity-query'
 
-// Puls är hälsodata: sparas bara med uttryckligt samtycke, som går att återkalla (då raderas all sparad puls).
+// Heart rate is health data: stored only with explicit consent, which can be revoked (deleting all stored heart rate).
 export function HeartRateConsent({ className }: { className?: string }) {
   const { t } = useTranslation()
   const queryClient = useQueryClient()

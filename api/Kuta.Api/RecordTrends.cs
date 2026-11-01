@@ -32,8 +32,8 @@ public static class RecordTrends
             """, new { activityId, userId });
     }
 
-    // Bästa insats per lokal kalendermånad (bara månader med insatser) och rekordhistoriken: varje insats som var
-    // strikt snabbare än alla tidigare. Lika tid behåller det äldre rekordet, som personbästa gör.
+    // Best effort per local calendar month (only months with efforts) and the record history: every effort that was
+    // strictly faster than all earlier ones. Equal time keeps the older record, as personal bests do.
     public static async Task<RecordTrend> ReadAsync(NpgsqlConnection conn, Guid userId, int distanceM, string timeZone,
         CancellationToken ct)
     {

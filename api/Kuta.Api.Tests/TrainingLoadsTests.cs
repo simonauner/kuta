@@ -37,7 +37,7 @@ public class TrainingLoadsTests(KutaFactory factory) : IClassFixture<KutaFactory
                 (@triathlon, true, 1, 'running', 1800, 3600, 7200)
                 """, new { triathlon });
 
-            // Tröskelfart 4 m/s: en timme i 4 m/s ger 100. Triathlonet startar 00:30 lokal tid den 28 juni.
+            // Threshold pace 4 m/s: one hour at 4 m/s gives 100. The triathlon starts 00:30 local time on 28 June.
             var summary = await TrainingLoads.ReadAsync(conn, userId, "Europe/Stockholm", now, ct);
             Assert.Equal(("manual", 4d), (summary.ThresholdSource, summary.ThresholdSpeedMS!.Value));
             Assert.Null(summary.PredictedThresholdSpeedMS);
@@ -46,7 +46,7 @@ public class TrainingLoadsTests(KutaFactory factory) : IClassFixture<KutaFactory
             Assert.Null(summary.RampPerWeek);
             Assert.False(summary.Warning);
 
-            // Utan egen tröskelfart används prognosens VDOT; utan någon av dem finns ingen belastning.
+            // Without an own threshold pace the prediction's VDOT is used; without either there is no load.
             await conn.ExecuteAsync("""
                 update users set threshold_speed_m_s = null where id = @userId;
                 insert into best_efforts (activity_id, user_id, distance_m, elapsed_s, start_offset_s, achieved_at)

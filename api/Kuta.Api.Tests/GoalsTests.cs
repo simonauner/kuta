@@ -62,13 +62,13 @@ public class GoalsTests(KutaFactory factory) : IClassFixture<KutaFactory>
         Assert.Equal(1, april.Streak);
         Assert.False(april.Ended);
 
-        // Ett uppnått pågående mål räknas in; en missad period bryter raden.
+        // An achieved ongoing goal counts; a missed period breaks the streak.
         values[new(2026, 4, 1)] = 200_000;
         Assert.Equal(2, Goals.Evaluate(goal, new DateOnly(2026, 4, 2), values).Streak);
         var march = Goals.Evaluate(goal, new DateOnly(2026, 3, 5), values);
         Assert.Equal((false, 1), (march.Previous!.Achieved, march.Streak));
 
-        // Perioder före startperioden räknas inte; ett "idag" före start (annan tidszon) visar första perioden.
+        // Periods before the start period do not count; a "today" before the start (other time zone) shows the first period.
         values[new(2025, 12, 1)] = 300_000;
         var first = Goals.Evaluate(goal, new DateOnly(2026, 1, 25), values);
         Assert.Null(first.Previous);
@@ -129,13 +129,13 @@ public class GoalsTests(KutaFactory factory) : IClassFixture<KutaFactory>
 
             var stockholm = (await Goals.LoadAsync(conn, owner, "Europe/Stockholm", now, ct)).ToDictionary(g => g.Id);
             Assert.Equal(new DateOnly(2026, 2, 17), stockholm[running].StartsOn);
-            // 5 + 3 (måndag 00:30 lokal tid) + 0,5 terräng + 4 km löpdel av triathlon; cykling och andra användare räknas inte.
+            // 5 + 3 (Monday 00:30 local time) + 0.5 trail + 4 km run part of a triathlon; cycling and other users do not count.
             Assert.Equal((new DateOnly(2026, 3, 9), 12_500d, true), (stockholm[running].Current.Start, stockholm[running].Current.Value, stockholm[running].Current.Achieved));
             Assert.Equal(10_000, stockholm[running].Previous!.Value);
             Assert.Equal(3, stockholm[running].Streak);
-            // Utan sport räknas triathlonpasset en gång.
+            // Without a sport the triathlon activity counts once.
             Assert.Equal(5, stockholm[sessions].Current.Value);
-            // Skapat på onsdagen: veckans tidigare pass räknas, men inte förra veckan.
+            // Created on Wednesday: earlier activities that week count, but not last week.
             Assert.Null(stockholm[sessions].Previous);
             Assert.Equal(1, stockholm[sessions].Streak);
             Assert.Equal((true, 0d), (stockholm[oneTime].Ended, stockholm[oneTime].Current.Value));
@@ -240,7 +240,7 @@ public class GoalsTests(KutaFactory factory) : IClassFixture<KutaFactory>
             Assert.Equal([open], await Visible(stranger));
             Assert.Equal("private", (await Goals.LoadAsync(conn, owner, "UTC", now, ct)).Single(g => g.Id == hidden).Privacy);
 
-            // Utelämnad synlighet behåller valet vid redigering.
+            // Omitted visibility keeps the choice when editing.
             Assert.True(await Goals.UpdateAsync(conn, owner, open, request with { Target = 20_000 }, ct));
             Assert.Equal([open], await Visible(stranger));
             Assert.True(await Goals.UpdateAsync(conn, owner, open, request with { Privacy = "private" }, ct));

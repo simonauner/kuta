@@ -23,7 +23,7 @@ export function routeSegments(streams: ActivityStreams): [number, number][][] {
   return segments
 }
 
-// Som API:t: SI-enheter (meter, sekunder, m/s). Metriskt här; imperial blir ett val per användare senare.
+// Like the API: SI units (meters, seconds, m/s). Metric here; imperial becomes a per-user choice later.
 export type Activity = {
   id: string
   sport: string
@@ -34,7 +34,7 @@ export type Activity = {
   avgHr: number | null
   equipmentIds: string[]
   tags: ActivityTag[]
-  // "Garmin [klockmodell]" för pass från Garmin-API:t; Garmin kräver att den visas under titeln
+  // "Garmin [watch model]" for activities from the Garmin API; Garmin requires it to be shown below the title
   attribution: string | null
 }
 
@@ -58,7 +58,7 @@ export type ActivityListItem = Activity & { showMonth: boolean; showWeek: boolea
 export type ActivityCursor = { startedAt: string; id: string }
 export type ActivityPage = { items: ActivityListItem[]; nextCursor: ActivityCursor | null }
 
-// ISO-veckor räknas från måndag; torsdagen avgör vilket veckoår veckan hör till.
+// ISO weeks start on Monday; the Thursday decides which week-year the week belongs to.
 export function isoWeek(date: Date) {
   const thursday = new Date(Date.UTC(date.getFullYear(), date.getMonth(), date.getDate()))
   thursday.setUTCDate(thursday.getUTCDate() + 4 - (thursday.getUTCDay() || 7))
@@ -100,7 +100,7 @@ export function groupActivities(activities: ActivityListItem[]): ActivityPeriod[
   return periods
 }
 
-// En array per kanal, index = mätpunkt; null där klockan inte mätte.
+// One array per channel, index = sample; null where the watch didn't measure.
 export type ActivityStreams = {
   t: number[]
   dist: (number | null)[] | null
@@ -109,7 +109,7 @@ export type ActivityStreams = {
   alt: (number | null)[] | null
   lat: (number | null)[] | null
   lon: (number | null)[] | null
-  // Steg/min (löpning, gång) eller varv/min (cykling); °C
+  // Steps/min (running, walking) or rpm (cycling); °C
   cadence: (number | null)[] | null
   temp: (number | null)[] | null
 }
@@ -126,7 +126,7 @@ export function chartAxis(streams: ActivityStreams): ChartAxis {
     : { values: streams.t, elapsedTime: true }
 }
 
-// Varv som klockan registrerade (manuellt eller autolap); startS = sekunder från passets start
+// Laps the watch recorded (manual or autolap); startS = seconds from the activity start
 export type ActivityLap = {
   lapIndex: number
   startS: number
@@ -160,7 +160,7 @@ export type ActivityDetail = Activity & {
   laps: ActivityLap[]
 }
 
-// Medel av de uppmätta värdena i en kanal (luckor räknas inte), avrundat
+// Mean of the measured values in a channel (gaps don't count), rounded
 export function average(values: (number | null)[] | null) {
   const measured = values?.filter((v): v is number => v !== null) ?? []
   return measured.length ? Math.round(measured.reduce((a, b) => a + b, 0) / measured.length) : null
@@ -175,7 +175,7 @@ export function formatDuration(seconds: number) {
   return h ? `${h}:${mmss}` : mmss
 }
 
-// "1:02:30", "45:00" eller "45" (minuter) → sekunder; null om det inte går att tolka
+// "1:02:30", "45:00" or "45" (minutes) → seconds; null if it can't be parsed
 export function parseDuration(text: string) {
   const parts = text.trim().split(':')
   if (parts.length > 3 || parts.some((p) => !/^\d+$/.test(p))) return null
@@ -186,7 +186,7 @@ export function parseDuration(text: string) {
   return seconds > 0 ? seconds : null
 }
 
-// Värdet för <input type="datetime-local">: lokal tid utan tidszon
+// The value for <input type="datetime-local">: local time without time zone
 export function toDateTimeLocal(date: Date) {
   return new Date(date.getTime() - date.getTimezoneOffset() * 60_000).toISOString().slice(0, 16)
 }
@@ -215,8 +215,8 @@ export function formatSportPace(
   return formatPace(durationS, distanceM)
 }
 
-// Egen titel om löparen skrivit en, annars sport + tid på dygnet ("Löpning eftermiddag").
-// Plats ("Löpning Uppsala") kommer när orten slås upp vid importen.
+// Own title if the runner wrote one, otherwise sport + time of day ("Löpning eftermiddag").
+// Place ("Löpning Uppsala") comes when the town is looked up at import.
 export function activityTitle(
   activity: Pick<Activity, 'title' | 'sport' | 'startedAt'>,
   t: TFunction,
@@ -250,7 +250,7 @@ export type Split = {
   avgHr: number | null
 }
 
-// Interpolera kilometergränser mellan mätpunkter, utan att extrapolera utanför inspelningen.
+// Interpolate kilometer boundaries between samples, without extrapolating outside the recording.
 export function splits(streams: ActivityStreams): Split[] {
   const { t, dist, alt, hr } = streams
   if (!dist) return []
@@ -286,7 +286,7 @@ export function splits(streams: ActivityStreams): Split[] {
   for (let i = first; i < t.length; i++) {
     const d = dist[i]
     if (d === null) continue
-    // En återställd eller trasig ström har ingen entydig kilometerindelning.
+    // A reset or broken stream has no unambiguous kilometer split.
     if (!Number.isFinite(d) || d < 0 || !Number.isFinite(t[i])) return []
     if (i === first) continue
     const previousD = dist[previous]!
@@ -312,7 +312,7 @@ export function splits(streams: ActivityStreams): Split[] {
     }
     previous = i
   }
-  // En sista rest på några meter är brus, inte ett split.
+  // A final remainder of a few meters is noise, not a split.
   if (dist[previous]! - fromD >= 50) finish(dist[previous]!, t[previous], alt?.[previous] ?? null)
   return result
 }

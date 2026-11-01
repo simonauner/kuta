@@ -8,12 +8,12 @@ obj/
 .env.*
 !.env.example
 
-# Lokala instanser från scripts/run-dev.sh --ports
+# Local instances from scripts/run-dev.sh --ports
 .context/
 
-# PR-bilder bifogas på GitHub, inte i repot
+# PR screenshots are attached on GitHub, not in the repo
 .github/screenshots/
 
-# Certifikat och nycklar (t.ex. kuta-dataprotection.pfx) – sparas i 1Password, aldrig i repot
+# Certificates and keys (e.g. kuta-dataprotection.pfx) – stored in 1Password, never in the repo
 *.pfx
 *.pem

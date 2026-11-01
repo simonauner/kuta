@@ -11,7 +11,7 @@ import { Modal } from '@/components/ui/modal'
 import { api } from '@/lib/api'
 import { meQuery, type Me, type SupporterTier } from '@/lib/auth'
 
-// Konturen i samma tona som rekordens metaller; fyllningen får glansranden.
+// Outline in the same tone as the records' metals; the fill gets the sheen stripe.
 const tierColors: Record<SupporterTier, string> = {
   bronze: 'text-[#9a5a2c]',
   silver: 'text-[#879aaf]',
@@ -28,7 +28,7 @@ export function SupporterBadge({ tier }: { tier?: SupporterTier | null }) {
   const gradientId = useId()
   if (!tier) return null
   const label = t(`supporter.badge.${tier}`)
-  // Hjärta, inte medalj: får inte förväxlas med rekordens pokal och medalj.
+  // Heart, not medal: must not be confused with the records' trophy and medal.
   return (
     <span role="img" aria-label={label} title={label} className="inline-flex shrink-0">
       <Heart
@@ -50,7 +50,7 @@ export function SupporterSection() {
   const dialog = useRef<HTMLDialogElement>(null)
   const manageDialog = useRef<HTMLDialogElement>(null)
   const [manageNotice, setManageNotice] = useState<'change' | 'end' | null>(null)
-  // Ny nyckel vid varje öppning, så att ett avbrutet val inte ligger kvar.
+  // New key on every open, so a cancelled choice doesn't linger.
   const [manageKey, setManageKey] = useState(0)
   const supporter = me?.supporter
   const save = useMutation({

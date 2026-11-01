@@ -8,8 +8,8 @@ using System.Text.RegularExpressions;
 using Microsoft.AspNetCore.Mvc.Testing;
 using Xunit;
 
-// Testerna kör mot standardinstansen (portar från 55300) eller, med KUTA_PORTS=BAS, mot en egen instans från
-// `scripts/run-dev.sh --ports BAS`, så att en worktree inte behöver låna eller ändra någon annans Supabase.
+// The tests run against the default instance (ports from 55300) or, with KUTA_PORTS=BAS, against an own instance from
+// `scripts/run-dev.sh --ports BAS`, so that a worktree does not need to borrow or change anyone else's Supabase.
 public sealed class KutaFactory : WebApplicationFactory<Program>
 {
     public static readonly int Base =
@@ -19,12 +19,12 @@ public sealed class KutaFactory : WebApplicationFactory<Program>
 
     static KutaFactory()
     {
-        // Miljövariabler når Program.cs redan före Build, till skillnad från inställningar via WithWebHostBuilder
+        // Environment variables reach Program.cs already before Build, unlike settings via WithWebHostBuilder
         Environment.SetEnvironmentVariable("ConnectionStrings__Default",
             $"Host=127.0.0.1;Port={Base + 22};Database=postgres;Username=postgres;Password=postgres");
         Environment.SetEnvironmentVariable("Supabase__Url", SupabaseUrl);
         Environment.SetEnvironmentVariable("Storage__ServiceUrl", $"{SupabaseUrl}/storage/v1/s3");
-        // Testerna kör köade jobb själva (JobWorker.RunAllAsync), så att flera testappar inte tar varandras jobb.
+        // The tests run queued jobs themselves (JobWorker.RunAllAsync), so that several test apps do not take each other's jobs.
         Environment.SetEnvironmentVariable("Jobs__Enabled", "false");
     }
 }
@@ -40,7 +40,7 @@ public static class TestSession
         client.DefaultRequestHeaders.Add("X-CSRF-TOKEN", token.GetProperty("token").GetString());
     }
 
-    // Förbered aktivitetstester under HTTP-nivån; bara auth-testerna behöver registrering och mejl.
+    // Prepare activity tests below the HTTP level; only the auth tests need sign-up and email.
     public static async Task CreateRunnerAsync(KutaFactory factory, HttpClient client, NpgsqlConnection conn,
         string email, string displayName, CancellationToken ct)
     {

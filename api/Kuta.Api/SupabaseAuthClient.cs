@@ -4,7 +4,7 @@ using System.Net.Http.Headers;
 using System.Net.Http.Json;
 using System.Text.Json;
 
-// API:t pratar med Supabase Auth åt webben; webben ser aldrig tokens.
+// The API talks to Supabase Auth on behalf of the web app; the web app never sees tokens.
 
 public sealed record AuthSession(Guid UserId, string Email, string AccessToken,
     string RefreshToken, DateTimeOffset AccessTokenExpiresAt);
@@ -17,19 +17,19 @@ public enum PasswordResetResult { Updated, WeakPassword, SamePassword, Rejected 
 public sealed class SupabaseAuthClient(HttpClient http, IConfiguration configuration, IHttpContextAccessor httpContext)
 {
     private readonly string projectUrl = configuration["Supabase:Url"]?.TrimEnd('/')
-        ?? throw new InvalidOperationException("Supabase:Url saknas");
+        ?? throw new InvalidOperationException("Supabase:Url is missing");
     private readonly string publishableKey = configuration["Supabase:PublishableKey"]
-        ?? throw new InvalidOperationException("Supabase:PublishableKey saknas");
-    // Med den hemliga nyckeln skickas besökarens IP vidare, så att Supabases rate limits per IP
-    // gäller besökaren och inte vår server (som annars delar en gräns för alla användare).
+        ?? throw new InvalidOperationException("Supabase:PublishableKey is missing");
+    // With the secret key the visitor's IP is forwarded, so Supabase's per-IP rate limits
+    // apply to the visitor and not our server (which would otherwise share one limit for all users).
     private readonly string? secretKey = configuration["Supabase:SecretKey"];
 
-    // session är null när Supabase kräver e-postbekräftelse först.
+    // session is null when Supabase requires email confirmation first.
     public async Task<(SignUpResult Result, AuthSession? Session)> SignUpAsync(string email, string password,
         CancellationToken cancellationToken)
     {
         using var request = ClientRequest(HttpMethod.Post, "/auth/v1/signup");
-        // Registreringen kräver godkända villkor; tidpunkten följer med till users när profilen skapas.
+        // Sign-up requires accepted terms; the timestamp is carried over to users when the profile is created.
         request.Content = JsonContent.Create(new { email, password, data = new
         {
             terms_version = AuthEndpoints.TermsVersion, terms_accepted_at = DateTime.UtcNow,
@@ -40,8 +40,8 @@ public sealed class SupabaseAuthClient(HttpClient http, IConfiguration configura
             return (await ReadErrorCodeAsync(response, cancellationToken) == "weak_password"
                 ? SignUpResult.WeakPassword : SignUpResult.Rejected, null);
 
-        // Med bekräftelse påslagen svarar Supabase med bara användaren och ingen session (även för en upptagen
-        // adress, så att svaret inte avslöjar vilka adresser som har konto).
+        // With confirmation enabled Supabase responds with only the user and no session (also for a taken
+        // address, so the response doesn't reveal which addresses have accounts).
         return await ReadSessionResponseAsync(response, cancellationToken) is { } session
             ? (SignUpResult.SignedIn, session) : (SignUpResult.ConfirmationSent, null);
     }
@@ -54,14 +54,14 @@ public sealed class SupabaseAuthClient(HttpClient http, IConfiguration configura
         using var response = await http.SendAsync(request, cancellationToken);
         ThrowIfUnavailable(response);
         if (!response.IsSuccessStatusCode)
-            // Supabase säger email_not_confirmed först när lösenordet stämmer, så det avslöjar inget för en gissare
+            // Supabase only says email_not_confirmed once the password is correct, so it reveals nothing to a guesser
             return (await ReadErrorCodeAsync(response, cancellationToken) == "email_not_confirmed"
                 ? SignInResult.EmailNotConfirmed : SignInResult.WrongCredentials, null);
         return await ReadSessionResponseAsync(response, cancellationToken) is { } session
             ? (SignInResult.SignedIn, session) : (SignInResult.WrongCredentials, null);
     }
 
-    // Byter token_hash från bekräftelsemejlet mot en session. Null när länken är ogiltig eller använd.
+    // Exchanges the token_hash from the confirmation email for a session. Null when the link is invalid or used.
     public async Task<AuthSession?> VerifyEmailAsync(string tokenHash, CancellationToken cancellationToken)
         => await VerifyAsync(tokenHash, "email", cancellationToken);
 
@@ -82,10 +82,10 @@ public sealed class SupabaseAuthClient(HttpClient http, IConfiguration configura
         using var request = ClientRequest(HttpMethod.Post, "/auth/v1/recover");
         request.Content = JsonContent.Create(new { email });
         using var response = await http.SendAsync(request, cancellationToken);
-        // Mejlets cooldown får inte avslöja vilka adresser som har konto.
+        // The email cooldown must not reveal which addresses have accounts.
         if (response.StatusCode == HttpStatusCode.TooManyRequests) return;
         ThrowIfUnavailable(response);
-        // Samma svar även för okända adresser och avvisade mejl för att inte avslöja konton.
+        // Same response for unknown addresses and rejected emails too, so accounts aren't revealed.
     }
 
     public async Task<PasswordResetResult> ResetPasswordAsync(string accessToken, string password,
@@ -105,8 +105,8 @@ public sealed class SupabaseAuthClient(HttpClient http, IConfiguration configura
         };
     }
 
-    // Null när Supabase avvisar refresh-token. Nätverksfel och serverfel kastar, så att anroparen kan skilja
-    // "återkallad" från "tillfälligt otillgänglig".
+    // Null when Supabase rejects the refresh token. Network and server errors throw, so the caller can tell
+    // "revoked" from "temporarily unavailable".
     public async Task<AuthSession?> RefreshAsync(string refreshToken, CancellationToken cancellationToken)
     {
         using var request = ClientRequest(HttpMethod.Post, "/auth/v1/token?grant_type=refresh_token");
@@ -116,8 +116,8 @@ public sealed class SupabaseAuthClient(HttpClient http, IConfiguration configura
         return response.IsSuccessStatusCode ? await ReadSessionResponseAsync(response, cancellationToken) : null;
     }
 
-    // True/false om sessionen fortfarande gäller hos Supabase (användaren finns, samma e-post);
-    // null när Supabase inte gick att nå.
+    // True/false whether the session is still valid at Supabase (the user exists, same email);
+    // null when Supabase could not be reached.
     public async Task<bool?> ValidateAsync(string accessToken, Guid expectedId, string expectedEmail,
         CancellationToken cancellationToken)
     {
@@ -137,7 +137,7 @@ public sealed class SupabaseAuthClient(HttpClient http, IConfiguration configura
         catch (JsonException) { return null; }
     }
 
-    // Återkallar refresh-token så att sessionen inte kan förnyas. Fel ignoreras: vår egen session är redan avslutad.
+    // Revokes the refresh token so the session cannot be renewed. Errors are ignored: our own session is already ended.
     public async Task SignOutAsync(string accessToken, CancellationToken cancellationToken)
     {
         using var request = ClientRequest(HttpMethod.Post, "/auth/v1/logout?scope=local");
@@ -215,7 +215,7 @@ public sealed class SupabaseAuthClient(HttpClient http, IConfiguration configura
         return !string.IsNullOrWhiteSpace(value);
     }
 
-    // En adress utan email_confirmed_at är inte bevisat användarens.
+    // An address without email_confirmed_at is not proven to be the user's.
     private static bool TryReadConfirmedUser(JsonElement user, out Guid id, out string email)
     {
         id = default;

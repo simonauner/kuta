@@ -38,7 +38,7 @@ import {
   routeSegments,
 } from '@/lib/activity'
 
-// Tempo ur hastigheten, utjämnat över ~15 s så att GPS-brus inte ger spikar; stillastående blir lucka.
+// Pace from speed, smoothed over ~15 s so GPS noise doesn't cause spikes; standing still becomes a gap.
 function paceSeries(speed: (number | null)[], minSpeed = 0.5) {
   const window = 15
   return speed.map((_, i) => {
@@ -69,7 +69,7 @@ export function ActivityPage() {
     queryFn: () => api.get<ActivityBestEffort[]>(`/api/activities/${activityId}/best-efforts`),
     enabled: activity.isSuccess,
   })
-  // Rekordmärkning bara för egna pass: /api/records gäller inloggad användares rekord.
+  // Record badges only for own activities: /api/records covers the signed-in user's records.
   const recordYear = activity.data && new Date(activity.data.startedAt).getUTCFullYear()
   const hasEfforts = !!bestEfforts.data?.length
   const ownEfforts = hasEfforts && activity.data?.userId === me?.id
@@ -170,7 +170,7 @@ export function ActivityPage() {
         ),
       }
     : original
-  // Garmin kräver märkningen i varje utfälld vy och delvy, inte bara under titeln
+  // Garmin requires attribution in every expanded view and sub-view, not just below the title
   const sourceNote = a.attribution && (
     <p className="mb-2 text-xs text-muted-foreground">{a.attribution}</p>
   )
@@ -182,7 +182,7 @@ export function ActivityPage() {
     dateStyle: 'full',
     timeStyle: 'short',
   })
-  // Kadens i steg/min för löpning och gång, varv/min för cykling (så lagras den, se FitImport)
+  // Cadence in steps/min for running and walking, rpm for cycling (as stored, see FitImport)
   const cadenceUnit = isCyclingSport(a.sport) ? 'rpm' : 'spm'
   const cadence = average(a.streams?.cadence ?? null)
   const temp = average(a.streams?.temp ?? null)

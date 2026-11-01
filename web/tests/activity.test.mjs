@@ -30,7 +30,7 @@ test('route lines stop at hidden, missing or invalid coordinates', () => {
   assert.deepEqual(routeSegments({ t: [0], lat: null, lon: null }), [])
 })
 
-// 2,502 km på 834 s: 3 m/s, en mätpunkt per sekund, höjden stiger 1 m per 100 m, puls 150.
+// 2.502 km in 834 s: 3 m/s, one sample per second, elevation rises 1 m per 100 m, heart rate 150.
 function run({ seconds = 834, gapAt = null } = {}) {
   const t = Array.from({ length: seconds + 1 }, (_, i) => i)
   return {

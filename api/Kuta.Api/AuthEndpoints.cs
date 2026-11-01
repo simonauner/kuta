@@ -14,11 +14,11 @@ public record ResetPasswordRequest(string? Password);
 
 public static class AuthEndpoints
 {
-    // Datumet på web/terms.html (testas i TermsVersionTests). Ändra vid varje ny version av villkoren.
+    // The date on web/terms.html (tested in TermsVersionTests). Change with every new version of the terms.
     public const string TermsVersion = "2026-11-01";
 
-    // Klientens partition i auth-gränsen per IP. En IPv6-klient förfogar normalt över ett helt /64-nät och kan byta
-    // adress inom det fritt, så hela nätet räknas som en klient.
+    // The client's partition in the per-IP auth limit. An IPv6 client normally controls a whole /64 network and can change
+    // address freely within it, so the whole network counts as one client.
     public static string ClientPartition(IPAddress? address)
     {
         if (address is null) return "unknown";
@@ -29,8 +29,8 @@ public static class AuthEndpoints
         return $"{new IPAddress(bytes)}/64";
     }
 
-    // Per e-postadress oberoende av IP: lösenordsgissning eller återställningsmejl mot ett konto från många adresser.
-    // Ett konto kan då låsas i 15 minuter av någon annan; det är priset för att gissningar inte kan spridas ut.
+    // Per email address regardless of IP: password guessing or reset emails against one account from many addresses.
+    // Someone else can then lock an account for 15 minutes; that is the price for guesses not being spreadable.
     static readonly PartitionedRateLimiter<string> PerEmail = PartitionedRateLimiter.Create<string, string>(email =>
         RateLimitPartition.GetFixedWindowLimiter(email, _ => new FixedWindowRateLimiterOptions
         {
@@ -44,15 +44,15 @@ public static class AuthEndpoints
             : Results.Json(new ApiError("För många försök. Försök igen om en stund.", "rateLimited"), statusCode: 429);
     }
 
-    // Webben hämtar en ny token efter varje in- och utloggning, eftersom token är knuten till användaren.
+    // The web fetches a new token after every login and logout, since the token is bound to the user.
     public static void MapAntiforgery(this RouteGroupBuilder api)
     {
-        // Antiforgery sätter själv no-store på svaret
+        // Antiforgery sets no-store on the response itself
         api.MapGet("/antiforgery", (HttpContext http, IAntiforgery antiforgery) =>
             Results.Ok(new AntiforgeryToken(antiforgery.GetAndStoreTokens(http).RequestToken!)));
 
-        // Alla skrivande anrop kräver token i X-CSRF-TOKEN, även inloggningen (annars kan en annan sajt
-        // logga in besökaren på angriparens konto).
+        // All writing calls require the token in X-CSRF-TOKEN, including login (otherwise another site can
+        // sign the visitor in to the attacker's account).
         api.AddEndpointFilter(async (context, next) =>
         {
             var http = context.HttpContext;
@@ -156,9 +156,9 @@ public static class AuthEndpoints
         auth.MapPost("/reset-password", (ResetPasswordRequest req, HttpContext http, SupabaseAuthClient supabase,
             Npgsql.NpgsqlDataSource db, CancellationToken ct) => PasswordRecovery.ResetAsync(req.Password, http, supabase, db, ct));
 
-        // Länken i bekräftelsemejlet (supabase/templates/confirmation.html) landar här. Den bekräftar bara adressen och
-        // loggar inte in: annars kan någon skicka länken till sitt eget konto till en annan person, som då laddar upp
-        // sina pass till angriparens konto utan att märka det (login-CSRF). Supabases session återkallas direkt.
+        // The link in the confirmation email (supabase/templates/confirmation.html) lands here. It only confirms the address and
+        // does not sign in: otherwise someone could send the link for their own account to another person, who would then upload
+        // their activities to the attacker's account without noticing (login CSRF). The Supabase session is revoked immediately.
         auth.MapGet("/confirm", async ([FromQuery(Name = "token_hash")] string? tokenHash, SupabaseAuthClient supabase,
             CancellationToken cancellationToken) =>
         {

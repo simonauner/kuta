@@ -1,8 +1,8 @@
 using Npgsql;
 
-// Arkivfiler för köade Strava-importer ligger på maskinens lokala disk medan jobbet väntar och körs. Driften har en
-// enda maskin; en omstart tar bort filen och jobbet avslutas med en kod som ber om ny uppladdning (importen hoppar
-// över dubbletter). Flera maskiner kräver att arkivet flyttas till objektlagring.
+// Archive files for queued Strava imports live on the machine's local disk while the job waits and runs. Production has a
+// single machine; a restart removes the file and the job ends with a code asking for a new upload (the import skips
+// duplicates). Multiple machines require moving the archive to object storage.
 public sealed class ImportFiles(IConfiguration configuration)
 {
     readonly string directory = configuration["Jobs:ImportDirectory"]
@@ -28,7 +28,7 @@ public sealed class ImportFiles(IConfiguration configuration)
         catch (IOException) { }
     }
 
-    // Filer utan aktivt jobb, till exempel efter en raderad användare eller ett avbrott.
+    // Files without an active job, for example after a deleted user or an interruption.
     public void DeleteExcept(IReadOnlySet<Guid> activeJobs)
     {
         if (!Directory.Exists(directory)) return;
@@ -41,7 +41,7 @@ public sealed class ImportFiles(IConfiguration configuration)
     }
 }
 
-// Kör köade jobb i API-processen, ett i taget. Jobs:Enabled = false stänger av arbetaren (testerna kör jobben själva).
+// Runs queued jobs in the API process, one at a time. Jobs:Enabled = false disables the worker (tests run the jobs themselves).
 public sealed class JobWorker(IServiceProvider services, IConfiguration configuration, ILoggerFactory loggers) : BackgroundService
 {
     static readonly TimeSpan IdleDelay = TimeSpan.FromSeconds(2);
@@ -67,7 +67,7 @@ public sealed class JobWorker(IServiceProvider services, IConfiguration configur
             catch (OperationCanceledException) when (stoppingToken.IsCancellationRequested) { }
             catch (Exception e)
             {
-                // Databasen kan vara tillfälligt otillgänglig; försök igen efter en paus.
+                // The database may be temporarily unavailable; try again after a pause.
                 diagnostics.LogError(PrivateLogProvider.JobFailed, e, "");
                 try { await Task.Delay(IdleDelay * 5, stoppingToken); }
                 catch (OperationCanceledException) { }
@@ -85,7 +85,7 @@ public sealed class JobWorker(IServiceProvider services, IConfiguration configur
         services.GetRequiredService<ImportFiles>().DeleteExcept(active.ToHashSet());
     }
 
-    // Kör nästa jobb. False när inget jobb fanns.
+    // Runs the next job. False when there was no job.
     public static async Task<bool> RunNextAsync(IServiceProvider services, Guid? userId, CancellationToken ct,
         ILogger? diagnostics = null)
     {
@@ -133,7 +133,7 @@ public sealed class JobWorker(IServiceProvider services, IConfiguration configur
         if (final && job.Kind == JobKinds.StravaImport) files.Delete(job.Id);
     }
 
-    // Kör användarens jobb tills kön är tom (tester).
+    // Runs the user's jobs until the queue is empty (tests).
     public static async Task RunAllAsync(IServiceProvider services, Guid userId, CancellationToken ct)
     {
         while (await RunNextAsync(services, userId, ct)) { }

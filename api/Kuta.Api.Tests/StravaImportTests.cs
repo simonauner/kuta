@@ -124,7 +124,7 @@ public class StravaParserTests
         Assert.Equal(parsed.Dist[1], parsed.Dist[2]);
         Assert.InRange(parsed.Speed![1]!.Value, 0.9f, 1f);
         Assert.Null(parsed.Speed[2]);
-        Assert.Equal(1800, parsed.DistanceM); // CSV-sammanfattningen behålls.
+        Assert.Equal(1800, parsed.DistanceM); // The CSV summary is kept.
         Assert.NotNull(parsed.Route);
         Assert.Null(parsed.WithoutHeartRate().Hr);
     }
@@ -262,7 +262,7 @@ public class StravaUploadTests(KutaFactory factory) : IClassFixture<KutaFactory>
             Assert.All(rows, row => Assert.Equal("Morning, run", row.Title));
             Assert.Equal(0, await conn.ExecuteScalarAsync<int>(
                 "select count(*) from activity_streams s join activities a on a.id=s.activity_id where a.user_id=(select id from auth.users where email=@runner) and s.hr is not null", new { runner }));
-            // Hashen gäller den uppackade filen: samma FIT via vanlig uppladdning ger också en dubblett.
+            // The hash applies to the unpacked file: the same FIT via a regular upload is also a duplicate.
             using (var form = new MultipartFormDataContent())
             {
                 form.Add(new ByteArrayContent(FitFile.Run(new DateTime(2026, 10, 1, 6, 30, 0, DateTimeKind.Utc), 600)), "file", "run.fit");
@@ -296,7 +296,7 @@ public class StravaUploadTests(KutaFactory factory) : IClassFixture<KutaFactory>
                 Assert.Equal(HttpStatusCode.NotFound, (await otherClient.GetAsync($"/api/activities/{row.Id}", ct)).StatusCode);
                 Assert.Equal(HttpStatusCode.NotFound, (await otherClient.DeleteAsync($"/api/activities/{row.Id}", ct)).StatusCode);
             }
-            // Samma Strava-ID får importeras till ett annat konto. Puls sparas bara med dess samtycke.
+            // The same Strava ID may be imported into another account. Heart rate is saved only with its consent.
             (await otherClient.PutAsync("/api/me/hr-consent", null, ct)).EnsureSuccessStatusCode();
             Assert.Equal(3, (await Import(otherClient, otherId, archive, ct)).Imported);
             Assert.Equal(2, await conn.ExecuteScalarAsync<int>(
@@ -330,7 +330,7 @@ public class StravaUploadTests(KutaFactory factory) : IClassFixture<KutaFactory>
                 "select count(*) from activities where user_id=(select id from auth.users where email=@email)", new { email }));
             Assert.Equal(0, await conn.ExecuteScalarAsync<int>("select count(*) from jobs where user_id=@userId", new { userId }));
 
-            // En import åt gången; ett arkiv som försvunnit (omstart) avslutar jobbet med en kod som ber om ny uppladdning.
+            // One import at a time; an archive that has disappeared (restart) ends the job with a code asking for a new upload.
             await UseCsrfToken(client, ct);
             using var accepted = await Upload(client, StravaFixture.Archive(), ct);
             var job = (await accepted.Content.ReadFromJsonAsync<JobResponse>(ct))!;
@@ -349,7 +349,7 @@ public class StravaUploadTests(KutaFactory factory) : IClassFixture<KutaFactory>
         finally { await conn.ExecuteAsync("delete from auth.users where email=@email", new { email }); }
     }
 
-    // Arkiven ligger på disk tills arbetaren kört dem: fler köade importer än taket avvisas innan kroppen läses.
+    // Archives stay on disk until the worker has run them: more queued imports than the cap are rejected before the body is read.
     [Fact]
     public async Task Upload_is_refused_when_too_many_imports_are_queued()
     {
@@ -392,7 +392,7 @@ public class StravaUploadTests(KutaFactory factory) : IClassFixture<KutaFactory>
         return id;
     }
 
-    // Uppladdningen köar importen; testet kör jobbet och läser resultatet som webben gör.
+    // The upload queues the import; the test runs the job and reads the result as the web does.
     private async Task<StravaImportResult> Import(HttpClient client, Guid userId, byte[] archive, CancellationToken ct)
     {
         using var response = await Upload(client, archive, ct);

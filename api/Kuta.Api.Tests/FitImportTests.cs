@@ -2,7 +2,7 @@ using Xunit;
 
 public class FitImportTests
 {
-    // Taket skyddar minnet: en mätpunkt kan ta några byte i filen men flera hundra i SDK:ns objekt.
+    // The cap protects memory: a data point can take a few bytes in the file but several hundred in the SDK's objects.
     [Fact]
     public void Parse_rejects_files_with_more_records_than_the_cap()
     {

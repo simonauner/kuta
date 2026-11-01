@@ -1,5 +1,5 @@
-// Garmin kräver "Garmin [klockmodell]" överallt där data från Garmin-API:t visas. Klockan är privat,
-// så andra ser bara "Garmin" (Garmins regel när modellen saknas, liksom deviceName 'unknown').
+// Garmin requires "Garmin [device model]" wherever data from the Garmin API is shown. The watch is private,
+// so others see only "Garmin" (Garmin's rule when the model is missing, as for deviceName 'unknown').
 public static class GarminAttribution
 {
     public static string Sql(string a) => $"""

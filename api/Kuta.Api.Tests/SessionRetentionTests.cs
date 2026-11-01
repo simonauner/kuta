@@ -16,7 +16,7 @@ public class SessionRetentionTests(KutaFactory factory) : IClassFixture<KutaFact
         Assert.True(job.Active);
         Assert.Equal("0 * * * *", job.Schedule);
 
-        // Alla data förbereds i samma transaktion: now() är stabilt även exakt på gränsen.
+        // All data is prepared in the same transaction: now() is stable even exactly at the boundary.
         await using var tx = await conn.BeginTransactionAsync(ct);
         var userId = Guid.NewGuid();
         await conn.ExecuteAsync(new CommandDefinition("""

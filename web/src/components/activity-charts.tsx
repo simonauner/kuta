@@ -8,12 +8,12 @@ export type ChartSeries = {
   label: string
   values: (number | null)[]
   color: string
-  // Tempo: lägre värde (snabbare) uppåt, och etiketter som mm:ss
+  // Pace: lower value (faster) on top, and labels as mm:ss
   pace?: boolean
   fill?: boolean
 }
 
-// Ett diagram per kanal med gemensam x-axel och synkad markör.
+// One chart per channel with a shared x-axis and synced cursor.
 export function ActivityCharts({ axis, series }: { axis: ChartAxis; series: ChartSeries[] }) {
   const container = useRef<HTMLDivElement>(null)
   const { t } = useTranslation()

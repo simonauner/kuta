@@ -19,7 +19,7 @@ export type TrainingLoadSummary = {
 
 export const trainingLoadQueryKey = (timeZone: string) => ['activities', 'training-load', timeZone]
 
-// Samma gränser som API:t: 1:40–60:00 per km.
+// Same limits as the API: 1:40–60:00 per km.
 const fastest = 100
 const slowest = 3600
 
@@ -27,14 +27,14 @@ export function paceSeconds(speedMS: number) {
   return Math.round(1000 / speedMS)
 }
 
-// "4:30" → m/s, null om texten inte är ett tempo inom gränserna.
+// "4:30" → m/s, null if the text isn't a pace within the limits.
 export function parseThresholdPace(text: string) {
   const seconds = text.includes(':') ? parseDuration(text) : null
   if (seconds === null || seconds < fastest || seconds > slowest) return null
   return 1000 / seconds
 }
 
-// Diagram: kondition och trötthet som linjer och daglig belastning som staplar, med gemensam skala från 0.
+// Chart: fitness and fatigue as lines and daily load as bars, with a shared scale from 0.
 export function loadChart(
   days: TrainingLoadDay[],
   { width, height, padding }: { width: number; height: number; padding: number },

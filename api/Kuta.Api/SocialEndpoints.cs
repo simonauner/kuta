@@ -2,7 +2,7 @@ using System.Security.Claims;
 using Dapper;
 using Npgsql;
 
-// JoinedAt visas bara för den som ber om att följa: namn är fria, så kontots ålder hjälper mot imitation.
+// JoinedAt is shown only for someone asking to follow: names are free, so account age helps against impersonation.
 public record Runner(Guid Id, string DisplayName, string Status, string? SupporterTier, DateTime? JoinedAt);
 public record FollowLists(IEnumerable<Runner> Following, IEnumerable<Runner> Followers, IEnumerable<Runner> Blocked);
 public record FeedItem(Guid Id, Guid UserId, string DisplayName, string Sport, string? Title,
@@ -75,7 +75,7 @@ public static class SocialEndpoints
             if (id == userId || !await conn.ExecuteScalarAsync<bool>(
                     "select exists(select 1 from users where id = @id) and exists(select 1 from users where id = @userId)", new { id, userId }))
                 return Results.NotFound();
-            // En blockerad förfrågan sparas inte, men svaret är detsamma så att blockeringen inte avslöjas.
+            // A blocked request is not stored, but the response is the same so the block is not revealed.
             await conn.ExecuteAsync("""
                 insert into follows (follower_id, following_id)
                 select @userId, @id
@@ -84,7 +84,7 @@ public static class SocialEndpoints
                 """, new { id, userId });
             return Results.NoContent();
         }).RequireRateLimiting("follows");
-        // Blockering tar bort personens följning eller förfrågan och stoppar nya förfrågningar.
+        // Blocking removes the person's follow or request and stops new requests.
         social.MapPut("/blocks/{id:guid}", async (Guid id, NpgsqlDataSource db, ClaimsPrincipal user) =>
         {
             await using var conn = await db.OpenConnectionAsync();

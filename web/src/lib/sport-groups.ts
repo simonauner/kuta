@@ -2,12 +2,12 @@ import type { TFunction } from 'i18next'
 import sv from '../locales/sv.json' with { type: 'json' }
 import { knownSport, sports } from './sports.ts'
 
-// Från /api/activities/sport-groups: sporter som räknas tillsammans i mål och statistik, t.ex. löpning med
-// terräng- och virtuell löpning. Sporter utan grupp är egna grupper med sportens nyckel.
+// From /api/activities/sport-groups: sports counted together in goals and statistics, e.g. running with
+// trail and virtual running. Sports without a group are their own groups with the sport's key.
 export type SportGroup = { key: string; sports: string[] }
 type NamedSportGroup = keyof typeof sv.sportGroups
 
-// Grupper med flera sporter har egna namn; övriga grupper heter som sin sport.
+// Groups with several sports have their own names; other groups are named after their sport.
 export function isNamedSportGroup(key: string): key is NamedSportGroup {
   return Object.hasOwn(sv.sportGroups, key)
 }
@@ -18,7 +18,7 @@ export function sportGroupLabel(key: string, t: TFunction) {
     : t(`newActivity.sports.${knownSport(key)}`)
 }
 
-// Sportnamn som webben inte känner till (Garmins råa namn) utelämnas.
+// Sport names the web doesn't know (Garmin's raw names) are left out.
 export function sportGroupMembers(group: SportGroup, t: TFunction) {
   return group.sports
     .filter((sport) => (sports as readonly string[]).includes(sport))

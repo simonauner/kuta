@@ -2,9 +2,9 @@ using System.Security.Claims;
 using Dapper;
 using Npgsql;
 
-// Mål i SI-enheter: distance i meter, duration i sekunder, count i antal pass.
-// SportGroup är en nyckel ur SportGroups.All (t.ex. "running" med terräng och virtuell löpning); null = alla.
-// Privacy null = privat vid skapande och oförändrad vid redigering.
+// Goals in SI units: distance in meters, duration in seconds, count in number of activities.
+// SportGroup is a key from SportGroups.All (e.g. "running" with trail and virtual running); null = all.
+// Privacy null = private on create and unchanged on edit.
 public record GoalRequest(string? SportGroup, string? Metric, string? Period, double? Target, bool Recurring = false,
     string? TimeZone = null, string? Privacy = null);
 public record StoredGoal(Guid Id, string? SportGroup, string Metric, string Period, double Target, bool Recurring, DateOnly StartsOn,
@@ -28,7 +28,7 @@ public static class Goals
         || (req.Metric == "count" && target != Math.Floor(target))
             ? InvalidGoal : null;
 
-    // Veckor börjar på måndag (ISO), som date_trunc('week') i Postgres.
+    // Weeks start on Monday (ISO), like date_trunc('week') in Postgres.
     public static DateOnly PeriodStart(string period, DateOnly date) => period switch
     {
         "week" => date.AddDays(-(((int)date.DayOfWeek + 6) % 7)),
@@ -50,8 +50,8 @@ public static class Goals
         _ => start.AddYears(-1),
     };
 
-    // values: summa per periodstart (lokalt datum); saknad period = 0. Målet gäller från början av perioden som
-    // innehåller startdatumet (1 januari för ett årsmål skapat i oktober), men aldrig tidigare perioder.
+    // values: total per period start (local date); missing period = 0. The goal applies from the start of the period that
+    // contains the start date (January 1 for a yearly goal created in October), but never earlier periods.
     public static GoalProgress Evaluate(StoredGoal goal, DateOnly today, IReadOnlyDictionary<DateOnly, double> values)
     {
         GoalPeriodProgress Make(DateOnly start)
@@ -61,7 +61,7 @@ public static class Goals
         }
 
         var first = PeriodStart(goal.Period, goal.StartsOn);
-        // En annan tidszon än vid skapandet kan ge ett "idag" före första perioden.
+        // A different time zone than at creation can give a "today" before the first period.
         var currentStart = PeriodStart(goal.Period, today) is var start && start > first ? start : first;
         if (!goal.Recurring)
             return Result(Make(first), currentStart > first, null, 0);
@@ -76,7 +76,7 @@ public static class Goals
             if (!progress.Achieved) break;
             streak++;
         }
-        // Pågående period räknas in först när den är uppnådd.
+        // The current period counts only once it is achieved.
         return Result(current, false, previous, streak + (current.Achieved ? 1 : 0));
 
         GoalProgress Result(GoalPeriodProgress current, bool ended, GoalPeriodProgress? previous, int streak) =>
@@ -94,7 +94,7 @@ public static class Goals
             if (!await ActivityList.IsValidTimeZoneAsync(conn, timeZone, ct)) return InvalidTimeZone();
             return Results.Ok(await LoadAsync(conn, user.GetUserId(), timeZone, DateTimeOffset.UtcNow, ct));
         });
-        // En löpares mål enligt varje måls synlighet (ägaren ser alla); okänd löpare ger 404.
+        // A runner's goals according to each goal's privacy (the owner sees all); unknown runner gives 404.
         api.MapGet("/runners/{id:guid}/goals", async (Guid id, string? timeZone, NpgsqlDataSource db, ClaimsPrincipal user,
             CancellationToken ct) =>
         {
@@ -143,7 +143,7 @@ public static class Goals
             """, new { userId, req.SportGroup, req.Metric, req.Period, req.Target, req.Recurring, now, timeZone, req.Privacy },
             cancellationToken: ct));
 
-    // Startdatumet behålls: ett ändrat mål räknas från perioden som innehåller det ursprungliga datumet.
+    // The start date is kept: an edited goal counts from the period containing the original date.
     public static async Task<bool> UpdateAsync(NpgsqlConnection conn, Guid userId, Guid id, GoalRequest req, CancellationToken ct) =>
         await conn.ExecuteAsync(new CommandDefinition("""
             update goals set sport_group = @SportGroup, metric = @Metric, period = @Period, target = @Target,
@@ -156,8 +156,8 @@ public static class Goals
         await conn.ExecuteAsync(new CommandDefinition("delete from goals where id = @id and user_id = @userId",
             new { id, userId }, cancellationToken: ct)) > 0;
 
-    // viewerId null = ägaren själv (alla mål). Annars passens läsregel per mål: public för alla inloggade,
-    // followers bara vid godkänd följrelation.
+    // viewerId null = the owner (all goals). Otherwise the activity read rule per goal: public for all signed-in users,
+    // followers only with an approved follow relationship.
     public static async Task<StoredGoal[]> LoadStoredAsync(NpgsqlConnection conn, Guid userId, CancellationToken ct,
         NpgsqlTransaction? tx = null, Guid? viewerId = null) =>
         (await conn.QueryAsync<StoredGoal>(new CommandDefinition("""
@@ -175,8 +175,8 @@ public static class Goals
         if (goals.Length == 0) return [];
         var today = await conn.ExecuteScalarAsync<DateOnly>(new CommandDefinition(
             "select (@now at time zone @timeZone)::date", new { now, timeZone }, cancellationToken: ct));
-        // Samma effektiva värden som statistiken: redigerade delars distans, och gruppmål räknar matchande delar
-        // av multisportpass. Utan grupp räknas varje pass en gång.
+        // Same effective values as the statistics: edited parts' distance, and group goals count matching parts
+        // of multisport activities. Without a group each activity counts once.
         var buckets = await conn.QueryAsync<GoalBucket>(new CommandDefinition($"""
             with {SportGroups.Cte}, {SportGroups.EffectiveCte}
             select g.id as goal_id, b.period_start, b.value

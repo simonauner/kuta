@@ -2,16 +2,16 @@ using Dynastream.Fit;
 using NetTopologySuite.Geometries;
 using NetTopologySuite.Simplify;
 
-// Ett pass ur en FIT-fil: sammanfattning från session-meddelandet, tidsserier (en array per kanal) från records.
-// En kanal som saknas helt blir null, inte en array full av null.
-// Nya fält läggs sist med standardvärde: Strava-importen (GPX) skapar typen positionellt.
+// An activity from a FIT file: summary from the session message, streams (one array per channel) from records.
+// A channel that is missing entirely becomes null, not an array full of null.
+// New fields go last with a default value: the Strava import (GPX) constructs the type positionally.
 public sealed record ParsedActivity(
     string Sport, System.DateTime StartedAt, int DurationS, int? MovingS, double DistanceM,
     short? AvgHr, short? MaxHr, float? AvgSpeedMps, float? ElevationGainM, LineString? Route,
     int[] T, float?[]? Dist, short?[]? Hr, float?[]? Speed, float?[]? Alt, double?[]? Lat, double?[]? Lon,
     string? Device = null, short?[]? Cadence = null, short?[]? Temp = null, ParsedLap[]? Laps = null, ActivityPart[]? Parts = null)
 {
-    // Utan samtycke sparas inte puls (hälsodata): varken sammanfattning, tidsserie eller varvens puls.
+    // Without consent no heart rate (health data) is stored: neither summary, stream nor lap heart rate.
     public ParsedActivity WithoutHeartRate() => this with
     {
         AvgHr = null, MaxHr = null, Hr = null, Laps = Laps?.Select(l => l with { AvgHr = null, MaxHr = null }).ToArray(),
@@ -25,14 +25,14 @@ public sealed record ParsedLap(
 public static class FitImport
 {
     private const double DegreesPerSemicircle = 180.0 / 2147483648.0;
-    // Ungefär 5 meter: nog för att rita rutten, och mycket färre punkter än en per sekund
+    // About 5 meters: enough to draw the route, and far fewer points than one per second
     private const double RouteToleranceDegrees = 0.00005;
     private static readonly GeometryFactory Wgs84 = new(new PrecisionModel(), 4326);
-    // Knappt 6 dygn med en punkt per sekund. Taket skyddar minnet: en mätpunkt kan ta bara några byte i filen.
+    // Just under 6 days at one point per second. The cap protects memory: a sample can take only a few bytes in the file.
     public const int MaxRecords = 500_000;
     private const int MaxMessages = 10_000;
 
-    // Bara de värden vi använder ur en record; SDK:ns meddelandeobjekt tar flera hundra byte styck.
+    // Only the values we use from a record; the SDK's message objects take several hundred bytes each.
     private readonly record struct Sample(System.DateTime? Time, int? Lat, int? Lon, float? Dist, byte? Hr, float? Speed,
         float? Alt, byte? Cadence, float? FractionalCadence, sbyte? Temp)
     {
@@ -43,7 +43,7 @@ public static class FitImport
 
     private sealed class TooLargeException : Exception;
 
-    // Null när filen inte är en FIT-fil med ett pass (session) i.
+    // Null when the file is not a FIT file containing an activity (session).
     public static ParsedActivity? Parse(byte[] file)
     {
         using var stream = new MemoryStream(file);
@@ -151,7 +151,7 @@ public static class FitImport
         var lat = Channel(records, r => r.Lat is { } v ? v * DegreesPerSemicircle : (double?)null);
         var lon = Channel(records, r => r.Lon is { } v ? v * DegreesPerSemicircle : (double?)null);
         var dist = Channel(records, r => r.Dist);
-        // FIT anger löp- och gångkadens per ben (varv/min); steg/min är det dubbla. Cykling är redan varv/min.
+        // FIT gives running and walking cadence per leg (rpm); steps/min is double that. Cycling is already rpm.
         var stepsPerCycle = session.GetSport() is Sport.Running or Sport.Walking or Sport.Hiking ? 2 : 1;
         int Seconds(System.DateTime? time) => time is { } t ? (int)Math.Round((t - startedAt).TotalSeconds) : 0;
         short? Cadence(byte? cadence, float? fractional) =>
@@ -190,8 +190,8 @@ public static class FitImport
                 AvgCadence: Cadence(l.GetAvgCadence(), l.GetAvgFractionalCadence()))).ToArray());
     }
 
-    // Klockans namn: produktnamnet om klockan skriver det (device_info för den som skapade filen), annars
-    // tillverkare + Garmins produktkod, t.ex. "Garmin Fenix 5s".
+    // The watch name: the product name if the watch writes it (device_info for the file's creator), otherwise
+    // manufacturer + Garmin's product code, e.g. "Garmin Fenix 5s".
     private static string? Device(FileIdMesg? fileId, List<DeviceInfoMesg> devices)
     {
         var named = devices
@@ -207,7 +207,7 @@ public static class FitImport
         return product is null ? maker : $"{maker} {product}";
     }
 
-    // SDK:ns kodlistor är klasser med konstanter; namnet som text med mellanslag före siffror ("Fenix5s" -> "Fenix 5s").
+    // The SDK's code lists are classes with constants; the name as text with spaces before digits ("Fenix5s" -> "Fenix 5s").
     private static string? ConstantName(Type constants, ushort value) =>
         constants.GetFields(System.Reflection.BindingFlags.Public | System.Reflection.BindingFlags.Static)
             .FirstOrDefault(f => f.IsLiteral && f.FieldType == typeof(ushort) && (ushort)f.GetRawConstantValue()! == value)

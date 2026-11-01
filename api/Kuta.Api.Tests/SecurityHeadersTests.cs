@@ -5,7 +5,7 @@ public class SecurityHeadersTests(KutaFactory factory) : IClassFixture<KutaFacto
 {
     [Theory]
     [InlineData("/api/health")]
-    [InlineData("/api/me")] // även 401-svar
+    [InlineData("/api/me")] // 401 responses too
     public async Task Responses_forbid_scripts_framing_and_sniffing(string path)
     {
         var response = await factory.CreateClient().GetAsync(path, TestContext.Current.CancellationToken);
@@ -15,7 +15,7 @@ public class SecurityHeadersTests(KutaFactory factory) : IClassFixture<KutaFacto
         Assert.True(response.Headers.CacheControl?.NoStore);
     }
 
-    // Webben har sin CSP i HTML; headern lägger till frame-ancestors.
+    // The web has its CSP in HTML; the header adds frame-ancestors.
     [Fact]
     public async Task Web_responses_forbid_framing()
     {

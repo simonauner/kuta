@@ -23,7 +23,7 @@ public static class BestEfforts
                 achievedAt = startedAt.AddSeconds(e.StartOffsetS) }), tx);
     }
 
-    // Räknar om ett eget pass från sparade tidsserier och sportdelar. False om passet inte finns eller är någon annans.
+    // Recalculates an own activity from stored streams and sport parts. False if the activity is missing or someone else's.
     public static async Task<bool> RecalculateAsync(NpgsqlConnection conn, Guid id, Guid userId,
         CancellationToken ct = default)
     {

@@ -17,7 +17,7 @@ export type Job<Progress = unknown, Result = unknown> = {
 export const isActive = (job: Pick<Job, 'status'> | null | undefined) =>
   job?.status === 'queued' || job?.status === 'running'
 
-// Senaste jobbet av varje slag; frågas om varje sekund medan något jobb pågår.
+// Latest job of each kind; polled every second while any job is running.
 export const latestJobsQuery = {
   queryKey: ['jobs'],
   queryFn: () => api.get<Job[]>('/api/jobs'),
@@ -29,7 +29,7 @@ export function latestJob<Progress, Result>(jobs: Job[] | undefined, kind: JobKi
   return jobs?.find((job) => job.kind === kind) as Job<Progress, Result> | undefined
 }
 
-// Andel klar, 0–1, för förloppsindikatorn; okänt totalt antal ger null.
+// Fraction done, 0–1, for the progress bar; unknown total gives null.
 export function jobFraction(progress: { processed: number; total: number } | null | undefined) {
   if (!progress || progress.total <= 0) return null
   return Math.min(1, progress.processed / progress.total)
