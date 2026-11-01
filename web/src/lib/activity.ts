@@ -36,6 +36,8 @@ export type Activity = {
   tags: ActivityTag[]
   // "Garmin [watch model]" for activities from the Garmin API; Garmin requires it to be shown below the title
   attribution: string | null
+  // Imported from Garmin and not edited yet (only in the own activity list)
+  unreviewed?: boolean
 }
 
 export function activitySearch(search: Record<string, unknown>): {
@@ -54,7 +56,10 @@ export function activitySearch(search: Record<string, unknown>): {
   return filters
 }
 
-export type ActivityListItem = Activity & { showMonth: boolean; showWeek: boolean }
+export type ActivityListItem = Activity & {
+  showMonth: boolean
+  showWeek: boolean
+}
 export type ActivityCursor = { startedAt: string; id: string }
 export type ActivityPage = { items: ActivityListItem[]; nextCursor: ActivityCursor | null }
 

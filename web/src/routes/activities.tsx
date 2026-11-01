@@ -1,6 +1,7 @@
 import { FormField } from '@/components/ui/form-field'
 import { SportIcon } from '@/components/sport-icon'
 import { sports } from '@/lib/sports'
+import { UnreviewedActivities } from '@/components/unreviewed-activities'
 import { TagLabels } from '@/components/activity-tags'
 import { activityTagsQuery, activityYearsQuery, refreshActivityQueries } from '@/lib/activity-query'
 import { ErrorMessage } from '@/components/error-message'
@@ -99,6 +100,7 @@ export function ActivitiesPage() {
         </div>
       </div>
       <TrainingLoadWarning />
+      <UnreviewedActivities className="pt-4" />
       <GoalList onSelect={setGoalForm} />
       {goalForm && (
         <GoalDialog
@@ -260,6 +262,11 @@ export function ActivitiesPage() {
                           style={{ viewTransitionName: `activity-sport-${a.id}` }}
                         />
                       </Link>
+                      {a.unreviewed && (
+                        <span className="mr-2 rounded-full bg-primary/15 px-2 py-0.5 text-xs font-medium text-primary">
+                          {t('unreviewed.label')}
+                        </span>
+                      )}
                       {a.attribution && (
                         <p className="text-xs text-muted-foreground">{a.attribution}</p>
                       )}

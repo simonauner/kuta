@@ -771,5 +771,13 @@
     "end": "Avsluta supporterskap",
     "endHelp": "Supporterskapet förnyas inte, men du behåller badgen till och med {{until}}.",
     "manageNotice": "Betalningar är inte aktiverade än, så supporterskapet går inte att ändra eller avsluta här ännu. Det gäller till och med {{until}}."
+  },
+  "unreviewed": {
+    "title_one": "{{count}} nytt pass från Garmin",
+    "title_other": "{{count}} nya pass från Garmin",
+    "text": "Garmin skickar bara aktivitetsnamnet. Lägg till titel, beskrivning och utrustning om du vill.",
+    "edit": "Redigera senaste",
+    "dismiss": "Markera som granskade",
+    "label": "Ny"
   }
 }

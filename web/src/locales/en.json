@@ -771,5 +771,13 @@
     "end": "End support",
     "endHelp": "Your support won't renew, but you keep the badge until {{until}}.",
     "manageNotice": "Payments aren't enabled yet, so your support can't be changed or ended here yet. It is valid until {{until}}."
+  },
+  "unreviewed": {
+    "title_one": "{{count}} new activity from Garmin",
+    "title_other": "{{count}} new activities from Garmin",
+    "text": "Garmin only sends the activity name. Add a title, description and equipment if you like.",
+    "edit": "Edit latest",
+    "dismiss": "Mark as reviewed",
+    "label": "New"
   }
 }
