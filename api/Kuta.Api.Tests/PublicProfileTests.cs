@@ -38,6 +38,11 @@ public class PublicProfileTests(KutaFactory factory) : IClassFixture<KutaFactory
             var response = await owner.PutAsJsonAsync("/api/me/public-profile", new { enabled = true }, ct);
             Assert.True((await response.Content.ReadFromJsonAsync<Me>(ct))!.PublicProfile);
 
+            // The short profile link resolves without an account too
+            var code = (await (await owner.PostAsync("/api/me/share-code", null, ct)).Content.ReadFromJsonAsync<ShareCode>(ct))!.Code;
+            Assert.Equal(ownerId, (await visitor.GetFromJsonAsync<SharedRunner>($"/api/public/share-codes/{code}", ct))!.RunnerId);
+            Assert.Equal(HttpStatusCode.NotFound, (await visitor.GetAsync("/api/public/share-codes/zzzzzzzz", ct)).StatusCode);
+
             var runner = await visitor.GetFromJsonAsync<Runner>($"/api/public/runners/{ownerId}", ct);
             Assert.Equal("Public runner", runner!.DisplayName);
             var feed = await visitor.GetFromJsonAsync<FeedPage>($"/api/public/runners/{ownerId}/activities", ct);

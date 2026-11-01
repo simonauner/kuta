@@ -7,6 +7,7 @@ import { ErrorMessage } from '@/components/error-message'
 import { HeartRateConsent } from '@/components/heart-rate-consent'
 import { LanguageSelect } from '@/components/language-select'
 import { Recalculation } from '@/components/strava-import'
+import { ReplaceProfileLink } from '@/components/share-profile'
 import { SupporterSection } from '@/components/supporter'
 import { SettingsBreadcrumb } from '@/components/settings-breadcrumb'
 import { Button } from '@/components/ui/button'
@@ -60,6 +61,8 @@ export function SettingsPage() {
       </nav>
 
       <ActivityPrivacy />
+
+      <ReplaceProfileLink />
 
       <section aria-labelledby="health-heading" className="mt-8 border-t pt-6">
         <Heading level={2} id="health-heading">

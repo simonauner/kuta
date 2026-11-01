@@ -66,6 +66,16 @@ public static class SocialEndpoints
             return detail is not null && await IsPublicAsync(conn, detail.UserId) ? Results.Ok(detail) : Results.NotFound();
         });
 
+        // A short profile link opened without an account. Only finds the runner; the endpoints above still answer 404
+        // unless the profile is public. Limited per IP like the rest of the group (codes are too many to guess).
+        open.MapGet("/share-codes/{code}", async (string code, NpgsqlDataSource db) =>
+        {
+            await using var conn = await db.OpenConnectionAsync();
+            var runnerId = await conn.ExecuteScalarAsync<Guid?>("select id from users where share_code = @code",
+                new { code = code.ToLowerInvariant() });
+            return runnerId is { } id ? Results.Ok(new SharedRunner(id)) : Results.NotFound();
+        });
+
         static Task<bool> IsPublicAsync(NpgsqlConnection conn, Guid userId) =>
             conn.ExecuteScalarAsync<bool>("select exists(select 1 from users where id = @userId and public_profile)", new { userId });
     }

@@ -31,10 +31,21 @@ När flödet är tomt visas genvägar till ett första pass, en guide till Impor
 Flödet på `/app` visar egna pass och pass från löpare du följer efter deras godkännande,
 nyaste först, 25 åt gången. **Inställningar → Följare** innehåller inkommande förfrågningar
 och listor över följare/följda. Det finns ingen användarkatalog eller namnsökning, varken i
-webben eller API:t. **Dela profil** på den egna profilen kopierar en direktlänk till
-`/app/runners/{id}` på aktuell origin, med bekräftelse och ett manuellt kopieringsfält om
-webbläsaren nekar clipboard-åtkomst. Mottagaren loggar in för att se profilen och kan skicka
-en följförfrågan därifrån. Länken ändrar inte passens synlighet eller följgodkännandet.
+webben eller API:t. **Dela profil** på den egna profilen kopierar en kort länk
+`/app/r/{kod}` på aktuell origin, med bekräftelse och ett manuellt kopieringsfält om
+webbläsaren nekar clipboard-åtkomst. Mottagaren loggar in, koden slås upp och webben går vidare
+till `/app/runners/{id}`, där en följförfrågan kan skickas. Länken ändrar inte passens synlighet
+eller följgodkännandet.
+
+Koden (`users.share_code`, migrering 028, `ShareCodes.cs`) är 8 tecken ur `a–z` och `2–9` utan
+förväxlingsbara tecken (0/o, 1/l/i), slumpas med kryptografisk RNG och skapas först när den behövs:
+`POST /api/me/share-code` ger egen kod (skapar den vid behov; POST eftersom GET aldrig ändrar data),
+`POST /api/me/share-code/replace` ersätter den och `GET /api/share-codes/{kod}` ger `{ runnerId }`
+eller 404. Uppslaget kräver inloggning och har rate limiten `shareCodes`, 30 anrop/timme/användare,
+så att koder inte kan gissas fram. **Inställningar → Profillänk → Skapa ny länk** byter kod efter en
+bekräftelse; den gamla länken slutar då fungera. Den som redan hittat profilen (flöde, följlistor,
+`/app/runners/{id}`) kommer fortfarande åt den: koden hittar bara profilen, och blockering och
+synlighet styr läsningen. Koden ingår i `profile.json` i exporten.
 Godkänn eller avböj förfrågningar, avbryt egna förfrågningar, sluta följa eller ta bort följare.
 Relationerna är riktade: ett godkännande innebär inte att båda automatiskt följer varandra.
 Namn i flödet och följarlistorna länkar till `/app/runners/{id}`. Profilsidan visar löparens
@@ -68,7 +79,7 @@ API (alla kräver inloggning; skrivningar kräver CSRF):
 - `GET /api/runners/{id}/activities` ger `{ items, nextCursor }` för den löparens läsbara
   pass med samma sidmarkör och skyddade kartminiatyrer som flödet. Inga privata pass från
   andra, puls eller GPS-tidsserier ingår.
-- Öppen profil (`users.public_profile`, migrering 028, förval av): `PUT /api/me/public-profile` med `{ "enabled": true }` och `publicProfile` i `/api/me`. Utan konto ger `GET /api/public/runners/{id}`, `/api/public/runners/{id}/activities` och `/api/public/activities/{id}` samma svar som för en inloggad som inte följer löparen, men bara för pass med `public` och bara när löparen slagit på öppen profil; annars 404, även för okänd löpare. Besökaren räknas som ingen användare (`Guid.Empty`) i läsregeln, så kartor maskeras och puls, GPS-tidsserier, klocka och utrustning döljs som för andra. Mål visas inte. Högst 120 anrop/minut/IP. Webben visar profil- och passlänkar för utloggade i ett eget skal med Logga in/Skapa konto, och en uppmaning att logga in när profilen eller passet inte är öppet.
+- Öppen profil (`users.public_profile`, migrering 029, förval av): `PUT /api/me/public-profile` med `{ "enabled": true }` och `publicProfile` i `/api/me`. Utan konto slår `GET /api/public/share-codes/{kod}` upp en kort profillänk (samma svar som det inloggade uppslaget; profilen visas ändå bara om den är öppen), och `GET /api/public/runners/{id}`, `/api/public/runners/{id}/activities` och `/api/public/activities/{id}` samma svar som för en inloggad som inte följer löparen, men bara för pass med `public` och bara när löparen slagit på öppen profil; annars 404, även för okänd löpare. Besökaren räknas som ingen användare (`Guid.Empty`) i läsregeln, så kartor maskeras och puls, GPS-tidsserier, klocka och utrustning döljs som för andra. Mål visas inte. Högst 120 anrop/minut/IP. Webben visar profil- och passlänkar för utloggade i ett eget skal med Logga in/Skapa konto, och en uppmaning att logga in när profilen eller passet inte är öppet.
 - `GET /api/follows` ger `{ following, followers, blocked }`, inklusive väntande förfrågningar. Väntande förfrågningar har `joinedAt` (när kontot skapades), eftersom namn är fria och kan imitera någon, och `similarTo` när namnet liknar en befintlig kontakts (`MeEndpoints.NameSkeleton`: skiftläge, accenter, blanksteg, emoji och vanliga kyrilliska/grekiska förväxlingar). Alla löpare har `previousName` i 30 dagar efter ett namnbyte (migrering 027); namnet kan bytas högst en gång i veckan (`409 nameChangedRecently`), utom första rättelsen.
 - `POST /api/following/{id}` skickar en förfrågan, idempotent även efter godkännande. Högst 20 per timme och användare. En förfrågan till någon som blockerat avsändaren sparas men visas inte för mottagaren och kan inte godkännas; avsändaren ser den som väntande, så blockeringen avslöjas inte. Förfrågningar under blockeringen tas bort när den hävs.
 - `PUT`/`DELETE /api/blocks/{id}` blockerar respektive häver blockering (`follow_blocks`, migrering 024). Blockering tar bort personens följning eller förfrågan, och den blockerade kan inte läsa något delat av den som blockerat: inga pass (inte heller publika), mål eller supporterbadge (`SocialEndpoints.NotBlocked` i läsregeln).

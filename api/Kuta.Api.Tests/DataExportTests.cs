@@ -22,6 +22,8 @@ public class DataExportTests(KutaFactory factory) : IClassFixture<KutaFactory>
             foreach (var userId in users)
             {
                 await CreateProfileAsync(conn, userId);
+                var shareCode = ShareCodes.Generate();
+                await conn.ExecuteAsync("update users set share_code = @shareCode where id = @userId", new { shareCode, userId });
                 var place = await PrivacyPlaces.CreateAsync(conn, userId, new PrivacyPlaceRequest("Synthetic home", 59, 18), ct);
                 var goalId = await Goals.CreateAsync(conn, userId, new GoalRequest("running", "distance", "week", 10_000, true),
                     "UTC", DateTimeOffset.UtcNow, ct);
@@ -55,6 +57,7 @@ public class DataExportTests(KutaFactory factory) : IClassFixture<KutaFactory>
                 var profile = await ReadJsonAsync(zip, "profile.json", ct);
                 Assert.Equal(userId, profile.GetProperty("id").GetGuid());
                 Assert.Equal("private", profile.GetProperty("defaultActivityPrivacy").GetString());
+                Assert.Equal(shareCode, profile.GetProperty("shareCode").GetString());
                 Assert.False(profile.TryGetProperty("password", out _));
                 var equipment = await ReadJsonAsync(zip, "equipment.json", ct);
                 Assert.Equal(shoeId, Assert.Single(equipment.EnumerateArray()).GetProperty("id").GetGuid());

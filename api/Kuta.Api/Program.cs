@@ -122,6 +122,10 @@ static async Task<int> RunAsync(string[] args)
         o.AddPolicy("follows", ctx => RateLimitPartition.GetFixedWindowLimiter(
             ctx.User.FindFirstValue(ClaimTypes.NameIdentifier) ?? "anonymous",
             _ => new FixedWindowRateLimiterOptions { PermitLimit = 20, Window = TimeSpan.FromHours(1) }));
+        // Profile link codes: 30 lookups per hour and user, so that codes cannot be guessed by trying them.
+        o.AddPolicy("shareCodes", ctx => RateLimitPartition.GetFixedWindowLimiter(
+            ctx.User.FindFirstValue(ClaimTypes.NameIdentifier) ?? "anonymous",
+            _ => new FixedWindowRateLimiterOptions { PermitLimit = 30, Window = TimeSpan.FromHours(1) }));
     });
 
     var app = builder.Build();
@@ -258,6 +262,7 @@ static async Task<int> RunAsync(string[] args)
     api.MapActivities();
     api.MapSocial();
     api.MapPublic();
+    api.MapShareCodes();
     api.MapRunnerProfile();
     api.MapEquipment();
     api.MapBestEfforts();
@@ -271,7 +276,7 @@ static async Task<int> RunAsync(string[] args)
     app.MapFallbackToFile("/features", "features.html", staticFiles);
 
     // The public pages are static; only the app's known paths get the React shell.
-    foreach (var path in new[] { "/app", "/app/activities", "/app/activities/new", "/app/activities/{activityId:guid}", "/app/activities/{activityId:guid}/edit", "/app/stats", "/app/stats/analysis", "/app/profile", "/app/settings/equipment", "/app/settings/followers", "/app/settings/privacy-places", "/app/settings/import", "/app/runners/{runnerId:guid}", "/app/settings" })
+    foreach (var path in new[] { "/app", "/app/activities", "/app/activities/new", "/app/activities/{activityId:guid}", "/app/activities/{activityId:guid}/edit", "/app/stats", "/app/stats/analysis", "/app/profile", "/app/settings/equipment", "/app/settings/followers", "/app/settings/privacy-places", "/app/settings/import", "/app/runners/{runnerId:guid}", "/app/r/{code:length(8)}", "/app/settings" })
         app.MapFallbackToFile(path, "app.html", staticFiles);
 
     await app.RunAsync();
