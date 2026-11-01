@@ -1,0 +1,19 @@
+web/src/components/supporter.tsx
+  s_0c4b6e87907d31::t_3b9e894ce37205 88
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.7.5",
+  "base_commit_sha": "1a17192d29601475bb67a6e3b3827938754608e5",
+  "prompts": {},
+  "sessions": {
+    "s_0c4b6e87907d31": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "d61396c0-631b-4f33-9309-68151e06160f",
+        "model": "claude-opus-5-5"
+      },
+      "human_author": "Simon Aunér <simonauner@gmail.com>"
+    }
+  }
+}
