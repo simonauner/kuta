@@ -4,7 +4,7 @@ using System.Threading.RateLimiting;
 using Microsoft.AspNetCore.Antiforgery;
 using Microsoft.AspNetCore.Mvc;
 
-public record Credentials(string? Email, string? Password);
+public record Credentials(string? Email, string? Password, string? TurnstileToken = null);
 public record SignUpRequest(string? Email, string? Password, bool AcceptTerms, string? TurnstileToken = null);
 public record ApiError(string Error, string? Code = null);
 public record ApiMessage(string Message);
@@ -51,7 +51,7 @@ public static class AuthEndpoints
     public static void MapAntiforgery(this RouteGroupBuilder api)
     {
         // Antiforgery sets no-store on the response itself
-        // The public Turnstile site key for the sign-up and password forms; null when the check is off.
+        // The public Turnstile site key for the sign-in, sign-up and password forms; null when the check is off.
         api.MapGet("/turnstile", (TurnstileVerifier turnstile) => Results.Ok(new { siteKey = turnstile.SiteKey }));
 
         api.MapGet("/antiforgery", (HttpContext http, IAntiforgery antiforgery) =>
@@ -116,12 +116,16 @@ public static class AuthEndpoints
             }
         });
 
-        auth.MapPost("/login", async (Credentials req, SupabaseAuthClient supabase, HttpContext http,
+        auth.MapPost("/login", async (Credentials req, SupabaseAuthClient supabase, TurnstileVerifier turnstile, HttpContext http,
             CancellationToken cancellationToken) =>
         {
             if (string.IsNullOrWhiteSpace(req.Email) || string.IsNullOrEmpty(req.Password))
                 return Results.BadRequest(new ApiError("Ange e-post och lösenord.", "credentialsRequired"));
             if (LimitPerEmail(req.Email) is { } limited) return limited;
+            // Credential stuffing from many addresses would otherwise only meet the per-IP and per-email limits.
+            if (TurnstileVerifier.Refusal(await turnstile.CheckAsync(req.TurnstileToken, http.Connection.RemoteIpAddress,
+                    cancellationToken)) is { } refused)
+                return refused;
 
             var started = System.Diagnostics.Stopwatch.GetTimestamp();
             var (result, session) = await supabase.SignInAsync(req.Email.Trim(), req.Password, cancellationToken);
