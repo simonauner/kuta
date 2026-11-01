@@ -17,6 +17,9 @@ public static class AuthEndpoints
     // Datumet på web/terms.html (testas i TermsVersionTests). Ändra vid varje ny version av villkoren.
     public const string TermsVersion = "2026-11-01";
 
+    // Längre än Supabases lösenordskontroll (bcrypt) plus nätverk, så att okända adresser inte svarar snabbare.
+    static readonly TimeSpan FailedLoginDuration = TimeSpan.FromMilliseconds(600);
+
     // Klientens partition i auth-gränsen per IP. En IPv6-klient förfogar normalt över ett helt /64-nät och kan byta
     // adress inom det fritt, så hela nätet räknas som en klient.
     public static string ClientPartition(IPAddress? address)
@@ -114,7 +117,13 @@ public static class AuthEndpoints
                 return Results.BadRequest(new ApiError("Ange e-post och lösenord.", "credentialsRequired"));
             if (LimitPerEmail(req.Email) is { } limited) return limited;
 
+            var started = System.Diagnostics.Stopwatch.GetTimestamp();
             var (result, session) = await supabase.SignInAsync(req.Email.Trim(), req.Password, cancellationToken);
+            // Supabase hoppar över lösenordskontrollen för okända adresser och svarar då snabbare. Misslyckade försök
+            // tar därför minst lika lång tid, så att svarstiden inte avslöjar vilka adresser som har konto.
+            if (result != SignInResult.SignedIn
+                && FailedLoginDuration - System.Diagnostics.Stopwatch.GetElapsedTime(started) is { Ticks: > 0 } remaining)
+                await Task.Delay(remaining, cancellationToken);
             switch (result)
             {
                 case SignInResult.SignedIn:
