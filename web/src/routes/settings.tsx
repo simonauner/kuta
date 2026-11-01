@@ -4,6 +4,7 @@ import { useTranslation } from 'react-i18next'
 import { ActivityPrivacy } from '@/components/activity-privacy'
 import { DangerZone } from '@/components/danger-zone'
 import { ErrorMessage } from '@/components/error-message'
+import { GarminConnect } from '@/components/garmin'
 import { HeartRateConsent } from '@/components/heart-rate-consent'
 import { LanguageSelect } from '@/components/language-select'
 import { Recalculation, StravaImport } from '@/components/strava-import'
@@ -85,6 +86,13 @@ export function SettingsPage() {
           {t('settings.health')}
         </h2>
         <HeartRateConsent className="mt-4" />
+      </section>
+
+      <section aria-labelledby="garmin-heading" className="mt-8 border-t pt-6">
+        <h2 id="garmin-heading" className="scroll-mt-24 text-lg font-semibold">
+          {t('settings.garmin')}
+        </h2>
+        <GarminConnect />
       </section>
 
       <section aria-labelledby="import-heading" className="mt-8 border-t pt-6">
