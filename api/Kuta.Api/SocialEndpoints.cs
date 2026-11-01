@@ -2,8 +2,9 @@ using System.Security.Claims;
 using Dapper;
 using Npgsql;
 
-public record Runner(Guid Id, string DisplayName, string Status, string? SupporterTier);
-public record FollowLists(IEnumerable<Runner> Following, IEnumerable<Runner> Followers);
+// JoinedAt visas bara för den som ber om att följa: namn är fria, så kontots ålder hjälper mot imitation.
+public record Runner(Guid Id, string DisplayName, string Status, string? SupporterTier, DateTime? JoinedAt);
+public record FollowLists(IEnumerable<Runner> Following, IEnumerable<Runner> Followers, IEnumerable<Runner> Blocked);
 public record FeedItem(Guid Id, Guid UserId, string DisplayName, string Sport, string? Title,
     DateTime StartedAt, int DurationS, double DistanceM, string Privacy, string? RouteGeoJson, string? SupporterTier,
     string? Attribution);
@@ -27,7 +28,7 @@ public static class SocialEndpoints
             var runner = await conn.QuerySingleOrDefaultAsync<Runner>($"""
                 select u.id, u.display_name, case when f.follower_id is null then 'none'
                     when f.accepted_at is null then 'pending' else 'accepted' end as status,
-                    {Supporters.VisibleTier} as supporter_tier
+                    {Supporters.VisibleTier} as supporter_tier, null::timestamptz as joined_at
                 from users u left join follows f on f.following_id = u.id and f.follower_id = @userId
                 where u.id = @id
                 """, new { id, userId = user.GetUserId() });
@@ -49,30 +50,60 @@ public static class SocialEndpoints
             var userId = user.GetUserId();
             var following = await conn.QueryAsync<Runner>($"""
                 select u.id, u.display_name, case when f.accepted_at is null then 'pending' else 'accepted' end as status,
-                    {Supporters.VisibleTier} as supporter_tier
+                    {Supporters.VisibleTier} as supporter_tier, null::timestamptz as joined_at
                 from follows f join users u on u.id = f.following_id where f.follower_id = @userId
                 order by u.display_name, u.id
                 """, new { userId });
             var followers = await conn.QueryAsync<Runner>($"""
                 select u.id, u.display_name, case when f.accepted_at is null then 'pending' else 'accepted' end as status,
-                    {Supporters.VisibleTier} as supporter_tier
+                    {Supporters.VisibleTier} as supporter_tier,
+                    case when f.accepted_at is null then u.created_at end as joined_at
                 from follows f join users u on u.id = f.follower_id where f.following_id = @userId
                 order by f.accepted_at nulls first, u.display_name, u.id
                 """, new { userId });
-            return Results.Ok(new FollowLists(following, followers));
+            var blocked = await conn.QueryAsync<Runner>("""
+                select u.id, u.display_name, 'blocked' as status, null as supporter_tier, null::timestamptz as joined_at
+                from follow_blocks b join users u on u.id = b.blocked_id where b.blocker_id = @userId
+                order by u.display_name, u.id
+                """, new { userId });
+            return Results.Ok(new FollowLists(following, followers, blocked));
         });
         social.MapPost("/following/{id:guid}", async (Guid id, NpgsqlDataSource db, ClaimsPrincipal user) =>
         {
             await using var conn = await db.OpenConnectionAsync();
             var userId = user.GetUserId();
-            var target = await conn.ExecuteScalarAsync<Guid?>("""
+            if (id == userId || !await conn.ExecuteScalarAsync<bool>(
+                    "select exists(select 1 from users where id = @id) and exists(select 1 from users where id = @userId)", new { id, userId }))
+                return Results.NotFound();
+            // En blockerad förfrågan sparas inte, men svaret är detsamma så att blockeringen inte avslöjas.
+            await conn.ExecuteAsync("""
                 insert into follows (follower_id, following_id)
-                select @userId, id from users where id = @id and id <> @userId
-                    and exists (select 1 from users where id = @userId)
-                on conflict (follower_id, following_id) do update set created_at = follows.created_at
-                returning following_id
+                select @userId, @id
+                where not exists (select 1 from follow_blocks where blocker_id = @id and blocked_id = @userId)
+                on conflict (follower_id, following_id) do nothing
                 """, new { id, userId });
-            return target is null ? Results.NotFound() : Results.NoContent();
+            return Results.NoContent();
+        }).RequireRateLimiting("follows");
+        // Blockering tar bort personens följning eller förfrågan och stoppar nya förfrågningar.
+        social.MapPut("/blocks/{id:guid}", async (Guid id, NpgsqlDataSource db, ClaimsPrincipal user) =>
+        {
+            await using var conn = await db.OpenConnectionAsync();
+            var userId = user.GetUserId();
+            await conn.ExecuteAsync("""
+                delete from follows where following_id = @userId and follower_id = @id;
+                insert into follow_blocks (blocker_id, blocked_id)
+                select @userId, id from users where id = @id and id <> @userId
+                on conflict do nothing
+                """, new { id, userId });
+            return await conn.ExecuteScalarAsync<bool>("select exists(select 1 from follow_blocks where blocker_id = @userId and blocked_id = @id)",
+                new { id, userId }) ? Results.NoContent() : Results.NotFound();
+        });
+        social.MapDelete("/blocks/{id:guid}", async (Guid id, NpgsqlDataSource db, ClaimsPrincipal user) =>
+        {
+            await using var conn = await db.OpenConnectionAsync();
+            await conn.ExecuteAsync("delete from follow_blocks where blocker_id = @userId and blocked_id = @id",
+                new { id, userId = user.GetUserId() });
+            return Results.NoContent();
         });
         social.MapPut("/followers/{id:guid}", async (Guid id, NpgsqlDataSource db, ClaimsPrincipal user) =>
         {

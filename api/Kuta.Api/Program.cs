@@ -107,6 +107,10 @@ static async Task<int> RunAsync(string[] args)
         o.AddPolicy("uploads", ctx => RateLimitPartition.GetFixedWindowLimiter(
             ctx.User.FindFirstValue(ClaimTypes.NameIdentifier) ?? "anonymous",
             _ => new FixedWindowRateLimiterOptions { PermitLimit = 30, Window = TimeSpan.FromMinutes(5) }));
+        // Följförfrågningar: 20 per timme och användare, mot massförfrågningar till delade profillänkar.
+        o.AddPolicy("follows", ctx => RateLimitPartition.GetFixedWindowLimiter(
+            ctx.User.FindFirstValue(ClaimTypes.NameIdentifier) ?? "anonymous",
+            _ => new FixedWindowRateLimiterOptions { PermitLimit = 20, Window = TimeSpan.FromHours(1) }));
     });
 
     var app = builder.Build();
