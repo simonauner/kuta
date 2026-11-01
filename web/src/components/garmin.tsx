@@ -2,6 +2,8 @@ import { queryOptions, useMutation, useQuery, useQueryClient } from '@tanstack/r
 import { useEffect, useRef, useState } from 'react'
 import { useTranslation } from 'react-i18next'
 import { ErrorMessage } from '@/components/error-message'
+import { CircleCheckIcon } from 'lucide-react'
+import { Alert, AlertTitle } from '@/components/ui/alert'
 import { Button } from '@/components/ui/button'
 import { Modal } from '@/components/ui/modal'
 import { refreshActivityQueries } from '@/lib/activity-query'
@@ -33,14 +35,30 @@ const garminStatusQuery = queryOptions({
 const results = ['connected', 'declined', 'failed', 'inUse', 'unavailable'] as const
 type ConnectResult = (typeof results)[number]
 
+function resultFromUrl() {
+  const value = new URLSearchParams(window.location.search).get('garmin')
+  return results.find((r) => r === value) as ConnectResult | undefined
+}
+
+// Shown at the top of Settings after Garmin's consent; hidden again once the account is disconnected.
+export function GarminConnectedAlert({ className }: { className?: string }) {
+  const { t } = useTranslation()
+  const status = useQuery(garminStatusQuery)
+  const [result] = useState(resultFromUrl)
+  if (result !== 'connected' || !status.data?.connected) return null
+  return (
+    <Alert variant="success" role="status" className={className}>
+      <CircleCheckIcon aria-hidden="true" />
+      <AlertTitle>{t('garmin.result.connected')}</AlertTitle>
+    </Alert>
+  )
+}
+
 export function GarminConnect() {
   const { t } = useTranslation()
   const queryClient = useQueryClient()
   const status = useQuery(garminStatusQuery)
-  const [result, setResult] = useState(() => {
-    const value = new URLSearchParams(window.location.search).get('garmin')
-    return results.find((r) => r === value) as ConnectResult | undefined
-  })
+  const [result, setResult] = useState(resultFromUrl)
   const [confirming, setConfirming] = useState(false)
   const dialog = useRef<HTMLDialogElement>(null)
 
@@ -77,8 +95,8 @@ export function GarminConnect() {
 
   return (
     <div className="mt-4 space-y-3 text-sm">
-      {result && (
-        <p role="status" className={result === 'connected' ? undefined : 'text-destructive'}>
+      {result && result !== 'connected' && (
+        <p role="status" className="text-destructive">
           {t(`garmin.result.${result}`)}
         </p>
       )}

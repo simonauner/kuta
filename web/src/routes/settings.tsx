@@ -4,7 +4,7 @@ import { useTranslation } from 'react-i18next'
 import { ActivityPrivacy } from '@/components/activity-privacy'
 import { DangerZone } from '@/components/danger-zone'
 import { ErrorMessage } from '@/components/error-message'
-import { GarminConnect } from '@/components/garmin'
+import { GarminConnect, GarminConnectedAlert } from '@/components/garmin'
 import { HeartRateConsent } from '@/components/heart-rate-consent'
 import { LanguageSelect } from '@/components/language-select'
 import { Recalculation, StravaImport } from '@/components/strava-import'
@@ -49,6 +49,7 @@ export function SettingsPage() {
           </BreadcrumbItem>
         </BreadcrumbList>
       </Breadcrumb>
+      <GarminConnectedAlert className="mb-4" />
       <h1 className="text-2xl font-semibold tracking-tight">{t('settings.title')}</h1>
       <div className="mt-4 flex">
         <LanguageSelect />
