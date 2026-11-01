@@ -603,7 +603,10 @@
     "confirm": "Ändra alla befintliga pass till ”{{visibility}}”? Detta ersätter de individuella synlighetsvalen för alla dina pass.",
     "applying": "Tillämpar…",
     "applied": "Alla dina pass har nu denna synlighet.",
-    "saved": "Standardsynligheten har sparats."
+    "saved": "Standardsynligheten har sparats.",
+    "newNote": "Passet får synligheten <strong>{{visibility}}</strong>.",
+    "importNote": "Importerade pass får synligheten <strong>{{visibility}}</strong>, oavsett hur de var delade på Strava. Du ändrar standarden under Passens synlighet.",
+    "changeDefault": "Ändra standard"
   },
   "social": {
     "follow": "Be att få följa",

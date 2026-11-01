@@ -603,7 +603,10 @@
     "confirm": "Change every existing activity to “{{visibility}}”? This replaces individual visibility choices for all your activities.",
     "applying": "Applying…",
     "applied": "All your activities now use this visibility.",
-    "saved": "Default visibility saved."
+    "saved": "Default visibility saved.",
+    "newNote": "The activity will be visible to: <strong>{{visibility}}</strong>.",
+    "importNote": "Imported activities will be visible to: <strong>{{visibility}}</strong>, whatever their sharing on Strava. Change the default under Activity visibility.",
+    "changeDefault": "Change default"
   },
   "social": {
     "follow": "Request to follow",

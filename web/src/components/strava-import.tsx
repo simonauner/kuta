@@ -2,6 +2,7 @@ import { FormField } from '@/components/ui/form-field'
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
 import { useEffect, useRef, useState, type FormEvent } from 'react'
 import { useTranslation } from 'react-i18next'
+import { DefaultPrivacyNote } from '@/components/activity-privacy'
 import { ErrorMessage } from '@/components/error-message'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
@@ -123,6 +124,9 @@ export function StravaImport() {
         )}
       </FormField>
       <p className="mt-2 text-xs text-muted-foreground">{t('settings.importHelp')}</p>
+      <div className="mt-3">
+        <DefaultPrivacyNote imported />
+      </div>
       <Button type="submit" className="mt-4" disabled={!file || upload.isPending || running}>
         {upload.isPending
           ? t('settings.importUploading')

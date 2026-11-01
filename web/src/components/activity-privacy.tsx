@@ -1,7 +1,8 @@
 import { FormField } from '@/components/ui/form-field'
 import { useRef } from 'react'
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
-import { useTranslation } from 'react-i18next'
+import { Trans, useTranslation } from 'react-i18next'
+import { Link } from '@tanstack/react-router'
 import { Check } from 'lucide-react'
 import { ErrorMessage } from '@/components/error-message'
 import { Button } from '@/components/ui/button'
@@ -9,6 +10,35 @@ import { Modal } from '@/components/ui/modal'
 import { api } from '@/lib/api'
 import { SharingHints } from '@/components/privacy-places'
 import { meQuery, type Me } from '@/lib/auth'
+
+// New and imported activities silently get the default visibility, so the forms that create them say which it is.
+export function DefaultPrivacyNote({ imported = false }: { imported?: boolean }) {
+  const { t } = useTranslation()
+  const privacy = useQuery(meQuery).data?.defaultActivityPrivacy ?? 'private'
+  const labels = {
+    private: t('social.private'),
+    followers: t('social.followersVisibility'),
+    public: t('social.public'),
+  }
+  return (
+    <p className="text-sm">
+      <Trans
+        i18nKey={imported ? 'activityPrivacy.importNote' : 'activityPrivacy.newNote'}
+        values={{ visibility: labels[privacy] }}
+        components={{ strong: <strong /> }}
+      />
+      {!imported && (
+        <>
+          {' '}
+          <Link to="/app/settings" className="underline underline-offset-4">
+            {t('activityPrivacy.changeDefault')}
+          </Link>
+        </>
+      )}
+      <SharingHints privacy={privacy} />
+    </p>
+  )
+}
 
 export function ActivityPrivacy() {
   const { t } = useTranslation()
