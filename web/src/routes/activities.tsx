@@ -10,6 +10,8 @@ import { GoalDialog, GoalList } from '@/components/goals'
 import { TrainingLoadWarning } from '@/components/training-load'
 import type { Goal } from '@/lib/goals'
 import { useState } from 'react'
+import { motion, useReducedMotion } from 'motion/react'
+import { Reveal } from '@/components/reveal'
 import { useTranslation } from 'react-i18next'
 import { useInfiniteQuery, useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
 import { getRouteApi, Link } from '@tanstack/react-router'
@@ -41,6 +43,7 @@ export function ActivitiesPage() {
     maximumFractionDigits: 2,
   })
   const queryClient = useQueryClient()
+  const reduceMotion = useReducedMotion()
   const tagOptions = useQuery(activityTagsQuery)
   const timeZone = Intl.DateTimeFormat().resolvedOptions().timeZone
   const years = useQuery(activityYearsQuery(timeZone))
@@ -105,30 +108,36 @@ export function ActivitiesPage() {
         />
       )}
       {!showOnboarding && (availableYears.length > 1 || year !== undefined) && (
-        <FormField layout="inline" label={t('activities.year')} className="mt-6">
-          {(id) => (
-            <select
-              id={id}
-              className="w-32 rounded-md border bg-background px-3 py-2 text-sm text-foreground"
-              value={year ?? ''}
-              onChange={(e) =>
-                void navigate({
-                  search: { year: e.target.value ? Number(e.target.value) : undefined, tag, sport },
-                })
-              }
-            >
-              <option value="">{t('activities.allYears')}</option>
-              {year !== undefined && !availableYears.includes(year) && (
-                <option value={year}>{year}</option>
-              )}
-              {availableYears.map((value) => (
-                <option key={value} value={value}>
-                  {value}
-                </option>
-              ))}
-            </select>
-          )}
-        </FormField>
+        <Reveal>
+          <FormField layout="inline" label={t('activities.year')} className="mt-6">
+            {(id) => (
+              <select
+                id={id}
+                className="w-32 rounded-md border bg-background px-3 py-2 text-sm text-foreground"
+                value={year ?? ''}
+                onChange={(e) =>
+                  void navigate({
+                    search: {
+                      year: e.target.value ? Number(e.target.value) : undefined,
+                      tag,
+                      sport,
+                    },
+                  })
+                }
+              >
+                <option value="">{t('activities.allYears')}</option>
+                {year !== undefined && !availableYears.includes(year) && (
+                  <option value={year}>{year}</option>
+                )}
+                {availableYears.map((value) => (
+                  <option key={value} value={value}>
+                    {value}
+                  </option>
+                ))}
+              </select>
+            )}
+          </FormField>
+        </Reveal>
       )}
       {years.error && (
         <div role="alert" className="mt-4 text-sm text-destructive">
@@ -226,7 +235,13 @@ export function ActivitiesPage() {
               )}
               <ul className="divide-y">
                 {period.activities.map((a) => (
-                  <li key={a.id} className="flex items-start justify-between gap-4 py-4">
+                  <motion.li
+                    key={a.id}
+                    className="flex items-start justify-between gap-4 py-4"
+                    initial={reduceMotion ? false : { opacity: 0, y: 8 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    transition={{ duration: 0.2, ease: 'easeOut' }}
+                  >
                     <div>
                       <Link
                         to="/app/activities/$activityId"
@@ -272,7 +287,7 @@ export function ActivitiesPage() {
                     >
                       {t('activities.delete')}
                     </Button>
-                  </li>
+                  </motion.li>
                 ))}
               </ul>
             </div>
