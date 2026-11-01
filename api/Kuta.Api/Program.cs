@@ -95,12 +95,13 @@ static async Task<int> RunAsync(string[] args)
         o.Cookie.SecurePolicy = cookieSecurePolicy;
     });
 
-    // Bromsar lösenordsgissning och massregistrering: 10 auth-anrop per 5 minuter och IP
+    // Bromsar lösenordsgissning och massregistrering: 10 auth-anrop per 5 minuter och IP (IPv6 per /64-nät).
+    // Inloggning och återställning har dessutom en gräns per e-postadress (AuthEndpoints).
     builder.Services.AddRateLimiter(o =>
     {
         o.RejectionStatusCode = StatusCodes.Status429TooManyRequests;
         o.AddPolicy("auth", ctx => RateLimitPartition.GetFixedWindowLimiter(
-            ctx.Connection.RemoteIpAddress?.ToString() ?? "unknown",
+            AuthEndpoints.ClientPartition(ctx.Connection.RemoteIpAddress),
             _ => new FixedWindowRateLimiterOptions { PermitLimit = 10, Window = TimeSpan.FromMinutes(5) }));
         // Filtolkning kostar minne och CPU: 30 uppladdningar/förhandsvisningar per 5 minuter och användare.
         // Gruppen kräver inloggning, och auktoriseringen körs före rate limiten.
