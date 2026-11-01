@@ -1,0 +1,40 @@
+web/src/locales/en.json
+  s_18157bd3682cdd::t_3ade57e7251527 678-679
+web/src/lib/activity-query.ts
+  s_18157bd3682cdd::t_911674c0fd5b2a 46-51
+  s_18157bd3682cdd::t_3ade57e7251527 5
+web/src/locales/sv.json
+  s_18157bd3682cdd::t_3ade57e7251527 678-679
+api/Kuta.Api.Tests/ActivityAccessTests.cs
+  s_18157bd3682cdd::t_57aeb68ac4da94 126-156
+api/Kuta.Api/ActivityEndpoints.cs
+  s_18157bd3682cdd::t_911674c0fd5b2a 78-85
+web/src/components/goals.tsx
+  s_18157bd3682cdd::t_3ade57e7251527 9,223-227,406-410
+AGENTS.md
+  s_1d8c41d0c04d95::t_c22f1ed3f381c6 81
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.7.5",
+  "base_commit_sha": "81f4cad4df1ec9af9e2694fd4bb144994006bb2f",
+  "prompts": {},
+  "sessions": {
+    "s_18157bd3682cdd": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "c8e5873c-f510-4ac1-8363-b864b8cfaff4",
+        "model": "claude-opus-5-5"
+      },
+      "human_author": "Simon Aunér <simonauner@gmail.com>"
+    },
+    "s_1d8c41d0c04d95": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "bdd1f4bc-6213-49a7-8e73-7e9172c83f8c",
+        "model": "unknown"
+      },
+      "human_author": "Simon Aunér <simonauner@gmail.com>"
+    }
+  }
+}
