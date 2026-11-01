@@ -635,7 +635,11 @@ scripts/fly-secrets.sh fly.toml --stage
 API-tester på exakt den commit som pushats till `main` (inklusive merge av en PR).
 När båda lyckas bygger Fly samma commits `Dockerfile` och deployar till `kuta`
 med `--remote-only --ha=false`. Flys hälsokontroll på `/api/health` kontrollerar
-att appen kommer upp; migreringarna körs vid start. Bara en deploy körs åt gången,
+att appen kommer upp; migreringarna körs vid start. Ersätter flyctl en maskin i
+stället för att uppdatera den kan den gamla bli kvar och startas igen med förra
+releasen, så deployen förstör efteråt maskiner som ligger på en äldre release.
+Efter en manuell deploy: kontrollera med `fly machines list` att bara en maskin
+finns kvar. Bara en deploy körs åt gången,
 en pågående deploy avbryts inte och commits som inte längre är toppen av `main`
 hoppas över. Även en push med enbart dokumentation kör kontroller och deploy.
 
