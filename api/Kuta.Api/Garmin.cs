@@ -169,8 +169,10 @@ public static class Garmin
         if (await AccessTokenAsync(conn, garmin, provider, userId, ct) is not { } token) return false;
         if (await garmin.DownloadAsync(file.CallbackUrl, token, ct) is not { } bytes) return false;
         ParsedActivity? parsed;
+        // As in the Strava import: the SDK throws more than FitException, and a file that always fails would stay first in
+        // the queue and block the user's later files until they expire.
         try { parsed = FitImport.Parse(bytes); }
-        catch (FitException) { parsed = null; }
+        catch (Exception e) when (e is not OperationCanceledException) { parsed = null; }
         if (parsed is null) return false;
         // Garmin's attribution should show the device name from the API; manual activities have 'unknown'.
         if (file.DeviceName is { Length: > 0 } device and not "unknown") parsed = parsed with { Device = device };
