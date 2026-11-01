@@ -95,4 +95,15 @@ public class RoutePrivacyTests
         Assert.Null(result.Lat![0]);
         Assert.Equal(0d, result.Lat[1]);
     }
+
+    [Fact]
+    public void Altitude_is_hidden_within_600_m_of_start_and_finish()
+    {
+        float?[] dist = [0, 600, 601, 1000, 1399, 1400, 2000];
+        var streams = new ActivityStreams(Enumerable.Range(0, dist.Length).ToArray(), dist, null, null,
+            [10, 11, 12, 13, 14, 15, 16], null, null, null, null);
+        Assert.Equal([null, null, 12, 13, 14, null, null], RoutePrivacy.HideEndpointAltitude(streams).Alt);
+        Assert.Null(RoutePrivacy.HideEndpointAltitude(streams with { Dist = null }).Alt);
+        Assert.Null(RoutePrivacy.HideEndpointAltitude(streams with { Dist = [0, 100, 200, 300, 400, 500, 1000] }).Alt);
+    }
 }

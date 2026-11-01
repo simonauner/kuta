@@ -51,7 +51,8 @@ eller radera pass. Befintliga listor, årsstatistik, utrustning och personliga r
 
 Delade pass visar beskrivning, taggar, sportdelar, träningsdata och passets bästa insatser.
 Puls (även tidsserier och varv), fullständiga GPS-tidsserier, klockmodell och utrustning
-skickas bara till ägaren. Flödets och profilens passkort visar kartminiatyrer från den sparade
+skickas bara till ägaren. Höjd inom 600 m från start och mål utelämnas också för andra, så att
+höjdprofilen inte kan matchas mot en höjdmodell för att hitta startpunkten. Flödets och profilens passkort visar kartminiatyrer från den sparade
 förenklade rutten. För andra än ägaren klipper PostGIS bort minst 500 meter runt originalets
 start- och slutpunkt samt ägarens sparade dolda platser med respektive radie, även vid återbesök; förenkling sker före klippning och separata delar
 förblir separata. Helt dolda eller saknade rutter ger ingen karta. Ägaren ser hela rutten.
