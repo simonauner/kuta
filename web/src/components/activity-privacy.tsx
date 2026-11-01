@@ -9,6 +9,7 @@ import { Modal } from '@/components/ui/modal'
 import { api } from '@/lib/api'
 import { SharingHints } from '@/components/privacy-places'
 import { meQuery, type Me } from '@/lib/auth'
+import { Select } from '@/components/ui/select'
 
 export function ActivityPrivacy() {
   const { t } = useTranslation()
@@ -44,9 +45,8 @@ export function ActivityPrivacy() {
       </h2>
       <FormField label={t('activityPrivacy.default')} className="text-sm font-medium mt-4">
         {(id) => (
-          <select
+          <Select
             id={id}
-            className="block w-full rounded-md border bg-background px-3 py-2"
             value={privacy}
             disabled={!me || save.isPending}
             aria-describedby="activity-privacy-help"
@@ -62,7 +62,7 @@ export function ActivityPrivacy() {
                 {label}
               </option>
             ))}
-          </select>
+          </Select>
         )}
       </FormField>
       <p id="activity-privacy-help" className="mt-2 text-sm text-muted-foreground">

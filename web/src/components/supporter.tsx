@@ -10,6 +10,7 @@ import { Input } from '@/components/ui/input'
 import { Modal } from '@/components/ui/modal'
 import { api } from '@/lib/api'
 import { meQuery, type Me, type SupporterTier } from '@/lib/auth'
+import { Select } from '@/components/ui/select'
 
 // Outline in the same tone as the records' metals; the fill gets the sheen stripe.
 const tierColors: Record<SupporterTier, string> = {
@@ -104,9 +105,8 @@ export function SupporterSection() {
 
       <FormField label={t('supporter.badgePrivacy')} className="mt-6 text-sm font-medium">
         {(id) => (
-          <select
+          <Select
             id={id}
-            className="block w-full rounded-md border bg-background px-3 py-2"
             value={supporter?.badgePrivacy ?? 'private'}
             disabled={!me || save.isPending}
             aria-describedby="supporter-badge-help"
@@ -115,7 +115,7 @@ export function SupporterSection() {
             <option value="private">{t('social.private')}</option>
             <option value="followers">{t('social.followersVisibility')}</option>
             <option value="public">{t('social.public')}</option>
-          </select>
+          </Select>
         )}
       </FormField>
       <p id="supporter-badge-help" className="mt-2 text-sm text-muted-foreground">

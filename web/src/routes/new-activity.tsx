@@ -33,6 +33,7 @@ import { meQuery } from '@/lib/auth'
 import { equipmentQuery, lastUsedShoeQuery, type Equipment } from '@/lib/equipment'
 import { refreshActivityQueries } from '@/lib/activity-query'
 import { TagPicker } from '@/components/activity-tags'
+import { Select } from '@/components/ui/select'
 
 // What the API reads from a FIT file, without saving anything (POST /api/activities/preview)
 type ActivityPreview = {
@@ -252,19 +253,18 @@ export function NewActivityPage() {
           </FormField>
           <FormField label={t('newActivity.sport')}>
             {(id) => (
-              <select
+              <Select
                 id={id}
                 value={selectedSport}
                 disabled={!!importedMultisport || !!split}
                 onChange={(e) => setSport(e.currentTarget.value)}
-                className="h-9 w-full rounded-md border border-input bg-transparent px-3 text-base shadow-xs outline-none focus-visible:border-ring focus-visible:ring-[3px] focus-visible:ring-ring/50 md:text-sm dark:bg-input/30"
               >
                 {sportOptions.map((s) => (
                   <option key={s} value={s}>
                     {t(`newActivity.sports.${s}`)}
                   </option>
                 ))}
-              </select>
+              </Select>
             )}
           </FormField>
           <FormField
@@ -286,13 +286,12 @@ export function NewActivityPage() {
             }
           >
             {(id) => (
-              <select
+              <Select
                 ref={shoeSelect}
                 id={id}
                 value={shoeId}
                 onChange={(e) => setShoeChoice(e.currentTarget.value)}
                 disabled={shoes.isPending || !!shoes.error}
-                className="h-9 w-full rounded-md border border-input bg-transparent px-3 text-base shadow-xs outline-none focus-visible:border-ring focus-visible:ring-[3px] focus-visible:ring-ring/50 md:text-sm dark:bg-input/30"
               >
                 <option value="">{t('shoes.none')}</option>
                 {activeShoes.map((shoe) => (
@@ -301,7 +300,7 @@ export function NewActivityPage() {
                     {shoe.brand ? ` (${shoe.brand})` : ''}
                   </option>
                 ))}
-              </select>
+              </Select>
             )}
           </FormField>
           {(shoes.error || lastUsedShoe.error) && (

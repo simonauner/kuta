@@ -20,8 +20,7 @@ import {
   type StoredBestEffort,
 } from '@/lib/records'
 import { Card } from '@/components/ui/card'
-
-const selectClass = 'rounded-md border bg-background px-3 py-2 text-sm text-foreground'
+import { Select } from '@/components/ui/select'
 
 function QueryError({ error, retry }: { error: Error; retry: () => void }) {
   const { t } = useTranslation()
@@ -151,9 +150,9 @@ export function RecordsSection({ year }: { year: number }) {
           className="justify-between text-sm font-medium"
         >
           {(id) => (
-            <select
+            <Select
               id={id}
-              className={selectClass}
+              className="w-fit"
               value={distance}
               onChange={(e) => setDistance(Number(e.target.value) as RecordDistance)}
             >
@@ -162,7 +161,7 @@ export function RecordsSection({ year }: { year: number }) {
                   {distanceLabel(d)}
                 </option>
               ))}
-            </select>
+            </Select>
           )}
         </FormField>
         {trend.error && <QueryError error={trend.error} retry={() => void trend.refetch()} />}

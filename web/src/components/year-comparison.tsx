@@ -16,8 +16,8 @@ import {
   type YearMetric,
 } from '@/lib/year-comparison'
 import { Card } from '@/components/ui/card'
+import { Select } from '@/components/ui/select'
 
-const selectClass = 'rounded-md border bg-background px-3 py-2 text-sm text-foreground'
 const shownYears = 5
 
 // Accumulated volume per year on the same calendar, with the selected year highlighted and comparison at the same date.
@@ -86,9 +86,9 @@ export function YearComparison({ year, sportGroup }: { year: number; sportGroup:
         </div>
         <FormField label={t('yearComparison.metric')} className="text-sm font-medium">
           {(id) => (
-            <select
+            <Select
               id={id}
-              className={selectClass}
+              className="w-fit"
               value={metric}
               onChange={(e) => setMetric(e.target.value as YearMetric)}
             >
@@ -97,7 +97,7 @@ export function YearComparison({ year, sportGroup }: { year: number; sportGroup:
                   {t(`yearComparison.metrics.${key}`)}
                 </option>
               ))}
-            </select>
+            </Select>
           )}
         </FormField>
       </div>

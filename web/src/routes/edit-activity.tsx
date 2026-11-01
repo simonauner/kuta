@@ -15,6 +15,7 @@ import { ApiError, api } from '@/lib/api'
 import { activityQuery, refreshActivityQueries } from '@/lib/activity-query'
 import { SharingHints } from '@/components/privacy-places'
 import { activityTitle, type ActivityDetail } from '@/lib/activity'
+import { Select } from '@/components/ui/select'
 
 export function EditActivityPage() {
   const { activityId } = useParams({ from: '/app/activities/$activityId/edit' })
@@ -109,9 +110,8 @@ function EditActivityForm({ activity }: { activity: ActivityDetail }) {
         <FormField label={t('social.visibility')} className="text-sm font-medium">
           {(id) => (
             <>
-              <select
+              <Select
                 id={id}
-                className="block w-full rounded-md border bg-background px-3 py-2"
                 value={privacy}
                 disabled={save.isPending}
                 onChange={(event) => setPrivacy(event.target.value as ActivityDetail['privacy'])}
@@ -119,7 +119,7 @@ function EditActivityForm({ activity }: { activity: ActivityDetail }) {
                 <option value="private">{t('social.private')}</option>
                 <option value="followers">{t('social.followersVisibility')}</option>
                 <option value="public">{t('social.public')}</option>
-              </select>
+              </Select>
               <span className="mt-2 block text-xs font-normal text-muted-foreground">
                 {t('social.sharingHint')}
               </span>

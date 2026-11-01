@@ -16,6 +16,7 @@ import { formatDuration } from '@/lib/activity'
 import { sportGroupsQuery, activityYearsQuery } from '@/lib/activity-query'
 import { sportGroupLabel } from '@/lib/sport-groups'
 import { card } from '@/components/ui/card-variants'
+import { Select } from '@/components/ui/select'
 
 type StatisticsMonth = {
   month: number
@@ -67,7 +68,6 @@ export function StatsPage() {
     if (key === 'paceSPerKm') return `${formatDuration(Math.round(value))} /km`
     return `${number.format(value)} bpm`
   }
-  const selectClass = 'rounded-md border bg-background px-3 py-2 text-sm text-foreground'
 
   if (years.isPending || hasNoActivities) {
     return (
@@ -89,9 +89,9 @@ export function StatsPage() {
       <div className="mt-6 flex flex-wrap gap-4">
         <FormField label={t('activities.year')} className="text-sm font-medium">
           {(id) => (
-            <select
+            <Select
               id={id}
-              className={selectClass}
+              className="w-fit"
               value={year}
               onChange={(e) => setYear(Number(e.target.value))}
             >
@@ -100,14 +100,14 @@ export function StatsPage() {
                   {value}
                 </option>
               ))}
-            </select>
+            </Select>
           )}
         </FormField>
         <FormField label={t('newActivity.sport')} className="text-sm font-medium">
           {(id) => (
-            <select
+            <Select
               id={id}
-              className={selectClass}
+              className="w-fit"
               value={sportGroup}
               onChange={(e) => setSportGroup(e.target.value)}
             >
@@ -117,7 +117,7 @@ export function StatsPage() {
                   {sportGroupLabel(key, t)}
                 </option>
               ))}
-            </select>
+            </Select>
           )}
         </FormField>
       </div>
@@ -174,9 +174,9 @@ export function StatsPage() {
                   className="justify-between text-sm font-medium"
                 >
                   {(id) => (
-                    <select
+                    <Select
                       id={id}
-                      className={selectClass}
+                      className="w-fit"
                       value={metric}
                       onChange={(e) => setMetric(e.target.value as Metric)}
                     >
@@ -185,7 +185,7 @@ export function StatsPage() {
                           {t(`stats.${key}`)}
                         </option>
                       ))}
-                    </select>
+                    </Select>
                   )}
                 </FormField>
                 <p className="mt-3 text-xs text-muted-foreground">

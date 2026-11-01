@@ -16,6 +16,7 @@ import { Button } from '@/components/ui/button'
 import { ConfirmationModal } from '@/components/ui/confirmation-modal'
 import { Input } from '@/components/ui/input'
 import { ErrorMessage } from '@/components/error-message'
+import { Select as NativeSelect } from '@/components/ui/select'
 
 export function EquipmentSection() {
   const { t, i18n } = useTranslation()
@@ -237,9 +238,8 @@ export function EquipmentSection() {
             {kinds.data && kinds.data.length > 1 && (
               <FormField label={t('equipment.kind')} className="text-sm font-medium">
                 {(id) => (
-                  <select
+                  <NativeSelect
                     id={id}
-                    className="h-9 w-full rounded-md border bg-background px-3"
                     value={selectedKind}
                     onChange={(e) => setKind(e.currentTarget.value)}
                   >
@@ -248,7 +248,7 @@ export function EquipmentSection() {
                         {t(`equipmentKinds.${value}`)}
                       </option>
                     ))}
-                  </select>
+                  </NativeSelect>
                 )}
               </FormField>
             )}

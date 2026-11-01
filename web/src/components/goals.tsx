@@ -31,6 +31,7 @@ import { Modal } from '@/components/ui/modal'
 import { ErrorMessage } from '@/components/error-message'
 import { SportIcon } from '@/components/sport-icon'
 import { card } from '@/components/ui/card-variants'
+import { Select } from '@/components/ui/select'
 
 // Under 'activities' so that new, edited and deleted activities also refresh the goals.
 const goalsQueryKey = (timeZone: string) => ['activities', 'goals', timeZone]
@@ -266,7 +267,6 @@ export function GoalDialog({ goal, onClose }: { goal: Goal | null; onClose: () =
     if (!busy && parsedTarget !== null) save.mutate()
   }
 
-  const selectClass = 'h-9 w-full rounded-md border bg-background px-3 text-sm'
   return (
     <Modal
       ref={dialog}
@@ -285,9 +285,8 @@ export function GoalDialog({ goal, onClose }: { goal: Goal | null; onClose: () =
           <FormField label={t('activities.sport')} className="text-sm font-medium col-span-2">
             {(id) => (
               <>
-                <select
+                <Select
                   id={id}
-                  className={selectClass}
                   value={sportGroup}
                   aria-describedby={
                     included && included.length > 1 ? 'goal-sport-included' : undefined
@@ -302,7 +301,7 @@ export function GoalDialog({ goal, onClose }: { goal: Goal | null; onClose: () =
                       </option>
                     ),
                   )}
-                </select>
+                </Select>
                 {included && included.length > 1 && (
                   <span
                     id="goal-sport-included"
@@ -325,9 +324,8 @@ export function GoalDialog({ goal, onClose }: { goal: Goal | null; onClose: () =
           )}
           <FormField label={t('goals.metric')} className="text-sm font-medium">
             {(id) => (
-              <select
+              <Select
                 id={id}
-                className={selectClass}
                 value={metric}
                 onChange={(e) => setMetric(e.currentTarget.value as GoalMetric)}
               >
@@ -336,7 +334,7 @@ export function GoalDialog({ goal, onClose }: { goal: Goal | null; onClose: () =
                     {t(`goals.metrics.${value}`)}
                   </option>
                 ))}
-              </select>
+              </Select>
             )}
           </FormField>
           <FormField label={t(`goals.targetLabel.${metric}`)} className="text-sm font-medium">
@@ -355,9 +353,8 @@ export function GoalDialog({ goal, onClose }: { goal: Goal | null; onClose: () =
           </FormField>
           <FormField label={t('goals.period')} className="text-sm font-medium">
             {(id) => (
-              <select
+              <Select
                 id={id}
-                className={selectClass}
                 value={period}
                 onChange={(e) => setPeriod(e.currentTarget.value as GoalPeriod)}
               >
@@ -366,14 +363,13 @@ export function GoalDialog({ goal, onClose }: { goal: Goal | null; onClose: () =
                     {t(`goals.periods.${value}`)}
                   </option>
                 ))}
-              </select>
+              </Select>
             )}
           </FormField>
           <FormField label={t('goals.repeat')} className="text-sm font-medium">
             {(id) => (
-              <select
+              <Select
                 id={id}
-                className={selectClass}
                 value={recurring ? 'recurring' : 'once'}
                 onChange={(e) => setRecurring(e.currentTarget.value === 'recurring')}
               >
@@ -383,15 +379,14 @@ export function GoalDialog({ goal, onClose }: { goal: Goal | null; onClose: () =
                     ? t('goals.onceSaved')
                     : t(`goals.onceCurrent.${period}`)}
                 </option>
-              </select>
+              </Select>
             )}
           </FormField>
           <FormField label={t('goals.visibility')} className="text-sm font-medium col-span-2">
             {(id) => (
               <>
-                <select
+                <Select
                   id={id}
-                  className={selectClass}
                   value={privacy}
                   aria-describedby="goal-visibility-help"
                   onChange={(e) => setPrivacy(e.currentTarget.value as GoalPrivacy)}
@@ -401,7 +396,7 @@ export function GoalDialog({ goal, onClose }: { goal: Goal | null; onClose: () =
                       {privacyLabel(value)}
                     </option>
                   ))}
-                </select>
+                </Select>
                 <span
                   id="goal-visibility-help"
                   className="mt-2 block text-xs font-normal text-muted-foreground"

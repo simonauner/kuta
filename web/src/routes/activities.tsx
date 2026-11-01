@@ -28,6 +28,7 @@ import {
   type ActivityCursor,
   type ActivityPage,
 } from '@/lib/activity'
+import { Select } from '@/components/ui/select'
 
 const route = getRouteApi('/app/activities')
 
@@ -118,9 +119,9 @@ export function ActivitiesPage() {
         <Reveal>
           <FormField layout="inline" label={t('activities.year')} className="mt-6">
             {(id) => (
-              <select
+              <Select
                 id={id}
-                className="w-32 rounded-md border bg-background px-3 py-2 text-sm text-foreground"
+                className="w-32"
                 value={year ?? ''}
                 onChange={(e) =>
                   void navigate({
@@ -141,7 +142,7 @@ export function ActivitiesPage() {
                     {value}
                   </option>
                 ))}
-              </select>
+              </Select>
             )}
           </FormField>
         </Reveal>
@@ -163,9 +164,9 @@ export function ActivitiesPage() {
         <>
           <FormField layout="inline" label={t('tags.label')} className="mt-5 text-sm">
             {(id) => (
-              <select
+              <Select
                 id={id}
-                className="w-44 rounded-md border bg-background px-3 py-2"
+                className="w-44"
                 value={tag ?? ''}
                 onChange={(e) =>
                   void navigate({
@@ -179,14 +180,14 @@ export function ActivitiesPage() {
                     {t(`tagNames.${value}`)}
                   </option>
                 ))}
-              </select>
+              </Select>
             )}
           </FormField>
           <FormField layout="inline" label={t('activities.sport')} className="mt-5 text-sm">
             {(id) => (
-              <select
+              <Select
                 id={id}
-                className="w-52 rounded-md border bg-background px-3 py-2"
+                className="w-52"
                 value={sport ?? ''}
                 onChange={(e) =>
                   void navigate({
@@ -200,7 +201,7 @@ export function ActivitiesPage() {
                     {t(`newActivity.sports.${value}`)}
                   </option>
                 ))}
-              </select>
+              </Select>
             )}
           </FormField>
         </>

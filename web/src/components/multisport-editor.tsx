@@ -16,6 +16,7 @@ import {
   type MultisportDraft,
 } from '@/lib/multisport'
 import { card } from '@/components/ui/card-variants'
+import { Select } from '@/components/ui/select'
 
 const MultisportPreview = lazy(() => import('./multisport-preview'))
 
@@ -103,9 +104,9 @@ export function MultisportEditor({
           <p className="text-sm text-muted-foreground">{t('multisport.instructions')}</p>
           <FormField layout="inline" label={t('multisport.kind')} className="text-sm">
             {(id) => (
-              <select
+              <Select
                 id={id}
-                className="rounded-md border bg-background p-2"
+                className="w-fit"
                 value={kind}
                 disabled={disabled}
                 onChange={(e) => {
@@ -117,7 +118,7 @@ export function MultisportEditor({
                     {t(sportNameKey(k))}
                   </option>
                 ))}
-              </select>
+              </Select>
             )}
           </FormField>
         </>
@@ -166,9 +167,9 @@ export function MultisportEditor({
                       className="relative z-10"
                     >
                       {(id) => (
-                        <select
+                        <Select
                           id={id}
-                          className="relative z-10 rounded-md border bg-background p-2 text-sm"
+                          className="relative z-10 w-fit"
                           value={p.sport}
                           onChange={(e) =>
                             update(
@@ -181,7 +182,7 @@ export function MultisportEditor({
                               {t(sportNameKey(s))}
                             </option>
                           ))}
-                        </select>
+                        </Select>
                       )}
                     </FormField>
                   )}
