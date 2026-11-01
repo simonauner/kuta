@@ -126,7 +126,8 @@ public static class ActivityEndpoints
                 new ActivityStreams(p.T, p.Dist, p.Hr, p.Speed, p.Alt, p.Lat, p.Lon, p.Cadence, p.Temp),
                 p.Parts ?? [], Multisport.CanSplit(p.T, p.Dist)));
         })
-        .DisableAntiforgery();
+        .DisableAntiforgery()
+        .RequireRateLimiting("uploads");
 
         // Manuellt pass utan fil: bara sammanfattning, inga tidsserier eller rekord
         activities.MapPost("/manual", async (ManualActivityRequest req, NpgsqlDataSource db, ClaimsPrincipal user,
@@ -195,7 +196,8 @@ public static class ActivityEndpoints
                 id.Value, split?.Kind ?? parsed.Sport, title, parsed.StartedAt, parsed.DurationS, split is null ? parsed.DistanceM : Multisport.Build(split, parsed.T, parsed.Dist)!.Sum(p => p.DistanceM), parsed.AvgHr, ActivityInput.NormalizeTags(tags), equipmentIds.Distinct().ToArray()));
         })
         // CSRF-token kontrolleras av filtret i AuthEndpoints (X-CSRF-TOKEN), inte av ramverkets formulärkontroll
-        .DisableAntiforgery();
+        .DisableAntiforgery()
+        .RequireRateLimiting("uploads");
 
         activities.MapPut("/{id:guid}", async (Guid id, ActivityUpdateRequest req,
             NpgsqlDataSource db, ClaimsPrincipal user) =>

@@ -54,6 +54,7 @@ public static class StravaImportEndpoint
             return Results.Accepted($"/api/jobs/{job.Id}", JobResponse.From(job));
         })
         .DisableAntiforgery()
+        .RequireRateLimiting("uploads")
         .WithMetadata(new RequestSizeLimitAttribute(MaxArchiveBytes + 1024 * 1024),
             new RequestFormLimitsAttribute { MultipartBodyLengthLimit = MaxArchiveBytes });
     }

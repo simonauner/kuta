@@ -28,6 +28,20 @@ public static class FitImport
     // Ungefär 5 meter: nog för att rita rutten, och mycket färre punkter än en per sekund
     private const double RouteToleranceDegrees = 0.00005;
     private static readonly GeometryFactory Wgs84 = new(new PrecisionModel(), 4326);
+    // Knappt 6 dygn med en punkt per sekund. Taket skyddar minnet: en mätpunkt kan ta bara några byte i filen.
+    public const int MaxRecords = 500_000;
+    private const int MaxMessages = 10_000;
+
+    // Bara de värden vi använder ur en record; SDK:ns meddelandeobjekt tar flera hundra byte styck.
+    private readonly record struct Sample(System.DateTime? Time, int? Lat, int? Lon, float? Dist, byte? Hr, float? Speed,
+        float? Alt, byte? Cadence, float? FractionalCadence, sbyte? Temp)
+    {
+        public static Sample From(RecordMesg r) => new(r.GetTimestamp()?.GetDateTime(), r.GetPositionLat(), r.GetPositionLong(),
+            r.GetDistance(), r.GetHeartRate(), r.GetEnhancedSpeed() ?? r.GetSpeed(), r.GetEnhancedAltitude() ?? r.GetAltitude(),
+            r.GetCadence(), r.GetFractionalCadence(), r.GetTemperature());
+    }
+
+    private sealed class TooLargeException : Exception;
 
     // Null när filen inte är en FIT-fil med ett pass (session) i.
     public static ParsedActivity? Parse(byte[] file)
@@ -38,19 +52,25 @@ public static class FitImport
 
         var broadcaster = new MesgBroadcaster();
         var sessions = new List<SessionMesg>();
-        var records = new List<RecordMesg>();
+        var records = new List<Sample>();
         var laps = new List<LapMesg>();
         var devices = new List<DeviceInfoMesg>();
         FileIdMesg? fileId = null;
         decoder.MesgEvent += broadcaster.OnMesg;
         decoder.MesgDefinitionEvent += broadcaster.OnMesgDefinition;
-        broadcaster.SessionMesgEvent += (_, e) => sessions.Add((SessionMesg)e.mesg);
-        broadcaster.RecordMesgEvent += (_, e) => records.Add((RecordMesg)e.mesg);
-        broadcaster.LapMesgEvent += (_, e) => laps.Add((LapMesg)e.mesg);
-        broadcaster.DeviceInfoMesgEvent += (_, e) => devices.Add((DeviceInfoMesg)e.mesg);
+        void Add<T>(List<T> list, T item, int max)
+        {
+            if (list.Count >= max) throw new TooLargeException();
+            list.Add(item);
+        }
+        broadcaster.SessionMesgEvent += (_, e) => Add(sessions, (SessionMesg)e.mesg, MaxMessages);
+        broadcaster.RecordMesgEvent += (_, e) => Add(records, Sample.From((RecordMesg)e.mesg), MaxRecords);
+        broadcaster.LapMesgEvent += (_, e) => Add(laps, (LapMesg)e.mesg, MaxMessages);
+        broadcaster.DeviceInfoMesgEvent += (_, e) => Add(devices, (DeviceInfoMesg)e.mesg, MaxMessages);
         broadcaster.FileIdMesgEvent += (_, e) => fileId ??= (FileIdMesg)e.mesg;
         stream.Position = 0;
-        if (!decoder.Read(stream) || sessions.Count == 0) return null;
+        try { if (!decoder.Read(stream) || sessions.Count == 0) return null; }
+        catch (TooLargeException) { return null; }
 
         if (sessions.Count == 1) return ParseSession(sessions[0], records, laps, fileId, devices);
         if (sessions.Count > 200) return null;
@@ -60,7 +80,7 @@ public static class FitImport
             var from = session.GetStartTime()?.GetDateTime();
             var until = session.GetTimestamp()?.GetDateTime();
             return ParseSession(session,
-                records.Where(r => r.GetTimestamp()?.GetDateTime() >= from && (r.GetTimestamp()?.GetDateTime() < until || session == ordered[^1] && r.GetTimestamp()?.GetDateTime() == until)).ToList(),
+                records.Where(r => r.Time >= from && (r.Time < until || session == ordered[^1] && r.Time == until)).ToList(),
                 laps.Where(l => l.GetStartTime()?.GetDateTime() >= from && l.GetStartTime()?.GetDateTime() < until).ToList(), fileId, devices);
         }).OfType<ParsedActivity>().ToArray();
         if (legs.Length != sessions.Count || legs.Any(l => l.DurationS <= 0)) return null;
@@ -121,20 +141,19 @@ public static class FitImport
         };
     }
 
-    private static ParsedActivity? ParseSession(SessionMesg session, List<RecordMesg> records, List<LapMesg> laps,
+    private static ParsedActivity? ParseSession(SessionMesg session, List<Sample> records, List<LapMesg> laps,
         FileIdMesg? fileId, List<DeviceInfoMesg> devices)
     {
-        var start = session.GetStartTime()?.GetDateTime() ?? records.FirstOrDefault()?.GetTimestamp()?.GetDateTime();
+        var start = session.GetStartTime()?.GetDateTime() ?? (records.Count > 0 ? records[0].Time : null);
         if (start is not { } startedAt) return null;
 
-        records = records.Where(r => r.GetTimestamp() is not null).ToList();
-        var lat = Channel(records, r => r.GetPositionLat() is { } v ? v * DegreesPerSemicircle : (double?)null);
-        var lon = Channel(records, r => r.GetPositionLong() is { } v ? v * DegreesPerSemicircle : (double?)null);
-        var dist = Channel(records, r => r.GetDistance());
+        records = records.Where(r => r.Time is not null).ToList();
+        var lat = Channel(records, r => r.Lat is { } v ? v * DegreesPerSemicircle : (double?)null);
+        var lon = Channel(records, r => r.Lon is { } v ? v * DegreesPerSemicircle : (double?)null);
+        var dist = Channel(records, r => r.Dist);
         // FIT anger löp- och gångkadens per ben (varv/min); steg/min är det dubbla. Cykling är redan varv/min.
         var stepsPerCycle = session.GetSport() is Sport.Running or Sport.Walking or Sport.Hiking ? 2 : 1;
-        int Seconds(Dynastream.Fit.DateTime? time) =>
-            time is null ? 0 : (int)Math.Round((time.GetDateTime() - startedAt).TotalSeconds);
+        int Seconds(System.DateTime? time) => time is { } t ? (int)Math.Round((t - startedAt).TotalSeconds) : 0;
         short? Cadence(byte? cadence, float? fractional) =>
             cadence is { } c ? (short)Math.Round((c + (fractional ?? 0)) * stepsPerCycle) : null;
 
@@ -150,17 +169,17 @@ public static class FitImport
             ElevationGainM: session.GetTotalAscent(),
             Route: Route(lat, lon),
             Device: Device(fileId, devices),
-            T: records.Select(r => Seconds(r.GetTimestamp())).ToArray(),
+            T: records.Select(r => Seconds(r.Time)).ToArray(),
             Dist: dist,
-            Hr: Channel(records, r => (short?)r.GetHeartRate()),
-            Speed: Channel(records, r => r.GetEnhancedSpeed() ?? r.GetSpeed()),
-            Alt: Channel(records, r => r.GetEnhancedAltitude() ?? r.GetAltitude()),
+            Hr: Channel(records, r => (short?)r.Hr),
+            Speed: Channel(records, r => r.Speed),
+            Alt: Channel(records, r => r.Alt),
             Lat: lat,
             Lon: lon,
-            Cadence: Channel(records, r => Cadence(r.GetCadence(), r.GetFractionalCadence())),
-            Temp: Channel(records, r => (short?)r.GetTemperature()),
+            Cadence: Channel(records, r => Cadence(r.Cadence, r.FractionalCadence)),
+            Temp: Channel(records, r => (short?)r.Temp),
             Laps: laps.Select(l => new ParsedLap(
-                StartS: Seconds(l.GetStartTime()),
+                StartS: Seconds(l.GetStartTime()?.GetDateTime()),
                 DurationS: (int)Math.Round(l.GetTotalElapsedTime() ?? 0),
                 MovingS: l.GetTotalTimerTime() is { } lapTimer ? (int)Math.Round(lapTimer) : null,
                 DistanceM: l.GetTotalDistance() ?? 0,
@@ -196,7 +215,7 @@ public static class FitImport
             ? System.Text.RegularExpressions.Regex.Replace(name, "(?<=[a-z])(?=[0-9])", " ")
             : null;
 
-    private static T?[]? Channel<T>(List<RecordMesg> records, Func<RecordMesg, T?> read) where T : struct
+    private static T?[]? Channel<T>(List<Sample> records, Func<Sample, T?> read) where T : struct
     {
         var values = records.Select(read).ToArray();
         return values.Any(v => v is not null) ? values : null;

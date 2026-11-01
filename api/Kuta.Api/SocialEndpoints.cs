@@ -107,16 +107,27 @@ public static class SocialEndpoints
         });
     }
 
+    // Moves a point up to maxOffset metres in a direction derived from the owner's secret seed and key. The same key
+    // always gives the same offset, so averaging many activities from the same place does not reveal it.
+    static string ZoneShift(string point, string key, string maxOffset) => $"""
+        st_project({point}, {maxOffset} * {SeedFraction(key, 1)}, 2 * pi() * {SeedFraction(key, 9)})
+        """;
+
+    static string SeedFraction(string key, int start) =>
+        $"(('x' || substr(md5(page.privacy_seed::text || ':' || {key}), {start}, 8))::bit(32)::bigint / 4294967296.0)";
+
     public static async Task<FeedPage> ReadFeedAsync(NpgsqlConnection conn, Guid userId,
         DateTimeOffset? beforeStartedAt = null, Guid? beforeId = null, Guid? runnerId = null)
     {
-        // Limit before route processing. The 510 m buffers allow polygon/rounding error while hiding at least 500 m.
+        // Limit before route processing. Every zone centre is moved by a secret, stable offset (ZoneShift) and the radius
+        // grows by the largest offset, so the true point stays at least 500 m (or the place's radius) inside the zone while
+        // the clip points no longer lie on a circle around it. The extra 10 m allow polygon/rounding error.
         // Simplify before clipping so simplification cannot reconnect a line through a protected zone.
         var rows = (await conn.QueryAsync<FeedItem>($"""
             with page as materialized (
                 select a.id, a.user_id, u.display_name, a.sport, a.title, a.started_at, a.duration_s,
                     coalesce((select sum(p.distance_m) from activity_parts p where p.activity_id = a.id
-                        and p.original = not a.parts_edited), a.distance_m) as distance_m, a.privacy, a.route,
+                        and p.original = not a.parts_edited), a.distance_m) as distance_m, a.privacy, a.route, u.privacy_seed,
                     {Supporters.VisibleTier} as supporter_tier, {GarminAttribution.Sql("a")} as attribution
                 from activities a join users u on u.id = a.user_id
                 where {CanRead} and (
@@ -127,16 +138,17 @@ public static class SocialEndpoints
                 order by a.started_at desc, a.id desc limit 26
             )
             select id, user_id, display_name, sport, title, started_at, duration_s, distance_m, privacy,
-                case when st_isempty(preview.route) then null else st_asgeojson(preview.route, 6) end as route_geo_json,
+                case when st_isempty(preview.route) then null else st_asgeojson(preview.route, 4) end as route_geo_json,
                 supporter_tier, attribution
             from page
             cross join lateral (
                 select st_unaryunion(st_collect(zone)) as areas from (
-                    select st_buffer(st_startpoint(route::geometry)::geography, 510)::geometry as zone
+                    select st_buffer({ZoneShift("st_startpoint(route::geometry)::geography", "'route'", "200")}, 710)::geometry as zone
                     union all
-                    select st_buffer(st_endpoint(route::geometry)::geography, 510)::geometry
+                    select st_buffer({ZoneShift("st_endpoint(route::geometry)::geography", "'route'", "200")}, 710)::geometry
                     union all
-                    select st_buffer(st_setsrid(st_makepoint(longitude, latitude), 4326)::geography, radius_m + 10)::geometry
+                    select st_buffer({ZoneShift("st_setsrid(st_makepoint(longitude, latitude), 4326)::geography", "privacy_places.id::text", "0.4 * radius_m")},
+                        1.4 * radius_m + 10)::geometry
                     from privacy_places where user_id = page.user_id
                 ) hidden where page.user_id <> @userId
             ) zones

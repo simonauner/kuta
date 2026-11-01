@@ -159,7 +159,11 @@ Listan har `Cache-Control: no-store`. Migrering 014 skapar `privacy_places` med
 Delade kartminiatyrer i flöde och profiler klipps i PostGIS mot ägarens aktuella platser,
 med respektive radie, och minst 500 meter runt start och mål. Förenklingen sker före
 klippningen; separata linjer sammanfogas aldrig över skyddade områden. Det gäller även
-äldre pass. Ägaren får hela rutten, och delade detaljsvar utelämnar GPS-tidsserier helt.
+äldre pass. Zonernas mittpunkter flyttas med en hemlig, stabil förskjutning per användare
+(`users.privacy_seed`, migrering 023): högst 200 m för start och mål och 40 % av radien för
+dolda platser, och radien växer lika mycket. Annars ligger klippunkterna på en cirkel runt den
+skyddade punkten, och flera pass räcker för att räkna fram den. Koordinaterna avrundas till
+4 decimaler. Ägaren får hela rutten, och delade detaljsvar utelämnar GPS-tidsserier helt.
 Sparade privata platsers namn och mittpunkter skickas aldrig till andra mottagare.
 
 Projektionen ändrar bara svarets koordinater. Sparad rutt, råfil, tidsserier, rekord,
