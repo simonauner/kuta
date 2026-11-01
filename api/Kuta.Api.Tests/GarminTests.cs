@@ -154,6 +154,22 @@ public class GarminTests(KutaFactory factory) : IClassFixture<KutaFactory>
     }
 
     [Fact]
+    public void Before_launch_only_listed_accounts_may_connect()
+    {
+        var (listed, other) = (Guid.NewGuid(), Guid.NewGuid());
+        GarminClient With(Dictionary<string, string?> settings) => new(new HttpClient(new FakeGarmin([])),
+            new ConfigurationBuilder().AddInMemoryCollection(settings).Build());
+        var keys = new Dictionary<string, string?> { ["Garmin:ClientId"] = "id", ["Garmin:ClientSecret"] = "secret" };
+
+        Assert.False(With(keys).AvailableTo(listed));
+        var allowList = With(new(keys) { ["Garmin:AllowedUserIds"] = $"not-a-guid, {listed}" });
+        Assert.True(allowList.AvailableTo(listed));
+        Assert.False(allowList.AvailableTo(other));
+        Assert.True(With(new(keys) { ["Garmin:OpenToAll"] = "true" }).AvailableTo(other));
+        Assert.False(With(new() { ["Garmin:OpenToAll"] = "true" }).AvailableTo(other));
+    }
+
+    [Fact]
     public void Push_source_must_be_in_Garmins_networks()
     {
         Assert.True(GarminEndpoints.FromGarmin(IPAddress.Parse("204.77.163.10")));

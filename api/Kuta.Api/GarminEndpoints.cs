@@ -53,14 +53,14 @@ public static class GarminEndpoints
             var connection = await conn.QuerySingleOrDefaultAsync<Connection>(new CommandDefinition(
                 "select @permission = any(permissions) as activity_export, created_at from garmin_connections where user_id = @userId",
                 new { userId = user.GetUserId(), permission = GarminClient.ActivityExport }, cancellationToken: ct));
-            return Results.Ok(new GarminStatus(client.Configured, connection is not null,
+            return Results.Ok(new GarminStatus(client.AvailableTo(user.GetUserId()), connection is not null,
                 connection?.ActivityExport ?? false, connection?.CreatedAt));
         });
 
         // Puts a PKCE verifier and state in an encrypted cookie and returns the URL of Garmin's consent page.
         garmin.MapPost("/connect", (HttpContext http, GarminClient client, ClaimsPrincipal user) =>
         {
-            if (!client.Configured)
+            if (!client.AvailableTo(user.GetUserId()))
                 return Results.Json(new ApiError("Garmin Connect är inte tillgängligt just nu.", "garminUnavailable"),
                     statusCode: StatusCodes.Status503ServiceUnavailable);
             var ticket = new OAuthTicket(user.GetUserId(), GarminClient.Base64Url(RandomNumberGenerator.GetBytes(32)),
