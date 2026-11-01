@@ -9,6 +9,7 @@ import { Modal } from '@/components/ui/modal'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { ErrorMessage } from '@/components/error-message'
+import { Link } from '@tanstack/react-router'
 
 const PlaceMap = lazy(() => import('./privacy-place-map'))
 type PrivacyPlace = {
@@ -20,6 +21,34 @@ type PrivacyPlace = {
 }
 const queryKey = ['privacyPlaces']
 const endpoint = '/api/me/privacy-places'
+
+// Under ett synlighetsval: registreringen är öppen, så "publikt" betyder i praktiken alla, och utan dolda platser
+// kan kartminiatyrerna ändå visa ungefär var löparen bor.
+export function SharingHints({ privacy }: { privacy: 'private' | 'followers' | 'public' }) {
+  const { t } = useTranslation()
+  const places = useQuery({
+    queryKey,
+    queryFn: () => api.get<PrivacyPlace[]>(endpoint),
+    enabled: privacy !== 'private',
+  })
+  return (
+    <>
+      {privacy === 'public' && (
+        <span className="mt-2 block text-xs font-normal text-muted-foreground">
+          {t('social.publicHint')}
+        </span>
+      )}
+      {privacy !== 'private' && places.data?.length === 0 && (
+        <span role="status" className="mt-2 block text-xs font-normal text-destructive">
+          {t('social.noHiddenPlaces')}{' '}
+          <Link to="/app/settings/privacy-places" className="underline underline-offset-4">
+            {t('social.addHiddenPlace')}
+          </Link>
+        </span>
+      )}
+    </>
+  )
+}
 
 export function PrivacyPlaces() {
   const { t, i18n } = useTranslation()
