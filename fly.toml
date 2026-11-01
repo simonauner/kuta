@@ -21,6 +21,8 @@ swap_size_mb = 512
   Storage__ServiceUrl = 'https://umjqrlkeuppyhxnlyuid.storage.supabase.co/storage/v1/s3'
   Storage__Region = 'eu-north-1'
   Storage__Bucket = 'fit-files'
+  # Public Turnstile site key for the sign-up and password forms; the secret key is in 1Password (fly.secrets.tpl).
+  Turnstile__SiteKey = '0x4AAAAAAFu-t_u8OWeN7XBa'
 
 [http_service]
   internal_port = 8080
