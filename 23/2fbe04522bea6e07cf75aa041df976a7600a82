@@ -1,0 +1,36 @@
+web/src/locales/sv.json
+  s_d210553cab99d0::t_34b0e454c5ee0a 751-758
+api/Kuta.Api/RunnerProfile.cs
+  s_d210553cab99d0::t_e37db911938c83 6-10,42-56
+  s_d210553cab99d0::t_03e44443d0d074 34,41
+web/src/locales/en.json
+  s_d210553cab99d0::t_34b0e454c5ee0a 751-758
+web/src/components/runner-summary.tsx
+  s_d210553cab99d0::t_34b0e454c5ee0a 4,9-16,31-36,52-87
+  s_d210553cab99d0::t_08178847a04027 37-51
+  s_d210553cab99d0::t_4de09ed758b289 88
+web/src/routes/profile.tsx
+  s_d210553cab99d0::t_29001ebb78b36a 10,35
+web/src/routes/runner.tsx
+  s_d210553cab99d0::t_29001ebb78b36a 6,97-98
+AGENTS.md
+  s_d210553cab99d0::t_08178847a04027 82
+api/Kuta.Api.Tests/RunnerProfileTests.cs
+  s_d210553cab99d0::t_8d7d9e15f8b65d 38-66
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.7.5",
+  "base_commit_sha": "232fbe04522bea6e07cf75aa041df976a7600a82",
+  "prompts": {},
+  "sessions": {
+    "s_d210553cab99d0": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "f56d2e43-3450-4a53-9b96-6b311a235fb4",
+        "model": "claude-opus-5-5"
+      },
+      "human_author": "Simon Aunér <simonauner@gmail.com>"
+    }
+  }
+}
