@@ -1,0 +1,66 @@
+web/src/components/visitor-notice.tsx
+  s_bee2e5fcf7ec11::t_02e920c9adcc9b 1-23
+web/src/lib/activity-query.ts
+  s_bee2e5fcf7ec11::t_02e920c9adcc9b 17-18,20-22
+web/src/locales/en.json
+  s_bee2e5fcf7ec11::t_0e961c649c0245 599-601,788-793
+  s_bee2e5fcf7ec11::t_9ed3a9f27051b0 794
+api/Kuta.Api/Program.cs
+  s_bee2e5fcf7ec11::t_74f1e0bf059e31 114-117,256
+web/src/lib/visitor.ts
+  s_bee2e5fcf7ec11::t_02e920c9adcc9b 1-8
+api/Kuta.Api/DataExport.cs
+  s_bee2e5fcf7ec11::t_74f1e0bf059e31 38
+  s_bee2e5fcf7ec11::t_d69539c2fda4be 102
+web/tests/feed-empty-state.test.mjs
+  s_bee2e5fcf7ec11::t_626b5fae658ade 36
+web/src/components/layout.tsx
+  s_bee2e5fcf7ec11::t_02e920c9adcc9b 12-14,44-49,137-173
+  s_bee2e5fcf7ec11::t_6093f66fde1fcf 174-175
+web/src/locales/sv.json
+  s_bee2e5fcf7ec11::t_0e961c649c0245 599-601,788-793
+  s_bee2e5fcf7ec11::t_7518b7e7409c5a 794
+api/Kuta.Api/MeEndpoints.cs
+  s_bee2e5fcf7ec11::t_74f1e0bf059e31 12,18,115-125,190,192-193,201
+web/src/routes/activity.tsx
+  s_bee2e5fcf7ec11::t_723ad641d1f5b8 41,60-61,69,73,145-146,277-284
+web/src/components/activity-privacy.tsx
+  s_bee2e5fcf7ec11::t_0e961c649c0245 42-46,107-131
+  s_bee2e5fcf7ec11::t_f54239156395a9 132-133
+web/privacy.html
+  s_bee2e5fcf7ec11::t_3c0d8ebd698ab4 180
+  s_bee2e5fcf7ec11::t_626b5fae658ade 181-190,499-507
+  s_bee2e5fcf7ec11::t_2cea019bfa7289 497-498
+api/Kuta.Api/Migrations/027_public_profile.sql
+  s_bee2e5fcf7ec11::t_74f1e0bf059e31 1-2
+web/src/components/activity-feed.tsx
+  s_bee2e5fcf7ec11::t_f494a2c56886fa 35,39-40,44,53
+api/Kuta.Api.Tests/PublicProfileTests.cs
+  s_bee2e5fcf7ec11::t_df8d1b520a7fa3 1-56
+api/Kuta.Api/SocialEndpoints.cs
+  s_bee2e5fcf7ec11::t_74f1e0bf059e31 22-56
+web/src/lib/auth.ts
+  s_bee2e5fcf7ec11::t_0e961c649c0245 13-14
+web/src/routes/runner.tsx
+  s_bee2e5fcf7ec11::t_f494a2c56886fa 14-15,29-30,32-33,48-49,52-56,87-88,106,108
+AGENTS.md
+  s_bee2e5fcf7ec11::t_7c5f48b4b28b0c 80
+README.md
+  s_bee2e5fcf7ec11::t_28b777709374cd 71
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.7.5",
+  "base_commit_sha": "f829b0a02022800918d5ec309d2b9bb65dd3aebc",
+  "prompts": {},
+  "sessions": {
+    "s_bee2e5fcf7ec11": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "cd696b42-7e9f-47b1-8f97-a4d814189962",
+        "model": "claude-opus-5-5"
+      },
+      "human_author": "Simon Aunér <simonauner@gmail.com>"
+    }
+  }
+}
