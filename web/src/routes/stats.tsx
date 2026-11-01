@@ -15,6 +15,7 @@ import { api } from '@/lib/api'
 import { formatDuration } from '@/lib/activity'
 import { sportGroupsQuery, activityYearsQuery } from '@/lib/activity-query'
 import { sportGroupLabel } from '@/lib/sport-groups'
+import { card } from '@/components/ui/card-variants'
 
 type StatisticsMonth = {
   month: number
@@ -155,7 +156,7 @@ export function StatsPage() {
                   [t('stats.distanceM'), format(distance, 'distanceM')],
                   [t('stats.durationS'), format(duration, 'durationS')],
                 ].map(([label, value]) => (
-                  <div key={label} className="rounded-xl border bg-card p-3 sm:p-4">
+                  <div key={label} className={card({ padding: 'compact' })}>
                     <dt className="text-xs text-muted-foreground">{label}</dt>
                     <dd className="mt-2 break-words text-lg font-semibold tabular-nums sm:text-2xl">
                       {value}
@@ -166,7 +167,7 @@ export function StatsPage() {
               <Heading level={2} className="mt-8">
                 {t('stats.monthly')}
               </Heading>
-              <div className="mt-4 rounded-xl border bg-card p-4">
+              <div className={card({ className: 'mt-4' })}>
                 <FormField
                   layout="inline"
                   label={t('yearComparison.metric')}

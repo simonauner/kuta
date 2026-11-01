@@ -20,6 +20,7 @@ import {
 import { Button } from '@/components/ui/button'
 import { api } from '@/lib/api'
 import { meQuery, useSessionChanged } from '@/lib/auth'
+import { card } from '@/components/ui/card-variants'
 
 export function SettingsPage() {
   const { t } = useTranslation()
@@ -57,21 +58,30 @@ export function SettingsPage() {
       <div className="mt-6 grid gap-3">
         <Link
           to="/app/settings/followers"
-          className="flex items-center justify-between rounded-lg border p-4 font-medium hover:bg-accent focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-ring"
+          className={card({
+            interactive: true,
+            className: 'flex items-center justify-between font-medium',
+          })}
         >
           {t('settings.followers')}
           <span aria-hidden="true">→</span>
         </Link>
         <Link
           to="/app/settings/equipment"
-          className="flex items-center justify-between rounded-lg border p-4 font-medium hover:bg-accent focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-ring"
+          className={card({
+            interactive: true,
+            className: 'flex items-center justify-between font-medium',
+          })}
         >
           {t('equipment.title')}
           <span aria-hidden="true">→</span>
         </Link>
         <Link
           to="/app/settings/privacy-places"
-          className="flex items-center justify-between rounded-lg border p-4 font-medium hover:bg-accent focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-ring"
+          className={card({
+            interactive: true,
+            className: 'flex items-center justify-between font-medium',
+          })}
         >
           {t('privacyPlaces.title')}
           <span aria-hidden="true">→</span>

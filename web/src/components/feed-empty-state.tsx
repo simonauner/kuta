@@ -7,6 +7,7 @@ import { ShareProfile } from '@/components/share-profile'
 import { AddActivityButton, StravaImportLink } from '@/components/onboarding-actions'
 import { Button } from '@/components/ui/button'
 import { api } from '@/lib/api'
+import { card } from '@/components/ui/card-variants'
 
 export function FeedEmptyState() {
   const { t } = useTranslation()
@@ -28,7 +29,7 @@ export function FeedEmptyState() {
         <div className="space-y-4">
           <section
             aria-labelledby="first-activity-heading"
-            className="rounded-xl border bg-primary/5 p-6 sm:p-8"
+            className={card({ tone: 'highlight', padding: 'spacious' })}
           >
             <div className="mb-5 flex size-12 items-center justify-center rounded-full bg-primary/10 text-primary">
               <Plus aria-hidden="true" className="size-6" />
@@ -47,7 +48,7 @@ export function FeedEmptyState() {
             <p className="mt-3 text-sm text-muted-foreground">{t('feed.addActivityHelp')}</p>
           </section>
           <div className="grid gap-4 sm:grid-cols-2">
-            <section aria-labelledby="strava-start-heading" className="rounded-xl border p-5">
+            <section aria-labelledby="strava-start-heading" className={card()}>
               <FileArchive aria-hidden="true" className="mb-4 size-5 text-muted-foreground" />
               <h2 id="strava-start-heading" className="font-semibold">
                 {t('feed.stravaTitle')}
@@ -57,7 +58,7 @@ export function FeedEmptyState() {
               </p>
               <StravaImportLink />
             </section>
-            <section aria-labelledby="social-start-heading" className="rounded-xl border p-5">
+            <section aria-labelledby="social-start-heading" className={card()}>
               <Users aria-hidden="true" className="mb-4 size-5 text-muted-foreground" />
               <h2 id="social-start-heading" className="font-semibold">
                 {t('feed.socialTitle')}

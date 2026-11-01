@@ -15,6 +15,7 @@ import {
   type DailyTotal,
   type YearMetric,
 } from '@/lib/year-comparison'
+import { Card } from '@/components/ui/card'
 
 const selectClass = 'rounded-md border bg-background px-3 py-2 text-sm text-foreground'
 const shownYears = 5
@@ -114,7 +115,7 @@ export function YearComparison({ year, sportGroup }: { year: number; sportGroup:
             <p className="mt-4 text-muted-foreground">{t('yearComparison.empty')}</p>
           ) : (
             <>
-              <div className="mt-4 rounded-xl border bg-card p-4">
+              <Card className="mt-4">
                 <p className="text-xs text-muted-foreground">
                   {t('stats.chartScale', { max: format(maximum) })}
                 </p>
@@ -179,7 +180,7 @@ export function YearComparison({ year, sportGroup }: { year: number; sportGroup:
                     )
                   })}
                 </svg>
-              </div>
+              </Card>
               <div className="mt-4 overflow-x-auto">
                 <table className="w-full text-right text-sm tabular-nums">
                   <caption className="pb-3 text-left font-medium">

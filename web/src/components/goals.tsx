@@ -30,6 +30,7 @@ import { Input } from '@/components/ui/input'
 import { Modal } from '@/components/ui/modal'
 import { ErrorMessage } from '@/components/error-message'
 import { SportIcon } from '@/components/sport-icon'
+import { card } from '@/components/ui/card-variants'
 
 // Under 'activities' so that new, edited and deleted activities also refresh the goals.
 const goalsQueryKey = (timeZone: string) => ['activities', 'goals', timeZone]
@@ -140,9 +141,7 @@ function GoalCard({
         'aria-label': t('goals.editLabel', { title: goalTitle }),
       })}
       className={cn(
-        'w-full rounded-xl border bg-card p-4 text-left text-card-foreground shadow-xs',
-        onSelect &&
-          'transition-colors hover:bg-accent/50 focus-visible:ring-[3px] focus-visible:ring-ring/50 focus-visible:outline-none',
+        card({ interactive: !!onSelect, className: 'w-full text-left shadow-xs' }),
         goal.ended && 'opacity-70',
       )}
     >

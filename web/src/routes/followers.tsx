@@ -16,6 +16,7 @@ import {
   BreadcrumbPage,
   BreadcrumbSeparator,
 } from '@/components/ui/breadcrumb'
+import { card } from '@/components/ui/card-variants'
 
 type Runner = {
   id: string
@@ -154,7 +155,7 @@ export function FollowersPage() {
                 <p className="mt-2 text-sm text-muted-foreground">{t('social.requestHint')}</p>
               )}
               {follows.data.followers.length > 0 && (
-                <ul className="mt-3 divide-y rounded-lg border">
+                <ul className={card({ padding: 'none', className: 'mt-3 divide-y' })}>
                   {follows.data.followers.map((runner) => action(runner, true))}
                 </ul>
               )}
@@ -167,7 +168,7 @@ export function FollowersPage() {
                 <p className="mt-2 text-sm text-muted-foreground">{t('social.noFollowing')}</p>
               )}
               {follows.data.following.length > 0 && (
-                <ul className="mt-3 divide-y rounded-lg border">
+                <ul className={card({ padding: 'none', className: 'mt-3 divide-y' })}>
                   {follows.data.following.map((runner) => action(runner, false))}
                 </ul>
               )}
@@ -178,7 +179,7 @@ export function FollowersPage() {
                   {t('social.blocked')}
                 </h2>
                 <p className="mt-2 text-sm text-muted-foreground">{t('social.blockedHint')}</p>
-                <ul className="mt-3 divide-y rounded-lg border">
+                <ul className={card({ padding: 'none', className: 'mt-3 divide-y' })}>
                   {follows.data.blocked.map((runner) => (
                     <li
                       key={runner.id}

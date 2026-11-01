@@ -15,6 +15,7 @@ import {
   type ActivityPart,
   type MultisportDraft,
 } from '@/lib/multisport'
+import { card } from '@/components/ui/card-variants'
 
 const MultisportPreview = lazy(() => import('./multisport-preview'))
 
@@ -88,7 +89,7 @@ export function MultisportEditor({
   if (!a.parts.length && !onChange) return null
   if (!a.canSplit && !a.parts.length) return null
   return (
-    <section className="mt-6 space-y-3 rounded-lg border p-4" aria-label={t('multisport.title')}>
+    <section className={card({ className: 'mt-6 space-y-3' })} aria-label={t('multisport.title')}>
       <div className="flex flex-wrap items-center justify-between gap-2">
         <h2 className="font-semibold">{t('multisport.title')}</h2>
         {onChange && !editing && a.canSplit && (

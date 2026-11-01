@@ -37,6 +37,7 @@ import {
   splits,
   routeSegments,
 } from '@/lib/activity'
+import { card } from '@/components/ui/card-variants'
 
 // Pace from speed, smoothed over ~15 s so GPS noise doesn't cause spikes; standing still becomes a gap.
 function paceSeries(speed: (number | null)[], minSpeed = 0.5) {
@@ -395,10 +396,7 @@ export function ActivityPage() {
       </dl>
 
       {ownEfforts && bestEfforts.data?.some((e) => e.recordStatus) && (
-        <section
-          className="mt-6 rounded-xl border bg-card p-4"
-          aria-labelledby="activity-records-title"
-        >
+        <section className={card({ className: 'mt-6' })} aria-labelledby="activity-records-title">
           <Heading level={2} id="activity-records-title">
             {t('records.activityRecords')}
           </Heading>

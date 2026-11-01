@@ -17,6 +17,8 @@ import {
   trainingLoadQueryKey,
   type TrainingLoadSummary,
 } from '@/lib/training-load'
+import { Card } from '@/components/ui/card'
+import { card } from '@/components/ui/card-variants'
 
 // "2026-05-03" is a local day; new Date() would parse it as UTC and could show the day before.
 const localDay = (day: string) => new Date(`${day}T00:00`)
@@ -38,10 +40,7 @@ export function TrainingLoadWarning() {
   const number = new Intl.NumberFormat(i18n.resolvedLanguage, { maximumFractionDigits: 0 })
   return (
     <Reveal>
-      <div
-        role="status"
-        className="mt-4 flex gap-3 rounded-xl border border-amber-500/50 bg-amber-500/10 p-4 text-sm"
-      >
+      <Card role="status" tone="warning" className="mt-4 flex gap-3 text-sm">
         <TriangleAlert className="mt-0.5 size-5 shrink-0 text-amber-600 dark:text-amber-400" />
         <div>
           <p className="font-medium">{t('trainingLoad.warningTitle')}</p>
@@ -52,7 +51,7 @@ export function TrainingLoadWarning() {
             </Link>
           </p>
         </div>
-      </div>
+      </Card>
     </Reveal>
   )
 }
@@ -103,13 +102,13 @@ export function TrainingLoadSection() {
                     data.rampPerWeek === null ? '–' : signed.format(data.rampPerWeek),
                   ],
                 ].map(([label, value]) => (
-                  <div key={label} className="rounded-xl border bg-card p-3 sm:p-4">
+                  <Card key={label} padding="compact">
                     <dt className="text-xs text-muted-foreground">{label}</dt>
                     <dd className="mt-2 text-lg font-semibold tabular-nums sm:text-2xl">{value}</dd>
-                  </div>
+                  </Card>
                 ))}
               </dl>
-              <div className="mt-4 rounded-xl border bg-card p-4">
+              <Card className="mt-4">
                 <p className="text-xs text-muted-foreground">
                   {t('trainingLoad.chartScale', { max: number.format(chart.maximum) })}
                 </p>
@@ -174,7 +173,7 @@ export function TrainingLoadSection() {
                     {t('trainingLoad.dailyLoad')}
                   </span>
                 </p>
-              </div>
+              </Card>
             </>
           )}
           <p className="mt-4 text-xs leading-relaxed text-muted-foreground">
@@ -205,7 +204,7 @@ function ThresholdForm({ summary }: { summary: TrainingLoadSummary }) {
   }
   const predicted = summary.predictedThresholdSpeedMS
   return (
-    <form onSubmit={submit} className="mt-4 rounded-xl border bg-card p-4" noValidate>
+    <form onSubmit={submit} className={card({ className: 'mt-4' })} noValidate>
       <FormField label={t('trainingLoad.threshold')}>
         {(id) => (
           <>

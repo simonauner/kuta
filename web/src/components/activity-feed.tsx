@@ -12,6 +12,7 @@ import { Button } from '@/components/ui/button'
 import { api } from '@/lib/api'
 import { activityTitle, formatDuration, type ActivityCursor } from '@/lib/activity'
 import type { SupporterTier } from '@/lib/auth'
+import { card } from '@/components/ui/card-variants'
 
 type FeedItem = {
   id: string
@@ -78,7 +79,7 @@ export function ActivityFeed({
         {feed.data?.pages
           .flatMap((page) => page.items)
           .map((activity) => (
-            <li key={activity.id} className="rounded-lg border p-4">
+            <li key={activity.id} className={card()}>
               <div className="flex items-center gap-1.5 text-sm text-muted-foreground">
                 <Link
                   to="/app/runners/$runnerId"

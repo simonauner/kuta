@@ -9,6 +9,7 @@ import { Input } from '@/components/ui/input'
 import { refreshActivityQueries } from '@/lib/activity-query'
 import { api } from '@/lib/api'
 import { useSessionChanged } from '@/lib/auth'
+import { card } from '@/components/ui/card-variants'
 
 export function DangerZone() {
   const { t } = useTranslation()
@@ -59,7 +60,7 @@ export function DangerZone() {
 
   return (
     <section
-      className="mt-10 rounded-lg border border-destructive/40 p-4"
+      className={card({ tone: 'destructive', className: 'mt-10' })}
       aria-labelledby="danger-zone-title"
     >
       <h2 id="danger-zone-title" className="font-semibold text-destructive">

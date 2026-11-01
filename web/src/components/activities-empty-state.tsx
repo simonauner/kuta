@@ -11,6 +11,7 @@ import {
 } from 'lucide-react'
 import { useTranslation } from 'react-i18next'
 import { AddActivityButton, StravaImportLink } from '@/components/onboarding-actions'
+import { Card } from '@/components/ui/card'
 
 const features = {
   stats: [
@@ -34,7 +35,7 @@ export function ActivitiesEmptyState({ context }: { context: 'stats' | 'activiti
   const { t } = useTranslation()
 
   return (
-    <div className="mt-6 overflow-hidden rounded-xl border bg-card">
+    <Card padding="none" className="mt-6 overflow-hidden">
       <div className="px-6 py-10 text-center sm:px-10 sm:py-12">
         <svg
           viewBox="0 0 320 140"
@@ -85,6 +86,6 @@ export function ActivitiesEmptyState({ context }: { context: 'stats' | 'activiti
           </div>
         ))}
       </div>
-    </div>
+    </Card>
   )
 }

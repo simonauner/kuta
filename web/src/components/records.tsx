@@ -19,6 +19,7 @@ import {
   type RecordTrend,
   type StoredBestEffort,
 } from '@/lib/records'
+import { Card } from '@/components/ui/card'
 
 const selectClass = 'rounded-md border bg-background px-3 py-2 text-sm text-foreground'
 
@@ -140,7 +141,7 @@ export function RecordsSection({ year }: { year: number }) {
           </div>
         ))}
 
-      <div className="mt-6 rounded-xl border bg-card p-4">
+      <Card className="mt-6">
         <Heading level={3} className="mb-3">
           {t('records.trend')}
         </Heading>
@@ -170,9 +171,9 @@ export function RecordsSection({ year }: { year: number }) {
             <RecordTrendView trend={trend.data} distanceLabel={distanceLabel(distance)} />
           </div>
         )}
-      </div>
+      </Card>
 
-      <div className="mt-6 rounded-xl border bg-card p-4">
+      <Card className="mt-6">
         <Heading level={3}>{t('records.predictions')}</Heading>
         {predictions.error && (
           <QueryError error={predictions.error} retry={() => void predictions.refetch()} />
@@ -202,7 +203,7 @@ export function RecordsSection({ year }: { year: number }) {
                 </p>
                 <dl className="mt-4 grid grid-cols-2 gap-3 sm:grid-cols-3">
                   {predictions.data.predictions.map((p) => (
-                    <div key={p.distanceM} className="rounded-lg border p-3">
+                    <Card key={p.distanceM} padding="compact">
                       <dt className="text-xs text-muted-foreground">
                         {distanceLabel(p.distanceM)}
                       </dt>
@@ -212,7 +213,7 @@ export function RecordsSection({ year }: { year: number }) {
                       <dd className="text-xs text-muted-foreground tabular-nums">
                         {formatPace(p.elapsedS, recordMeters(p.distanceM))}
                       </dd>
-                    </div>
+                    </Card>
                   ))}
                 </dl>
                 <p className="mt-4 text-metadata leading-relaxed text-muted-foreground">
@@ -222,7 +223,7 @@ export function RecordsSection({ year }: { year: number }) {
             )}
           </div>
         )}
-      </div>
+      </Card>
     </section>
   )
 }
