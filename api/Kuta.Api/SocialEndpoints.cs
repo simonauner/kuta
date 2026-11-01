@@ -3,8 +3,9 @@ using Dapper;
 using Npgsql;
 
 // JoinedAt and SimilarTo are shown only for someone asking to follow: names are free, so account age and a warning about
-// a look-alike of an existing contact's name help against impersonation.
-public record Runner(Guid Id, string DisplayName, string Status, string? SupporterTier, DateTime? JoinedAt, string? SimilarTo);
+// a look-alike of an existing contact's name help against impersonation. PreviousName is set for 30 days after a change.
+public record Runner(Guid Id, string DisplayName, string Status, string? SupporterTier, DateTime? JoinedAt, string? SimilarTo,
+    string? PreviousName);
 public record FollowLists(IEnumerable<Runner> Following, IEnumerable<Runner> Followers, IEnumerable<Runner> Blocked);
 public record FeedItem(Guid Id, Guid UserId, string DisplayName, string Sport, string? Title,
     DateTime StartedAt, int DurationS, double DistanceM, string Privacy, string? RouteGeoJson, string? SupporterTier,
@@ -30,6 +31,10 @@ public static class SocialEndpoints
     public static string NotBlocked(string owner, string viewer) =>
         $"not exists (select 1 from follow_blocks b where b.blocker_id = {owner} and b.blocked_id = {viewer})";
 
+    public const string PreviousName = """
+        case when u.display_name_changed_at > now() - interval '30 days' then u.previous_display_name end as previous_name
+        """;
+
     public static void MapSocial(this RouteGroupBuilder api)
     {
         var social = api.MapGroup("").RequireAuthorization();
@@ -42,7 +47,8 @@ public static class SocialEndpoints
             var runner = await conn.QuerySingleOrDefaultAsync<Runner>($"""
                 select u.id, u.display_name, case when f.follower_id is null then 'none'
                     when f.accepted_at is null then 'pending' else 'accepted' end as status,
-                    {Supporters.VisibleTier} as supporter_tier, null::timestamptz as joined_at, null::text as similar_to
+                    {Supporters.VisibleTier} as supporter_tier, null::timestamptz as joined_at, null::text as similar_to,
+                    {PreviousName}
                 from users u left join follows f on f.following_id = u.id and f.follower_id = @userId
                 where u.id = @id
                 """, new { id, userId });
@@ -65,20 +71,23 @@ public static class SocialEndpoints
             var userId = user.GetUserId();
             var following = await conn.QueryAsync<Runner>($"""
                 select u.id, u.display_name, case when f.accepted_at is null then 'pending' else 'accepted' end as status,
-                    {Supporters.VisibleTier} as supporter_tier, null::timestamptz as joined_at, null::text as similar_to
+                    {Supporters.VisibleTier} as supporter_tier, null::timestamptz as joined_at, null::text as similar_to,
+                    {PreviousName}
                 from follows f join users u on u.id = f.following_id where f.follower_id = @userId
                 order by u.display_name, u.id
                 """, new { userId });
             var followers = await conn.QueryAsync<Runner>($"""
                 select u.id, u.display_name, case when f.accepted_at is null then 'pending' else 'accepted' end as status,
                     {Supporters.VisibleTier} as supporter_tier,
-                    case when f.accepted_at is null then u.created_at end as joined_at, null::text as similar_to
+                    case when f.accepted_at is null then u.created_at end as joined_at, null::text as similar_to,
+                    {PreviousName}
                 from follows f join users u on u.id = f.follower_id
                 where f.following_id = @userId and {NotBlocked("@userId", "f.follower_id")}
                 order by f.accepted_at nulls first, u.display_name, u.id
                 """, new { userId });
-            var blocked = await conn.QueryAsync<Runner>("""
-                select u.id, u.display_name, 'blocked' as status, null as supporter_tier, null::timestamptz as joined_at, null::text as similar_to
+            var blocked = await conn.QueryAsync<Runner>($"""
+                select u.id, u.display_name, 'blocked' as status, null as supporter_tier, null::timestamptz as joined_at, null::text as similar_to,
+                    {PreviousName}
                 from follow_blocks b join users u on u.id = b.blocked_id where b.blocker_id = @userId
                 order by u.display_name, u.id
                 """, new { userId });

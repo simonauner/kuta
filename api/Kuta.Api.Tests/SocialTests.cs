@@ -326,6 +326,42 @@ public class SocialTests(KutaFactory factory) : IClassFixture<KutaFactory>
         finally { await conn.ExecuteAsync("delete from auth.users where email = any(@emails)", new { emails }); }
     }
 
+    // The change rule lives in the endpoint's upsert, and the previous name is read through the runner endpoint.
+    [Fact]
+    public async Task Name_changes_show_the_previous_name_for_30_days_and_are_limited_to_one_a_week()
+    {
+        var ct = TestContext.Current.CancellationToken;
+        await using var conn = await factory.Services.GetRequiredService<NpgsqlDataSource>().OpenConnectionAsync(ct);
+        using var runner = factory.CreateClient();
+        using var viewer = factory.CreateClient();
+        var tag = Guid.NewGuid().ToString("N");
+        string[] emails = [$"rename-{tag}@example.com", $"rename-viewer-{tag}@example.com"];
+        try
+        {
+            await TestSession.CreateRunnerAsync(factory, runner, conn, emails[0], "Bertil", ct);
+            await TestSession.CreateRunnerAsync(factory, viewer, conn, emails[1], "Viewer", ct);
+            var id = (await runner.GetFromJsonAsync<Me>("/api/me", ct))!.Id;
+            Task<Runner?> Seen() => viewer.GetFromJsonAsync<Runner>($"/api/runners/{id}", ct);
+            Task<HttpResponseMessage> Rename(string name) => runner.PutAsJsonAsync("/api/me", new { displayName = name }, ct);
+
+            Assert.Null((await Seen())!.PreviousName);
+            Assert.Equal(HttpStatusCode.OK, (await Rename("Anna")).StatusCode);
+            Assert.Equal(("Anna", "Bertil"), ((await Seen())!.DisplayName, (await Seen())!.PreviousName));
+            Assert.Equal(HttpStatusCode.OK, (await Rename("Anna")).StatusCode); // saving the same name is not a change
+            using (var again = await Rename("Cecilia"))
+            {
+                Assert.Equal(HttpStatusCode.Conflict, again.StatusCode);
+                Assert.Equal("nameChangedRecently", (await again.Content.ReadFromJsonAsync<ApiError>(ct))!.Code);
+            }
+            await conn.ExecuteAsync("update users set display_name_changed_at = now() - interval '8 days' where id = @id", new { id });
+            Assert.Equal(HttpStatusCode.OK, (await Rename("Cecilia")).StatusCode);
+            Assert.Equal("Anna", (await Seen())!.PreviousName);
+            await conn.ExecuteAsync("update users set display_name_changed_at = now() - interval '31 days' where id = @id", new { id });
+            Assert.Null((await Seen())!.PreviousName);
+        }
+        finally { await conn.ExecuteAsync("delete from auth.users where email = any(@emails)", new { emails }); }
+    }
+
     [Fact]
     public async Task Feed_query_pages_equal_timestamps_and_survives_deleted_cursor()
     {

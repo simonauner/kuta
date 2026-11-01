@@ -26,6 +26,8 @@ type Runner = {
   joinedAt: string | null
   // Only for incoming requests: the name of an existing contact that this name looks like.
   similarTo: string | null
+  // Set for 30 days after a name change, so nobody can take a friend's name unnoticed.
+  previousName: string | null
 }
 
 export function FollowersPage() {
@@ -58,6 +60,11 @@ export function FollowersPage() {
           {runner.displayName}
         </Link>
         <SupporterBadge tier={runner.supporterTier} />
+        {runner.previousName && (
+          <span className="text-metadata text-muted-foreground">
+            {t('social.previousName', { name: runner.previousName })}
+          </span>
+        )}
         {runner.joinedAt && (
           <span className="text-metadata text-muted-foreground">
             {t('social.joined', {

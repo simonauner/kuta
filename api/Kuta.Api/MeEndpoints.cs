@@ -119,14 +119,25 @@ public static class MeEndpoints
                 return Results.BadRequest(new ApiError("Ange ett namn (högst 100 tecken, utan osynliga tecken och utan märken som liknar Kutas).", "invalidName"));
 
             await using var conn = await db.OpenConnectionAsync();
-            await conn.ExecuteAsync(
+            // A change keeps the previous name (shown to others for 30 days) and is allowed at most once a week, so a
+            // follower cannot take a friend's name unnoticed or keep switching. The first change after the name was
+            // chosen is always allowed, for typos.
+            var saved = await conn.ExecuteAsync(
                 """
                 insert into users (id, display_name, terms_version, terms_accepted_at)
                 select @id, @displayName, raw_user_meta_data->>'terms_version', (raw_user_meta_data->>'terms_accepted_at')::timestamptz
                 from auth.users where id = @id
-                on conflict (id) do update set display_name = excluded.display_name
+                on conflict (id) do update set display_name = excluded.display_name,
+                    previous_display_name = case when users.display_name <> excluded.display_name
+                        then users.display_name else users.previous_display_name end,
+                    display_name_changed_at = case when users.display_name <> excluded.display_name
+                        then now() else users.display_name_changed_at end
+                where users.display_name is null or users.display_name = excluded.display_name
+                    or users.display_name_changed_at is null or users.display_name_changed_at < now() - interval '7 days'
                 """,
                 new { id = user.GetUserId(), displayName });
+            if (saved == 0)
+                return Results.Conflict(new ApiError("Du kan byta namn en gång i veckan.", "nameChangedRecently"));
             return Results.Ok(await LoadAsync(conn, user));
         });
 
