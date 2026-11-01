@@ -1,7 +1,6 @@
 using System.Globalization;
 using System.IO.Compression;
 using System.Xml;
-using System.Xml.Linq;
 using Microsoft.VisualBasic.FileIO;
 
 public sealed record StravaActivity(string Id, string? Title, string Filename, ParsedActivity Summary,
@@ -186,10 +185,8 @@ public static class StravaImport
         {
             DtdProcessing = DtdProcessing.Prohibit, XmlResolver = null, MaxCharactersInDocument = MaxFileBytes,
         });
-        var doc = XDocument.Load(reader);
-        if (doc.Root?.Name.LocalName != "gpx") throw new InvalidDataException("Not GPX.");
-        var points = doc.Descendants().Where(e => e.Name.LocalName == "trkpt").ToArray();
-        if (points.Length > 500000) throw new InvalidDataException("Too many points.");
+        // Streamed: building a tree first would let a small compressed file with millions of elements exhaust memory.
+        if (reader.MoveToContent() != XmlNodeType.Element || reader.LocalName != "gpx") throw new InvalidDataException("Not GPX.");
         var t = new List<int>();
         var lat = new List<double?>();
         var lon = new List<double?>();
@@ -198,34 +195,56 @@ public static class StravaImport
         var dist = new List<float?>();
         var speed = new List<float?>();
         double distance = 0;
-        XElement? previousSegment = null;
-        foreach (var point in points)
+        int segment = 0, previousSegment = -1;
+        while (reader.Read())
         {
-            var time = point.Elements().FirstOrDefault(e => e.Name.LocalName == "time")?.Value;
+            if (reader.NodeType != XmlNodeType.Element) continue;
+            if (reader.LocalName == "trkseg") segment++;
+            if (reader.LocalName != "trkpt") continue;
+            if (t.Count >= 500000) throw new InvalidDataException("Too many points.");
+            var latText = reader.GetAttribute("lat");
+            var lonText = reader.GetAttribute("lon");
+            string? time = null, elevation = null, pulse = null;
+            using (var point = reader.ReadSubtree())
+            {
+                point.Read();
+                point.Read();
+                while (!point.EOF)
+                {
+                    if (point.NodeType == XmlNodeType.Element && (point.Depth == 1 && point.LocalName is "time" or "ele" || point.LocalName == "hr"))
+                    {
+                        var name = point.LocalName;
+                        var value = point.ReadElementContentAsString();
+                        if (name == "time") time ??= value;
+                        else if (name == "ele") elevation ??= value;
+                        else pulse ??= value;
+                        continue;
+                    }
+                    point.Read();
+                }
+            }
             if (!DateTime.TryParse(time, Invariant, DateTimeStyles.AssumeUniversal | DateTimeStyles.AdjustToUniversal, out var stamp))
                 throw new InvalidDataException("Missing GPX time.");
             var seconds = checked((int)Math.Round((stamp - summary.StartedAt).TotalSeconds));
             if (seconds < 0 || t.Count > 0 && seconds < t[^1]) throw new InvalidDataException("Unordered GPX times.");
-            double Coordinate(string name, double max)
+            static double Coordinate(string? text, double max)
             {
-                if (!double.TryParse(point.Attribute(name)?.Value, NumberStyles.Float, Invariant, out var value) ||
+                if (!double.TryParse(text, NumberStyles.Float, Invariant, out var value) ||
                     !double.IsFinite(value) || Math.Abs(value) > max) throw new InvalidDataException("Invalid GPX coordinate.");
                 return value;
             }
-            var latitude = Coordinate("lat", 90);
-            var longitude = Coordinate("lon", 180);
+            var latitude = Coordinate(latText, 90);
+            var longitude = Coordinate(lonText, 180);
             // Don't count distance across the gap between two GPX segments.
             float? velocity = null;
-            if (lat.Count > 0 && point.Parent == previousSegment)
+            if (lat.Count > 0 && segment == previousSegment)
             {
                 var step = Distance(lat[^1]!.Value, lon[^1]!.Value, latitude, longitude);
                 distance += step;
                 if (seconds > t[^1]) velocity = (float)(step / (seconds - t[^1]));
             }
             speed.Add(velocity);
-            previousSegment = point.Parent;
-            var elevation = point.Elements().FirstOrDefault(e => e.Name.LocalName == "ele")?.Value;
-            var pulse = point.Descendants().FirstOrDefault(e => e.Name.LocalName == "hr")?.Value;
+            previousSegment = segment;
             if (elevation is not null && (!float.TryParse(elevation, NumberStyles.Float, Invariant, out var a) || !float.IsFinite(a)))
                 throw new InvalidDataException("Invalid elevation.");
             if (pulse is not null && (!short.TryParse(pulse, out var h) || h < 0)) throw new InvalidDataException("Invalid heart rate.");
