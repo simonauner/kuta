@@ -1,6 +1,22 @@
 {
   "garmin": {
-    "derived": "Insikter delvis baserade på data från Garmin-enheter."
+    "derived": "Insikter delvis baserade på data från Garmin-enheter.",
+    "connect": "Anslut Garmin",
+    "disconnect": "Koppla från Garmin",
+    "description": "Nya pass från din Garminklocka hämtas automatiskt. Bara pass som synkas efter anslutningen hämtas. Puls sparas bara med ditt pulssamtycke.",
+    "privateForNow": "Pass från Garmin visas tills vidare bara för dig.",
+    "connected": "Ditt Garminkonto är anslutet. Nya pass hämtas automatiskt.",
+    "noActivityExport": "Garmin delar inte dina aktiviteter med Kuta. Slå på delning av aktiviteter för Kuta i Garmin Connect.",
+    "notAvailable": "Anslutning till Garmin Connect är inte tillgänglig ännu.",
+    "disconnectTitle": "Koppla från Garmin?",
+    "disconnectWarning": "Kuta slutar hämta från Garmin och raderar alla pass som hämtats därifrån. Det går inte att ångra.",
+    "result": {
+      "connected": "Garmin är anslutet.",
+      "declined": "Du godkände inte anslutningen hos Garmin.",
+      "failed": "Anslutningen till Garmin misslyckades. Försök igen.",
+      "inUse": "Garminkontot är redan anslutet till ett annat Kuta-konto.",
+      "unavailable": "Garmin svarade inte. Försök igen senare."
+    }
   },
   "nav": {
     "feed": "Flöde",
@@ -381,7 +397,8 @@
     "importBusy": "Många importer pågår just nu. Försök igen om en stund.",
     "jobFailed": "Jobbet misslyckades. Försök igen senare.",
     "jobCancelled": "Jobbet avbröts.",
-    "termsRequired": "Godkänn användarvillkoren och integritetspolicyn för att skapa ett konto."
+    "termsRequired": "Godkänn användarvillkoren och integritetspolicyn för att skapa ett konto.",
+    "garminUnavailable": "Garmin Connect är inte tillgängligt just nu."
   },
   "home": "Kuta – startsida",
   "footer": {
@@ -418,7 +435,8 @@
     "recalculate": "Räkna om alla pass",
     "recalculating": "Räknar om …",
     "recalculated_one": "{{count}} pass omräknat.",
-    "recalculated_other": "{{count}} pass omräknade."
+    "recalculated_other": "{{count}} pass omräknade.",
+    "garmin": "Garmin Connect"
   },
   "jobs": {
     "queued": "I kö. Jobbet startar strax.",

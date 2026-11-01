@@ -74,14 +74,16 @@ public static class ActivityStorage
             insert into activities (user_id, source, sport, title, started_at, duration_s, moving_s, distance_m,
                                     avg_hr, max_hr, avg_speed_mps, elevation_gain_m, route, device, raw_file_key, raw_file_sha256, strava_activity_id, tags, description, privacy)
             values (@userId, @source, @Sport, @title, @StartedAt, @DurationS, @MovingS, @DistanceM,
-                    @AvgHr, @MaxHr, @AvgSpeedMps, @ElevationGainM, @route::geography, @Device, @key, @hash, @stravaId, @tags, @description, @DefaultActivityPrivacy)
+                    @AvgHr, @MaxHr, @AvgSpeedMps, @ElevationGainM, @route::geography, @Device, @key, @hash, @stravaId, @tags, @description, @privacy)
             on conflict do nothing returning id
             """,
             new
             {
-                userId, source, title, stravaId, profile.DefaultActivityPrivacy, description = ActivityInput.NormalizeDescription(description), parsed.Sport, parsed.StartedAt, parsed.DurationS, parsed.MovingS,
+                userId, source, title, stravaId, description = ActivityInput.NormalizeDescription(description), parsed.Sport, parsed.StartedAt, parsed.DurationS, parsed.MovingS,
                 parsed.DistanceM, parsed.AvgHr, parsed.MaxHr, parsed.AvgSpeedMps, parsed.ElevationGainM,
                 route = (object?)parsed.Route ?? DBNull.Value, parsed.Device, key, hash, tags = ActivityInput.NormalizeTags(tags),
+                // Garmin activities are private until Garmin approves showing them to others (constraint in migration 025).
+                privacy = source == "garmin" ? "private" : profile.DefaultActivityPrivacy,
             }, tx);
         if (id is null) return null;
         await conn.ExecuteAsync(

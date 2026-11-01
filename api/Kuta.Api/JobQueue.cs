@@ -6,7 +6,8 @@ public static class JobKinds
 {
     public const string StravaImport = "strava_import";
     public const string Recalculate = "recalculate";
-    public static readonly string[] All = [StravaImport, Recalculate];
+    public const string GarminImport = "garmin_import";
+    public static readonly string[] All = [StravaImport, Recalculate, GarminImport];
 }
 
 public sealed record JobRow(Guid Id, Guid UserId, string Kind, string Status, string? Progress, string? Result,

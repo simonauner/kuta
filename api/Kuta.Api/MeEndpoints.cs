@@ -2,6 +2,7 @@ using System.Security.Claims;
 using Dapper;
 using Microsoft.AspNetCore.Authentication;
 using Microsoft.AspNetCore.Authentication.Cookies;
+using Microsoft.AspNetCore.DataProtection;
 using Microsoft.AspNetCore.Mvc;
 using Npgsql;
 
@@ -29,7 +30,8 @@ public static class MeEndpoints
         // Requires the password: an unlocked phone or an injected script must not be able to delete everything.
         // The Supabase session the check creates goes away with the account.
         me.MapDelete("", async ([FromBody] DeleteAccountRequest req, NpgsqlDataSource db, RawFileStore store, ImportFiles files,
-            SupabaseAuthClient supabase, HttpContext http, CancellationToken cancellationToken) =>
+            SupabaseAuthClient supabase, GarminClient garmin, IDataProtectionProvider provider, HttpContext http,
+            CancellationToken cancellationToken) =>
         {
             if (string.IsNullOrEmpty(req.Password))
                 return Results.BadRequest(new ApiError("Ange ditt lösenord.", "passwordRequired"));
@@ -38,6 +40,8 @@ public static class MeEndpoints
                 return Results.Json(new ApiError("Fel lösenord.", "wrongPassword"), statusCode: StatusCodes.Status403Forbidden);
             await using var conn = await db.OpenConnectionAsync(cancellationToken);
             var userId = http.User.GetUserId();
+            // Garmin requires deregistration when the account is deleted; the connection then cascades with the account.
+            await Garmin.DeregisterAsync(conn, garmin, provider, userId, cancellationToken);
             // Queued import archives are not cascade-deleted with the jobs; remove them after the account (the worker cleans up the rest).
             var imports = (await conn.QueryAsync<Guid>("select id from jobs where user_id = @userId and kind = @kind",
                 new { userId, kind = JobKinds.StravaImport })).ToList();
@@ -89,7 +93,7 @@ public static class MeEndpoints
                 return Results.Conflict(new ApiError("Välj ett namn först.", "nameRequired"));
             if (req.ApplyToAll)
                 await conn.ExecuteAsync(new CommandDefinition(
-                    "update activities set privacy = @Privacy where user_id = @id and privacy <> @Privacy",
+                    "update activities set privacy = @Privacy where user_id = @id and privacy <> @Privacy and source <> 'garmin'",
                     new { id, req.Privacy }, tx, cancellationToken: ct));
             await tx.CommitAsync(ct);
             return Results.Ok(await LoadAsync(conn, user));
@@ -172,7 +176,7 @@ public static class MeEndpoints
         var profile = await LoadProfileAsync(conn, user.GetUserId());
         var privacy = profile?.DefaultActivityPrivacy ?? "private";
         var (allMatch, hasGarminData) = await conn.QuerySingleAsync<(bool, bool)>("""
-            select not exists (select 1 from activities where user_id = @id and privacy <> @privacy),
+            select not exists (select 1 from activities where user_id = @id and privacy <> @privacy and source <> 'garmin'),
                 exists (select 1 from activities where user_id = @id and source = 'garmin')
             """, new { id = user.GetUserId(), privacy });
         var supporter = await conn.QuerySingleOrDefaultAsync<Supporter>("""

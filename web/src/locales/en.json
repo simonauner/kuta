@@ -1,6 +1,22 @@
 {
   "garmin": {
-    "derived": "Insights derived in part from Garmin device-sourced data."
+    "derived": "Insights derived in part from Garmin device-sourced data.",
+    "connect": "Connect Garmin",
+    "disconnect": "Disconnect Garmin",
+    "description": "New activities from your Garmin watch are imported automatically. Only activities synced after connecting are imported. Heart rate is stored only with your heart rate consent.",
+    "privateForNow": "Activities from Garmin are, for now, visible only to you.",
+    "connected": "Your Garmin account is connected. New activities are imported automatically.",
+    "noActivityExport": "Garmin is not sharing your activities with Kuta. Turn on activity sharing for Kuta in Garmin Connect.",
+    "notAvailable": "The Garmin Connect connection is not available yet.",
+    "disconnectTitle": "Disconnect Garmin?",
+    "disconnectWarning": "Kuta stops importing from Garmin and deletes all activities imported from it. This cannot be undone.",
+    "result": {
+      "connected": "Garmin is connected.",
+      "declined": "You did not approve the connection at Garmin.",
+      "failed": "Connecting to Garmin failed. Please try again.",
+      "inUse": "This Garmin account is already connected to another Kuta account.",
+      "unavailable": "Garmin did not respond. Please try again later."
+    }
   },
   "nav": {
     "feed": "Feed",
@@ -381,7 +397,8 @@
     "importBusy": "Many imports are running right now. Try again in a while.",
     "jobFailed": "The job failed. Please try again later.",
     "jobCancelled": "The job was cancelled.",
-    "termsRequired": "Accept the terms of use and privacy policy to create an account."
+    "termsRequired": "Accept the terms of use and privacy policy to create an account.",
+    "garminUnavailable": "Garmin Connect is not available right now."
   },
   "home": "Kuta – home",
   "footer": {
@@ -418,7 +435,8 @@
     "recalculate": "Recalculate all activities",
     "recalculating": "Recalculating …",
     "recalculated_one": "{{count}} activity recalculated.",
-    "recalculated_other": "{{count}} activities recalculated."
+    "recalculated_other": "{{count}} activities recalculated.",
+    "garmin": "Garmin Connect"
   },
   "jobs": {
     "queued": "Queued. The job will start shortly.",

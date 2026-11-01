@@ -52,7 +52,7 @@ public class SocialTests(KutaFactory factory) : IClassFixture<KutaFactory>
     }
 
     [Fact]
-    public async Task Garmin_attribution_shows_watch_only_to_owner()
+    public async Task Garmin_attribution_shows_watch_and_Garmin_activities_stay_hidden_from_followers()
     {
         var ct = TestContext.Current.CancellationToken;
         await using var conn = await factory.Services.GetRequiredService<NpgsqlDataSource>().OpenConnectionAsync(ct);
@@ -65,11 +65,12 @@ public class SocialTests(KutaFactory factory) : IClassFixture<KutaFactory>
             insert into users (id, display_name) values (@owner, 'Owner'), (@viewer, 'Viewer');
             insert into follows (follower_id, following_id, accepted_at) values (@viewer, @owner, now());
             insert into activities (id, user_id, source, device, started_at, duration_s, distance_m, privacy)
-            values (@id, @owner, 'garmin', 'Forerunner 965', now(), 1800, 5000, 'followers')
+            values (@id, @owner, 'garmin', 'Forerunner 965', now(), 1800, 5000, 'private')
             """, new { owner, viewer, id }, tx);
         Assert.Equal("Garmin Forerunner 965", Assert.Single((await SocialEndpoints.ReadFeedAsync(conn, owner)).Items).Attribution);
-        Assert.Equal("Garmin", Assert.Single((await SocialEndpoints.ReadFeedAsync(conn, viewer)).Items).Attribution);
-        Assert.Equal("Garmin", (await ActivityEndpoints.ReadDetailAsync(conn, viewer, id, ct, tx))!.Attribution);
+        // Garmin activities stay private until Garmin approves showing them to others (constraint in migration 025).
+        Assert.Empty((await SocialEndpoints.ReadFeedAsync(conn, viewer)).Items);
+        Assert.Null(await ActivityEndpoints.ReadDetailAsync(conn, viewer, id, ct, tx));
         // Without a product name, manufacturer + code is stored, which already starts with Garmin.
         await conn.ExecuteAsync("update activities set device = 'Garmin 4315' where id = @id", new { id }, tx);
         Assert.Equal("Garmin 4315", (await ActivityEndpoints.ReadDetailAsync(conn, owner, id, ct, tx))!.Attribution);

@@ -52,6 +52,7 @@ static async Task<int> RunAsync(string[] args)
     // Sign-in via our API against Supabase Auth (BFF); the session lives in an encrypted HttpOnly cookie
     builder.Services.AddHttpContextAccessor();
     builder.Services.AddHttpClient<SupabaseAuthClient>();
+    builder.Services.AddHttpClient<GarminClient>();
     builder.Services.AddSingleton<SharedTokenRefresh>();
     builder.Services.AddSingleton<RawFileStore>();
     builder.Services.AddSingleton<ImportFiles>();
@@ -251,6 +252,8 @@ static async Task<int> RunAsync(string[] args)
     api.MapBestEfforts();
     api.MapJobs();
     api.MapGoals();
+    api.MapGarmin();
+    app.MapGarminPush();
 
     app.MapFallbackToFile("/privacy", "privacy.html", staticFiles);
     app.MapFallbackToFile("/terms", "terms.html", staticFiles);
