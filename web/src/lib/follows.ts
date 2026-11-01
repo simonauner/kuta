@@ -9,6 +9,10 @@ export type Runner = {
   supporterTier: SupporterTier | null
   // Only for incoming requests: names are free, so the account's age helps spot impersonation.
   joinedAt: string | null
+  // Only for incoming requests: the name of an existing contact that this name looks like.
+  similarTo: string | null
+  // Set for 30 days after a name change, so nobody can take a friend's name unnoticed.
+  previousName: string | null
 }
 
 export type FollowLists = { following: Runner[]; followers: Runner[]; blocked: Runner[] }

@@ -67,15 +67,18 @@ function useGoalText() {
 export function GoalList({
   onSelect,
   runnerId,
+  viewAs,
 }: {
   onSelect?: (goal: Goal) => void
   runnerId?: string
+  viewAs?: 'followers' | 'public'
 }) {
   const timeZone = Intl.DateTimeFormat().resolvedOptions().timeZone
   const params = new URLSearchParams({ timeZone })
+  if (viewAs) params.set('viewAs', viewAs)
   const goals = useQuery({
     // Under 'runner' so that follow/unfollow refetches the shared goals.
-    queryKey: runnerId ? ['runner', runnerId, 'goals', timeZone] : goalsQueryKey(timeZone),
+    queryKey: runnerId ? ['runner', runnerId, 'goals', timeZone, viewAs] : goalsQueryKey(timeZone),
     queryFn: () =>
       api.get<Goal[]>(
         runnerId ? `/api/runners/${runnerId}/goals?${params}` : `/api/goals?${params}`,

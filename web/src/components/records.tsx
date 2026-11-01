@@ -48,10 +48,9 @@ function EffortLink({ effort }: { effort: { activityId: string; elapsedS: number
   )
 }
 
-// Running records: personal and yearly bests, progress per distance and prediction (VDOT).
+// Running records: personal and yearly bests and progress per distance.
 export function RecordsSection({ year }: { year: number }) {
   const { t, i18n } = useTranslation()
-  const returnTo = useRouterState({ select: (s) => s.location.href })
   const timeZone = Intl.DateTimeFormat().resolvedOptions().timeZone
   const [distance, setDistance] = useState<RecordDistance>(5000)
   const date = new Intl.DateTimeFormat(i18n.resolvedLanguage, { dateStyle: 'medium' })
@@ -70,10 +69,6 @@ export function RecordsSection({ year }: { year: number }) {
       api.get<RecordTrend>(
         `/api/records/trend?${new URLSearchParams({ distanceM: String(distance), timeZone })}`,
       ),
-  })
-  const predictions = useQuery({
-    queryKey: ['records', 'predictions'],
-    queryFn: () => api.get<RacePredictions>('/api/records/predictions'),
   })
   const best = (list: StoredBestEffort[] | undefined, d: number) =>
     list?.find((e) => e.distanceM === d)
@@ -174,24 +169,42 @@ export function RecordsSection({ year }: { year: number }) {
           </div>
         )}
       </Card>
+    </section>
+  )
+}
 
-      <Card className="mt-6">
-        <div className="flex items-center justify-between gap-4">
-          <Heading level={3}>{t('records.predictions')}</Heading>
-          <HelpPopover label={t('records.predictionsMethodLabel')}>
-            {t('records.predictionsMethod')}
-          </HelpPopover>
-        </div>
+// Race prediction (VDOT) from the strongest recent effort.
+export function PredictionsSection() {
+  const { t, i18n } = useTranslation()
+  const returnTo = useRouterState({ select: (s) => s.location.href })
+  const date = new Intl.DateTimeFormat(i18n.resolvedLanguage, { dateStyle: 'medium' })
+  const distanceLabel = (d: number) => t(`records.distances.${d as RecordDistance}`)
+  const predictions = useQuery({
+    queryKey: ['records', 'predictions'],
+    queryFn: () => api.get<RacePredictions>('/api/records/predictions'),
+  })
+
+  return (
+    <section className="mt-10" aria-labelledby="predictions-title">
+      <div className="flex items-center justify-between gap-4">
+        <Heading level={2} id="predictions-title">
+          {t('records.predictions')}
+        </Heading>
+        <HelpPopover label={t('records.predictionsMethodLabel')}>
+          {t('records.predictionsMethod')}
+        </HelpPopover>
+      </div>
+      <Card className="mt-4">
         {predictions.error && (
           <QueryError error={predictions.error} retry={() => void predictions.refetch()} />
         )}
         {predictions.isSuccess && (
           <div className="motion-safe:animate-fade-in-up">
             {predictions.data.basis === null || predictions.data.vdot === null ? (
-              <p className="mt-3 text-sm text-muted-foreground">{t('records.predictionsEmpty')}</p>
+              <p className="text-sm text-muted-foreground">{t('records.predictionsEmpty')}</p>
             ) : (
               <>
-                <p className="mt-2 text-body text-muted-foreground">
+                <p className="text-body text-muted-foreground">
                   {t('records.predictionsBasis', {
                     distance: distanceLabel(predictions.data.basis.distanceM),
                     time: formatDuration(predictions.data.basis.elapsedS),

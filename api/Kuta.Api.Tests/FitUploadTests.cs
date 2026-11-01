@@ -64,6 +64,11 @@ public class FitUploadTests(KutaFactory factory) : IClassFixture<KutaFactory>
 
             Assert.Equal(HttpStatusCode.Conflict, (await Upload(client, morning, ct)).StatusCode);
             Assert.Equal(HttpStatusCode.BadRequest, (await Upload(client, "inte en fit-fil"u8.ToArray(), ct)).StatusCode);
+            using (var corrupt = await Upload(client, FitFile.CorruptWithValidChecksum(start), ct))
+            {
+                Assert.Equal(HttpStatusCode.BadRequest, corrupt.StatusCode);
+                Assert.Equal("invalidFit", (await corrupt.Content.ReadFromJsonAsync<ApiError>(ct))!.Code);
+            }
 
             // With consent: heart rate is saved, both summary and time series
             var consent = await client.PutAsync("/api/me/hr-consent", null, ct);
@@ -249,6 +254,24 @@ public class FitUploadTests(KutaFactory factory) : IClassFixture<KutaFactory>
 static class FitFile
 {
     const double SemicirclesPerDegree = 2147483648.0 / 180.0;
+
+    // A run with a few bytes changed and the checksum recomputed, so the SDK fails with something other than FitException.
+    public static byte[] CorruptWithValidChecksum(System.DateTime start)
+    {
+        var valid = Run(start, 60);
+        var random = new Random(1);
+        while (true)
+        {
+            var bytes = (byte[])valid.Clone();
+            for (var i = 0; i < 3; i++) bytes[14 + random.Next(bytes.Length - 16)] = (byte)random.Next(256);
+            var crc = CRC.Calc16(bytes, bytes.Length - 2);
+            bytes[^2] = (byte)crc;
+            bytes[^1] = (byte)(crc >> 8);
+            try { FitImport.Parse(bytes); }
+            catch (Exception e) when (e is not FitException) { return bytes; }
+            catch (FitException) { }
+        }
+    }
 
     public static byte[] Run(System.DateTime start, int seconds, double latitude = 59.33)
     {

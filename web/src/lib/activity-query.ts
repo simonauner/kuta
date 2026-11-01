@@ -66,6 +66,8 @@ export function refreshActivityQueries(queryClient: QueryClient) {
         'feed',
         'equipment',
         'equipmentLastUsedShoe',
-      ].includes(String(queryKey[0])) || isGoalQuery(queryKey),
+      ].includes(String(queryKey[0])) ||
+      isGoalQuery(queryKey) ||
+      (queryKey[0] === 'runner' && queryKey[2] === 'summary'),
   })
 }

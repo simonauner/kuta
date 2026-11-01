@@ -48,7 +48,11 @@ export function TrainingLoadWarning() {
           <p className="font-medium">{t('trainingLoad.warningTitle')}</p>
           <p className="mt-1 text-muted-foreground">
             {t('trainingLoad.warningText', { ramp: number.format(load.data.rampPerWeek) })}{' '}
-            <Link to="/app/stats" hash="training-load" className="underline underline-offset-2">
+            <Link
+              to="/app/stats/analysis"
+              hash="training-load"
+              className="underline underline-offset-2"
+            >
               {t('trainingLoad.warningLink')}
             </Link>
           </p>

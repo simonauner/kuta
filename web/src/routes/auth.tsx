@@ -29,9 +29,9 @@ export function AuthPage() {
   // when the link is invalid or used
   const confirm = new URLSearchParams(window.location.search).get('confirm')
   const confirmFailed = confirm === 'failed'
-  // Sign-up and password links send email, so they need the Turnstile check when the API has it on.
+  // Every form needs the Turnstile check when the API has it on: sign-in against credential stuffing, the others send email.
   const siteKey = useQuery(turnstileQuery).data?.siteKey
-  const checksPerson = mode !== 'login' && !!siteKey
+  const checksPerson = !!siteKey
   const [turnstileToken, setTurnstileToken] = useState<string | null>(null)
   const [attempt, setAttempt] = useState(0)
   // The address a confirmation email went to; kept for "Send again", never shown
@@ -45,7 +45,8 @@ export function AuthPage() {
           email: credentials.email,
           turnstileToken,
         })
-      if (mode === 'login') return api.send('POST', '/api/auth/login', credentials)
+      if (mode === 'login')
+        return api.send('POST', '/api/auth/login', { ...credentials, turnstileToken })
       return api.send<{ message: string } | undefined>('POST', '/api/auth/signup', {
         ...credentials,
         acceptTerms: form.get('acceptTerms') === 'on',

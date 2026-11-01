@@ -25,6 +25,11 @@ export function FollowRow({
           {runner.displayName}
         </Link>
         <SupporterBadge tier={runner.supporterTier} />
+        {runner.previousName && (
+          <span className="text-metadata text-muted-foreground">
+            {t('social.previousName', { name: runner.previousName })}
+          </span>
+        )}
         {runner.joinedAt && (
           <span className="text-metadata text-muted-foreground">
             {t('social.joined', {
@@ -37,6 +42,11 @@ export function FollowRow({
           </span>
         )}
       </span>
+      {runner.similarTo && (
+        <p role="status" className="basis-full text-metadata text-destructive">
+          {t('social.similarName', { name: runner.similarTo })}
+        </p>
+      )}
       <div className="flex flex-wrap gap-2">
         {runner.status === 'pending' && !incoming && (
           <span className="self-center text-xs text-muted-foreground">{t('social.pending')}</span>

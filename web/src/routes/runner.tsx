@@ -3,6 +3,7 @@ import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
 import { Link, useParams } from '@tanstack/react-router'
 import { useTranslation } from 'react-i18next'
 import { ActivityFeed } from '@/components/activity-feed'
+import { ActivityCalendar, ProfileStats, RecordShelf } from '@/components/runner-summary'
 import { GoalList } from '@/components/goals'
 import { SupporterBadge } from '@/components/supporter'
 import { ErrorMessage } from '@/components/error-message'
@@ -17,6 +18,7 @@ import { useVisitor } from '@/lib/visitor'
 type Runner = {
   id: string
   displayName: string
+  previousName: string | null
   status: 'none' | 'pending' | 'accepted'
   supporterTier: SupporterTier | null
 }
@@ -76,6 +78,11 @@ export function RunnerPage() {
                 {runner.data.displayName}
                 <SupporterBadge tier={runner.data.supporterTier} />
               </Heading>
+              {runner.data.previousName && (
+                <p className="basis-full text-metadata text-muted-foreground">
+                  {t('social.previousName', { name: runner.data.previousName })}
+                </p>
+              )}
               {me?.id !== runnerId && (
                 <div className="flex flex-wrap items-center gap-3">
                   {runner.data.status === 'pending' && (
@@ -103,7 +110,15 @@ export function RunnerPage() {
                 <ErrorMessage error={follow.error} />
               </p>
             )}
-            {!visitor && <GoalList key={`goals-${runnerId}`} runnerId={runnerId} />}
+            {/* A visitor without an account only sees the public activities */}
+            {!visitor && (
+              <>
+                <ProfileStats runnerId={runnerId} />
+                <ActivityCalendar runnerId={runnerId} />
+                <RecordShelf runnerId={runnerId} />
+                <GoalList key={`goals-${runnerId}`} runnerId={runnerId} />
+              </>
+            )}
             <Heading level={2}>{t('nav.activities')}</Heading>
             <ActivityFeed key={runnerId} runnerId={runnerId} visitor={visitor} />
           </>

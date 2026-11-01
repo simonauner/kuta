@@ -2,8 +2,10 @@ using System.Security.Claims;
 using Dapper;
 using Npgsql;
 
-// JoinedAt is shown only for someone asking to follow: names are free, so account age helps against impersonation.
-public record Runner(Guid Id, string DisplayName, string Status, string? SupporterTier, DateTime? JoinedAt);
+// JoinedAt and SimilarTo are shown only for someone asking to follow: names are free, so account age and a warning about
+// a look-alike of an existing contact's name help against impersonation. PreviousName is set for 30 days after a change.
+public record Runner(Guid Id, string DisplayName, string Status, string? SupporterTier, DateTime? JoinedAt, string? SimilarTo,
+    string? PreviousName);
 public record FollowLists(IEnumerable<Runner> Following, IEnumerable<Runner> Followers, IEnumerable<Runner> Blocked);
 public record FeedItem(Guid Id, Guid UserId, string DisplayName, string Sport, string? Title,
     DateTime StartedAt, int DurationS, double DistanceM, string Privacy, string? RouteGeoJson, string? SupporterTier,
@@ -12,11 +14,25 @@ public record FeedPage(IReadOnlyList<FeedItem> Items, ActivityCursor? NextCursor
 
 public static class SocialEndpoints
 {
+    // An approved follow from viewer to owner. The owner's "view as follower" preview also counts, for that owner and
+    // transaction only (RunnerProfile.ViewerAsync).
+    public static string FollowedBy(string viewer, string owner) => $"""
+        (exists (select 1 from follows f where f.follower_id = {viewer} and f.following_id = {owner} and f.accepted_at is not null)
+         or current_setting('kuta.preview_follower_of', true) = {owner}::text)
+        """;
+
     // The same predicate protects detail, best efforts and the feed. Writes remain owner-only.
-    public const string CanRead = """
-        (a.user_id = @userId or a.privacy = 'public' or
-         (a.privacy = 'followers' and exists (select 1 from follows f
-          where f.follower_id = @userId and f.following_id = a.user_id and f.accepted_at is not null)))
+    public static readonly string CanRead = $"""
+        (a.user_id = @userId or {NotBlocked("a.user_id", "@userId")} and (a.privacy = 'public' or
+         (a.privacy = 'followers' and {FollowedBy("@userId", "a.user_id")})))
+        """;
+
+    // A blocked person sees nothing of the blocker's that is shared, not even public activities, goals or badge.
+    public static string NotBlocked(string owner, string viewer) =>
+        $"not exists (select 1 from follow_blocks b where b.blocker_id = {owner} and b.blocked_id = {viewer})";
+
+    public const string PreviousName = """
+        case when u.display_name_changed_at > now() - interval '30 days' then u.previous_display_name end as previous_name
         """;
 
     // Visitors without an account, via a shared link: only runners who turned on public_profile, and only activities
@@ -29,7 +45,7 @@ public static class SocialEndpoints
             await using var conn = await db.OpenConnectionAsync();
             var runner = await conn.QuerySingleOrDefaultAsync<Runner>($"""
                 select u.id, u.display_name, 'none' as status, {Supporters.VisibleTier} as supporter_tier,
-                    null::timestamptz as joined_at
+                    null::timestamptz as joined_at, null::text as similar_to, {PreviousName}
                 from users u where u.id = @id and u.public_profile
                 """, new { id, userId = Guid.Empty });
             return runner is null ? Results.NotFound() : Results.Ok(runner);
@@ -57,27 +73,32 @@ public static class SocialEndpoints
     public static void MapSocial(this RouteGroupBuilder api)
     {
         var social = api.MapGroup("").RequireAuthorization();
-        social.MapGet("/runners/{id:guid}", async (Guid id, NpgsqlDataSource db, ClaimsPrincipal user) =>
+        social.MapGet("/runners/{id:guid}", async (Guid id, string? viewAs, NpgsqlDataSource db, ClaimsPrincipal user,
+            CancellationToken ct) =>
         {
-            await using var conn = await db.OpenConnectionAsync();
+            await using var conn = await db.OpenConnectionAsync(ct);
+            var (userId, error) = await RunnerProfile.ViewerAsync(conn, user.GetUserId(), id, viewAs, ct);
+            if (error is not null) return error;
             var runner = await conn.QuerySingleOrDefaultAsync<Runner>($"""
                 select u.id, u.display_name, case when f.follower_id is null then 'none'
                     when f.accepted_at is null then 'pending' else 'accepted' end as status,
-                    {Supporters.VisibleTier} as supporter_tier, null::timestamptz as joined_at
+                    {Supporters.VisibleTier} as supporter_tier, null::timestamptz as joined_at, null::text as similar_to,
+                    {PreviousName}
                 from users u left join follows f on f.following_id = u.id and f.follower_id = @userId
                 where u.id = @id
-                """, new { id, userId = user.GetUserId() });
+                """, new { id, userId });
             return runner is null ? Results.NotFound() : Results.Ok(runner);
         });
         social.MapGet("/runners/{id:guid}/activities", async (Guid id, NpgsqlDataSource db, ClaimsPrincipal user,
-            DateTimeOffset? beforeStartedAt, Guid? beforeId) =>
+            DateTimeOffset? beforeStartedAt, Guid? beforeId, string? viewAs, CancellationToken ct) =>
         {
             if (beforeStartedAt.HasValue != beforeId.HasValue)
                 return Results.BadRequest(new ApiError("Sidmarkören är ogiltig. Ladda om sidan.", "invalidActivityPage"));
             await using var conn = await db.OpenConnectionAsync();
             if (!await conn.ExecuteScalarAsync<bool>("select exists(select 1 from users where id = @id)", new { id }))
                 return Results.NotFound();
-            return Results.Ok(await ReadFeedAsync(conn, user.GetUserId(), beforeStartedAt, beforeId, id));
+            var (viewer, error) = await RunnerProfile.ViewerAsync(conn, user.GetUserId(), id, viewAs, ct);
+            return error ?? Results.Ok(await ReadFeedAsync(conn, viewer, beforeStartedAt, beforeId, id));
         });
         social.MapGet("/follows", async (NpgsqlDataSource db, ClaimsPrincipal user) =>
         {
@@ -85,23 +106,34 @@ public static class SocialEndpoints
             var userId = user.GetUserId();
             var following = await conn.QueryAsync<Runner>($"""
                 select u.id, u.display_name, case when f.accepted_at is null then 'pending' else 'accepted' end as status,
-                    {Supporters.VisibleTier} as supporter_tier, null::timestamptz as joined_at
+                    {Supporters.VisibleTier} as supporter_tier, null::timestamptz as joined_at, null::text as similar_to,
+                    {PreviousName}
                 from follows f join users u on u.id = f.following_id where f.follower_id = @userId
                 order by u.display_name, u.id
                 """, new { userId });
             var followers = await conn.QueryAsync<Runner>($"""
                 select u.id, u.display_name, case when f.accepted_at is null then 'pending' else 'accepted' end as status,
                     {Supporters.VisibleTier} as supporter_tier,
-                    case when f.accepted_at is null then u.created_at end as joined_at
-                from follows f join users u on u.id = f.follower_id where f.following_id = @userId
+                    case when f.accepted_at is null then u.created_at end as joined_at, null::text as similar_to,
+                    {PreviousName}
+                from follows f join users u on u.id = f.follower_id
+                where f.following_id = @userId and {NotBlocked("@userId", "f.follower_id")}
                 order by f.accepted_at nulls first, u.display_name, u.id
                 """, new { userId });
-            var blocked = await conn.QueryAsync<Runner>("""
-                select u.id, u.display_name, 'blocked' as status, null as supporter_tier, null::timestamptz as joined_at
+            var blocked = await conn.QueryAsync<Runner>($"""
+                select u.id, u.display_name, 'blocked' as status, null as supporter_tier, null::timestamptz as joined_at, null::text as similar_to,
+                    {PreviousName}
                 from follow_blocks b join users u on u.id = b.blocked_id where b.blocker_id = @userId
                 order by u.display_name, u.id
                 """, new { userId });
-            return Results.Ok(new FollowLists(following, followers, blocked));
+            // Contacts are the people you follow or have asked to follow, and your approved followers.
+            var contacts = following.Concat(followers.Where(f => f.Status == "accepted"))
+                .Select(c => (c.Id, c.DisplayName, Skeleton: MeEndpoints.NameSkeleton(c.DisplayName))).ToList();
+            var requests = followers.Select(f => f.Status != "pending" ? f : f with
+            {
+                SimilarTo = contacts.FirstOrDefault(c => c.Id != f.Id && c.Skeleton == MeEndpoints.NameSkeleton(f.DisplayName)).DisplayName,
+            }).ToList();
+            return Results.Ok(new FollowLists(following, requests, blocked));
         });
         social.MapPost("/following/{id:guid}", async (Guid id, NpgsqlDataSource db, ClaimsPrincipal user) =>
         {
@@ -110,11 +142,10 @@ public static class SocialEndpoints
             if (id == userId || !await conn.ExecuteScalarAsync<bool>(
                     "select exists(select 1 from users where id = @id) and exists(select 1 from users where id = @userId)", new { id, userId }))
                 return Results.NotFound();
-            // A blocked request is not stored, but the response is the same so the block is not revealed.
+            // A blocked request is stored but hidden from the blocker and cannot be accepted, so the requester keeps
+            // seeing it as pending and the block is not revealed.
             await conn.ExecuteAsync("""
-                insert into follows (follower_id, following_id)
-                select @userId, @id
-                where not exists (select 1 from follow_blocks where blocker_id = @id and blocked_id = @userId)
+                insert into follows (follower_id, following_id) values (@userId, @id)
                 on conflict (follower_id, following_id) do nothing
                 """, new { id, userId });
             return Results.NoContent();
@@ -136,16 +167,20 @@ public static class SocialEndpoints
         social.MapDelete("/blocks/{id:guid}", async (Guid id, NpgsqlDataSource db, ClaimsPrincipal user) =>
         {
             await using var conn = await db.OpenConnectionAsync();
-            await conn.ExecuteAsync("delete from follow_blocks where blocker_id = @userId and blocked_id = @id",
-                new { id, userId = user.GetUserId() });
+            // Requests sent during the block were never shown; lifting it does not bring them back.
+            await conn.ExecuteAsync("""
+                delete from follows where following_id = @userId and follower_id = @id and accepted_at is null
+                    and exists (select 1 from follow_blocks where blocker_id = @userId and blocked_id = @id);
+                delete from follow_blocks where blocker_id = @userId and blocked_id = @id
+                """, new { id, userId = user.GetUserId() });
             return Results.NoContent();
         });
         social.MapPut("/followers/{id:guid}", async (Guid id, NpgsqlDataSource db, ClaimsPrincipal user) =>
         {
             await using var conn = await db.OpenConnectionAsync();
-            var count = await conn.ExecuteAsync("""
+            var count = await conn.ExecuteAsync($"""
                 update follows set accepted_at = coalesce(accepted_at, now())
-                where following_id = @userId and follower_id = @id
+                where following_id = @userId and follower_id = @id and {NotBlocked("@userId", "@id")}
                 """, new { id, userId = user.GetUserId() });
             return count == 0 ? Results.NotFound() : Results.NoContent();
         });

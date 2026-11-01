@@ -3,8 +3,8 @@ using System.Text.Json;
 
 public enum TurnstileCheck { Passed, Failed, Unavailable }
 
-// Cloudflare Turnstile: checks that a person, not a script, signs up or asks for a password link, since both send
-// email. The site key is public and goes to the web; the secret key stays on the server, which verifies every token
+// Cloudflare Turnstile: checks that a person, not a script, signs in (credential stuffing), signs up or asks for a
+// password link (both send email). The site key is public and goes to the web; the secret key stays on the server, which verifies every token
 // with Cloudflare. Without both keys (local development, tests) the check is skipped.
 public sealed class TurnstileVerifier(HttpClient http, IConfiguration configuration)
 {

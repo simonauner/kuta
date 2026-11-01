@@ -12,7 +12,7 @@ export type Me = {
   defaultActivityPrivacy: 'private' | 'followers' | 'public'
   // Visitors without an account may open the profile link and see public activities
   publicProfile: boolean
-  allActivitiesMatchDefaultPrivacy: boolean
+  activitiesWithOtherPrivacy: number
   // tier is null when there is no supportership or it has expired
   supporter: {
     tier: SupporterTier | null

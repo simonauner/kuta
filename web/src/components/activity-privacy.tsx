@@ -1,7 +1,8 @@
 import { FormField } from '@/components/ui/form-field'
 import { useRef } from 'react'
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
-import { useTranslation } from 'react-i18next'
+import { Trans, useTranslation } from 'react-i18next'
+import { Link } from '@tanstack/react-router'
 import { Check } from 'lucide-react'
 import { ErrorMessage } from '@/components/error-message'
 import { Button } from '@/components/ui/button'
@@ -11,6 +12,35 @@ import { SharingHints } from '@/components/privacy-places'
 import { meQuery, type Me } from '@/lib/auth'
 import { Select } from '@/components/ui/select'
 import { Heading } from '@/components/ui/heading'
+
+// New and imported activities silently get the default visibility, so the forms that create them say which it is.
+export function DefaultPrivacyNote({ imported = false }: { imported?: boolean }) {
+  const { t } = useTranslation()
+  const privacy = useQuery(meQuery).data?.defaultActivityPrivacy ?? 'private'
+  const labels = {
+    private: t('social.private'),
+    followers: t('social.followersVisibility'),
+    public: t('social.public'),
+  }
+  return (
+    <p className="text-sm">
+      <Trans
+        i18nKey={imported ? 'activityPrivacy.importNote' : 'activityPrivacy.newNote'}
+        values={{ visibility: labels[privacy] }}
+        components={{ strong: <strong /> }}
+      />
+      {!imported && (
+        <>
+          {' '}
+          <Link to="/app/settings" className="underline underline-offset-4">
+            {t('activityPrivacy.changeDefault')}
+          </Link>
+        </>
+      )}
+      <SharingHints privacy={privacy} />
+    </p>
+  )
+}
 
 export function ActivityPrivacy() {
   const { t } = useTranslation()
@@ -79,7 +109,7 @@ export function ActivityPrivacy() {
       <div className="mt-4 flex items-center gap-2">
         <Button
           variant="secondary-outline"
-          disabled={!me || isFetching || save.isPending || me.allActivitiesMatchDefaultPrivacy}
+          disabled={!me || isFetching || save.isPending || me.activitiesWithOtherPrivacy === 0}
           onClick={() => {
             save.reset()
             dialog.current?.showModal()
@@ -87,7 +117,7 @@ export function ActivityPrivacy() {
         >
           {t('activityPrivacy.applyAll')}
         </Button>
-        {me?.allActivitiesMatchDefaultPrivacy && !isFetching && (
+        {me?.activitiesWithOtherPrivacy === 0 && !isFetching && (
           <span role="status">
             <Check className="size-5 text-primary" aria-hidden="true" />
             <span className="sr-only">{t('activityPrivacy.allMatch')}</span>
@@ -143,7 +173,10 @@ export function ActivityPrivacy() {
           {t('activityPrivacy.applyAll')}
         </Heading>
         <p id="apply-privacy-help" className="mt-3 text-sm text-muted-foreground">
-          {t('activityPrivacy.confirm', { visibility: labels[privacy] })}
+          {t('activityPrivacy.confirm', {
+            count: me?.activitiesWithOtherPrivacy ?? 0,
+            visibility: labels[privacy],
+          })}
         </p>
         {save.error && (
           <p role="alert" className="mt-3 text-sm text-destructive">

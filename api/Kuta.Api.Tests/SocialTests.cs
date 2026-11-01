@@ -268,15 +268,25 @@ public class SocialTests(KutaFactory factory) : IClassFixture<KutaFactory>
             // A pending request shows when the requester joined, since names are free text.
             await viewer.PostAsync($"/api/following/{ownerId}", null, ct);
             Assert.NotNull(Assert.Single((await owner.GetFromJsonAsync<FollowLists>("/api/follows", ct))!.Followers).JoinedAt);
-            // Blocking removes the request and silently drops new ones until the block is lifted.
+            // Blocking removes the request and hides new ones until the block is lifted; the requester still sees them as
+            // pending, so the block is not revealed. Shared activities are closed to the blocked person, public ones too.
             Assert.Equal(HttpStatusCode.NotFound, (await owner.PutAsync($"/api/blocks/{Guid.NewGuid()}", null, ct)).StatusCode);
+            Assert.Equal(HttpStatusCode.NoContent, (await owner.PutAsJsonAsync($"/api/activities/{activityId}", update, ct)).StatusCode);
             Assert.Equal(HttpStatusCode.NoContent, (await owner.PutAsync($"/api/blocks/{viewerId}", null, ct)).StatusCode);
             Assert.Equal(HttpStatusCode.NoContent, (await viewer.PostAsync($"/api/following/{ownerId}", null, ct)).StatusCode);
             var blocking = (await owner.GetFromJsonAsync<FollowLists>("/api/follows", ct))!;
             Assert.Empty(blocking.Followers);
             Assert.Equal(viewerId, Assert.Single(blocking.Blocked).Id);
-            Assert.Empty((await viewer.GetFromJsonAsync<FollowLists>("/api/follows", ct))!.Blocked);
+            Assert.Equal(HttpStatusCode.NotFound, (await owner.PutAsync($"/api/followers/{viewerId}", null, ct)).StatusCode);
+            var blocked = (await viewer.GetFromJsonAsync<FollowLists>("/api/follows", ct))!;
+            Assert.Empty(blocked.Blocked);
+            Assert.Equal("pending", Assert.Single(blocked.Following).Status);
+            Assert.Equal("pending", (await viewer.GetFromJsonAsync<Runner>($"/api/runners/{ownerId}", ct))!.Status);
+            Assert.Equal(HttpStatusCode.NotFound, (await viewer.GetAsync($"/api/activities/{activityId}", ct)).StatusCode);
+            Assert.Empty((await viewer.GetFromJsonAsync<FeedPage>($"/api/runners/{ownerId}/activities", ct))!.Items);
             Assert.Equal(HttpStatusCode.NoContent, (await owner.DeleteAsync($"/api/blocks/{viewerId}", ct)).StatusCode);
+            Assert.Empty((await owner.GetFromJsonAsync<FollowLists>("/api/follows", ct))!.Followers);
+            Assert.Equal(HttpStatusCode.OK, (await viewer.GetAsync($"/api/activities/{activityId}", ct)).StatusCode);
             await viewer.PostAsync($"/api/following/{ownerId}", null, ct);
             Assert.Single((await owner.GetFromJsonAsync<FollowLists>("/api/follows", ct))!.Followers);
         }
@@ -284,6 +294,72 @@ public class SocialTests(KutaFactory factory) : IClassFixture<KutaFactory>
         {
             await conn.ExecuteAsync("delete from auth.users where email in (@ownerEmail, @viewerEmail)", new { ownerEmail, viewerEmail });
         }
+    }
+
+    // The warning is computed in the endpoint from the owner's contacts, so it is checked over HTTP.
+    [Fact]
+    public async Task Follow_request_with_a_look_alike_of_a_contacts_name_is_flagged()
+    {
+        var ct = TestContext.Current.CancellationToken;
+        await using var conn = await factory.Services.GetRequiredService<NpgsqlDataSource>().OpenConnectionAsync(ct);
+        using var owner = factory.CreateClient();
+        using var friend = factory.CreateClient();
+        using var impostor = factory.CreateClient();
+        using var stranger = factory.CreateClient();
+        var tag = Guid.NewGuid().ToString("N");
+        string[] emails = [$"owner-{tag}@example.com", $"friend-{tag}@example.com", $"impostor-{tag}@example.com", $"stranger-{tag}@example.com"];
+        try
+        {
+            await TestSession.CreateRunnerAsync(factory, owner, conn, emails[0], "Owner", ct);
+            await TestSession.CreateRunnerAsync(factory, friend, conn, emails[1], "Anna Svensson", ct);
+            await TestSession.CreateRunnerAsync(factory, impostor, conn, emails[2], "\u0410nna  Svensson", ct);
+            await TestSession.CreateRunnerAsync(factory, stranger, conn, emails[3], "Bertil", ct);
+            var ownerId = (await owner.GetFromJsonAsync<Me>("/api/me", ct))!.Id;
+            var friendId = (await friend.GetFromJsonAsync<Me>("/api/me", ct))!.Id;
+            await owner.PostAsync($"/api/following/{friendId}", null, ct);
+            await impostor.PostAsync($"/api/following/{ownerId}", null, ct);
+            await stranger.PostAsync($"/api/following/{ownerId}", null, ct);
+            var requests = (await owner.GetFromJsonAsync<FollowLists>("/api/follows", ct))!.Followers.ToDictionary(r => r.DisplayName);
+            Assert.Equal("Anna Svensson", requests["\u0410nna  Svensson"].SimilarTo);
+            Assert.Null(requests["Bertil"].SimilarTo);
+        }
+        finally { await conn.ExecuteAsync("delete from auth.users where email = any(@emails)", new { emails }); }
+    }
+
+    // The change rule lives in the endpoint's upsert, and the previous name is read through the runner endpoint.
+    [Fact]
+    public async Task Name_changes_show_the_previous_name_for_30_days_and_are_limited_to_one_a_week()
+    {
+        var ct = TestContext.Current.CancellationToken;
+        await using var conn = await factory.Services.GetRequiredService<NpgsqlDataSource>().OpenConnectionAsync(ct);
+        using var runner = factory.CreateClient();
+        using var viewer = factory.CreateClient();
+        var tag = Guid.NewGuid().ToString("N");
+        string[] emails = [$"rename-{tag}@example.com", $"rename-viewer-{tag}@example.com"];
+        try
+        {
+            await TestSession.CreateRunnerAsync(factory, runner, conn, emails[0], "Bertil", ct);
+            await TestSession.CreateRunnerAsync(factory, viewer, conn, emails[1], "Viewer", ct);
+            var id = (await runner.GetFromJsonAsync<Me>("/api/me", ct))!.Id;
+            Task<Runner?> Seen() => viewer.GetFromJsonAsync<Runner>($"/api/runners/{id}", ct);
+            Task<HttpResponseMessage> Rename(string name) => runner.PutAsJsonAsync("/api/me", new { displayName = name }, ct);
+
+            Assert.Null((await Seen())!.PreviousName);
+            Assert.Equal(HttpStatusCode.OK, (await Rename("Anna")).StatusCode);
+            Assert.Equal(("Anna", "Bertil"), ((await Seen())!.DisplayName, (await Seen())!.PreviousName));
+            Assert.Equal(HttpStatusCode.OK, (await Rename("Anna")).StatusCode); // saving the same name is not a change
+            using (var again = await Rename("Cecilia"))
+            {
+                Assert.Equal(HttpStatusCode.Conflict, again.StatusCode);
+                Assert.Equal("nameChangedRecently", (await again.Content.ReadFromJsonAsync<ApiError>(ct))!.Code);
+            }
+            await conn.ExecuteAsync("update users set display_name_changed_at = now() - interval '8 days' where id = @id", new { id });
+            Assert.Equal(HttpStatusCode.OK, (await Rename("Cecilia")).StatusCode);
+            Assert.Equal("Anna", (await Seen())!.PreviousName);
+            await conn.ExecuteAsync("update users set display_name_changed_at = now() - interval '31 days' where id = @id", new { id });
+            Assert.Null((await Seen())!.PreviousName);
+        }
+        finally { await conn.ExecuteAsync("delete from auth.users where email = any(@emails)", new { emails }); }
     }
 
     [Fact]

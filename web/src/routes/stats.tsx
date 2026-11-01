@@ -3,9 +3,10 @@ import { FormField } from '@/components/ui/form-field'
 import { Heading } from '@/components/ui/heading'
 import { useState } from 'react'
 import { useQuery } from '@tanstack/react-query'
+import { Link } from '@tanstack/react-router'
 import { useTranslation } from 'react-i18next'
 import { ErrorMessage } from '@/components/error-message'
-import { RecordsSection } from '@/components/records'
+import { PredictionsSection, RecordsSection } from '@/components/records'
 import { ActivitiesEmptyState } from '@/components/activities-empty-state'
 import { SlowLoading } from '@/components/slow-loading'
 import { TrainingLoadSection } from '@/components/training-load'
@@ -30,6 +31,43 @@ type StatisticsMonth = {
 
 const metrics = ['distanceM', 'durationS', 'paceSPerKm', 'avgHr'] as const
 type Metric = (typeof metrics)[number]
+
+// Overview follows the chosen year; Analysis shows current form, which no year affects.
+function StatsTabs() {
+  const { t } = useTranslation()
+  const tabClass =
+    'rounded-md px-3 py-1.5 text-sm font-medium text-muted-foreground transition-colors hover:text-foreground'
+  const activeProps = { className: 'bg-background text-foreground shadow-sm' }
+  return (
+    <nav aria-label={t('stats.views')} className="mt-4 inline-flex rounded-lg bg-muted p-1">
+      <Link
+        to="/app/stats"
+        activeOptions={{ exact: true }}
+        className={tabClass}
+        activeProps={activeProps}
+      >
+        {t('stats.overview')}
+      </Link>
+      <Link to="/app/stats/analysis" className={tabClass} activeProps={activeProps}>
+        {t('stats.analysis')}
+      </Link>
+    </nav>
+  )
+}
+
+export function AnalysisPage() {
+  const { t } = useTranslation()
+  return (
+    <section>
+      <Heading level={1}>{t('nav.stats')}</Heading>
+      <StatsTabs />
+      <p className="mt-4 text-muted-foreground">{t('stats.analysisDescription')}</p>
+      <GarminDerivedNote className="mt-1" />
+      <TrainingLoadSection />
+      <PredictionsSection />
+    </section>
+  )
+}
 
 export function StatsPage() {
   const { t, i18n } = useTranslation()
@@ -74,7 +112,8 @@ export function StatsPage() {
     return (
       <section>
         <Heading level={1}>{t('nav.stats')}</Heading>
-        <p className="mt-2 text-muted-foreground">{t('stats.description')}</p>
+        <StatsTabs />
+        <p className="mt-4 text-muted-foreground">{t('stats.description')}</p>
         <SlowLoading loading={years.isPending}>
           <ActivitiesEmptyState context="stats" />
         </SlowLoading>
@@ -85,7 +124,8 @@ export function StatsPage() {
   return (
     <section>
       <Heading level={1}>{t('nav.stats')}</Heading>
-      <p className="mt-2 text-muted-foreground">{t('stats.description')}</p>
+      <StatsTabs />
+      <p className="mt-4 text-muted-foreground">{t('stats.description')}</p>
       <GarminDerivedNote className="mt-1" />
       <div className="mt-6 flex flex-wrap gap-4">
         <FormField label={t('activities.year')} className="text-sm font-medium">
@@ -273,7 +313,6 @@ export function StatsPage() {
           ))}
       </SlowLoading>
       <YearComparison year={year} sportGroup={sportGroup} />
-      <TrainingLoadSection />
       <RecordsSection year={year} />
     </section>
   )

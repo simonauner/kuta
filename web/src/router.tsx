@@ -15,7 +15,7 @@ import { RunnerPage } from '@/routes/runner'
 import { ProfilePage } from '@/routes/profile'
 import { SettingsPage } from '@/routes/settings'
 import { ImportPage } from '@/routes/import'
-import { StatsPage } from '@/routes/stats'
+import { AnalysisPage, StatsPage } from '@/routes/stats'
 import { activityPageSearch, activitySearch } from '@/lib/activity'
 import { activityQuery } from '@/lib/activity-query'
 import { queryClient } from '@/lib/query-client'
@@ -58,6 +58,11 @@ const statsRoute = createRoute({
   getParentRoute: () => rootRoute,
   path: '/app/stats',
   component: StatsPage,
+})
+const analysisRoute = createRoute({
+  getParentRoute: () => rootRoute,
+  path: '/app/stats/analysis',
+  component: AnalysisPage,
 })
 const profileRoute = createRoute({
   getParentRoute: () => rootRoute,
@@ -108,6 +113,7 @@ const routeTree = rootRoute.addChildren([
   activityRoute,
   editActivityRoute,
   statsRoute,
+  analysisRoute,
   profileRoute,
   runnerRoute,
   equipmentRoute,

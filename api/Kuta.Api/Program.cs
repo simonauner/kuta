@@ -110,6 +110,10 @@ static async Task<int> RunAsync(string[] args)
         o.AddPolicy("uploads", ctx => RateLimitPartition.GetFixedWindowLimiter(
             ctx.User.FindFirstValue(ClaimTypes.NameIdentifier) ?? "anonymous",
             _ => new FixedWindowRateLimiterOptions { PermitLimit = 30, Window = TimeSpan.FromMinutes(5) }));
+        // Data export copies every raw file: 5 per hour and user.
+        o.AddPolicy("exports", ctx => RateLimitPartition.GetFixedWindowLimiter(
+            ctx.User.FindFirstValue(ClaimTypes.NameIdentifier) ?? "anonymous",
+            _ => new FixedWindowRateLimiterOptions { PermitLimit = 5, Window = TimeSpan.FromHours(1) }));
         // Follow requests: 20 per hour and user, against mass requests to shared profile links.
         // Public profiles are read without an account: 120 calls per minute and IP (IPv6 per /64 network).
         o.AddPolicy("public", ctx => RateLimitPartition.GetFixedWindowLimiter(
@@ -254,6 +258,7 @@ static async Task<int> RunAsync(string[] args)
     api.MapActivities();
     api.MapSocial();
     api.MapPublic();
+    api.MapRunnerProfile();
     api.MapEquipment();
     api.MapBestEfforts();
     api.MapJobs();
@@ -266,7 +271,7 @@ static async Task<int> RunAsync(string[] args)
     app.MapFallbackToFile("/features", "features.html", staticFiles);
 
     // The public pages are static; only the app's known paths get the React shell.
-    foreach (var path in new[] { "/app", "/app/activities", "/app/activities/new", "/app/activities/{activityId:guid}", "/app/activities/{activityId:guid}/edit", "/app/stats", "/app/profile", "/app/settings/equipment", "/app/settings/followers", "/app/settings/privacy-places", "/app/settings/import", "/app/runners/{runnerId:guid}", "/app/settings" })
+    foreach (var path in new[] { "/app", "/app/activities", "/app/activities/new", "/app/activities/{activityId:guid}", "/app/activities/{activityId:guid}/edit", "/app/stats", "/app/stats/analysis", "/app/profile", "/app/settings/equipment", "/app/settings/followers", "/app/settings/privacy-places", "/app/settings/import", "/app/runners/{runnerId:guid}", "/app/settings" })
         app.MapFallbackToFile(path, "app.html", staticFiles);
 
     await app.RunAsync();

@@ -6,16 +6,33 @@ using Npgsql;
 
 public static class DataExport
 {
+    // Each export copies every raw file to a temporary file on the machine's disk, kept until the download has finished.
+    private static readonly SemaphoreSlim Exports = new(2);
+
     public static void MapDataExport(this RouteGroupBuilder api)
     {
         api.MapGet("/me/export", async (NpgsqlDataSource db, RawFileStore store, ClaimsPrincipal user,
             HttpResponse response, CancellationToken ct) =>
         {
-            await using var conn = await db.OpenConnectionAsync(ct);
-            var archive = await CreateAsync(conn, store, user.GetUserId(), ct);
-            response.Headers.CacheControl = "no-store";
-            return Results.File(archive, "application/zip", "kuta-export.zip");
-        }).RequireAuthorization();
+            if (!await Exports.WaitAsync(0, ct))
+                return Results.Json(new ApiError("Många exporter pågår just nu. Försök igen om en stund.", "exportBusy"),
+                    statusCode: StatusCodes.Status503ServiceUnavailable);
+            var released = false;
+            void Release() { if (!released) { released = true; Exports.Release(); } }
+            try
+            {
+                await using var conn = await db.OpenConnectionAsync(ct);
+                var archive = await CreateAsync(conn, store, user.GetUserId(), ct);
+                response.Headers.CacheControl = "no-store";
+                response.OnCompleted(() => { Release(); return Task.CompletedTask; });
+                return Results.File(archive, "application/zip", "kuta-export.zip");
+            }
+            catch
+            {
+                Release();
+                throw;
+            }
+        }).RequireAuthorization().RequireRateLimiting("exports");
     }
 
     public static async Task<FileStream> CreateAsync(NpgsqlConnection conn, RawFileStore store, Guid userId,
@@ -34,7 +51,7 @@ public static class DataExport
             await using var tx = await conn.BeginTransactionAsync(ct);
             // Same lock order as consent withdrawal; also protect the raw files against concurrent activity deletion.
             var profile = await conn.QuerySingleOrDefaultAsync<ExportProfile>(new CommandDefinition("""
-                select u.id, a.email, u.display_name, u.created_at, u.hr_consent_at, u.default_activity_privacy,
+                select u.id, a.email, u.display_name, u.previous_display_name, u.display_name_changed_at, u.created_at, u.hr_consent_at, u.default_activity_privacy,
                     u.threshold_speed_m_s, u.supporter_tier, u.supporter_until, u.supporter_badge_privacy, u.public_profile,
                     u.terms_version, u.terms_accepted_at
                 from users u join auth.users a on a.id = u.id where u.id = @userId for share of u
@@ -98,7 +115,8 @@ public static class DataExport
 
     private record ExportGarmin(string GarminUserId, string Permissions, DateTime CreatedAt);
     private record ExportFollow(Guid FollowerId, Guid FollowingId, DateTime? AcceptedAt, DateTime CreatedAt);
-    private record ExportProfile(Guid Id, string? Email, string DisplayName, DateTime CreatedAt, DateTime? HrConsentAt, string DefaultActivityPrivacy,
+    private record ExportProfile(Guid Id, string? Email, string DisplayName, string? PreviousDisplayName,
+        DateTime? DisplayNameChangedAt, DateTime CreatedAt, DateTime? HrConsentAt, string DefaultActivityPrivacy,
         double? ThresholdSpeedMS, string? SupporterTier, DateTime? SupporterUntil, string SupporterBadgePrivacy, bool PublicProfile,
         string? TermsVersion, DateTime? TermsAcceptedAt);
     private record ExportActivity(Guid Id, string Source, DateTime CreatedAt, string Privacy,

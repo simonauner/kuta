@@ -43,6 +43,10 @@
     "copyProfileLink": "Kopiera min profillänk"
   },
   "stats": {
+    "views": "Vyer i statistiken",
+    "overview": "Översikt",
+    "analysis": "Analys",
+    "analysisDescription": "Din form och prognos just nu, utifrån de senaste veckornas aktiviteter.",
     "description": "Följ din träningsmängd, distans, tempo och puls över tid.",
     "allSports": "Alla sporter",
     "count": "Aktiviteter",
@@ -383,7 +387,8 @@
     "passwordRequired": "Ange ditt lösenord.",
     "wrongPassword": "Fel lösenord.",
     "invalidEmail": "Ange en giltig e-postadress.",
-    "invalidName": "Ange ett namn (högst 100 tecken).",
+    "invalidName": "Ange ett namn (högst 100 tecken, utan osynliga tecken och utan märken som liknar Kutas).",
+    "nameChangedRecently": "Du kan byta namn en gång i veckan.",
     "nameRequired": "Välj ett namn först.",
     "fileRequired": "Välj en FIT-fil att ladda upp.",
     "fileTooLarge": "Filen är för stor (högst 20 MB).",
@@ -411,10 +416,13 @@
     "invalidSportGroup": "Välj en giltig sport.",
     "importInProgress": "En import pågår redan. Vänta tills den är klar.",
     "importBusy": "Många importer pågår just nu. Försök igen om en stund.",
+    "uploadTooSlow": "Uppladdningen gick för långsamt eller avbröts. Försök igen.",
+    "exportBusy": "Många exporter pågår just nu. Försök igen om en stund.",
     "jobFailed": "Jobbet misslyckades. Försök igen senare.",
     "jobCancelled": "Jobbet avbröts.",
     "termsRequired": "Godkänn användarvillkoren och integritetspolicyn för att skapa ett konto.",
-    "garminUnavailable": "Garmin Connect är inte tillgängligt just nu."
+    "garminUnavailable": "Garmin Connect är inte tillgängligt just nu.",
+    "invalidViewAs": "Förhandsvisningen gäller bara din egen profil."
   },
   "home": "Kuta – startsida",
   "footer": {
@@ -618,13 +626,17 @@
     "default": "Standardsynlighet för nya aktiviteter",
     "help": "Sparas automatiskt och gäller nya aktiviteter. Befintliga aktiviteter behåller sin synlighet tills du tillämpar valet på alla.",
     "applyAll": "Tillämpa på alla aktiviteter",
-    "allMatch": "Alla dina aktiviteter har den valda synligheten.",
-    "confirm": "Ändra alla befintliga aktiviteter till ”{{visibility}}”? Detta ersätter de individuella synlighetsvalen för alla dina aktiviteter.",
     "applying": "Tillämpar…",
     "applied": "Alla dina aktiviteter har nu denna synlighet.",
     "saved": "Standardsynligheten har sparats.",
     "publicProfile": "Visa min profil för besökare utan konto.",
-    "publicProfileHelp": "Den som har din profillänk ser då ditt namn och aktiviteter som är synliga för alla, utan att logga in. Puls, fullständig rutt, utrustning och mål visas aldrig."
+    "publicProfileHelp": "Den som har din profillänk ser då ditt namn och aktiviteter som är synliga för alla, utan att logga in. Puls, fullständig rutt, utrustning och mål visas aldrig.",
+    "confirm_one": "Ändra {{count}} aktivitet till ”{{visibility}}”? Aktivitetens eget synlighetsval ersätts och sparas inte, så du får ändra tillbaka det på aktiviteten.",
+    "confirm_other": "Ändra {{count}} aktiviteter till ”{{visibility}}”? Deras individuella synlighetsval ersätts och sparas inte, så om aktiviteterna har olika synlighet får du ändra tillbaka dem en i taget.",
+    "newNote": "Aktiviteten får synligheten <strong>{{visibility}}</strong>.",
+    "importNote": "Importerade aktiviteter får synligheten <strong>{{visibility}}</strong>, oavsett hur de var delade på Strava. Du ändrar standarden under Aktiviteternas synlighet.",
+    "changeDefault": "Ändra standard",
+    "allMatch": "Alla dina aktiviteter har den valda synligheten."
   },
   "social": {
     "follow": "Be att få följa",
@@ -637,7 +649,9 @@
     "block": "Blockera",
     "unblock": "Häv blockering",
     "blocked": "Blockerade",
-    "blockedHint": "Blockerade kan inte be om att följa dig. De får inte veta att de är blockerade.",
+    "blockedHint": "Blockerade kan inte be om att följa dig eller se något du delar, inte heller publika aktiviteter. De får inte veta att de är blockerade.",
+    "similarName": "Du har redan en kontakt som heter {{name}}. Kontrollera att det är rätt person innan du godkänner.",
+    "previousName": "Hette tidigare {{name}}",
     "joined": "Gick med {{date}}",
     "requestHint": "Godkänn bara personer du känner igen. Namn kan väljas fritt, så någon kan utge sig för att vara någon annan – ett nyss skapat konto är ett varningstecken.",
     "followers": "Följare och förfrågningar",
@@ -819,5 +833,45 @@
       "runner": "Den här profilen visas bara för inloggade. Skapa ett konto eller logga in för att se den och be att få följa.",
       "activity": "Den här aktiviteten visas bara för inloggade. Skapa ett konto eller logga in för att se den."
     }
+  },
+  "profile": {
+    "calendar": {
+      "title": "Senaste året",
+      "activeDays_one": "{{count}} aktiv dag",
+      "activeDays_other": "{{count}} aktiva dagar",
+      "streak_one": "{{count}} vecka i rad",
+      "streak_other": "{{count}} veckor i rad",
+      "longest_one": "längsta svit {{count}} vecka",
+      "longest_other": "längsta svit {{count}} veckor",
+      "summary_one": "Aktivitetskalender: {{count}} dag med aktiviteter det senaste året",
+      "summary_other": "Aktivitetskalender: {{count}} dagar med aktiviteter det senaste året",
+      "day_one": "{{count}} aktivitet, {{distance}} km",
+      "day_other": "{{count}} aktiviteter, {{distance}} km"
+    },
+    "stats": {
+      "memberSince": "På Kuta sedan {{date}}",
+      "thisYear": "I år",
+      "allTime": "Totalt",
+      "sessions_one": "{{count}} aktivitet",
+      "sessions_other": "{{count}} aktiviteter",
+      "topSports": "Vanligaste sporter",
+      "followers_one": "{{count}} följare",
+      "followers_other": "{{count}} följare",
+      "following_one": "följer {{count}}",
+      "following_other": "följer {{count}}"
+    },
+    "records": {
+      "title": "Personbästa"
+    },
+    "viewAs": {
+      "label": "Visa som",
+      "me": "Jag",
+      "followers": "Godkänd följare",
+      "public": "Någon med ett Kuta-konto",
+      "followersHint": "Så här ser dina godkända följare din profil. Privata aktiviteter och mål visas inte, och kartorna döljer start, mål och dina dolda platser.",
+      "publicHint": "Så här ser alla med ett Kuta-konto och länken profilen. Bara det du delar med alla visas, och kartorna döljer start, mål och dina dolda platser."
+    },
+    "latestActivities": "Senaste aktiviteterna",
+    "allActivities": "Alla aktiviteter"
   }
 }
