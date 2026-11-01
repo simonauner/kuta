@@ -6,6 +6,7 @@ import { ErrorMessage } from '@/components/error-message'
 import { SportIcon } from '@/components/sport-icon'
 import { Heading } from '@/components/ui/heading'
 import { api } from '@/lib/api'
+import { meQuery } from '@/lib/auth'
 import { formatDuration, formatPace } from '@/lib/activity'
 import { recordMeters, type RecordDistance, type StoredBestEffort } from '@/lib/records'
 import { calendarWeeks, weekStreaks, type CalendarDay } from '@/lib/activity-calendar'
@@ -18,6 +19,8 @@ type RunnerSummary = {
   topSports: { sport: string; count: number }[]
   days: CalendarDay[]
   records: StoredBestEffort[]
+  followerCount: number
+  followingCount: number
 }
 
 const levelClass = ['bg-muted', 'bg-primary/25', 'bg-primary/50', 'bg-primary/75', 'bg-primary']
@@ -37,7 +40,9 @@ export function runnerSummaryQuery(runnerId: string) {
 export function ProfileStats({ runnerId }: { runnerId: string }) {
   const { t, i18n } = useTranslation()
   const { data } = useQuery(runnerSummaryQuery(runnerId))
+  const { data: me } = useQuery(meQuery)
   if (!data) return null
+  const follows = `${t('profile.stats.followers', { count: data.followerCount })} · ${t('profile.stats.following', { count: data.followingCount })}`
   const language = i18n.resolvedLanguage
   const km = new Intl.NumberFormat(language, {
     style: 'unit',
@@ -67,7 +72,14 @@ export function ProfileStats({ runnerId }: { runnerId: string }) {
   return (
     <div className="space-y-3">
       <p className="text-metadata text-muted-foreground">
-        {t('profile.stats.memberSince', { date: since.format(new Date(data.joinedAt)) })}
+        {t('profile.stats.memberSince', { date: since.format(new Date(data.joinedAt)) })} ·{' '}
+        {me?.id === runnerId ? (
+          <Link to="/app/settings/followers" className="underline-offset-2 hover:underline">
+            {follows}
+          </Link>
+        ) : (
+          follows
+        )}
       </p>
       <div className="grid grid-cols-2 gap-3">
         {tile(t('profile.stats.thisYear'), data.thisYear)}

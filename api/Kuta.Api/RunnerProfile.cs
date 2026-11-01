@@ -7,7 +7,8 @@ public sealed record SummaryTotals(int Count, double DistanceM, double DurationS
 public sealed record SportCount(string Sport, int Count);
 // JoinedAt is rounded to the month: enough to show how long someone has run with Kuta.
 public sealed record RunnerSummary(DateTime JoinedAt, SummaryTotals ThisYear, SummaryTotals AllTime,
-    IReadOnlyList<SportCount> TopSports, IReadOnlyList<CalendarDay> Days, IReadOnlyList<StoredBestEffort> Records);
+    IReadOnlyList<SportCount> TopSports, IReadOnlyList<CalendarDay> Days, IReadOnlyList<StoredBestEffort> Records,
+    int FollowerCount, int FollowingCount);
 
 // What a profile shows beyond the activity list, computed only from activities the viewer may read.
 public static class RunnerProfile
@@ -39,8 +40,13 @@ public static class RunnerProfile
             where a.user_id = @runnerId and {SocialEndpoints.CanRead} and a.started_at >= now() - interval '378 days'
             group by 1 order by 1
             """, args, cancellationToken: ct))).ToList();
-        var joinedAt = await conn.ExecuteScalarAsync<DateTime>(new CommandDefinition(
-            "select date_trunc('month', created_at) from users where id = @runnerId", args, cancellationToken: ct));
+        // Only approved relationships count; who they are is shown to the owner alone, under Settings.
+        var (joinedAt, followerCount, followingCount) = await conn.QuerySingleAsync<(DateTime, int, int)>(new CommandDefinition("""
+            select date_trunc('month', created_at),
+                (select count(*)::int from follows where following_id = @runnerId and accepted_at is not null),
+                (select count(*)::int from follows where follower_id = @runnerId and accepted_at is not null)
+            from users where id = @runnerId
+            """, args, cancellationToken: ct));
         async Task<SummaryTotals> Totals(bool thisYear) => await conn.QuerySingleAsync<SummaryTotals>(new CommandDefinition($"""
             select count(*)::int as count, coalesce(sum(a.distance_m), 0) as distance_m, coalesce(sum(a.duration_s), 0)::float8 as duration_s
             from activities a
@@ -60,6 +66,7 @@ public static class RunnerProfile
             where a.user_id = @runnerId and not a.exclude_from_records and {SocialEndpoints.CanRead}
             order by b.distance_m, b.elapsed_s, b.achieved_at, b.activity_id
             """, args, cancellationToken: ct))).ToList();
-        return new RunnerSummary(joinedAt, await Totals(true), await Totals(false), topSports, days, records);
+        return new RunnerSummary(joinedAt, await Totals(true), await Totals(false), topSports, days, records,
+            followerCount, followingCount);
     }
 }

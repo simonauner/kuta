@@ -755,7 +755,11 @@
       "allTime": "Totalt",
       "sessions_one": "{{count}} pass",
       "sessions_other": "{{count}} pass",
-      "topSports": "Vanligaste sporter"
+      "topSports": "Vanligaste sporter",
+      "followers_one": "{{count}} följare",
+      "followers_other": "{{count}} följare",
+      "following_one": "följer {{count}}",
+      "following_other": "följer {{count}}"
     },
     "records": {
       "title": "Personbästa"

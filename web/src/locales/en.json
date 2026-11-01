@@ -755,7 +755,11 @@
       "allTime": "All time",
       "sessions_one": "{{count}} activity",
       "sessions_other": "{{count}} activities",
-      "topSports": "Most common sports"
+      "topSports": "Most common sports",
+      "followers_one": "{{count}} follower",
+      "followers_other": "{{count}} followers",
+      "following_one": "{{count}} following",
+      "following_other": "{{count}} following"
     },
     "records": {
       "title": "Personal bests"

@@ -39,6 +39,13 @@ public class RunnerProfileTests(KutaFactory factory) : IClassFixture<KutaFactory
         Assert.Equal(new SummaryTotals(2, 15000, 3600), summary.AllTime);
         Assert.Equal([new SportCount("running", 2)], summary.TopSports);
         Assert.Equal(4, (await RunnerProfile.ReadAsync(conn, owner, owner, "Europe/Stockholm", ct)).AllTime.Count);
+        // The stranger's pending request is not counted.
+        await conn.ExecuteAsync("insert into follows (follower_id, following_id) values (@stranger, @owner), (@owner, @follower)",
+            new { owner, follower, stranger }, tx);
+        summary = await RunnerProfile.ReadAsync(conn, stranger, owner, "Europe/Stockholm", ct);
+        Assert.Equal((1, 0), (summary.FollowerCount, summary.FollowingCount));
+        await conn.ExecuteAsync("update follows set accepted_at = now() where follower_id = @owner", new { owner }, tx);
+        Assert.Equal(1, (await RunnerProfile.ReadAsync(conn, stranger, owner, "Europe/Stockholm", ct)).FollowingCount);
         await tx.RollbackAsync(ct);
     }
 
