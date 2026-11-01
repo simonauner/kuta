@@ -1,0 +1,26 @@
+api/Kuta.Api.Tests/ActivityAccessTests.cs
+  s_9dfef3c50e2485::t_dd432f665acb07 68-69
+api/Kuta.Api/ActivityEndpoints.cs
+  s_9dfef3c50e2485::t_f4e1af309f3f18 94-109
+api/Kuta.Api/ActivityList.cs
+  s_9dfef3c50e2485::t_f4e1af309f3f18 10-13,91-106
+api/Kuta.Api.Tests/ActivityListTests.cs
+  s_9dfef3c50e2485::t_dd432f665acb07 209-230,233-236
+  s_9dfef3c50e2485::t_693b0db5060f89 231-232
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.7.5",
+  "base_commit_sha": "9db2e87970709962560fbd42d952d6ff0bbb4c02",
+  "prompts": {},
+  "sessions": {
+    "s_9dfef3c50e2485": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "19db6e14-065b-449f-8d67-8e6e2f6fab88",
+        "model": "claude-opus-5-5"
+      },
+      "human_author": "Simon Aunér <simonauner@gmail.com>"
+    }
+  }
+}
