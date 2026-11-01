@@ -1,13 +1,14 @@
 import { LanguageSelect } from '@/components/language-select'
 import { ErrorMessage } from '@/components/error-message'
 import { Trans, useTranslation } from 'react-i18next'
-import { useMutation, useQueryClient } from '@tanstack/react-query'
+import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
 import { useState, type FormEvent, type ReactNode } from 'react'
+import { Turnstile } from '@/components/turnstile'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { FormField } from '@/components/ui/form-field'
 import { api } from '@/lib/api'
-import { useSessionChanged, type Me } from '@/lib/auth'
+import { turnstileQuery, useSessionChanged, type Me } from '@/lib/auth'
 
 type Mode = 'login' | 'signup' | 'recover'
 
@@ -27,6 +28,11 @@ export function AuthPage() {
   // when the link is invalid or used
   const confirm = new URLSearchParams(window.location.search).get('confirm')
   const confirmFailed = confirm === 'failed'
+  // Sign-up and password links send email, so they need the Turnstile check when the API has it on.
+  const siteKey = useQuery(turnstileQuery).data?.siteKey
+  const checksPerson = mode !== 'login' && !!siteKey
+  const [turnstileToken, setTurnstileToken] = useState<string | null>(null)
+  const [attempt, setAttempt] = useState(0)
 
   const submit = useMutation({
     mutationFn: async (form: FormData) => {
@@ -34,13 +40,17 @@ export function AuthPage() {
       if (mode === 'recover')
         return api.send<{ message: string }>('POST', '/api/auth/recover', {
           email: credentials.email,
+          turnstileToken,
         })
       if (mode === 'login') return api.send('POST', '/api/auth/login', credentials)
       return api.send<{ message: string } | undefined>('POST', '/api/auth/signup', {
         ...credentials,
         acceptTerms: form.get('acceptTerms') === 'on',
+        turnstileToken,
       })
     },
+    // The token is used up by the attempt: show a new widget.
+    onError: () => setAttempt((n) => n + 1),
     onSuccess: async (result) => {
       // Signup with email confirmation answers 202 with a message; otherwise we are signed in
       if (result) setCheckEmail(mode === 'recover' ? 'auth.recoverySent' : 'auth.confirmSent')
@@ -144,12 +154,29 @@ export function AuthPage() {
             )}
           </FormField>
         )}
+        {checksPerson && siteKey && (
+          <>
+            <Turnstile key={`${mode}-${attempt}`} siteKey={siteKey} onToken={setTurnstileToken} />
+            <p className="text-metadata text-muted-foreground">
+              <Trans
+                i18nKey="auth.turnstileNotice"
+                components={{
+                  privacy: <PolicyLink href={english ? '/privacy#english' : '/privacy'} />,
+                }}
+              />
+            </p>
+          </>
+        )}
         {submit.error && (
           <p role="alert" className="text-sm text-destructive">
             <ErrorMessage error={submit.error} />
           </p>
         )}
-        <Button type="submit" className="w-full" disabled={submit.isPending}>
+        <Button
+          type="submit"
+          className="w-full"
+          disabled={submit.isPending || (checksPerson && !turnstileToken)}
+        >
           {submit.isPending
             ? t('auth.wait')
             : mode === 'login'
