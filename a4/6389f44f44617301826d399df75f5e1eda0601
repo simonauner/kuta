@@ -1,0 +1,37 @@
+api/Kuta.Api/ActivityEndpoints.cs
+  s_1d8c41d0c04d95::t_9d648f908a1089 34-35,69-86
+  s_1d8c41d0c04d95::t_2cb56ba4ef6b7b 255
+  s_1d8c41d0c04d95::t_bfbb8790d55ad1 87
+README.md
+  s_1d8c41d0c04d95::t_a19fcdc4631ad5 605
+api/Kuta.Api/EquipmentEndpoints.cs
+  s_1d8c41d0c04d95::t_2cb56ba4ef6b7b 23-33,46
+api/Kuta.Api.Tests/GarminTests.cs
+  s_1d8c41d0c04d95::t_9d52b48f54353c 191
+  s_1d8c41d0c04d95::t_2f969271ad1042 82-88,95-100,166-190,192-201
+  s_1d8c41d0c04d95::t_0689d9e2f09539 202-203
+api/Kuta.Api/ActivityStorage.cs
+  s_1d8c41d0c04d95::t_2cb56ba4ef6b7b 75,77-78
+api/Kuta.Api/Garmin.cs
+  s_1d8c41d0c04d95::t_2cb56ba4ef6b7b 177-179,181
+api/Kuta.Api/Migrations/026_activity_review.sql
+  s_1d8c41d0c04d95::t_2cb56ba4ef6b7b 1-5
+api/Kuta.Api/ActivityList.cs
+  s_1d8c41d0c04d95::t_9d648f908a1089 8,37,56,82
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.7.5",
+  "base_commit_sha": "a46389f44f44617301826d399df75f5e1eda0601",
+  "prompts": {},
+  "sessions": {
+    "s_1d8c41d0c04d95": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "bdd1f4bc-6213-49a7-8e73-7e9172c83f8c",
+        "model": "claude-opus-5-5"
+      },
+      "human_author": "Simon Aunér <simonauner@gmail.com>"
+    }
+  }
+}
