@@ -1,0 +1,40 @@
+web/src/locales/sv.json
+  s_a798c667026826::t_7ed07fa47fd0fd 44-47
+api/Kuta.Api/Program.cs
+  s_a798c667026826::t_7ed07fa47fd0fd 264
+web/src/components/training-load.tsx
+  s_a798c667026826::t_65799f53cc5a27 50-54
+api/Kuta.Api.Tests/WebRoutingTests.cs
+  s_a798c667026826::t_7ed07fa47fd0fd 43
+web/src/locales/en.json
+  s_a798c667026826::t_7ed07fa47fd0fd 44-47
+web/src/router.tsx
+  s_a798c667026826::t_7ed07fa47fd0fd 17,61-65,109
+AGENTS.md
+  s_a798c667026826::t_c8ea7890cff934 70-72
+web/src/components/records.tsx
+  s_a798c667026826::t_c8ea7890cff934 189,196,199
+  s_a798c667026826::t_d2fdeefe8295e2 49,170-172,174-188
+README.md
+  s_a798c667026826::t_c8ea7890cff934 188-189,241,552-553
+web/src/routes/stats.tsx
+  s_a798c667026826::t_c34ca25e981b53 114,126
+  s_a798c667026826::t_7ed07fa47fd0fd 6,9,32-68,125
+  s_a798c667026826::t_c8ea7890cff934 113
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.7.5",
+  "base_commit_sha": "40d21226aec18df18ce8f9b16a8d2bef642b8fd9",
+  "prompts": {},
+  "sessions": {
+    "s_a798c667026826": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "fee6c988-382e-43ce-bdac-9910c9cafd35",
+        "model": "claude-opus-5-5"
+      },
+      "human_author": "Simon Aunér <simonauner@gmail.com>"
+    }
+  }
+}
