@@ -1,0 +1,66 @@
+fly.toml
+  s_4226714dd5c57a::t_ca9c2e4b81bc97 1,15,17,19,21
+AGENTS.md
+  s_4226714dd5c57a::t_21085d3e1ae9c8 43
+  s_4226714dd5c57a::t_47d637786af581 73
+  s_4226714dd5c57a::t_07d79ff98fae3c 74
+  s_4226714dd5c57a::t_6c65c042d1a599 44
+  s_4226714dd5c57a::t_ca9c2e4b81bc97 75
+fly.secrets.tpl
+  s_4226714dd5c57a::t_ca9c2e4b81bc97 2-7
+api/Kuta.Api.Tests/SessionRetentionTests.cs
+  s_4226714dd5c57a::t_e1b9000f1c2c6b 1-50
+web/privacy.html
+  s_4226714dd5c57a::t_83d8ffaacd7900 166-167,416-417
+  s_4226714dd5c57a::t_aacd6585594e12 187,437
+  s_4226714dd5c57a::t_22638f57c88b07 186,436
+  s_4226714dd5c57a::t_2cc6784b71ab41 168,242-243,418,492-493
+  s_4226714dd5c57a::t_e590009d826612 225-229,474-478
+  s_4226714dd5c57a::t_c8aea3d27382af 45,169-172,188,193-201,244-247,294,419-422,438,444-451,494-497
+  s_4226714dd5c57a::t_4eccc8b37aa8c4 230,479
+  s_4226714dd5c57a::t_17e8c8eeaa2111 268-269,271,517-518,520
+  s_4226714dd5c57a::t_21085d3e1ae9c8 217-224,467-473
+api/Kuta.Api/Migrations/019_session_retention.sql
+  s_4226714dd5c57a::t_e1b9000f1c2c6b 1-6
+  s_4226714dd5c57a::t_9d3c07e898ef11 7-9
+README.md
+  s_4226714dd5c57a::t_21085d3e1ae9c8 566,575,620
+  s_4226714dd5c57a::t_ff01bc3d6486c3 595
+  s_4226714dd5c57a::t_ca9c2e4b81bc97 511,513
+  s_4226714dd5c57a::t_8bd22154db1451 604
+  s_4226714dd5c57a::t_06f9a026030281 605,613
+  s_4226714dd5c57a::t_e772020f1431b1 564,622
+  s_4226714dd5c57a::t_35ffabb5a0c7a9 606
+  s_4226714dd5c57a::t_e590009d826612 618
+  s_4226714dd5c57a::t_a77cfa020fe86b 598
+  s_4226714dd5c57a::t_51499da4a46c05 585,616-617
+  s_4226714dd5c57a::t_db9f7bb162ff6a 621,623
+  s_4226714dd5c57a::t_07d79ff98fae3c 557
+  s_4226714dd5c57a::t_568351ec319bbe 561
+  s_4226714dd5c57a::t_17c044eec14a1b 558,584,614-615
+  s_4226714dd5c57a::t_a5f83eacdc1fad 560,587
+  s_4226714dd5c57a::t_cdaff827d9c795 590-594,596-597
+  s_4226714dd5c57a::t_83d8ffaacd7900 612
+  s_4226714dd5c57a::t_47d637786af581 554-556,562
+  s_4226714dd5c57a::t_1cc969c621e4d7 588
+  s_4226714dd5c57a::t_aacd6585594e12 608
+  s_4226714dd5c57a::t_a636a45f01c711 580
+  s_4226714dd5c57a::t_4eccc8b37aa8c4 565,619
+  s_4226714dd5c57a::t_d1e30ec2bd5295 589,607
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.7.5",
+  "base_commit_sha": "d523368fe3de4e8fc3b5360c292bef695ca0110d",
+  "prompts": {},
+  "sessions": {
+    "s_4226714dd5c57a": {
+      "agent_id": {
+        "tool": "codex",
+        "id": "01a192d5-87fa-71c2-8609-74373775d907",
+        "model": "gpt-6.1-sol"
+      },
+      "human_author": "Simon Aunér <simonauner@gmail.com>"
+    }
+  }
+}
