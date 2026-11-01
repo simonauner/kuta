@@ -229,7 +229,9 @@ public static class StravaImportJob
                         else throw new InvalidDataException("Unsupported activity file.");
                     }
                 }
-                catch (Exception e) when (IsInvalidFile(e))
+                // Ett trasigt pass ska bara misslyckas själv: SDK:n kastar även andra undantag än de vanliga filfelen, och
+                // ett fel här startade annars om hela importen tre gånger och blockerade arbetaren för alla.
+                catch (Exception e) when (e is not OperationCanceledException)
                 {
                     failed.Add(row.Id);
                     continue;

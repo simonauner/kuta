@@ -245,7 +245,7 @@ static class FitFile
 {
     const double SemicirclesPerDegree = 2147483648.0 / 180.0;
 
-    public static byte[] Run(System.DateTime start, int seconds)
+    public static byte[] Run(System.DateTime start, int seconds, double latitude = 59.33)
     {
         using var stream = new MemoryStream();
         var encoder = new Encode(ProtocolVersion.V20);
@@ -267,7 +267,7 @@ static class FitFile
             record.SetEnhancedSpeed(3f);
             record.SetEnhancedAltitude(20f);
             record.SetHeartRate((byte)(150 + i % 16));
-            record.SetPositionLat((int)(59.33 * SemicirclesPerDegree));
+            record.SetPositionLat((int)(latitude * SemicirclesPerDegree));
             record.SetPositionLong((int)((18.06 + i * 0.00005) * SemicirclesPerDegree));
             record.SetCadence(85); // per ben: 170 steg/min
             record.SetTemperature(18);
