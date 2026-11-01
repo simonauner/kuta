@@ -1,0 +1,35 @@
+AGENTS.md
+  s_bee2e5fcf7ec11::t_fd5a6636e73a08 80
+api/Kuta.Api/ActivityInput.cs
+  s_bee2e5fcf7ec11::t_ac4f3b02e37e31 4-5
+web/src/routes/new-activity.tsx
+  s_bee2e5fcf7ec11::t_b5f72216328d7e 38,105-106,139,153,407
+api/Kuta.Api/ActivityEndpoints.cs
+  s_bee2e5fcf7ec11::t_ac4f3b02e37e31 43,172,190-191,220,244
+web/src/routes/edit-activity.tsx
+  s_bee2e5fcf7ec11::t_b5f72216328d7e 16,110
+api/Kuta.Api/ActivityStorage.cs
+  s_bee2e5fcf7ec11::t_ac4f3b02e37e31 49-51,64-65,90
+api/Kuta.Api.Tests/FitUploadTests.cs
+  s_bee2e5fcf7ec11::t_4d9de82e23fa5a 38,47-48,171,181,190-191,235,243
+web/src/components/activity-visibility.tsx
+  s_bee2e5fcf7ec11::t_b5f72216328d7e 1-43
+README.md
+  s_bee2e5fcf7ec11::t_a26842a6df3c6a 475
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.7.5",
+  "base_commit_sha": "6e4d705f307b79aaa6ca89cfada63796fd61de98",
+  "prompts": {},
+  "sessions": {
+    "s_bee2e5fcf7ec11": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "cd696b42-7e9f-47b1-8f97-a4d814189962",
+        "model": "claude-opus-5-5"
+      },
+      "human_author": "Simon Aunér <simonauner@gmail.com>"
+    }
+  }
+}
