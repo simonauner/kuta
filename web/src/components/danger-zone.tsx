@@ -18,9 +18,17 @@ export function DangerZone() {
   const dialog = useRef<HTMLDialogElement>(null)
   const [word, setWord] = useState<string | null>(null)
   const [confirmation, setConfirmation] = useState('')
-  const confirmed = word !== null && confirmation.trim().toUpperCase() === word
+  // Kontoradering kräver även lösenordet (API:t kontrollerar det mot Supabase).
+  const [password, setPassword] = useState('')
+  const confirmed =
+    word !== null &&
+    confirmation.trim().toUpperCase() === word &&
+    (target !== 'account' || password !== '')
   const remove = useMutation({
-    mutationFn: () => api.send('DELETE', target === 'account' ? '/api/me' : '/api/activities'),
+    mutationFn: () =>
+      target === 'account'
+        ? api.send('DELETE', '/api/me', { password })
+        : api.send('DELETE', '/api/activities'),
     onSuccess: async () => {
       if (target === 'account') {
         await sessionChanged()
@@ -41,6 +49,7 @@ export function DangerZone() {
     const words = t('dangerZone.words', { returnObjects: true })
     setWord(words[Math.floor(Math.random() * words.length)])
     setConfirmation('')
+    setPassword('')
     remove.reset()
   }
 
@@ -98,6 +107,20 @@ export function DangerZone() {
               />
             )}
           </FormField>
+          {target === 'account' && (
+            <FormField label={t('dangerZone.passwordLabel')} className="mt-4">
+              {(id) => (
+                <Input
+                  id={id}
+                  type="password"
+                  value={password}
+                  onChange={(event) => setPassword(event.target.value)}
+                  disabled={remove.isPending}
+                  autoComplete="current-password"
+                />
+              )}
+            </FormField>
+          )}
           {remove.error && (
             <p role="alert" className="mt-3 text-sm text-destructive">
               <ErrorMessage error={remove.error} />
