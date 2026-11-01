@@ -7,6 +7,7 @@ import { ErrorMessage } from '@/components/error-message'
 import { Button } from '@/components/ui/button'
 import { Modal } from '@/components/ui/modal'
 import { api } from '@/lib/api'
+import { SharingHints } from '@/components/privacy-places'
 import { meQuery, type Me } from '@/lib/auth'
 
 export function ActivityPrivacy() {
@@ -68,6 +69,7 @@ export function ActivityPrivacy() {
         {t('activityPrivacy.help')}
       </p>
       <p className="mt-2 text-sm text-muted-foreground">{t('social.sharingHint')}</p>
+      <SharingHints privacy={privacy} />
       <div className="mt-4 flex items-center gap-2">
         <Button
           variant="outline"

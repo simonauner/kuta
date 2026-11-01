@@ -3,6 +3,7 @@ using Dapper;
 using Microsoft.AspNetCore.Authentication;
 using Microsoft.AspNetCore.Authentication.Cookies;
 using Microsoft.AspNetCore.DataProtection;
+using Microsoft.AspNetCore.Mvc;
 using Npgsql;
 
 public record UpdateMeRequest(string? DisplayName);
@@ -14,6 +15,7 @@ public record Supporter(string? Tier, DateTime? Until, string BadgePrivacy);
 public record Profile(string DisplayName, bool HrConsent, string DefaultActivityPrivacy);
 public record ActivityPrivacyRequest(string? Privacy, bool ApplyToAll = false);
 public record BadgePrivacyRequest(string? Privacy);
+public record DeleteAccountRequest(string? Password);
 
 public static class MeEndpoints
 {
@@ -25,9 +27,17 @@ public static class MeEndpoints
     {
         var me = api.MapGroup("/me").RequireAuthorization();
 
-        me.MapDelete("", async (NpgsqlDataSource db, RawFileStore store, ImportFiles files, GarminClient garmin,
-            IDataProtectionProvider provider, HttpContext http, CancellationToken cancellationToken) =>
+        // Kräver lösenordet: en upplåst telefon eller ett injicerat skript ska inte kunna radera allt.
+        // Supabase-sessionen som kontrollen skapar försvinner med kontot.
+        me.MapDelete("", async ([FromBody] DeleteAccountRequest req, NpgsqlDataSource db, RawFileStore store, ImportFiles files,
+            SupabaseAuthClient supabase, GarminClient garmin, IDataProtectionProvider provider, HttpContext http,
+            CancellationToken cancellationToken) =>
         {
+            if (string.IsNullOrEmpty(req.Password))
+                return Results.BadRequest(new ApiError("Ange ditt lösenord.", "passwordRequired"));
+            var (result, _) = await supabase.SignInAsync(http.User.FindFirstValue(ClaimTypes.Email)!, req.Password, cancellationToken);
+            if (result != SignInResult.SignedIn)
+                return Results.Json(new ApiError("Fel lösenord.", "wrongPassword"), statusCode: StatusCodes.Status403Forbidden);
             await using var conn = await db.OpenConnectionAsync(cancellationToken);
             var userId = http.User.GetUserId();
             // Garmin kräver avregistrering när kontot raderas; anslutningen kaskadraderas sedan med kontot.
@@ -39,7 +49,7 @@ public static class MeEndpoints
             foreach (var job in imports) files.Delete(job);
             await http.SignOutAsync(CookieAuthenticationDefaults.AuthenticationScheme);
             return Results.NoContent();
-        });
+        }).RequireRateLimiting("auth");
 
         // displayName är null tills webben skapat profilen med PUT efter första inloggningen
         me.MapGet("", async (NpgsqlDataSource db, ClaimsPrincipal user) =>

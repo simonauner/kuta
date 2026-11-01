@@ -26,7 +26,7 @@ jobs:
       group: deploy-production
       cancel-in-progress: false
     steps:
-      - uses: actions/checkout@v7
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7
       # Checks can finish out of order; an older commit must not replace a newer one.
       - name: Check that the commit is still the tip of main
         id: latest
