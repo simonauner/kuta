@@ -1,0 +1,23 @@
+web/src/components/danger-zone.tsx
+  s_18157bd3682cdd::t_5efd3e8e0f0751 21,25,96-110,112
+README.md
+  s_18157bd3682cdd::t_5efd3e8e0f0751 380
+AGENTS.md
+  s_18157bd3682cdd::t_5efd3e8e0f0751 51
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.7.5",
+  "base_commit_sha": "57361070d923758fe8d0499dfb3870e4d5ebd3f1",
+  "prompts": {},
+  "sessions": {
+    "s_18157bd3682cdd": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "c8e5873c-f510-4ac1-8363-b864b8cfaff4",
+        "model": "claude-opus-5-5"
+      },
+      "human_author": "Simon Aunér <simonauner@gmail.com>"
+    }
+  }
+}
