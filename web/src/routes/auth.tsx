@@ -2,7 +2,7 @@ import { LanguageSelect } from '@/components/language-select'
 import { ErrorMessage } from '@/components/error-message'
 import { Trans, useTranslation } from 'react-i18next'
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
-import { useState, type FormEvent, type ReactNode } from 'react'
+import { useEffect, useState, type FormEvent, type ReactNode } from 'react'
 import { Turnstile } from '@/components/turnstile'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
@@ -34,6 +34,8 @@ export function AuthPage() {
   const checksPerson = mode !== 'login' && !!siteKey
   const [turnstileToken, setTurnstileToken] = useState<string | null>(null)
   const [attempt, setAttempt] = useState(0)
+  // The address a confirmation email went to; kept for "Send again", never shown
+  const [sentTo, setSentTo] = useState<string | null>(null)
 
   const submit = useMutation({
     mutationFn: async (form: FormData) => {
@@ -52,9 +54,10 @@ export function AuthPage() {
     },
     // The token is used up by the attempt: show a new widget.
     onError: () => setAttempt((n) => n + 1),
-    onSuccess: async (result) => {
+    onSuccess: async (result, form) => {
       // Signup with email confirmation answers 202 with a message; otherwise we are signed in
       if (result) setCheckEmail(mode === 'recover' ? 'auth.recoverySent' : 'auth.confirmSent')
+      if (result && mode === 'signup') setSentTo(String(form.get('email')))
       else await sessionChanged()
     },
   })
@@ -68,6 +71,7 @@ export function AuthPage() {
     return (
       <AuthShell title={t('auth.checkEmail')}>
         <p className="text-muted-foreground">{t(checkEmail)}</p>
+        {checkEmail === 'auth.confirmSent' && sentTo && <ResendConfirmation email={sentTo} />}
         <Button
           variant="secondary-outline"
           className="mt-6 w-full"
@@ -353,6 +357,47 @@ function AuthShell({ title, children }: { title: string; children: ReactNode }) 
           </a>
         </div>
       </main>
+    </div>
+  )
+}
+
+const resendWaitS = 60
+
+// Send the confirmation email again, at most once a minute (the API has the same limit).
+function ResendConfirmation({ email }: { email: string }) {
+  const { t } = useTranslation()
+  const [availableAt, setAvailableAt] = useState(() => Date.now() + resendWaitS * 1000)
+  const [now, setNow] = useState(() => Date.now())
+  const wait = Math.max(0, Math.ceil((availableAt - now) / 1000))
+  useEffect(() => {
+    if (wait === 0) return
+    const timer = setInterval(() => setNow(Date.now()), 1000)
+    return () => clearInterval(timer)
+  }, [wait])
+  const resend = useMutation({
+    mutationFn: () => api.send('POST', '/api/auth/resend', { email }),
+    onSettled: () => {
+      setAvailableAt(Date.now() + resendWaitS * 1000)
+      setNow(Date.now())
+    },
+  })
+  return (
+    <div className="mt-6 space-y-3 text-sm text-muted-foreground">
+      <p>{t('auth.checkSpam')}</p>
+      <Button
+        variant="secondary-outline"
+        className="w-full"
+        disabled={wait > 0 || resend.isPending}
+        onClick={() => resend.mutate()}
+      >
+        {wait > 0 ? t('auth.resendIn', { seconds: wait }) : t('auth.resend')}
+      </Button>
+      {resend.isSuccess && <p role="status">{t('auth.resent')}</p>}
+      {resend.error && (
+        <p role="alert" className="text-destructive">
+          <ErrorMessage error={resend.error} />
+        </p>
+      )}
     </div>
   )
 }

@@ -339,7 +339,11 @@
     "confirmSent": "Kolla din e-post och klicka på länken för att aktivera kontot.",
     "recoverySent": "Om adressen har ett konto får du ett mejl med en länk för att återställa lösenordet.",
     "acceptTerms": "Jag godkänner <terms>användarvillkoren</terms> och <privacy>integritetspolicyn</privacy>.",
-    "turnstileNotice": "Vi kontrollerar med Cloudflare Turnstile att du är en människa. Läs mer i <privacy>integritetspolicyn</privacy>."
+    "turnstileNotice": "Vi kontrollerar med Cloudflare Turnstile att du är en människa. Läs mer i <privacy>integritetspolicyn</privacy>.",
+    "checkSpam": "Hittar du inget mejl? Titta i skräpposten.",
+    "resend": "Skicka mejlet igen",
+    "resendIn": "Skicka igen om {{seconds}} s",
+    "resent": "Ett nytt mejl är skickat."
   },
   "errors": {
     "invalidActivityYear": "Ange ett år mellan 1 och 9998.",

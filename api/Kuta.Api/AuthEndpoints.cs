@@ -11,6 +11,7 @@ public record ApiMessage(string Message);
 public record AntiforgeryToken(string Token);
 public record RecoveryRequest(string? Email, string? TurnstileToken = null);
 public record ResetPasswordRequest(string? Password);
+public record ResendRequest(string? Email);
 
 public static class AuthEndpoints
 {
@@ -38,6 +39,13 @@ public static class AuthEndpoints
         RateLimitPartition.GetFixedWindowLimiter(email, _ => new FixedWindowRateLimiterOptions
         {
             PermitLimit = 10, Window = TimeSpan.FromMinutes(15),
+        }));
+
+    // One new confirmation email per minute and address, the same wait as the countdown on the web.
+    static readonly PartitionedRateLimiter<string> ResendPerEmail = PartitionedRateLimiter.Create<string, string>(email =>
+        RateLimitPartition.GetFixedWindowLimiter(email, _ => new FixedWindowRateLimiterOptions
+        {
+            PermitLimit = 1, Window = TimeSpan.FromMinutes(1),
         }));
 
     public static IResult? LimitPerEmail(string email)
@@ -160,6 +168,20 @@ public static class AuthEndpoints
             if (LimitPerEmail(address.Address) is { } limited) return limited;
             await supabase.RecoverAsync(address.Address, ct);
             return Results.Accepted(null, new ApiMessage("Om adressen har ett konto får du ett mejl med en länk för att återställa lösenordet."));
+        });
+
+        // "Send again" on the check-your-email screen after sign-up. Same answer whether or not the address has an account.
+        auth.MapPost("/resend", async (ResendRequest req, SupabaseAuthClient supabase, CancellationToken ct) =>
+        {
+            if (string.IsNullOrWhiteSpace(req.Email) || !System.Net.Mail.MailAddress.TryCreate(req.Email.Trim(), out var address)
+                || address.Address != req.Email.Trim())
+                return Results.BadRequest(new ApiError("Ange en giltig e-postadress.", "invalidEmail"));
+            if (LimitPerEmail(address.Address) is { } limited) return limited;
+            using (var lease = ResendPerEmail.AttemptAcquire(address.Address.ToLowerInvariant()))
+                if (!lease.IsAcquired)
+                    return Results.Json(new ApiError("För många försök. Försök igen om en stund.", "rateLimited"), statusCode: 429);
+            await supabase.ResendSignupAsync(address.Address, ct);
+            return Results.Accepted(null, new ApiMessage("Kolla din e-post och klicka på länken för att aktivera kontot."));
         });
 
         auth.MapGet("/reset-password", async ([FromQuery(Name = "token_hash")] string? tokenHash,
