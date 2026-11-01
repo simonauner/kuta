@@ -271,10 +271,7 @@ export function ActivityPage() {
       {original.userId === me?.id ? (
         <BackLink />
       ) : (
-        <Link
-          to="/app"
-          className="text-sm text-muted-foreground underline-offset-2 hover:underline"
-        >
+        <Link to="/app" className="text-sm text-muted-foreground underline-offset-2 underline">
           ← {t('nav.feed')}
         </Link>
       )}

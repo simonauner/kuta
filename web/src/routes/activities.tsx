@@ -266,7 +266,7 @@ export function ActivitiesPage() {
                         to="/app/activities/$activityId"
                         params={{ activityId: a.id }}
                         search={{ year, tag, sport }}
-                        className="inline-flex items-center gap-2 font-medium underline-offset-2 hover:underline"
+                        className="inline-flex items-center gap-2 font-medium underline-offset-2 underline"
                       >
                         <span
                           className="inline-block"

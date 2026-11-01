@@ -53,7 +53,7 @@ export function FollowersPage() {
         <Link
           to="/app/runners/$runnerId"
           params={{ runnerId: runner.id }}
-          className="min-w-0 break-words font-medium underline-offset-4 hover:underline"
+          className="min-w-0 break-words font-medium underline-offset-4 underline"
         >
           {runner.displayName}
         </Link>

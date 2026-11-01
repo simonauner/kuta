@@ -8,7 +8,7 @@ export function BackLink() {
     <Link
       to="/app/activities"
       search={{ year, tag, sport }}
-      className="text-sm text-muted-foreground underline-offset-2 hover:underline"
+      className="text-sm text-muted-foreground underline-offset-2 underline"
     >
       ← {t('activity.back')}
     </Link>

@@ -84,7 +84,7 @@ export function ActivityFeed({
                 <Link
                   to="/app/runners/$runnerId"
                   params={{ runnerId: activity.userId }}
-                  className="break-words font-medium text-foreground underline-offset-4 hover:underline"
+                  className="break-words font-medium text-foreground underline-offset-4 underline"
                 >
                   {activity.displayName}
                 </Link>
@@ -93,7 +93,7 @@ export function ActivityFeed({
               <Link
                 to="/app/activities/$activityId"
                 params={{ activityId: activity.id }}
-                className="mt-3 flex items-center gap-3 font-semibold underline-offset-4 hover:underline"
+                className="mt-3 flex items-center gap-3 font-semibold underline-offset-4 underline"
               >
                 <SportIcon sport={activity.sport} className="size-6 shrink-0" />
                 <span className="break-words">{activityTitle(activity, t)}</span>

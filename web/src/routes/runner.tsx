@@ -43,7 +43,7 @@ export function RunnerPage() {
   if (me?.id === runnerId) return <ProfilePage />
   return (
     <section className="space-y-6">
-      <Link to="/app" className="text-sm text-muted-foreground underline-offset-2 hover:underline">
+      <Link to="/app" className="text-sm text-muted-foreground underline-offset-2 underline">
         ← {t('nav.feed')}
       </Link>
       <SlowLoading loading={runner.isPending}>

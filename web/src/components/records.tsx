@@ -39,7 +39,7 @@ function EffortLink({ effort }: { effort: { activityId: string; elapsedS: number
     <Link
       to="/app/activities/$activityId"
       params={{ activityId: effort.activityId }}
-      className="font-medium underline-offset-2 hover:underline"
+      className="font-medium underline-offset-2 underline"
     >
       {formatDuration(effort.elapsedS)}
     </Link>
@@ -335,7 +335,7 @@ function RecordTrendView({ trend, distanceLabel }: { trend: RecordTrend; distanc
                       <Link
                         to="/app/activities/$activityId"
                         params={{ activityId: effort.activityId }}
-                        className="underline-offset-2 hover:underline"
+                        className="underline-offset-2 underline"
                       >
                         {date.format(new Date(effort.achievedAt))}
                       </Link>
