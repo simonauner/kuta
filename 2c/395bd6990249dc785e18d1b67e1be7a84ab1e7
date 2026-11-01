@@ -1,0 +1,213 @@
+api/Kuta.Api.Tests/TrainingLoadsTests.cs
+  s_4226714dd5c57a::t_620b90fdfa18fd 1-68
+api/Kuta.Api/ActivityStorage.cs
+  s_4226714dd5c57a::t_620b90fdfa18fd 112
+web/src/components/multisport-editor.tsx
+  s_4226714dd5c57a::t_620b90fdfa18fd 1,40,105-123,165-168,170-188,197-266,268-271,274,277,279-280
+web/src/components/record-award.tsx
+  s_4226714dd5c57a::t_620b90fdfa18fd 1-65
+web/src/components/strava-import.tsx
+  s_4226714dd5c57a::t_620b90fdfa18fd 1,8,33,74-87
+api/Kuta.Api/TrainingLoad.cs
+  s_4226714dd5c57a::t_620b90fdfa18fd 1-105
+web/src/lib/sports.ts
+  s_4226714dd5c57a::t_620b90fdfa18fd 70-73
+web/src/features.ts
+  s_4226714dd5c57a::t_620b90fdfa18fd 1-70
+web/src/landing.css
+  s_4226714dd5c57a::t_620b90fdfa18fd 3,81-86,116,183-187,274,375-421,423-427,436-442,461-464,480
+api/Kuta.Api/BestEfforts.cs
+  s_4226714dd5c57a::t_620b90fdfa18fd 7,9,11-13
+web/src/lib/year-comparison.ts
+  s_4226714dd5c57a::t_620b90fdfa18fd 1-77
+web/tests/records.test.mjs
+  s_4226714dd5c57a::t_620b90fdfa18fd 53-92
+web/tests/activity-query.test.mjs
+  s_4226714dd5c57a::t_620b90fdfa18fd 4-8,37-75
+api/Kuta.Api/ActivityEndpoints.cs
+  s_4226714dd5c57a::t_620b90fdfa18fd 18,34,93-104,224-225,268,291
+web/src/routes/stats.tsx
+  s_4226714dd5c57a::t_620b90fdfa18fd 1-2,8,10-11,15,39-40,42,70-81,84,87-119,162-185,265,271-272
+api/Kuta.Api.Tests/DailyTotalsTests.cs
+  s_4226714dd5c57a::t_620b90fdfa18fd 1-54
+web/src/features.css
+  s_4226714dd5c57a::t_620b90fdfa18fd 124-225
+web/src/routes/new-activity.tsx
+  s_4226714dd5c57a::t_620b90fdfa18fd 1-2,14,34,150,230,240-241,252-253,269-270,307,313,324-325,340-341,354-355,368,370,383,449-456,492-502
+web/src/routes/settings.tsx
+  s_4226714dd5c57a::t_620b90fdfa18fd 89
+web/tests/feed-empty-state.test.mjs
+  s_4226714dd5c57a::t_620b90fdfa18fd 1-98
+web/src/components/equipment.tsx
+  s_4226714dd5c57a::t_620b90fdfa18fd 1-3,231-237,239-254,257-281,369-459
+web/features.html
+  s_4226714dd5c57a::t_620b90fdfa18fd 11,20,56-57,79-80,90-91,94-98,100-103,105-187,204-234,259-262,265,268-354,395
+web/src/components/feed-empty-state.tsx
+  s_4226714dd5c57a::t_620b90fdfa18fd 1-75
+web/src/lib/activity.ts
+  s_4226714dd5c57a::t_620b90fdfa18fd 4,145,168,171,209
+web/src/components/onboarding-actions.tsx
+  s_4226714dd5c57a::t_620b90fdfa18fd 1-29
+web/src/routes/profile.tsx
+  s_4226714dd5c57a::t_620b90fdfa18fd 1,3,6,9,22-23,33-35
+api/Kuta.Api/Multisport.cs
+  s_4226714dd5c57a::t_620b90fdfa18fd 50,52-54,63-67,70,86-87,89,93-95,111,137
+api/Kuta.Api.Tests/ActivityPrivacyTests.cs
+  s_4226714dd5c57a::t_620b90fdfa18fd 62,73-75,82-83,100-101
+web/tests/form-field.test.mjs
+  s_4226714dd5c57a::t_620b90fdfa18fd 1-59
+api/Kuta.Api.Tests/RecordTrendsTests.cs
+  s_4226714dd5c57a::t_620b90fdfa18fd 19,22-23,27,29-30,38-39,45-66
+web/tests/activities-empty-state.test.mjs
+  s_4226714dd5c57a::t_620b90fdfa18fd 1-116
+web/src/lib/records.ts
+  s_4226714dd5c57a::t_620b90fdfa18fd 9-12,63-66,91
+web/src/components/share-profile.tsx
+  s_4226714dd5c57a::t_620b90fdfa18fd 1-54
+web/src/components/training-load.tsx
+  s_4226714dd5c57a::t_620b90fdfa18fd 1-264
+web/src/components/danger-zone.tsx
+  s_4226714dd5c57a::t_620b90fdfa18fd 1,9,29,88-100
+web/index.html
+  s_4226714dd5c57a::t_620b90fdfa18fd 30,32,69-96,99-100,127-136,141,144-145,148-176,179,191-223,226-227
+  s_4226714dd5c57a::t_69f3fb160d94f8 228
+web/src/components/equipment-name-fields.tsx
+  s_4226714dd5c57a::t_620b90fdfa18fd 1-54
+api/Kuta.Api/DailyTotals.cs
+  s_4226714dd5c57a::t_620b90fdfa18fd 1-22
+.github/workflows/api.yml
+  s_4226714dd5c57a::t_620b90fdfa18fd 4,11
+api/Kuta.Api.Tests/TrainingLoadTests.cs
+  s_4226714dd5c57a::t_620b90fdfa18fd 1-100
+api/Kuta.Api.Tests/BestEffortTests.cs
+  s_4226714dd5c57a::t_620b90fdfa18fd 41-52,59,62,96-98,128-129,144-179,182
+  s_4226714dd5c57a::t_8f6f47c87c2ea5 180-181,183-186
+api/Kuta.Api/SportGroups.cs
+  s_4226714dd5c57a::t_620b90fdfa18fd 37-59
+web/src/components/privacy-places.tsx
+  s_4226714dd5c57a::t_620b90fdfa18fd 1-2,50-95,208-220,251-287,289,291-293,295-296,298-299
+.github/workflows/deploy.yml
+  s_4226714dd5c57a::t_620b90fdfa18fd 1-49
+web/src/components/help-popover.tsx
+  s_4226714dd5c57a::t_620b90fdfa18fd 1-27
+web/src/components/ui/heading.tsx
+  s_4226714dd5c57a::t_620b90fdfa18fd 1-17
+api/Kuta.Api/TrainingLoads.cs
+  s_4226714dd5c57a::t_620b90fdfa18fd 1-51
+web/src/components/year-comparison.tsx
+  s_4226714dd5c57a::t_620b90fdfa18fd 1-228
+web/src/lib/auth.ts
+  s_4226714dd5c57a::t_620b90fdfa18fd 11
+web/src/routes/followers.tsx
+  s_4226714dd5c57a::t_620b90fdfa18fd 1,101-140
+web/tests/training-load.test.mjs
+  s_4226714dd5c57a::t_620b90fdfa18fd 1-33
+web/src/components/activity-feed.tsx
+  s_4226714dd5c57a::t_620b90fdfa18fd 1-3,27-33,56,65-72,114
+web/src/components/activity-privacy.tsx
+  s_4226714dd5c57a::t_620b90fdfa18fd 1,5,14,44-66,71-88
+web/src/landing.ts
+  s_4226714dd5c57a::t_620b90fdfa18fd 1-5
+web/src/routes/activity.tsx
+  s_4226714dd5c57a::t_620b90fdfa18fd 1-2,14,20,23-29,35,56,59,62,65,67-82,104-111,113,182,189,229-263,278,287,293,308-311,352-368,373,391-426,428,461-476,561-580,598-600,607-609,613-619,621
+  s_4226714dd5c57a::t_9a871ddd93707d 620
+web/src/components/activity-tags.tsx
+  s_4226714dd5c57a::t_620b90fdfa18fd 1,24,26-28,30-42
+web/src/locales/sv.json
+  s_4226714dd5c57a::t_620b90fdfa18fd 10,13-22,37-86,89-91,97-99,113,140-150,238-240,354,556,673-688
+api/Kuta.Api/DataExport.cs
+  s_4226714dd5c57a::t_620b90fdfa18fd 37-38,95-96
+web/src/components/goals.tsx
+  s_4226714dd5c57a::t_620b90fdfa18fd 1-2,9,91,93,228,275-308,310,316-374,376-403
+web/tests/year-comparison.test.mjs
+  s_4226714dd5c57a::t_620b90fdfa18fd 1-60
+web/tests/multisport.test.mjs
+  s_4226714dd5c57a::t_620b90fdfa18fd 3,53-56
+api/Kuta.Api.Tests/ActivityAccessTests.cs
+  s_4226714dd5c57a::t_620b90fdfa18fd 40,84-86,91-92
+web/src/components/language-select.tsx
+  s_4226714dd5c57a::t_620b90fdfa18fd 1,7-25
+web/src/components/records.tsx
+  s_4226714dd5c57a::t_620b90fdfa18fd 1-2,7,9,80-86,142,144-164,172,181,211,241-242,324-333
+api/Kuta.Api/BestEffortEndpoints.cs
+  s_4226714dd5c57a::t_620b90fdfa18fd 19,30,32,51,70-92
+  s_4226714dd5c57a::t_26868eab74418b 93
+api/Kuta.Api/Migrations/019_training_load.sql
+  s_4226714dd5c57a::t_620b90fdfa18fd 1-7
+AGENTS.md
+  s_4226714dd5c57a::t_620b90fdfa18fd 68-69,76,122-124
+  s_4226714dd5c57a::t_eaa784e277fbbc 74
+README.md
+  s_4226714dd5c57a::t_620b90fdfa18fd 7,29-30,129-131,183-221,367-371,479-480,484,491-492,506-512,568,597-624
+  s_4226714dd5c57a::t_eaab9183f1cd69 640,646
+  s_4226714dd5c57a::t_f0aad50c2c72b6 648
+web/src/locales/en.json
+  s_4226714dd5c57a::t_620b90fdfa18fd 10,13-22,37-86,89-91,97-99,113,140-150,238-240,354,556,673-688
+web/src/routes/edit-activity.tsx
+  s_4226714dd5c57a::t_620b90fdfa18fd 1,15,40,47,53,59,68,83-144
+.github/workflows/frontend.yml
+  s_4226714dd5c57a::t_620b90fdfa18fd 4,10
+web/src/index.css
+  s_4226714dd5c57a::t_620b90fdfa18fd 31-40,76,79-80
+  s_4226714dd5c57a::t_0d68c074a712ce 81
+web/src/routes/auth.tsx
+  s_4226714dd5c57a::t_620b90fdfa18fd 8,93-95,97-108,183-194,230-234
+web/src/routes/runner.tsx
+  s_4226714dd5c57a::t_620b90fdfa18fd 1,42-51,53,56-94
+web/tests/landing.test.mjs
+  s_4226714dd5c57a::t_620b90fdfa18fd 1-38
+web/tests/activity.test.mjs
+  s_4226714dd5c57a::t_620b90fdfa18fd 119-121
+fly.secrets.tpl
+  s_4226714dd5c57a::t_620b90fdfa18fd 2-3,8
+api/Kuta.Api/Migrations/018_exclude_from_records.sql
+  s_4226714dd5c57a::t_620b90fdfa18fd 1
+web/src/routes/activities.tsx
+  s_4226714dd5c57a::t_620b90fdfa18fd 1,5,7,10,46,65-72,78,89-95,98,107-131,146-191,199-207
+web/src/lib/training-load.ts
+  s_4226714dd5c57a::t_620b90fdfa18fd 1-62
+web/src/components/multisport-preview.tsx
+  s_4226714dd5c57a::t_620b90fdfa18fd 1,33-35,39,44
+api/Kuta.Api.Tests/SocialTests.cs
+  s_4226714dd5c57a::t_620b90fdfa18fd 176
+api/Kuta.Api/MeEndpoints.cs
+  s_4226714dd5c57a::t_620b90fdfa18fd 8,140-146
+api/Kuta.Api/RacePredictor.cs
+  s_4226714dd5c57a::t_620b90fdfa18fd 27-38
+api/Kuta.Api/Program.cs
+  s_4226714dd5c57a::t_620b90fdfa18fd 45-47
+api/Kuta.Api/RecordTrends.cs
+  s_4226714dd5c57a::t_620b90fdfa18fd 7-8,12-34,47,57,71-73
+web/src/components/record-award.css
+  s_4226714dd5c57a::t_620b90fdfa18fd 1-39
+web/src/components/activities-empty-state.tsx
+  s_4226714dd5c57a::t_620b90fdfa18fd 1-90
+web/src/components/ui/form-field.tsx
+  s_4226714dd5c57a::t_620b90fdfa18fd 1-51
+web/src/components/heart-rate-consent.tsx
+  s_4226714dd5c57a::t_620b90fdfa18fd 1,5,34-55
+web/src/lib/activity-query.ts
+  s_4226714dd5c57a::t_620b90fdfa18fd 34-62
+web/src/product-shots.css
+  s_4226714dd5c57a::t_620b90fdfa18fd 1-87
+api/Kuta.Api/Goals.cs
+  s_4226714dd5c57a::t_620b90fdfa18fd 181
+web/privacy.html
+  s_4226714dd5c57a::t_c2918bce55e605 168-169,187,193-200,221-223,229-230,268-270,417-419,422-423,437,444-451,467-473,479-480,518-522
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.7.5",
+  "base_commit_sha": "2c395bd6990249dc785e18d1b67e1be7a84ab1e7",
+  "prompts": {},
+  "sessions": {
+    "s_4226714dd5c57a": {
+      "agent_id": {
+        "tool": "codex",
+        "id": "01a192d5-87fa-71c2-8609-74373775d907",
+        "model": "gpt-6.1-sol"
+      },
+      "human_author": "Simon Aunér <simonauner@gmail.com>"
+    }
+  }
+}
