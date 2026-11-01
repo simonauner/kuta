@@ -1,0 +1,22 @@
+web/privacy.html
+  s_cc909e5b207e8e::t_a7568ecde2ced9 137-141,143-144,151-167,169-170
+  s_cc909e5b207e8e::t_cda74abd7e2e5a 443-447,449-458,461-462,465-466,469-472,474-475
+  s_cc909e5b207e8e::t_1ad328686b210c 145-150,365-366,459-460,463-464,467-468
+  s_cc909e5b207e8e::t_2fcd3f4042e124 59-60,168,364,473
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.7.5",
+  "base_commit_sha": "f057c7abf209028931d7d7e3ca98993d14ce0e03",
+  "prompts": {},
+  "sessions": {
+    "s_cc909e5b207e8e": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "d9ab7d21-614c-4a2b-918d-99b8730fa81e",
+        "model": "claude-opus-5-5"
+      },
+      "human_author": "Simon Aunér <simonauner@gmail.com>"
+    }
+  }
+}
