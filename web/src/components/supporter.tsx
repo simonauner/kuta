@@ -48,9 +48,10 @@ export function SupporterSection() {
   const { data: me } = useQuery(meQuery)
   const queryClient = useQueryClient()
   const dialog = useRef<HTMLDialogElement>(null)
-  // Layout visar bara inställningarna när me är laddat, så den aktiva nivån finns vid första renderingen.
-  const [choice, setChoice] = useState<SupporterTier | 'custom'>(me?.supporter.tier ?? 'silver')
-  const [custom, setCustom] = useState('')
+  const manageDialog = useRef<HTMLDialogElement>(null)
+  const [manageNotice, setManageNotice] = useState<'change' | 'end' | null>(null)
+  // Ny nyckel vid varje öppning, så att ett avbrutet val inte ligger kvar.
+  const [manageKey, setManageKey] = useState(0)
   const supporter = me?.supporter
   const save = useMutation({
     mutationFn: (privacy: Me['supporter']['badgePrivacy']) =>
@@ -81,72 +82,25 @@ export function SupporterSection() {
           })}
         </p>
       )}
-      <form
-        className="mt-4"
-        onSubmit={(event) => {
-          event.preventDefault()
-          dialog.current?.showModal()
-        }}
-      >
-        <fieldset className="grid gap-2">
-          <legend className="mb-2 text-sm font-medium">{t('supporter.choose')}</legend>
-          {tiers.map(({ key, amount }) => (
-            <FormField
-              key={key}
-              layout="choice"
-              label={t('supporter.tierOption', { tier: t(`supporter.tiers.${key}`), amount })}
-              className="text-sm"
-            >
-              {(id) => (
-                <input
-                  id={id}
-                  type="radio"
-                  name="supporter-tier"
-                  checked={choice === key}
-                  onChange={() => setChoice(key)}
-                />
-              )}
-            </FormField>
-          ))}
-          <FormField layout="choice" label={t('supporter.customOption')} className="text-sm">
-            {(id) => (
-              <input
-                id={id}
-                type="radio"
-                name="supporter-tier"
-                checked={choice === 'custom'}
-                onChange={() => setChoice('custom')}
-              />
-            )}
-          </FormField>
-        </fieldset>
-        {choice === 'custom' && (
-          <FormField label={t('supporter.customAmount')} className="mt-3 text-sm font-medium">
-            {(id) => (
-              <Input
-                id={id}
-                type="number"
-                inputMode="numeric"
-                min={301}
-                step={1}
-                required
-                value={custom}
-                onChange={(event) => setCustom(event.target.value)}
-                aria-describedby="supporter-custom-help"
-                className="max-w-40"
-              />
-            )}
-          </FormField>
-        )}
-        {choice === 'custom' && (
-          <p id="supporter-custom-help" className="mt-2 text-sm text-muted-foreground">
-            {t('supporter.customHelp')}
-          </p>
-        )}
-        <Button type="submit" className="mt-4">
-          {t('supporter.become')}
+      {supporter?.tier && supporter.until ? (
+        <Button
+          variant="link"
+          className="mt-2 h-auto p-0"
+          onClick={() => {
+            setManageNotice(null)
+            setManageKey((key) => key + 1)
+            manageDialog.current?.showModal()
+          }}
+        >
+          {t('supporter.manage')}
         </Button>
-      </form>
+      ) : (
+        <TierForm
+          initial="silver"
+          submitLabel={t('supporter.become')}
+          onSubmit={() => dialog.current?.showModal()}
+        />
+      )}
 
       <FormField label={t('supporter.badgePrivacy')} className="mt-6 text-sm font-medium">
         {(id) => (
@@ -188,6 +142,124 @@ export function SupporterSection() {
           <Button onClick={() => dialog.current?.close()}>{t('supporter.modalClose')}</Button>
         </div>
       </Modal>
+      {supporter?.tier && supporter.until && (
+        <Modal ref={manageDialog} aria-labelledby="supporter-manage-title">
+          <h3 id="supporter-manage-title" className="text-lg font-semibold">
+            {t('supporter.manage')}
+          </h3>
+          {manageNotice ? (
+            <>
+              <p role="status" className="mt-3 text-sm text-muted-foreground">
+                {t('supporter.manageNotice', { until: date.format(new Date(supporter.until)) })}
+              </p>
+              <div className="mt-5 flex justify-end">
+                <Button onClick={() => manageDialog.current?.close()}>
+                  {t('supporter.modalClose')}
+                </Button>
+              </div>
+            </>
+          ) : (
+            <>
+              <TierForm
+                key={manageKey}
+                initial={supporter.tier}
+                submitLabel={t('supporter.changeLevel')}
+                onSubmit={() => setManageNotice('change')}
+              />
+              <div className="mt-6 border-t pt-4">
+                <Button variant="outline" onClick={() => setManageNotice('end')}>
+                  {t('supporter.end')}
+                </Button>
+                <p className="mt-2 text-sm text-muted-foreground">
+                  {t('supporter.endHelp', { until: date.format(new Date(supporter.until)) })}
+                </p>
+              </div>
+            </>
+          )}
+        </Modal>
+      )}
     </section>
+  )
+}
+
+function TierForm({
+  initial,
+  submitLabel,
+  onSubmit,
+}: {
+  initial: SupporterTier
+  submitLabel: string
+  onSubmit: () => void
+}) {
+  const { t } = useTranslation()
+  const [choice, setChoice] = useState<SupporterTier | 'custom'>(initial)
+  const [custom, setCustom] = useState('')
+  return (
+    <form
+      className="mt-4"
+      onSubmit={(event) => {
+        event.preventDefault()
+        onSubmit()
+      }}
+    >
+      <fieldset className="grid gap-2">
+        <legend className="mb-2 text-sm font-medium">{t('supporter.choose')}</legend>
+        {tiers.map(({ key, amount }) => (
+          <FormField
+            key={key}
+            layout="choice"
+            label={t('supporter.tierOption', { tier: t(`supporter.tiers.${key}`), amount })}
+            className="text-sm"
+          >
+            {(id) => (
+              <input
+                id={id}
+                type="radio"
+                name="supporter-tier"
+                checked={choice === key}
+                onChange={() => setChoice(key)}
+              />
+            )}
+          </FormField>
+        ))}
+        <FormField layout="choice" label={t('supporter.customOption')} className="text-sm">
+          {(id) => (
+            <input
+              id={id}
+              type="radio"
+              name="supporter-tier"
+              checked={choice === 'custom'}
+              onChange={() => setChoice('custom')}
+            />
+          )}
+        </FormField>
+      </fieldset>
+      {choice === 'custom' && (
+        <FormField label={t('supporter.customAmount')} className="mt-3 text-sm font-medium">
+          {(id) => (
+            <Input
+              id={id}
+              type="number"
+              inputMode="numeric"
+              min={301}
+              step={1}
+              required
+              value={custom}
+              onChange={(event) => setCustom(event.target.value)}
+              aria-describedby="supporter-custom-help"
+              className="max-w-40"
+            />
+          )}
+        </FormField>
+      )}
+      {choice === 'custom' && (
+        <p id="supporter-custom-help" className="mt-2 text-sm text-muted-foreground">
+          {t('supporter.customHelp')}
+        </p>
+      )}
+      <Button type="submit" className="mt-4">
+        {submitLabel}
+      </Button>
+    </form>
   )
 }

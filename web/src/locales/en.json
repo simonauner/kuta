@@ -723,6 +723,11 @@
     },
     "modalTitle": "Thanks for wanting to contribute!",
     "modalText": "Great that you want to chip in! Payments aren't enabled yet, but we're working on getting them in place so you can support Kuta!",
-    "modalClose": "Close"
+    "modalClose": "Close",
+    "manage": "Manage your support",
+    "changeLevel": "Change level",
+    "end": "End support",
+    "endHelp": "Your support won't renew, but you keep the badge until {{until}}.",
+    "manageNotice": "Payments aren't enabled yet, so your support can't be changed or ended here yet. It is valid until {{until}}."
   }
 }

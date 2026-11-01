@@ -723,6 +723,11 @@
     },
     "modalTitle": "Tack för att du vill bidra!",
     "modalText": "Kul att du vill vara med och bidra! Än så länge är betalningar inte aktiverade, men vi arbetar såklart för att ro detta i hamn så att du kan vara med och supporta Kuta!",
-    "modalClose": "Stäng"
+    "modalClose": "Stäng",
+    "manage": "Hantera ditt supporterskap",
+    "changeLevel": "Ändra nivå",
+    "end": "Avsluta supporterskap",
+    "endHelp": "Supporterskapet förnyas inte, men du behåller badgen till och med {{until}}.",
+    "manageNotice": "Betalningar är inte aktiverade än, så supporterskapet går inte att ändra eller avsluta här ännu. Det gäller till och med {{until}}."
   }
 }
