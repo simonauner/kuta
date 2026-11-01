@@ -84,7 +84,7 @@ export function TrainingLoadSection() {
         </p>
       )}
       {data && (
-        <>
+        <div className="motion-safe:animate-fade-in-up">
           <ThresholdForm summary={data} />
           {data.thresholdSpeedMS === null ? null : !today || !chart ? (
             <p className="mt-4 text-muted-foreground">{t('trainingLoad.empty')}</p>
@@ -177,7 +177,7 @@ export function TrainingLoadSection() {
           <p className="mt-4 text-xs leading-relaxed text-muted-foreground">
             {t('trainingLoad.method')}
           </p>
-        </>
+        </div>
       )}
     </section>
   )

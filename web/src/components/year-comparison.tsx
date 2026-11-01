@@ -108,121 +108,125 @@ export function YearComparison({ year, sportGroup }: { year: number; sportGroup:
           </Button>
         </p>
       )}
-      {days.isSuccess &&
-        (series.length === 0 ? (
-          <p className="mt-4 text-muted-foreground">{t('yearComparison.empty')}</p>
-        ) : (
-          <>
-            <div className="mt-4 rounded-xl border bg-card p-4">
-              <p className="text-xs text-muted-foreground">
-                {t('stats.chartScale', { max: format(maximum) })}
-              </p>
-              <svg
-                viewBox={`0 0 ${width} ${height}`}
-                className="mt-2 w-full overflow-visible"
-                role="img"
-                aria-label={t('yearComparison.chart', {
-                  metric: t(`yearComparison.metrics.${metric}`),
-                })}
-              >
-                <line
-                  x1={pad.left}
-                  x2={width - pad.right}
-                  y1={y(0)}
-                  y2={y(0)}
-                  stroke="currentColor"
-                  className="text-muted-foreground"
-                  opacity="0.3"
-                />
-                {[1, 4, 7, 10].map((month) => {
-                  const day = (Date.UTC(2001, month - 1, 1) - Date.UTC(2001, 0, 1)) / 86_400_000
-                  return (
-                    <text
-                      key={month}
-                      x={x(day)}
-                      y={height - 4}
-                      fill="currentColor"
-                      className="text-[20px] text-muted-foreground sm:text-xs"
-                    >
-                      {monthFormat.format(new Date(2001, month - 1, 1))}
-                    </text>
-                  )
-                })}
-                {drawOrder.map((s, index) => {
-                  const selected = s.year === year
-                  const age = series.findIndex((other) => other.year === s.year)
-                  const end = s.points[s.points.length - 1]
-                  return (
-                    <g
-                      key={s.year}
-                      className={selected ? 'text-primary' : 'text-muted-foreground'}
-                      opacity={selected ? 1 : opacity(age)}
-                    >
-                      <title>{`${s.year}: ${format(s.total)}`}</title>
-                      <polyline
-                        points={s.points.map((p) => `${x(p.day)},${y(p.value)}`).join(' ')}
-                        fill="none"
-                        stroke="currentColor"
-                        strokeWidth={selected ? 3 : 1.5}
-                        strokeLinejoin="round"
-                      />
-                      <text
-                        x={x(end.day) + 6}
-                        y={labelY[index]}
-                        fill="currentColor"
-                        className={`text-[20px] tabular-nums sm:text-xs ${selected ? 'font-semibold' : ''}`}
-                      >
-                        {s.year}
-                      </text>
-                    </g>
-                  )
-                })}
-              </svg>
-            </div>
-            <div className="mt-4 overflow-x-auto">
-              <table className="w-full text-right text-sm tabular-nums">
-                <caption className="pb-3 text-left font-medium">
-                  {t('yearComparison.table', { metric: t(`yearComparison.metrics.${metric}`) })}
-                </caption>
-                <thead className="text-xs text-muted-foreground">
-                  <tr>
-                    <th scope="col" className="py-3 pr-3 text-left">
-                      {t('activities.year')}
-                    </th>
-                    <th scope="col" className="px-2">
-                      {t('yearComparison.toDate', { date: cutoff })}
-                    </th>
-                    <th scope="col" className="px-2">
-                      {t('yearComparison.change')}
-                    </th>
-                    <th scope="col" className="px-2">
-                      {t('yearComparison.fullYear')}
-                    </th>
-                  </tr>
-                </thead>
-                <tbody className="divide-y">
-                  {series.map((s, i) => {
-                    const previous = series[i + 1]?.year === s.year - 1 ? series[i + 1] : undefined
-                    const change = relativeChange(s.toDate, previous?.toDate)
+      {days.isSuccess && (
+        <div className="motion-safe:animate-fade-in-up">
+          {series.length === 0 ? (
+            <p className="mt-4 text-muted-foreground">{t('yearComparison.empty')}</p>
+          ) : (
+            <>
+              <div className="mt-4 rounded-xl border bg-card p-4">
+                <p className="text-xs text-muted-foreground">
+                  {t('stats.chartScale', { max: format(maximum) })}
+                </p>
+                <svg
+                  viewBox={`0 0 ${width} ${height}`}
+                  className="mt-2 w-full overflow-visible"
+                  role="img"
+                  aria-label={t('yearComparison.chart', {
+                    metric: t(`yearComparison.metrics.${metric}`),
+                  })}
+                >
+                  <line
+                    x1={pad.left}
+                    x2={width - pad.right}
+                    y1={y(0)}
+                    y2={y(0)}
+                    stroke="currentColor"
+                    className="text-muted-foreground"
+                    opacity="0.3"
+                  />
+                  {[1, 4, 7, 10].map((month) => {
+                    const day = (Date.UTC(2001, month - 1, 1) - Date.UTC(2001, 0, 1)) / 86_400_000
                     return (
-                      <tr key={s.year} className={s.year === year ? 'font-semibold' : undefined}>
-                        <th scope="row" className="py-3 pr-3 text-left font-medium">
-                          {s.year}
-                        </th>
-                        <td className="px-2">{format(s.toDate)}</td>
-                        <td className="px-2">{change === null ? '–' : percent.format(change)}</td>
-                        <td className="px-2">{s.year === today.year ? '–' : format(s.total)}</td>
-                      </tr>
+                      <text
+                        key={month}
+                        x={x(day)}
+                        y={height - 4}
+                        fill="currentColor"
+                        className="text-[20px] text-muted-foreground sm:text-xs"
+                      >
+                        {monthFormat.format(new Date(2001, month - 1, 1))}
+                      </text>
                     )
                   })}
-                </tbody>
-              </table>
-            </div>
-            <p className="mt-4 text-metadata leading-relaxed text-muted-foreground">
-              {t('yearComparison.method', { years: shownYears })}
-            </p>
-          </>
-        ))}
+                  {drawOrder.map((s, index) => {
+                    const selected = s.year === year
+                    const age = series.findIndex((other) => other.year === s.year)
+                    const end = s.points[s.points.length - 1]
+                    return (
+                      <g
+                        key={s.year}
+                        className={selected ? 'text-primary' : 'text-muted-foreground'}
+                        opacity={selected ? 1 : opacity(age)}
+                      >
+                        <title>{`${s.year}: ${format(s.total)}`}</title>
+                        <polyline
+                          points={s.points.map((p) => `${x(p.day)},${y(p.value)}`).join(' ')}
+                          fill="none"
+                          stroke="currentColor"
+                          strokeWidth={selected ? 3 : 1.5}
+                          strokeLinejoin="round"
+                        />
+                        <text
+                          x={x(end.day) + 6}
+                          y={labelY[index]}
+                          fill="currentColor"
+                          className={`text-[20px] tabular-nums sm:text-xs ${selected ? 'font-semibold' : ''}`}
+                        >
+                          {s.year}
+                        </text>
+                      </g>
+                    )
+                  })}
+                </svg>
+              </div>
+              <div className="mt-4 overflow-x-auto">
+                <table className="w-full text-right text-sm tabular-nums">
+                  <caption className="pb-3 text-left font-medium">
+                    {t('yearComparison.table', { metric: t(`yearComparison.metrics.${metric}`) })}
+                  </caption>
+                  <thead className="text-xs text-muted-foreground">
+                    <tr>
+                      <th scope="col" className="py-3 pr-3 text-left">
+                        {t('activities.year')}
+                      </th>
+                      <th scope="col" className="px-2">
+                        {t('yearComparison.toDate', { date: cutoff })}
+                      </th>
+                      <th scope="col" className="px-2">
+                        {t('yearComparison.change')}
+                      </th>
+                      <th scope="col" className="px-2">
+                        {t('yearComparison.fullYear')}
+                      </th>
+                    </tr>
+                  </thead>
+                  <tbody className="divide-y">
+                    {series.map((s, i) => {
+                      const previous =
+                        series[i + 1]?.year === s.year - 1 ? series[i + 1] : undefined
+                      const change = relativeChange(s.toDate, previous?.toDate)
+                      return (
+                        <tr key={s.year} className={s.year === year ? 'font-semibold' : undefined}>
+                          <th scope="row" className="py-3 pr-3 text-left font-medium">
+                            {s.year}
+                          </th>
+                          <td className="px-2">{format(s.toDate)}</td>
+                          <td className="px-2">{change === null ? '–' : percent.format(change)}</td>
+                          <td className="px-2">{s.year === today.year ? '–' : format(s.total)}</td>
+                        </tr>
+                      )
+                    })}
+                  </tbody>
+                </table>
+              </div>
+              <p className="mt-4 text-metadata leading-relaxed text-muted-foreground">
+                {t('yearComparison.method', { years: shownYears })}
+              </p>
+            </>
+          )}
+        </div>
+      )}
     </section>
   )
 }

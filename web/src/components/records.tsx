@@ -89,9 +89,11 @@ export function RecordsSection({ year }: { year: number }) {
       {yearly.error && <QueryError error={yearly.error} retry={() => void yearly.refetch()} />}
       {allTime.isSuccess &&
         (allTime.data.length === 0 ? (
-          <p className="mt-4 text-muted-foreground">{t('records.empty')}</p>
+          <p className="mt-4 text-muted-foreground motion-safe:animate-fade-in-up">
+            {t('records.empty')}
+          </p>
         ) : (
-          <div className="mt-4 overflow-x-auto">
+          <div className="mt-4 overflow-x-auto motion-safe:animate-fade-in-up">
             <table className="w-full text-right text-sm tabular-nums">
               <thead className="text-xs text-muted-foreground">
                 <tr>
@@ -164,7 +166,9 @@ export function RecordsSection({ year }: { year: number }) {
         </FormField>
         {trend.error && <QueryError error={trend.error} retry={() => void trend.refetch()} />}
         {trend.isSuccess && (
-          <RecordTrendView trend={trend.data} distanceLabel={distanceLabel(distance)} />
+          <div className="motion-safe:animate-fade-in-up">
+            <RecordTrendView trend={trend.data} distanceLabel={distanceLabel(distance)} />
+          </div>
         )}
       </div>
 
@@ -173,46 +177,51 @@ export function RecordsSection({ year }: { year: number }) {
         {predictions.error && (
           <QueryError error={predictions.error} retry={() => void predictions.refetch()} />
         )}
-        {predictions.isSuccess &&
-          (predictions.data.basis === null || predictions.data.vdot === null ? (
-            <p className="mt-3 text-sm text-muted-foreground">{t('records.predictionsEmpty')}</p>
-          ) : (
-            <>
-              <p className="mt-2 text-body text-muted-foreground">
-                {t('records.predictionsBasis', {
-                  distance: distanceLabel(predictions.data.basis.distanceM),
-                  time: formatDuration(predictions.data.basis.elapsedS),
-                  date: date.format(new Date(predictions.data.basis.achievedAt)),
-                  vdot: new Intl.NumberFormat(i18n.resolvedLanguage, {
-                    maximumFractionDigits: 1,
-                  }).format(predictions.data.vdot),
-                })}{' '}
-                <Link
-                  to="/app/activities/$activityId"
-                  params={{ activityId: predictions.data.basis.activityId }}
-                  className="underline underline-offset-2"
-                >
-                  {t('records.showActivity')}
-                </Link>
-              </p>
-              <dl className="mt-4 grid grid-cols-2 gap-3 sm:grid-cols-3">
-                {predictions.data.predictions.map((p) => (
-                  <div key={p.distanceM} className="rounded-lg border p-3">
-                    <dt className="text-xs text-muted-foreground">{distanceLabel(p.distanceM)}</dt>
-                    <dd className="mt-1 text-lg font-semibold tabular-nums">
-                      {formatDuration(p.elapsedS)}
-                    </dd>
-                    <dd className="text-xs text-muted-foreground tabular-nums">
-                      {formatPace(p.elapsedS, recordMeters(p.distanceM))}
-                    </dd>
-                  </div>
-                ))}
-              </dl>
-              <p className="mt-4 text-metadata leading-relaxed text-muted-foreground">
-                {t('records.predictionsMethod')}
-              </p>
-            </>
-          ))}
+        {predictions.isSuccess && (
+          <div className="motion-safe:animate-fade-in-up">
+            {predictions.data.basis === null || predictions.data.vdot === null ? (
+              <p className="mt-3 text-sm text-muted-foreground">{t('records.predictionsEmpty')}</p>
+            ) : (
+              <>
+                <p className="mt-2 text-body text-muted-foreground">
+                  {t('records.predictionsBasis', {
+                    distance: distanceLabel(predictions.data.basis.distanceM),
+                    time: formatDuration(predictions.data.basis.elapsedS),
+                    date: date.format(new Date(predictions.data.basis.achievedAt)),
+                    vdot: new Intl.NumberFormat(i18n.resolvedLanguage, {
+                      maximumFractionDigits: 1,
+                    }).format(predictions.data.vdot),
+                  })}{' '}
+                  <Link
+                    to="/app/activities/$activityId"
+                    params={{ activityId: predictions.data.basis.activityId }}
+                    className="underline underline-offset-2"
+                  >
+                    {t('records.showActivity')}
+                  </Link>
+                </p>
+                <dl className="mt-4 grid grid-cols-2 gap-3 sm:grid-cols-3">
+                  {predictions.data.predictions.map((p) => (
+                    <div key={p.distanceM} className="rounded-lg border p-3">
+                      <dt className="text-xs text-muted-foreground">
+                        {distanceLabel(p.distanceM)}
+                      </dt>
+                      <dd className="mt-1 text-lg font-semibold tabular-nums">
+                        {formatDuration(p.elapsedS)}
+                      </dd>
+                      <dd className="text-xs text-muted-foreground tabular-nums">
+                        {formatPace(p.elapsedS, recordMeters(p.distanceM))}
+                      </dd>
+                    </div>
+                  ))}
+                </dl>
+                <p className="mt-4 text-metadata leading-relaxed text-muted-foreground">
+                  {t('records.predictionsMethod')}
+                </p>
+              </>
+            )}
+          </div>
+        )}
       </div>
     </section>
   )
