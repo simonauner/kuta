@@ -3,6 +3,7 @@ import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
 import { Link, useParams } from '@tanstack/react-router'
 import { useTranslation } from 'react-i18next'
 import { ActivityFeed } from '@/components/activity-feed'
+import { ActivityCalendar, ProfileStats, RecordShelf } from '@/components/runner-summary'
 import { GoalList } from '@/components/goals'
 import { SupporterBadge } from '@/components/supporter'
 import { ErrorMessage } from '@/components/error-message'
@@ -93,6 +94,9 @@ export function RunnerPage() {
                 <ErrorMessage error={follow.error} />
               </p>
             )}
+            <ProfileStats runnerId={runnerId} />
+            <ActivityCalendar runnerId={runnerId} />
+            <RecordShelf runnerId={runnerId} />
             <GoalList key={`goals-${runnerId}`} runnerId={runnerId} />
             <h2 className="text-lg font-semibold">{t('nav.activities')}</h2>
             <ActivityFeed key={runnerId} runnerId={runnerId} />

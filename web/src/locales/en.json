@@ -41,6 +41,10 @@
     "copyProfileLink": "Copy my profile link"
   },
   "stats": {
+    "views": "Statistics views",
+    "overview": "Overview",
+    "analysis": "Analysis",
+    "analysisDescription": "Your current form and race prediction, based on recent weeks of training.",
     "description": "Track your training volume, distance, pace and heart rate over time.",
     "allSports": "All sports",
     "count": "Activities",
@@ -403,7 +407,8 @@
     "jobFailed": "The job failed. Please try again later.",
     "jobCancelled": "The job was cancelled.",
     "termsRequired": "Accept the terms of use and privacy policy to create an account.",
-    "garminUnavailable": "Garmin Connect is not available right now."
+    "garminUnavailable": "Garmin Connect is not available right now.",
+    "invalidViewAs": "The preview only applies to your own profile."
   },
   "home": "Kuta – home",
   "footer": {
@@ -741,7 +746,45 @@
       "connectionsDescription": "Share your profile link or ask a friend for theirs to start following each other.",
       "privacyTitle": "You choose what to share",
       "privacyDescription": "Choose who can see each activity and goal: only you, your followers or everyone on Kuta."
-    }
+    },
+    "calendar": {
+      "title": "Last year",
+      "activeDays_one": "{{count}} active day",
+      "activeDays_other": "{{count}} active days",
+      "streak_one": "{{count}} week in a row",
+      "streak_other": "{{count}} weeks in a row",
+      "longest_one": "longest streak {{count}} week",
+      "longest_other": "longest streak {{count}} weeks",
+      "summary_one": "Activity calendar: {{count}} day with activities in the last year",
+      "summary_other": "Activity calendar: {{count}} days with activities in the last year",
+      "day_one": "{{count}} activity, {{distance}} km",
+      "day_other": "{{count}} activities, {{distance}} km"
+    },
+    "stats": {
+      "memberSince": "On Kuta since {{date}}",
+      "thisYear": "This year",
+      "allTime": "All time",
+      "sessions_one": "{{count}} activity",
+      "sessions_other": "{{count}} activities",
+      "topSports": "Most common sports",
+      "followers_one": "{{count}} follower",
+      "followers_other": "{{count}} followers",
+      "following_one": "{{count}} following",
+      "following_other": "{{count}} following"
+    },
+    "records": {
+      "title": "Personal bests"
+    },
+    "viewAs": {
+      "label": "View as",
+      "me": "Me",
+      "followers": "Approved follower",
+      "public": "Anyone with a Kuta account",
+      "followersHint": "This is how your approved followers see your profile. Private activities and goals are not shown, and maps hide the start, finish and your hidden places.",
+      "publicHint": "This is how anyone with a Kuta account and the link sees your profile. Only what you share with everyone is shown, and maps hide the start, finish and your hidden places."
+    },
+    "latestActivities": "Latest activities",
+    "allActivities": "All activities"
   },
   "onboarding": {
     "eyebrow": "Your progress starts here",

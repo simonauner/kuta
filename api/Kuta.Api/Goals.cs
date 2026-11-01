@@ -95,7 +95,7 @@ public static class Goals
             return Results.Ok(await LoadAsync(conn, user.GetUserId(), timeZone, DateTimeOffset.UtcNow, ct));
         });
         // A runner's goals according to each goal's privacy (the owner sees all); unknown runner gives 404.
-        api.MapGet("/runners/{id:guid}/goals", async (Guid id, string? timeZone, NpgsqlDataSource db, ClaimsPrincipal user,
+        api.MapGet("/runners/{id:guid}/goals", async (Guid id, string? timeZone, string? viewAs, NpgsqlDataSource db, ClaimsPrincipal user,
             CancellationToken ct) =>
         {
             timeZone ??= "UTC";
@@ -104,7 +104,8 @@ public static class Goals
             if (!await conn.ExecuteScalarAsync<bool>(new CommandDefinition(
                     "select exists(select 1 from users where id = @id)", new { id }, cancellationToken: ct)))
                 return Results.NotFound();
-            return Results.Ok(await LoadAsync(conn, id, timeZone, DateTimeOffset.UtcNow, ct, user.GetUserId()));
+            var (viewer, error) = await RunnerProfile.ViewerAsync(conn, user.GetUserId(), id, viewAs, ct);
+            return error ?? Results.Ok(await LoadAsync(conn, id, timeZone, DateTimeOffset.UtcNow, ct, viewer));
         }).RequireAuthorization();
         goals.MapPost("", async (GoalRequest req, NpgsqlDataSource db, ClaimsPrincipal user, CancellationToken ct) =>
         {
@@ -164,8 +165,7 @@ public static class Goals
             select id, sport_group, metric, period, target, recurring, starts_on, privacy from goals g
             where user_id = @userId and (@viewerId::uuid is null or g.user_id = @viewerId or
                 {SocialEndpoints.NotBlocked("g.user_id", "@viewerId")} and (g.privacy = 'public' or
-                (g.privacy = 'followers' and exists (select 1 from follows f
-                    where f.follower_id = @viewerId and f.following_id = g.user_id and f.accepted_at is not null))))
+                (g.privacy = 'followers' and {SocialEndpoints.FollowedBy("@viewerId", "g.user_id")})))
             order by created_at, id
             """, new { userId, viewerId }, tx, cancellationToken: ct))).ToArray();
 

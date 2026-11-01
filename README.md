@@ -4,7 +4,7 @@ Löparapp med Garmin-import, statistik, rekord och socialt flöde. Se `AGENTS.md
 
 ## Publik startsida och app
 
-`/` är en statisk, svenskspråkig startsida (`web/index.html`, stilar i `web/src/landing.css`). Fotot i `web/public/images/forest-trail.webp` tillhör Simon Auner och serveras lokalt som WebP, utan beroende av Stravas bildserver; produktbilderna är riktiga appskärmdumpar med syntetiska exempeldata. Startsidan visar ett pass i mobilram, FIT-uppladdning samt träningsmål och löprekord i mobilen. `/features` är en statisk svensk funktionssida (`web/features.html`, `web/src/features.css`), länkad från startsidans funktionssektion. Bilderna i `web/public/images/features/` är lokala skärmdumpar med syntetiska data i mörkt tema. Statistiksektionen visar löprekord, utveckling, prognos, årsöversikt och passdetaljer med utfällda splits ovanför kartan i ett bildspel (`web/src/features.ts`); mobilbilderna är tagna vid mobilbredd i 3× upplösning (1170 × 2280 px) och visas i en CSS-telefonram med appens riktiga bottennavigering. Bildspelet kan pausas och styras manuellt, växlar bara när det syns och startar utan automatisk växling vid minskad rörelse. Utan JavaScript visas löprekorden. Träningsmål har en egen sektion med två mobilbilder i samma telefonram: skapa mål-modalen och Pass-sidan med ett pågående mål, ett uppnått mål och två veckors streak. Båda visar syntetiska data. Startsidan och funktionssidan delar bildstilar och telefonramar i `web/src/product-shots.css`, som importeras av `landing.css`. FIT-uppladdningen (1347 × 1080 px) och multisportvyn (2016 × 1584 px) är desktopbilder i 3× upplösning; utrustning visas i samma mobilformat som de andra telefonbilderna. De publika sidorna och appen delar systemtypsnitt och färgvariabler i `web/src/theme.css`; publika knappar följer appens storlek och hörnradie, och sidfotslänkarna staplas till höger. `Footer` i `web/src/components/footer.tsx` och dess CSS delas av alla sidor: Vite renderar varianten `public` till statisk HTML, medan appens `Layout` använder varianten `app` med valt språk och version. Sidorna följer systemets ljusa eller mörka tema med neutrala ytor och orange accent. Innehåll och SEO-metadata finns i HTML utan JavaScript. `robots.txt` och `sitemap.xml` finns i `web/public/`; canonical och sitemap använder `https://kutaapp.com/`.
+`/` är en statisk, svenskspråkig startsida (`web/index.html`, stilar i `web/src/landing.css`). Fotot i `web/public/images/forest-trail.webp` tillhör Simon Auner och serveras lokalt som WebP, utan beroende av Stravas bildserver; produktbilderna är riktiga appskärmdumpar med syntetiska exempeldata. Startsidan visar ett pass i mobilram, FIT-uppladdning, träningsmål och löprekord i mobilen samt profilen med aktivitetskalender (`profile-mobile.png`, också sektion 06 på funktionssidan). `/features` är en statisk svensk funktionssida (`web/features.html`, `web/src/features.css`), länkad från startsidans funktionssektion. Bilderna i `web/public/images/features/` är lokala skärmdumpar med syntetiska data i mörkt tema. Statistiksektionen visar löprekord, utveckling, prognos, årsöversikt och passdetaljer med utfällda splits ovanför kartan i ett bildspel (`web/src/features.ts`); mobilbilderna är tagna vid mobilbredd i 3× upplösning (1170 × 2280 px) och visas i en CSS-telefonram med appens riktiga bottennavigering. Bildspelet kan pausas och styras manuellt, växlar bara när det syns och startar utan automatisk växling vid minskad rörelse. Utan JavaScript visas löprekorden. Träningsmål har en egen sektion med två mobilbilder i samma telefonram: skapa mål-modalen och Pass-sidan med ett pågående mål, ett uppnått mål och två veckors streak. Båda visar syntetiska data. Startsidan och funktionssidan delar bildstilar och telefonramar i `web/src/product-shots.css`, som importeras av `landing.css`. FIT-uppladdningen (1347 × 1080 px) och multisportvyn (2016 × 1584 px) är desktopbilder i 3× upplösning; utrustning visas i samma mobilformat som de andra telefonbilderna. De publika sidorna och appen delar systemtypsnitt och färgvariabler i `web/src/theme.css`; publika knappar följer appens storlek och hörnradie, och sidfotslänkarna staplas till höger. `Footer` i `web/src/components/footer.tsx` och dess CSS delas av alla sidor: Vite renderar varianten `public` till statisk HTML, medan appens `Layout` använder varianten `app` med valt språk och version. Sidorna följer systemets ljusa eller mörka tema med neutrala ytor och orange accent. Innehåll och SEO-metadata finns i HTML utan JavaScript. `robots.txt` och `sitemap.xml` finns i `web/public/`; canonical och sitemap använder `https://kutaapp.com/`.
 
 Logotypen ”Spåret” finns som fristående SVG i `web/public/brand/` (mörk och ljus variant). Bokstäverna är vektorkonturer och kräver ingen font. Symbolen i `web/public/favicon.svg` används också av PWA-manifestet. PNG-ikoner för PWA finns i `web/public/icons/` (192/512 samt maskable 512 med extra marginal). `web/public/apple-touch-icon.png` (180×180, heltäckande bakgrund) används av iOS, och `favicon-32.png` är PNG-fallback för webbläsare. Båda HTML-dokumenten länkar till ikonerna; PWA:n startar på `/app`. SVG-underlagen för hemskärmsikonerna finns i `web/public/brand/app-icon.svg` och `app-icon-maskable.svg`.
 
@@ -186,7 +186,8 @@ lämnas till andra mottagare. Ingen ny åtkomst följer av själva klippningen.
 `/app/stats` visar årsstatistik med månadsdiagram och tabell för distans, träningstid,
 snittempo och snittpuls samt antal pass. Välj år och sportgrupp (se [Sportgrupper](#sportgrupper));
 löpning och innevarande år är förval. Årsväljaren innehåller hela den egna historiken. Tomma månader har noll mängd,
-men saknat tempo och puls visas som `–`.
+men saknat tempo och puls visas som `–`. En växel högst upp byter mellan Översikt och Analys
+(`/app/stats/analysis`), som visar läget just nu: träningsbelastning och loppprognos, oberoende av årsvalet.
 
 `GET /api/activities/statistics?year=2026&sportGroup=running&timeZone=Europe%2FStockholm`
 ger tolv månadsrader för den inloggade användaren. År krävs (1–9998), utelämnad sportgrupp
@@ -238,7 +239,7 @@ loggningen, och Wolverine är ett helt meddelanderamverk. Kön är en tabell `jo
 
 ## Träningsbelastning
 
-Statistiksidan visar kondition, trötthet och form för löpning, och Pass visar en varning högst upp när
+Analys (`/app/stats/analysis`) visar kondition, trötthet och form för löpning, och Pass visar en varning högst upp när
 konditionen ökar snabbt. Modellen är TrainingPeaks förenkling av Banisters impuls–respons-modell:
 
 - **Belastning per pass (rTSS):** `∫ v² dt / vT² / 36`, där `vT` är tröskelfarten. En timme i tröskelfart ger 100.
@@ -549,8 +550,8 @@ likvärdiga tider på andra distanser (bisektion över tiden). Underlaget är in
 högst VDOT bland 5 km och längre de senaste 90 dagarna (lika VDOT: den senaste);
 kortare insatser ur intervallpass överskattar uthålligheten. VDOT över 90, över
 världsrekordnivå, behandlas som mätfel. Statistiksidan visar personbästa och årsbästa
-per distans, ett diagram med månadsbästa och rekordtrappa, rekordhistoriken som tabell
-och prognosen. Passidan visar en separat lista över personbästa som sattes på passet,
+per distans, ett diagram med månadsbästa och rekordtrappa, rekordhistoriken som tabell;
+prognosen visas under Analys. Passidan visar en separat lista över personbästa som sattes på passet,
 med en trofé i guld och medaljer i silver med metallisk glans för nuvarande respektive tidigare
 rekord. Status visas i tooltips som öppnas med mus, tangentbord eller tryck. Samma märkning visas
 vid bästa insatser; en ljusgrå rosett i kontur markerar årsbästa när insatsen inte är ett personbästa.
