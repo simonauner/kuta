@@ -74,6 +74,19 @@ public class PrivateLoggingTests
     }
 
     [Fact]
+    public void Failed_jobs_log_a_fixed_event_without_message_or_state()
+    {
+        using var output = new StringWriter();
+        using var provider = new PrivateLogProvider(output);
+        provider.CreateLogger(PrivateLogProvider.Category)
+            .Log(LogLevel.Error, PrivateLogProvider.JobFailed, Sensitive, new InvalidOperationException(Sensitive), (_, _) => Sensitive);
+        var entry = Assert.Single(Entries(output));
+        Assert.Equal(("job_failed", "job"), (entry.GetProperty("event").GetString(), entry.GetProperty("operation").GetString()));
+        Assert.Equal("System.InvalidOperationException", entry.GetProperty("exception").GetProperty("type").GetString());
+        AssertNoSensitiveData(output.ToString());
+    }
+
+    [Fact]
     public void Exception_trees_and_stacks_are_bounded()
     {
         using var output = new StringWriter();

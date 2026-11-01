@@ -47,10 +47,11 @@ public static class Multisport
     }
 
     // Interpolate only the cut endpoints; corrupt/missing samples inside the leg still break record windows.
-    public static (int[] T, float?[]? Dist) Slice(int[] t, float?[]? dist, ActivityPart p)
+    public static (int[] T, float?[]? Dist, float?[]? Alt) Slice(int[] t, float?[]? dist, ActivityPart p, float?[]? alt = null)
     {
-        if (dist?.Length != t.Length || t.Length < 2 || t.Select((v, i) => i > 0 && v <= t[i - 1]).Any(v => v)) return ([], null);
-        var points = t.Select((v, i) => (T: v, D: dist[i]))
+        if (dist?.Length != t.Length || t.Length < 2 || t.Select((v, i) => i > 0 && v <= t[i - 1]).Any(v => v)) return ([], null, null);
+        if (alt?.Length != t.Length) alt = null;
+        var points = t.Select((v, i) => (T: v, D: dist[i], A: alt?[i]))
             .Where(v => v.T >= p.StartS && v.T <= p.EndS).ToList();
         foreach (var boundary in new[] { p.StartS, p.EndS })
         {
@@ -59,10 +60,14 @@ public static class Multisport
             i = ~i;
             if (i > 0 && i < t.Length && t[i] > t[i - 1]
                 && dist[i - 1] is { } a && dist[i] is { } b && float.IsFinite(a) && float.IsFinite(b) && b >= a)
-                points.Add((boundary, a + (b - a) * (boundary - t[i - 1]) / (t[i] - t[i - 1])));
+            {
+                var share = (float)(boundary - t[i - 1]) / (t[i] - t[i - 1]);
+                points.Add((boundary, a + (b - a) * share,
+                    alt?[i - 1] is { } fromAlt && alt[i] is { } toAlt ? fromAlt + (toAlt - fromAlt) * share : null));
+            }
         }
         points.Sort((a, b) => a.T.CompareTo(b.T));
-        return (points.Select(v => v.T).ToArray(), points.Select(v => v.D).ToArray());
+        return (points.Select(v => v.T).ToArray(), points.Select(v => v.D).ToArray(), alt is null ? null : points.Select(v => v.A).ToArray());
     }
 
     public static async Task<ActivityPart[]> LoadAsync(NpgsqlConnection conn, Guid id, NpgsqlTransaction? tx = null, bool? original = null) =>
@@ -78,13 +83,16 @@ public static class Multisport
             values (@id, @original, @PartIndex, @Sport, @StartS, @EndS, @DistanceM, @UseEquipment)
             """, parts.Select(p => new { id, original, p.PartIndex, p.Sport, p.StartS, p.EndS, p.DistanceM, p.UseEquipment }), tx);
 
-    public static async Task<(int[] T, float?[]? Dist)> ReadStreamAsync(NpgsqlConnection conn, NpgsqlTransaction tx, Guid id)
+    // Read nullable array elements explicitly; Dapper sees PostgreSQL arrays as System.Array.
+    public static async Task<(int[] T, float?[]? Dist, float?[]? Alt)> ReadStreamAsync(NpgsqlConnection conn, NpgsqlTransaction tx, Guid id)
     {
-        await using var command = new NpgsqlCommand("select t, dist from activity_streams where activity_id = @id", conn, tx);
+        await using var command = new NpgsqlCommand("select t, dist, alt from activity_streams where activity_id = @id", conn, tx);
         command.Parameters.AddWithValue("id", id);
         await using var reader = await command.ExecuteReaderAsync();
         return await reader.ReadAsync()
-            ? (reader.GetFieldValue<int[]>(0), reader.IsDBNull(1) ? null : reader.GetFieldValue<float?[]>(1)) : ([], null);
+            ? (reader.GetFieldValue<int[]>(0), reader.IsDBNull(1) ? null : reader.GetFieldValue<float?[]>(1),
+                reader.IsDBNull(2) ? null : reader.GetFieldValue<float?[]>(2))
+            : ([], null, null);
     }
 
     public static async Task<int> UpdateAsync(NpgsqlConnection conn, Guid userId, Guid id, MultisportRequest? req)
@@ -100,7 +108,7 @@ public static class Multisport
         var activity = await conn.QuerySingleOrDefaultAsync<PartOwner>(
             "select sport, started_at from activities where id = @id and user_id = @userId for update", new { id, userId }, tx);
         if (activity is null) return 404;
-        var (t, dist) = await ReadStreamAsync(conn, tx, id);
+        var (t, dist, alt) = await ReadStreamAsync(conn, tx, id);
         ActivityPart[] parts = [];
         if (req is not null)
         {
@@ -126,7 +134,7 @@ public static class Multisport
             parts = await LoadAsync(conn, id, tx);
         }
         var sport = req?.Kind ?? await conn.QuerySingleAsync<string>("select sport from activities where id = @id", new { id }, tx);
-        await BestEfforts.ReplaceAsync(conn, tx, id, userId, sport, activity.StartedAt, t, dist, parts);
+        await BestEfforts.ReplaceAsync(conn, tx, id, userId, sport, activity.StartedAt, t, dist, alt, parts);
         return 204;
     }
 

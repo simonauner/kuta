@@ -1,6 +1,5 @@
-const phone = document.querySelector<HTMLElement>('.hero-product')!
-const screenshot = phone.querySelector<HTMLImageElement>('img')!
-const background = document.querySelector<HTMLImageElement>('.hero-photo')!
+const hero = document.querySelector<HTMLElement>('.hero')!
+const images = hero.querySelectorAll<HTMLImageElement>('img')
 
-await Promise.allSettled([screenshot.decode(), background.decode()])
-if (screenshot.naturalWidth > 0) phone.classList.add('is-ready')
+await Promise.allSettled(Array.from(images, (image) => image.decode()))
+hero.classList.add('is-ready')

@@ -365,11 +365,14 @@
     "invalidEquipmentInput": "Check the name, type and prior use.",
     "invalidActivityParts": "Check sports and boundaries. Legs must cover the entire recording without gaps or overlaps.",
     "invalidDescription": "The description can be at most 10,000 characters.",
-    "stravaImportInterrupted": "The import was interrupted. Saved activities are kept. Retry with the same file; duplicates are skipped.",
+    "stravaImportInterrupted": "The import was interrupted before it finished. Activities already saved remain. Upload the same file again; duplicates are skipped.",
     "invalidPrivacyPlace": "Enter a name, a valid map point and a radius between 50 and 5,000 meters.",
     "invalidPrivacy": "Choose a valid visibility.",
     "invalidGoal": "Check the sport, measure, period and goal.",
-    "invalidSportGroup": "Choose a valid sport."
+    "invalidSportGroup": "Choose a valid sport.",
+    "importInProgress": "An import is already running. Wait until it has finished.",
+    "jobFailed": "The job failed. Please try again later.",
+    "jobCancelled": "The job was cancelled."
   },
   "home": "Kuta – home",
   "footer": {
@@ -386,7 +389,7 @@
     "stravaFile": "Strava export (ZIP)",
     "import": "Import activities",
     "importing": "Importing …",
-    "importWait": "Importing activities. This may take several minutes. Keep this page open.",
+    "importWait": "The import runs on the server. You can leave this page and come back; progress is shown here.",
     "importHelp": "Choose the complete ZIP export, up to 500 MB. Shoes are imported first and linked to activities to calculate distance and time per shoe. Names, summaries and available streams are imported. Heart rate follows your choice above. You can retry after an interruption; duplicates are skipped. Find your imported activities under Activities.",
     "importResult": "Imported: {{imported}}. Duplicates: {{duplicates}}. Failed: {{failed}}.",
     "importEquipmentResult": "Shoes imported: {{imported}}. Existing activities linked to shoes: {{linked}}.",
@@ -398,9 +401,18 @@
     "exportWait": "This may take several minutes. Keep this page open until the download starts.",
     "account": "Account",
     "logout": "Log out",
-    "importPreparing": "Uploading and reading the archive …",
-    "importProgress": "Processed {{processed}} of {{total}} activities",
-    "followers": "Followers"
+    "followers": "Followers",
+    "importUploading": "Uploading …",
+    "recalculateTitle": "Recalculate activities",
+    "recalculateHelp": "Recalculates records and training load for all your activities with recorded data, for example after the calculations have improved. Your activities and their measurements are not changed. It runs on the server and you can leave the page.",
+    "recalculate": "Recalculate all activities",
+    "recalculating": "Recalculating …",
+    "recalculated_one": "{{count}} activity recalculated.",
+    "recalculated_other": "{{count}} activities recalculated."
+  },
+  "jobs": {
+    "queued": "Queued. The job will start shortly.",
+    "progress": "Processed {{processed}} of {{total}} activities"
   },
   "dangerZone": {
     "title": "Danger zone",

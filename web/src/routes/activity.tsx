@@ -1,5 +1,5 @@
 import { SlowLoading } from '@/components/slow-loading'
-import { knownSport, sportIcons } from '@/lib/sports'
+import { isCyclingSport } from '@/lib/sports'
 import { SportIcon } from '@/components/sport-icon'
 import { useQuery } from '@tanstack/react-query'
 import { Link, useParams, useSearch } from '@tanstack/react-router'
@@ -53,7 +53,7 @@ function paceSeries(speed: (number | null)[], minSpeed = 0.5) {
 export function ActivityPage() {
   const { activityId } = useParams({ from: '/app/activities/$activityId' })
   const { t, i18n } = useTranslation()
-  const { year, tag } = useSearch({ from: '/app/activities/$activityId' })
+  const search = useSearch({ from: '/app/activities/$activityId' })
   const { data: me } = useQuery(meQuery)
   const equipment = useQuery(equipmentQuery)
   const [openPanel, setOpenPanel] = useState<'laps' | 'splits' | 'efforts' | null>(null)
@@ -101,18 +101,16 @@ export function ActivityPage() {
       })
     if (streams.speed && !mixed)
       series.push({
-        label:
-          selectedSport === 'cycling'
-            ? `${t('activity.speed')} (km/h)`
-            : `${t('activity.chartPace')} (${selectedSport === 'swimming' ? '/100 m' : '/km'})`,
-        values:
-          selectedSport === 'cycling'
-            ? streams.speed.map((v) => (v === null ? null : v * 3.6))
-            : paceSeries(streams.speed, selectedSport === 'swimming' ? 0.05 : 0.5).map((v) =>
-                v === null ? null : v / (selectedSport === 'swimming' ? 10 : 1),
-              ),
+        label: isCyclingSport(selectedSport ?? '')
+          ? `${t('activity.speed')} (km/h)`
+          : `${t('activity.chartPace')} (${selectedSport === 'swimming' ? '/100 m' : '/km'})`,
+        values: isCyclingSport(selectedSport ?? '')
+          ? streams.speed.map((v) => (v === null ? null : v * 3.6))
+          : paceSeries(streams.speed, selectedSport === 'swimming' ? 0.05 : 0.5).map((v) =>
+              v === null ? null : v / (selectedSport === 'swimming' ? 10 : 1),
+            ),
         color: '#1c7ed6',
-        pace: selectedSport !== 'cycling',
+        pace: !isCyclingSport(selectedSport ?? ''),
       })
     if (streams.hr)
       series.push({ label: t('activity.chartHr'), values: streams.hr, color: '#e03131' })
@@ -181,14 +179,14 @@ export function ActivityPage() {
     timeStyle: 'short',
   })
   // Kadens i steg/min för löpning och gång, varv/min för cykling (så lagras den, se FitImport)
-  const cadenceUnit = sportIcons[knownSport(a.sport)] === 'bike' ? 'rpm' : 'spm'
+  const cadenceUnit = isCyclingSport(a.sport) ? 'rpm' : 'spm'
   const cadence = average(a.streams?.cadence ?? null)
   const temp = average(a.streams?.temp ?? null)
   const stats = [
     [t('activity.distance'), `${number.format(a.distanceM / 1000)} km`],
     [t('activity.time'), formatDuration(a.durationS)],
     !mixed && [
-      t(a.sport === 'cycling' ? 'activity.speed' : 'activity.pace'),
+      t(isCyclingSport(a.sport) ? 'activity.speed' : 'activity.pace'),
       formatSportPace(a.sport, a.movingS ?? a.durationS, a.distanceM, i18n.resolvedLanguage),
     ],
     a.elevationGainM !== null && [t('activity.elevation'), `${Math.round(a.elevationGainM)} m`],
@@ -292,7 +290,7 @@ export function ActivityPage() {
             <Link
               to="/app/activities/$activityId/edit"
               params={{ activityId: a.id }}
-              search={{ year, tag }}
+              search={search}
             >
               {t('activity.edit')}
             </Link>

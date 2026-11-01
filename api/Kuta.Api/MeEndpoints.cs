@@ -23,11 +23,16 @@ public static class MeEndpoints
     {
         var me = api.MapGroup("/me").RequireAuthorization();
 
-        me.MapDelete("", async (NpgsqlDataSource db, RawFileStore store, HttpContext http,
+        me.MapDelete("", async (NpgsqlDataSource db, RawFileStore store, ImportFiles files, HttpContext http,
             CancellationToken cancellationToken) =>
         {
             await using var conn = await db.OpenConnectionAsync(cancellationToken);
-            await DeleteAccountAsync(conn, store, http.User.GetUserId(), cancellationToken);
+            var userId = http.User.GetUserId();
+            // Köade importarkiv kaskadraderas inte med jobben; ta bort dem efter kontot (arbetaren städar resten).
+            var imports = (await conn.QueryAsync<Guid>("select id from jobs where user_id = @userId and kind = @kind",
+                new { userId, kind = JobKinds.StravaImport })).ToList();
+            await DeleteAccountAsync(conn, store, userId, cancellationToken);
+            foreach (var job in imports) files.Delete(job);
             await http.SignOutAsync(CookieAuthenticationDefaults.AuthenticationScheme);
             return Results.NoContent();
         });

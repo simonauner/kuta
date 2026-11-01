@@ -37,7 +37,7 @@ export function MultisportEditor({
   const restoreTitleId = useId()
   const restoreWarningId = useId()
   const [editing, setEditing] = useState(false)
-  const [kind, setKind] = useState<string>(multisportKinds.find((k) => k === a.sport) ?? 'swimrun')
+  const kind = multisportKinds.find((k) => k === a.sport) ?? 'swimrun'
   const [parts, setParts] = useState<ActivityPart[]>(a.parts)
   const [partKeys, setPartKeys] = useState(() => a.parts.map((_, i) => i))
   const nextPartKey = useRef(Math.max(2, a.parts.length))
@@ -110,7 +110,6 @@ export function MultisportEditor({
                 value={kind}
                 disabled={disabled}
                 onChange={(e) => {
-                  setKind(e.target.value)
                   onChange?.({ kind: e.target.value, parts })
                 }}
               >

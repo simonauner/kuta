@@ -1,4 +1,4 @@
-# Fly.io-appen för Kuta. Hemligheterna sätts med `fly secrets set` (se README, Driftsättning).
+# Fly.io-appen för Kuta. Hemligheterna importeras via `scripts/fly-secrets.sh` (se README, Driftsättning).
 app = 'kuta'
 primary_region = 'arn'
 # Utan swap dödar kärnan processen när den passerar maskinens minne.
@@ -12,7 +12,7 @@ swap_size_mb = 512
   # Klientens IP från Flys proxy för rate limiten, och https från X-Forwarded-Proto.
   ASPNETCORE_FORWARDEDHEADERS_ENABLED = 'true'
   ForwardedHeaders__ForwardedForHeaderName = 'Fly-Client-IP'
-  # kuta.fly.dev och www.kutaapp.com skickas vidare hit (Program.cs). DNS hos Hostup, certifikat hos Fly.
+  # kuta.fly.dev och www.kutaapp.com skickas vidare hit (Program.cs). DNS hos Cloudflare, domän hos Hostup, certifikat hos Fly.
   CanonicalHost = 'kutaapp.com'
   Supabase__Url = 'https://umjqrlkeuppyhxnlyuid.supabase.co'
   # Publik nyckel, inte hemlig.
