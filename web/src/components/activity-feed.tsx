@@ -3,7 +3,7 @@ import type { ReactNode } from 'react'
 import { FeedEmptyState } from '@/components/feed-empty-state'
 import { ActivityMapPreview } from '@/components/activity-map-preview'
 import { useInfiniteQuery } from '@tanstack/react-query'
-import { Link } from '@tanstack/react-router'
+import { Link, useRouterState } from '@tanstack/react-router'
 import { useTranslation } from 'react-i18next'
 import { ErrorMessage } from '@/components/error-message'
 import { SportIcon } from '@/components/sport-icon'
@@ -12,6 +12,7 @@ import { Button } from '@/components/ui/button'
 import { api } from '@/lib/api'
 import { activityTitle, formatDuration, type ActivityCursor } from '@/lib/activity'
 import type { SupporterTier } from '@/lib/auth'
+import { card } from '@/components/ui/card-variants'
 
 type FeedItem = {
   id: string
@@ -32,17 +33,21 @@ export function ActivityFeed({
   runnerId,
   viewAs,
   emptyState,
+  visitor = false,
   limit,
 }: {
   runnerId?: string
   viewAs?: 'followers' | 'public'
   emptyState?: ReactNode
+  // Without an account: the runner's public activities through the public API
+  visitor?: boolean
   // Show only the latest activities, without loading older ones.
   limit?: number
 }) {
   const { t, i18n } = useTranslation()
+  const returnTo = useRouterState({ select: (s) => s.location.href })
   const feed = useInfiniteQuery({
-    queryKey: runnerId ? ['feed', runnerId, ...(viewAs ? [viewAs] : [])] : ['feed'],
+    queryKey: runnerId ? ['feed', runnerId, visitor, ...(viewAs ? [viewAs] : [])] : ['feed'],
     initialPageParam: null as ActivityCursor | null,
     queryFn: ({ pageParam }) => {
       const params = new URLSearchParams()
@@ -52,7 +57,7 @@ export function ActivityFeed({
         params.set('beforeId', pageParam.id)
       }
       return api.get<FeedPage>(
-        `${runnerId ? `/api/runners/${runnerId}/activities` : '/api/feed'}?${params}`,
+        `${runnerId ? `/api/${visitor ? 'public/' : ''}runners/${runnerId}/activities` : '/api/feed'}?${params}`,
       )
     },
     getNextPageParam: (page) => page.nextCursor,
@@ -67,7 +72,7 @@ export function ActivityFeed({
       {feed.error && (
         <div role="alert">
           <ErrorMessage error={feed.error} />
-          <Button variant="outline" onClick={() => void feed.refetch()}>
+          <Button variant="secondary-outline" onClick={() => void feed.refetch()}>
             {t('activities.retry')}
           </Button>
         </div>
@@ -85,12 +90,12 @@ export function ActivityFeed({
           .flatMap((page) => page.items)
           .slice(0, limit)
           .map((activity) => (
-            <li key={activity.id} className="rounded-lg border p-4">
+            <li key={activity.id} className={card()}>
               <div className="flex items-center gap-1.5 text-sm text-muted-foreground">
                 <Link
                   to="/app/runners/$runnerId"
                   params={{ runnerId: activity.userId }}
-                  className="break-words font-medium text-foreground underline-offset-4 hover:underline"
+                  className="break-words font-medium text-foreground underline-offset-4 underline"
                 >
                   {activity.displayName}
                 </Link>
@@ -99,7 +104,8 @@ export function ActivityFeed({
               <Link
                 to="/app/activities/$activityId"
                 params={{ activityId: activity.id }}
-                className="mt-3 flex items-center gap-3 font-semibold underline-offset-4 hover:underline"
+                search={{ returnTo }}
+                className="mt-3 flex items-center gap-3 font-semibold underline-offset-4 underline"
               >
                 <SportIcon sport={activity.sport} className="size-6 shrink-0" />
                 <span className="break-words">{activityTitle(activity, t)}</span>
@@ -119,7 +125,7 @@ export function ActivityFeed({
       </ul>
       {feed.hasNextPage && !limit && (
         <Button
-          variant="outline"
+          variant="secondary-outline"
           disabled={feed.isFetchingNextPage}
           onClick={() => void feed.fetchNextPage()}
         >

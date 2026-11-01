@@ -1,14 +1,16 @@
 import { FormField } from '@/components/ui/form-field'
 import { useTranslation } from 'react-i18next'
+import { Select } from '@/components/ui/select'
 
 export function LanguageSelect() {
   const { t, i18n } = useTranslation()
   return (
     <FormField label={t('language')} hideLabel layout="inline" className="justify-end text-sm">
       {(id) => (
-        <select
+        <Select
           id={id}
-          className="rounded-md border bg-background px-2 py-1 text-foreground"
+          size="sm"
+          className="w-fit"
           value={i18n.resolvedLanguage}
           onChange={(e) => {
             void i18n.changeLanguage(e.target.value)
@@ -20,7 +22,7 @@ export function LanguageSelect() {
           <option value="en" lang="en">
             🇬🇧 English
           </option>
-        </select>
+        </Select>
       )}
     </FormField>
   )

@@ -1,8 +1,8 @@
 import { SlowLoading } from '@/components/slow-loading'
-import { isCyclingSport } from '@/lib/sports'
+import { isCyclingSport, knownSport, sportIcons } from '@/lib/sports'
 import { SportIcon } from '@/components/sport-icon'
-import { useQuery } from '@tanstack/react-query'
-import { Link, useParams, useSearch } from '@tanstack/react-router'
+import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
+import { Link, useNavigate, useParams, useSearch } from '@tanstack/react-router'
 import { useId, useMemo, useState } from 'react'
 import { ChevronDown } from 'lucide-react'
 import { useTranslation } from 'react-i18next'
@@ -19,7 +19,7 @@ import { ActivityMap } from '@/components/activity-map'
 import { ErrorMessage } from '@/components/error-message'
 import { RecordAward } from '@/components/record-award'
 import { ApiError } from '@/lib/api'
-import { activityQuery } from '@/lib/activity-query'
+import { activityQuery, refreshActivityQueries } from '@/lib/activity-query'
 import { api } from '@/lib/api'
 import {
   recordMeters,
@@ -37,6 +37,9 @@ import {
   splits,
   routeSegments,
 } from '@/lib/activity'
+import { card } from '@/components/ui/card-variants'
+import { VisitorNotice } from '@/components/visitor-notice'
+import { ConfirmationModal } from '@/components/ui/confirmation-modal'
 
 // Pace from speed, smoothed over ~15 s so GPS noise doesn't cause spikes; standing still becomes a gap.
 function paceSeries(speed: (number | null)[], minSpeed = 0.5) {
@@ -55,7 +58,8 @@ export function ActivityPage() {
   const { t, i18n } = useTranslation()
   const search = useSearch({ from: '/app/activities/$activityId' })
   const { data: me } = useQuery(meQuery)
-  const equipment = useQuery(equipmentQuery)
+  const visitor = me === null
+  const equipment = useQuery({ ...equipmentQuery, enabled: !visitor })
   const [openPanel, setOpenPanel] = useState<'laps' | 'splits' | 'efforts' | null>(null)
   const lapsOpen = openPanel === 'laps'
   const splitsOpen = openPanel === 'splits'
@@ -63,11 +67,11 @@ export function ActivityPage() {
   const lapsId = useId()
   const splitsId = useId()
   const effortsId = useId()
-  const activity = useQuery(activityQuery(activityId))
+  const activity = useQuery(activityQuery(activityId, visitor))
   const bestEfforts = useQuery({
     queryKey: ['records', 'activity', activityId],
     queryFn: () => api.get<ActivityBestEffort[]>(`/api/activities/${activityId}/best-efforts`),
-    enabled: activity.isSuccess,
+    enabled: activity.isSuccess && !visitor,
   })
   // Record badges only for own activities: /api/records covers the signed-in user's records.
   const recordYear = activity.data && new Date(activity.data.startedAt).getUTCFullYear()
@@ -139,6 +143,8 @@ export function ActivityPage() {
   }, [activity.data, selectedPart, selectedSport, mixed, t])
 
   if (activity.isPending) return null
+  if (visitor && activity.error instanceof ApiError && activity.error.status === 404)
+    return <VisitorNotice kind="activity" />
   if (activity.isError)
     return (
       <section>
@@ -269,13 +275,16 @@ export function ActivityPage() {
     <section>
       {original.userId === me?.id ? (
         <BackLink />
-      ) : (
+      ) : visitor ? (
         <Link
-          to="/app"
-          className="text-sm text-muted-foreground underline-offset-2 hover:underline"
+          to="/app/runners/$runnerId"
+          params={{ runnerId: original.userId }}
+          className="text-sm text-muted-foreground underline underline-offset-2"
         >
-          ← {t('nav.feed')}
+          ← {original.displayName}
         </Link>
+      ) : (
+        <BackLink fallback="feed" />
       )}
       <p className="mt-4 text-sm text-muted-foreground">{when.format(new Date(a.startedAt))}</p>
       <div className="mt-1 flex flex-wrap items-center justify-between gap-3">
@@ -290,7 +299,7 @@ export function ActivityPage() {
           />
         </Heading>
         {original.userId === me?.id && (
-          <Button asChild size="sm" variant="outline" className="ml-auto">
+          <Button asChild size="sm" variant="secondary-outline" className="ml-auto">
             <Link
               to="/app/activities/$activityId/edit"
               params={{ activityId: a.id }}
@@ -395,10 +404,7 @@ export function ActivityPage() {
       </dl>
 
       {ownEfforts && bestEfforts.data?.some((e) => e.recordStatus) && (
-        <section
-          className="mt-6 rounded-xl border bg-card p-4"
-          aria-labelledby="activity-records-title"
-        >
+        <section className={card({ className: 'mt-6' })} aria-labelledby="activity-records-title">
           <Heading level={2} id="activity-records-title">
             {t('records.activityRecords')}
           </Heading>
@@ -421,10 +427,15 @@ export function ActivityPage() {
           </ul>
         </section>
       )}
+      {original.userId === me?.id &&
+        a.streams === null &&
+        sportIcons[knownSport(a.sport)] === 'run' && (
+          <p className="mt-4 text-sm text-muted-foreground">{t('activity.noRecordsWithoutFile')}</p>
+        )}
       {bestEfforts.error && (
         <p role="alert" className="mt-4 text-sm text-destructive">
           <ErrorMessage error={bestEfforts.error} />{' '}
-          <Button size="sm" variant="outline" onClick={() => void bestEfforts.refetch()}>
+          <Button size="sm" variant="secondary-outline" onClick={() => void bestEfforts.refetch()}>
             {t('activities.retry')}
           </Button>
         </p>
@@ -437,7 +448,7 @@ export function ActivityPage() {
               <Button
                 id={`${lapsId}-toggle`}
                 type="button"
-                variant="outline"
+                variant="secondary-outline"
                 aria-expanded={lapsOpen}
                 aria-controls={lapsId}
                 onClick={() => setOpenPanel((open) => (open === 'laps' ? null : 'laps'))}
@@ -453,7 +464,7 @@ export function ActivityPage() {
               <Button
                 id={`${splitsId}-toggle`}
                 type="button"
-                variant="outline"
+                variant="secondary-outline"
                 aria-expanded={splitsOpen}
                 aria-controls={splitsId}
                 onClick={() => setOpenPanel((open) => (open === 'splits' ? null : 'splits'))}
@@ -469,7 +480,7 @@ export function ActivityPage() {
               <Button
                 id={`${effortsId}-toggle`}
                 type="button"
-                variant="outline"
+                variant="secondary-outline"
                 aria-expanded={effortsOpen}
                 aria-controls={effortsId}
                 onClick={() => setOpenPanel((open) => (open === 'efforts' ? null : 'efforts'))}
@@ -630,6 +641,51 @@ export function ActivityPage() {
           {effortTable}
         </div>
       )}
+
+      {original.userId === me?.id && <DeleteActivity activityId={original.id} />}
     </section>
+  )
+}
+
+// Last on the page: deleting is rare and permanent, so it does not compete with editing.
+function DeleteActivity({ activityId }: { activityId: string }) {
+  const { t } = useTranslation()
+  const queryClient = useQueryClient()
+  const navigate = useNavigate()
+  const { returnTo, year, tag, sport } = useSearch({ from: '/app/activities/$activityId' })
+  const [confirming, setConfirming] = useState(false)
+  const remove = useMutation({
+    mutationFn: () => api.send('DELETE', `/api/activities/${activityId}`),
+    onSuccess: async () => {
+      setConfirming(false)
+      if (returnTo) await navigate({ href: returnTo })
+      else await navigate({ to: '/app/activities', search: { year, tag, sport } })
+      // After leaving: refetching the deleted activity on this page would only show "not found"
+      await refreshActivityQueries(queryClient)
+    },
+  })
+  return (
+    <div className="mt-10 border-t pt-6">
+      <Button
+        variant="destructive-outline"
+        onClick={() => {
+          remove.reset()
+          setConfirming(true)
+        }}
+      >
+        {t('activity.delete')}
+      </Button>
+      <ConfirmationModal
+        open={confirming}
+        title={t('activities.confirmDelete')}
+        description={t('activities.deleteWarning')}
+        confirmLabel={t('activities.delete')}
+        cancelLabel={t('common.cancel')}
+        pending={remove.isPending}
+        error={remove.error}
+        onConfirm={() => remove.mutate()}
+        onClose={() => setConfirming(false)}
+      />
+    </div>
   )
 }

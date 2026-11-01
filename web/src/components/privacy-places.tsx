@@ -7,9 +7,11 @@ import { api } from '@/lib/api'
 import { currentLocation, LocationError } from '@/lib/geolocation'
 import { Modal } from '@/components/ui/modal'
 import { Button } from '@/components/ui/button'
+import { ConfirmationModal } from '@/components/ui/confirmation-modal'
 import { Input } from '@/components/ui/input'
 import { ErrorMessage } from '@/components/error-message'
 import { Link } from '@tanstack/react-router'
+import { Heading } from '@/components/ui/heading'
 
 const PlaceMap = lazy(() => import('./privacy-place-map'))
 type PrivacyPlace = {
@@ -56,22 +58,20 @@ export function PrivacyPlaces() {
   const places = useQuery({ queryKey, queryFn: () => api.get<PrivacyPlace[]>(endpoint) })
   const [editing, setEditing] = useState<PrivacyPlace | null | undefined>(undefined)
   const [deleting, setDeleting] = useState<PrivacyPlace | null>(null)
-  const deleteDialog = useRef<HTMLDialogElement>(null)
   const remove = useMutation({
     mutationFn: (id: string) => api.send('DELETE', `${endpoint}/${id}`),
     onSuccess: async () => {
       await queryClient.invalidateQueries({ queryKey })
-      deleteDialog.current?.close()
       setDeleting(null)
     },
   })
   return (
     <section aria-labelledby="privacy-places-heading">
       <div className="flex items-center justify-between gap-3">
-        <h1 id="privacy-places-heading" className="text-2xl font-semibold tracking-tight">
+        <Heading level={1} id="privacy-places-heading">
           {t('privacyPlaces.title')}
-        </h1>
-        <Button variant="outline" size="sm" onClick={() => setEditing(null)}>
+        </Heading>
+        <Button variant="secondary-outline" size="sm" onClick={() => setEditing(null)}>
           {t('privacyPlaces.add')}
         </Button>
       </div>
@@ -99,7 +99,7 @@ export function PrivacyPlaces() {
               <div className="flex gap-2">
                 <Button
                   size="sm"
-                  variant="outline"
+                  variant="secondary-outline"
                   aria-label={t('privacyPlaces.editNamed', { name: place.name })}
                   onClick={() => setEditing(place)}
                 >
@@ -107,12 +107,11 @@ export function PrivacyPlaces() {
                 </Button>
                 <Button
                   size="sm"
-                  variant="outline"
+                  variant="secondary-outline"
                   aria-label={t('privacyPlaces.deleteNamed', { name: place.name })}
                   onClick={() => {
                     setDeleting(place)
                     remove.reset()
-                    deleteDialog.current?.showModal()
                   }}
                 >
                   {t('privacyPlaces.delete')}
@@ -125,39 +124,17 @@ export function PrivacyPlaces() {
       {editing !== undefined && (
         <PlaceEditor place={editing} onClose={() => setEditing(undefined)} />
       )}
-      <Modal
-        ref={deleteDialog}
-        aria-labelledby="privacy-delete-title"
-        onCancel={(event) => {
-          if (remove.isPending) event.preventDefault()
-        }}
-      >
-        <h3 id="privacy-delete-title" className="text-lg font-semibold">
-          {t('privacyPlaces.deleteNamed', { name: deleting?.name ?? '' })}
-        </h3>
-        <p className="mt-3 text-sm text-muted-foreground">{t('privacyPlaces.deleteHelp')}</p>
-        {remove.error && (
-          <p role="alert" className="mt-3 text-sm text-destructive">
-            <ErrorMessage error={remove.error} />
-          </p>
-        )}
-        <div className="mt-5 flex justify-end gap-2">
-          <Button
-            variant="outline"
-            disabled={remove.isPending}
-            onClick={() => deleteDialog.current?.close()}
-          >
-            {t('privacyPlaces.cancel')}
-          </Button>
-          <Button
-            variant="destructive"
-            disabled={remove.isPending}
-            onClick={() => deleting && remove.mutate(deleting.id)}
-          >
-            {t(remove.isPending ? 'privacyPlaces.deleting' : 'privacyPlaces.delete')}
-          </Button>
-        </div>
-      </Modal>
+      <ConfirmationModal
+        open={deleting !== null}
+        title={t('privacyPlaces.deleteNamed', { name: deleting?.name ?? '' })}
+        description={t('privacyPlaces.deleteHelp')}
+        confirmLabel={t(remove.isPending ? 'privacyPlaces.deleting' : 'privacyPlaces.delete')}
+        cancelLabel={t('common.cancel')}
+        pending={remove.isPending}
+        error={remove.error}
+        onConfirm={() => deleting && remove.mutate(deleting.id)}
+        onClose={() => setDeleting(null)}
+      />
     </section>
   )
 }
@@ -230,9 +207,9 @@ function PlaceEditor({ place, onClose }: { place: PrivacyPlace | null; onClose: 
           if (valid && !save.isPending && !location.isPending) save.mutate()
         }}
       >
-        <h3 id="privacy-place-title" className="text-lg font-semibold">
+        <Heading level={3} id="privacy-place-title">
           {t(place ? 'privacyPlaces.edit' : 'privacyPlaces.add')}
-        </h3>
+        </Heading>
         <fieldset disabled={save.isPending || location.isPending} className="mt-4 space-y-4">
           <FormField label={t('privacyPlaces.name')} className="text-sm font-medium">
             {(id) => (
@@ -334,7 +311,12 @@ function PlaceEditor({ place, onClose }: { place: PrivacyPlace | null; onClose: 
           </p>
         )}
         <div className="mt-5 flex justify-end gap-2">
-          <Button type="button" variant="outline" disabled={save.isPending} onClick={onClose}>
+          <Button
+            type="button"
+            variant="secondary-outline"
+            disabled={save.isPending}
+            onClick={onClose}
+          >
             {t('privacyPlaces.cancel')}
           </Button>
           <Button type="submit" disabled={!valid || save.isPending || location.isPending}>

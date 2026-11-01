@@ -123,7 +123,7 @@ export function StravaImport() {
           />
         )}
       </FormField>
-      <p className="mt-2 text-xs text-muted-foreground">{t('settings.importHelp')}</p>
+      <p className="mt-2 text-sm text-muted-foreground">{t('settings.importHelp')}</p>
       <div className="mt-3">
         <DefaultPrivacyNote imported />
       </div>
@@ -199,7 +199,7 @@ export function Recalculation() {
       <p className="text-sm text-muted-foreground">{t('settings.recalculateHelp')}</p>
       <Button
         className="mt-4"
-        variant="outline"
+        variant="secondary-outline"
         disabled={start.isPending || running}
         onClick={() => start.mutate()}
       >

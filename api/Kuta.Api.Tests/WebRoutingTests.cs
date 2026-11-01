@@ -40,7 +40,7 @@ public class WebRoutingTests
                 Assert.Contains("Available features", html);
                 Assert.DoesNotContain("App shell", html);
             }
-            foreach (var path in new[] { "/app", "/app/", "/app/activities", "/app/activities/new", $"/app/activities/{Guid.NewGuid()}", $"/app/activities/{Guid.NewGuid()}/edit", "/app/stats", "/app/stats/analysis", "/app/profile", "/app/settings/equipment", "/app/settings/followers", $"/app/runners/{Guid.NewGuid()}", "/app/r/k7m2qx9p", "/app/settings", "/app/settings/privacy-places", "/app?confirm=failed", "/app?confirm=ok", "/app?reset=password", "/app?reset=failed" })
+            foreach (var path in new[] { "/app", "/app/", "/app/activities", "/app/activities/new", $"/app/activities/{Guid.NewGuid()}", $"/app/activities/{Guid.NewGuid()}/edit", "/app/stats", "/app/stats/analysis", "/app/profile", "/app/settings/equipment", "/app/settings/followers", $"/app/runners/{Guid.NewGuid()}", "/app/r/k7m2qx9p", "/app/settings", "/app/settings/privacy-places", "/app/settings/import", "/app?confirm=failed", "/app?confirm=ok", "/app?reset=password", "/app?reset=failed" })
             {
                 var html = await client.GetStringAsync(path, ct);
                 Assert.Contains("App shell", html);

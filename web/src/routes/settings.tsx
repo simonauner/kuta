@@ -4,23 +4,18 @@ import { useTranslation } from 'react-i18next'
 import { ActivityPrivacy } from '@/components/activity-privacy'
 import { DangerZone } from '@/components/danger-zone'
 import { ErrorMessage } from '@/components/error-message'
-import { GarminConnect, GarminConnectedAlert } from '@/components/garmin'
 import { HeartRateConsent } from '@/components/heart-rate-consent'
 import { LanguageSelect } from '@/components/language-select'
-import { Recalculation, StravaImport } from '@/components/strava-import'
+import { Recalculation } from '@/components/strava-import'
 import { ReplaceProfileLink } from '@/components/share-profile'
 import { SupporterSection } from '@/components/supporter'
-import {
-  Breadcrumb,
-  BreadcrumbItem,
-  BreadcrumbLink,
-  BreadcrumbList,
-  BreadcrumbPage,
-  BreadcrumbSeparator,
-} from '@/components/ui/breadcrumb'
+import { SettingsBreadcrumb } from '@/components/settings-breadcrumb'
 import { Button } from '@/components/ui/button'
 import { api } from '@/lib/api'
 import { meQuery, useSessionChanged } from '@/lib/auth'
+import { card } from '@/components/ui/card-variants'
+import { Heading } from '@/components/ui/heading'
+import { HelpPopover } from '@/components/help-popover'
 
 export function SettingsPage() {
   const { t } = useTranslation()
@@ -37,89 +32,59 @@ export function SettingsPage() {
 
   return (
     <section>
-      <Breadcrumb aria-label={t('breadcrumbs')} className="mb-4">
-        <BreadcrumbList>
-          <BreadcrumbItem>
-            <BreadcrumbLink render={<Link to="/app/profile" activeOptions={{ exact: true }} />}>
-              {t('nav.profile')}
-            </BreadcrumbLink>
-          </BreadcrumbItem>
-          <BreadcrumbSeparator />
-          <BreadcrumbItem>
-            <BreadcrumbPage>{t('settings.title')}</BreadcrumbPage>
-          </BreadcrumbItem>
-        </BreadcrumbList>
-      </Breadcrumb>
-      <GarminConnectedAlert className="mb-4" />
-      <h1 className="text-2xl font-semibold tracking-tight">{t('settings.title')}</h1>
+      <SettingsBreadcrumb />
+      <Heading level={1}>{t('settings.title')}</Heading>
       <div className="mt-4 flex">
         <LanguageSelect />
       </div>
-      <div className="mt-6 grid gap-3">
-        <Link
-          to="/app/settings/followers"
-          className="flex items-center justify-between rounded-lg border p-4 font-medium hover:bg-accent focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-ring"
-        >
-          {t('settings.followers')}
-          <span aria-hidden="true">→</span>
-        </Link>
-        <Link
-          to="/app/settings/equipment"
-          className="flex items-center justify-between rounded-lg border p-4 font-medium hover:bg-accent focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-ring"
-        >
-          {t('equipment.title')}
-          <span aria-hidden="true">→</span>
-        </Link>
-        <Link
-          to="/app/settings/privacy-places"
-          className="flex items-center justify-between rounded-lg border p-4 font-medium hover:bg-accent focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-ring"
-        >
-          {t('privacyPlaces.title')}
-          <span aria-hidden="true">→</span>
-        </Link>
-      </div>
-
-      <SupporterSection />
+      <nav aria-label={t('settings.title')} className="mt-6 grid gap-3">
+        {(
+          [
+            ['/app/settings/followers', t('settings.followers')],
+            ['/app/settings/equipment', t('equipment.title')],
+            ['/app/settings/privacy-places', t('privacyPlaces.title')],
+            ['/app/settings/import', t('settings.importTitle')],
+          ] as const
+        ).map(([to, label]) => (
+          <Link
+            key={to}
+            to={to}
+            className={card({
+              interactive: true,
+              className: 'flex items-center justify-between font-medium',
+            })}
+          >
+            {label}
+            <span aria-hidden="true">→</span>
+          </Link>
+        ))}
+      </nav>
 
       <ActivityPrivacy />
 
       <ReplaceProfileLink />
 
       <section aria-labelledby="health-heading" className="mt-8 border-t pt-6">
-        <h2 id="health-heading" className="text-lg font-semibold">
+        <Heading level={2} id="health-heading">
           {t('settings.health')}
-        </h2>
+        </Heading>
         <HeartRateConsent className="mt-4" />
       </section>
 
-      <section aria-labelledby="garmin-heading" className="mt-8 border-t pt-6">
-        <h2 id="garmin-heading" className="scroll-mt-24 text-lg font-semibold">
-          {t('settings.garmin')}
-        </h2>
-        <GarminConnect />
-      </section>
-
-      <section aria-labelledby="import-heading" className="mt-8 border-t pt-6">
-        <h2 id="import-heading" className="scroll-mt-24 text-lg font-semibold">
-          {t('settings.strava')}
-        </h2>
-        <StravaImport />
-      </section>
-
-      <section aria-labelledby="recalculate-heading" className="mt-8 border-t pt-6">
-        <h2 id="recalculate-heading" className="text-lg font-semibold">
-          {t('settings.recalculateTitle')}
-        </h2>
-        <Recalculation />
-      </section>
+      <SupporterSection />
 
       <section aria-labelledby="export-heading" className="mt-8 border-t pt-6">
-        <h2 id="export-heading" className="text-lg font-semibold">
-          {t('settings.exportTitle')}
-        </h2>
+        <div className="flex items-center justify-between gap-4">
+          <Heading level={2} id="export-heading">
+            {t('settings.exportTitle')}
+          </Heading>
+          <HelpPopover label={t('settings.exportDetailsLabel')}>
+            {t('settings.exportDetails')}
+          </HelpPopover>
+        </div>
         <p className="mt-2 text-sm text-muted-foreground">{t('settings.exportHelp')}</p>
         <Button
-          variant="outline"
+          variant="secondary-outline"
           className="mt-4"
           disabled={dataExport.isPending}
           onClick={() => dataExport.mutate()}
@@ -138,13 +103,20 @@ export function SettingsPage() {
         )}
       </section>
 
+      <section aria-labelledby="recalculate-heading" className="mt-8 border-t pt-6">
+        <Heading level={2} id="recalculate-heading">
+          {t('settings.recalculateTitle')}
+        </Heading>
+        <Recalculation />
+      </section>
+
       <section aria-labelledby="account-heading" className="mt-8 border-t pt-6">
-        <h2 id="account-heading" className="text-lg font-semibold">
+        <Heading level={2} id="account-heading">
           {t('settings.account')}
-        </h2>
+        </Heading>
         <p className="mt-2 break-words text-sm text-muted-foreground">{me?.email}</p>
         <Button
-          variant="outline"
+          variant="secondary-outline"
           className="mt-4"
           disabled={logout.isPending}
           onClick={() => logout.mutate()}

@@ -10,6 +10,8 @@ import { Input } from '@/components/ui/input'
 import { Modal } from '@/components/ui/modal'
 import { api } from '@/lib/api'
 import { meQuery, type Me, type SupporterTier } from '@/lib/auth'
+import { Select } from '@/components/ui/select'
+import { Heading } from '@/components/ui/heading'
 
 // Outline in the same tone as the records' metals; the fill gets the sheen stripe.
 const tierColors: Record<SupporterTier, string> = {
@@ -69,9 +71,9 @@ export function SupporterSection() {
 
   return (
     <section aria-labelledby="supporter-heading" className="mt-8 border-t pt-6">
-      <h2 id="supporter-heading" className="text-lg font-semibold">
+      <Heading level={2} id="supporter-heading">
         {t('supporter.title')}
-      </h2>
+      </Heading>
       <p className="mt-2 text-sm text-muted-foreground">{t('supporter.intro')}</p>
       {supporter?.tier && supporter.until && (
         <p className="mt-4 flex items-center gap-2 text-sm font-medium">
@@ -85,7 +87,7 @@ export function SupporterSection() {
       {supporter?.tier && supporter.until ? (
         <Button
           variant="link"
-          className="mt-2 h-auto p-0 text-muted-foreground underline hover:text-foreground"
+          className="mt-2"
           onClick={() => {
             setManageNotice(null)
             setManageKey((key) => key + 1)
@@ -104,9 +106,8 @@ export function SupporterSection() {
 
       <FormField label={t('supporter.badgePrivacy')} className="mt-6 text-sm font-medium">
         {(id) => (
-          <select
+          <Select
             id={id}
-            className="block w-full rounded-md border bg-background px-3 py-2"
             value={supporter?.badgePrivacy ?? 'private'}
             disabled={!me || save.isPending}
             aria-describedby="supporter-badge-help"
@@ -115,7 +116,7 @@ export function SupporterSection() {
             <option value="private">{t('social.private')}</option>
             <option value="followers">{t('social.followersVisibility')}</option>
             <option value="public">{t('social.public')}</option>
-          </select>
+          </Select>
         )}
       </FormField>
       <p id="supporter-badge-help" className="mt-2 text-sm text-muted-foreground">
@@ -132,9 +133,9 @@ export function SupporterSection() {
         aria-labelledby="supporter-modal-title"
         aria-describedby="supporter-modal-text"
       >
-        <h3 id="supporter-modal-title" className="text-lg font-semibold">
+        <Heading level={3} id="supporter-modal-title">
           {t('supporter.modalTitle')}
-        </h3>
+        </Heading>
         <p id="supporter-modal-text" className="mt-3 text-sm text-muted-foreground">
           {t('supporter.modalText')}
         </p>
@@ -144,9 +145,9 @@ export function SupporterSection() {
       </Modal>
       {supporter?.tier && supporter.until && (
         <Modal ref={manageDialog} aria-labelledby="supporter-manage-title">
-          <h3 id="supporter-manage-title" className="text-lg font-semibold">
+          <Heading level={3} id="supporter-manage-title">
             {t('supporter.manage')}
-          </h3>
+          </Heading>
           {manageNotice ? (
             <>
               <p role="status" className="mt-3 text-sm text-muted-foreground">
@@ -167,7 +168,7 @@ export function SupporterSection() {
                 onSubmit={() => setManageNotice('change')}
               />
               <div className="mt-6 border-t pt-4">
-                <Button variant="outline" onClick={() => setManageNotice('end')}>
+                <Button variant="secondary-outline" onClick={() => setManageNotice('end')}>
                   {t('supporter.end')}
                 </Button>
                 <p className="mt-2 text-sm text-muted-foreground">

@@ -23,7 +23,9 @@
     "activities": "Activities",
     "stats": "Statistics",
     "profile": "Profile",
-    "main": "Main navigation"
+    "main": "Main navigation",
+    "followRequests_one": ", {{count}} new follow request",
+    "followRequests_other": ", {{count}} new follow requests"
   },
   "language": "Language",
   "slowLoading": "This is taking unusually long...",
@@ -34,8 +36,8 @@
     "waitingTitle": "Your feed starts here",
     "waitingDescription": "No one you follow has shared an activity yet. Add one of your own while you wait.",
     "addActivityHelp": "Log it manually or upload a FIT file from your watch.",
-    "stravaTitle": "Moving from Strava?",
-    "stravaDescription": "Import your archive and keep your training history.",
+    "stravaTitle": "New to Kuta?",
+    "stravaDescription": "Start by connecting your Garmin and bringing over your old activities from Strava.",
     "socialTitle": "Train together",
     "socialDescription": "Ask a friend to share their profile link so you can follow them, or share your own.",
     "copyProfileLink": "Copy my profile link"
@@ -58,16 +60,7 @@
     "noHeartRate": "No saved heart rate data during this period.",
     "chartScale": "Scale: 0–{{max}}. All values are in the table below.",
     "method": "Time includes pauses. Pace is total time per kilometre for activities with distance and time. Lower pace means faster speed. Heart rate is weighted by activity duration, using only activities with saved heart rate. Missing values appear as –. All sports also combines pace and heart rate across sports. Months follow your device’s time zone.",
-    "onboarding": {
-      "title": "Small steps. Big progress.",
-      "description": "Your first activity starts your training story. Add it manually or upload a file from your watch, and let the numbers tell your story.",
-      "volumeTitle": "See the work you put in",
-      "volumeDescription": "Track distance and training time, month by month.",
-      "compareTitle": "Find your perspective",
-      "compareDescription": "Compare your training years and see how far you have come.",
-      "recordsTitle": "Discover your records",
-      "recordsDescription": "Upload runs from your watch to find your fastest efforts."
-    }
+    "methodLabel": "How statistics are calculated"
   },
   "yearComparison": {
     "title": "Year over year",
@@ -84,7 +77,8 @@
     "change": "Vs previous year",
     "fullYear": "Full year",
     "empty": "No activities for the selected sport.",
-    "method": "The chart shows the selected year and up to {{years}} most recent years. The comparison uses the same month and day each year, and the change compares with the year before. Time includes pauses, and each activity counts on the day it starts in your device's time zone."
+    "method": "The chart shows the selected year and up to {{years}} most recent years. The comparison uses the same month and day each year, and the change compares with the year before. Time includes pauses, and each activity counts on the day it starts in your device's time zone.",
+    "methodLabel": "How the comparison is calculated"
   },
   "trainingLoad": {
     "title": "Training load",
@@ -103,10 +97,13 @@
     "dailyLoad": "Daily load",
     "chartScale": "Scale: 0–{{max}}.",
     "chart": "Fitness, fatigue and daily load {{from}}–{{to}}.",
-    "method": "One hour at threshold pace gives a load of 100; load grows with the square of speed. Speed is smoothed over 30 seconds and pauses do not count. Activities without a file are estimated from average pace. Fitness is the average daily load over about 42 days, fatigue over 7 days and form the difference. Threshold pace is the pace you can hold for an hour, derived from VDOT unless you set it yourself, and applies to your whole history. Hills are not adjusted for yet. Only running counts.",
+    "method": "One hour at threshold pace gives a load of 100, and load grows with the square of speed. Speed is smoothed over 30 seconds, pauses are not counted and hills are adjusted for how much energy running costs on the slope. Activities without a file are estimated from the average speed. Fitness is the average daily load over about 42 days, fatigue over 7 days and form the difference between them. Only running counts.",
     "warningTitle": "Your load is increasing quickly",
     "warningText": "Your fitness has increased by {{ramp}} in a week. A common rule of thumb is at most about 7 per week; an easier period lowers the risk of overload.",
-    "warningLink": "See training load"
+    "warningLink": "See training load",
+    "methodLabel": "How training load is calculated",
+    "thresholdHelpLabel": "What is threshold pace?",
+    "thresholdHelp": "Threshold pace is the fastest pace you can hold for about an hour. For many runners it is close to their race pace between 10 km and a half marathon. Kuta uses it to work out how hard each run was. Without your own value it is derived from your prediction."
   },
   "records": {
     "helpLabel": "Help with running records",
@@ -144,7 +141,8 @@
     "predictionsBasis": "Based on {{distance}} in {{time}} on {{date}} (VDOT {{vdot}}).",
     "showActivity": "Show activity",
     "predictionsEmpty": "No prediction yet. It needs an effort of 5 km or longer in the last 90 days.",
-    "predictionsMethod": "The prediction uses Jack Daniels and Jimmy Gilbert's VDOT formulas, based on your strongest effort of 5 km or longer in the last 90 days. It assumes you have trained for the distance; a marathon takes endurance that a shorter effort does not show. Efforts within training runs are often slower than races."
+    "predictionsMethod": "The prediction starts from your strongest effort of 5 km or longer in the last 90 days and uses Jack Daniels and Jimmy Gilbert's VDOT formulas. VDOT is a measure of your running fitness. The prediction assumes you have trained for the distance; a marathon takes endurance that a shorter effort does not show. Efforts in regular training are often slower than races.",
+    "predictionsMethodLabel": "How the prediction is calculated"
   },
   "activities": {
     "year": "Year",
@@ -152,29 +150,16 @@
     "retry": "Try again",
     "loadOlder": "Show older activities",
     "week": "Week {{week}}",
-    "hrSaved": "Heart rate is saved. Change this in",
     "empty": "No activities yet.",
     "delete": "Delete",
-    "deleteLabel": "Delete activity {{date}}",
-    "confirmDelete": "Delete this activity? This cannot be undone.",
-    "hrNotSaved": "Heart rate is not saved. Change this before uploading in",
+    "confirmDelete": "Delete the activity?",
     "sport": "Sport",
     "allSports": "All sports",
     "noMatches": "No activities match the filters.",
-    "onboarding": {
-      "title": "Your next adventure starts here.",
-      "description": "A quick loop or a long adventure? Keep your activities, memories and progress together here. Add your first activity manually or upload a file from your watch.",
-      "historyTitle": "Keep your activities together",
-      "historyDescription": "Save routes, notes and tags in your training diary.",
-      "importTitle": "Bring your history",
-      "importDescription": "Import your Strava archive or upload FIT files from your watch.",
-      "equipmentTitle": "Track your shoes",
-      "equipmentDescription": "Link shoes to your activities and see how far they have taken you."
-    }
+    "deleteWarning": "The activity, its streams, records and original file are deleted. This cannot be undone."
   },
   "newActivity": {
-    "title": "Create activity",
-    "upload": "Upload file",
+    "title": "New activity",
     "file": "FIT file from your watch",
     "overwrite": "The file replaces what you entered: {{fields}}.",
     "useFile": "Fill in from file",
@@ -255,7 +240,26 @@
     "lockedFrom": "The measurements come from the file ({{device}}).",
     "save": "Save",
     "saving": "Saving …",
-    "description": "Description (optional)"
+    "description": "Description (optional)",
+    "hrSaved": "Heart rate from the file is saved. Change this in <settings>Settings</settings>.",
+    "dropTitle": "Upload from your watch",
+    "dropHelp": "Drop one or more FIT files here, or choose files. One file fills in the form below, several are saved straight away.",
+    "chooseFiles": "Choose files",
+    "manualTitle": "Or fill in manually",
+    "detailsTitle": "Details",
+    "overwriteTitle": "Replace what you filled in?",
+    "bulkTitle_one": "Uploading {{count}} file",
+    "bulkTitle_other": "Uploading {{count}} files",
+    "bulkDone": "Done: {{saved}} saved, {{duplicates}} already uploaded, {{failed}} failed.",
+    "bulkLimit": "At most {{max}} files at a time. The first {{max}} are uploaded.",
+    "showActivities": "Show activities",
+    "uploadMore": "Upload more",
+    "bulk": {
+      "waiting": "Waiting",
+      "uploading": "Uploading …",
+      "saved": "Saved",
+      "duplicate": "Already uploaded"
+    }
   },
   "activity": {
     "excludeFromRecords": "Exclude from running records",
@@ -315,12 +319,17 @@
     "speed": "Speed",
     "edit": "Edit activity",
     "save": "Save changes",
-    "cancel": "Cancel"
+    "cancel": "Cancel",
+    "noRecordsWithoutFile": "Records only come from runs uploaded from a file with distance data.",
+    "backToRunner": "Back to the profile",
+    "delete": "Delete activity"
   },
   "consent": {
     "title": "Save heart rate from my activities.",
     "description": "Heart rate is health data. Without your consent, Kuta saves activities without heart rate and does not keep the original file. Turning this off deletes all saved heart rate data.",
-    "revoke": "All heart rate data already saved from your activities will be deleted. Continue?"
+    "revoke": "All heart rate data already saved from your activities will be deleted. This cannot be undone.",
+    "revokeTitle": "Stop saving heart rate?",
+    "revokeConfirm": "Delete saved heart rate"
   },
   "auth": {
     "checkEmail": "Check your email",
@@ -352,7 +361,11 @@
     "confirmSent": "Check your email and click the link to activate your account.",
     "recoverySent": "If this address has an account, you will receive an email with a link to reset your password.",
     "acceptTerms": "I accept the <terms>terms of use</terms> and <privacy>privacy policy</privacy>.",
-    "turnstileNotice": "We use Cloudflare Turnstile to check that you are a person. Read more in the <privacy>privacy policy</privacy>."
+    "turnstileNotice": "We use Cloudflare Turnstile to check that you are a person. Read more in the <privacy>privacy policy</privacy>.",
+    "checkSpam": "Can't find the email? Check your spam folder.",
+    "resend": "Send the email again",
+    "resendIn": "Send again in {{seconds}} s",
+    "resent": "A new email has been sent."
   },
   "errors": {
     "invalidActivityYear": "Enter a year between 1 and 9998.",
@@ -428,12 +441,12 @@
     "import": "Import activities",
     "importing": "Importing …",
     "importWait": "The import runs on the server. You can leave this page and come back; progress is shown here.",
-    "importHelp": "Choose the complete ZIP export, up to 500 MB. Shoes are imported first and linked to activities to calculate distance and time per shoe. Names, summaries and available streams are imported. Heart rate follows your choice above. You can retry after an interruption; duplicates are skipped. Find your imported activities under Activities.",
+    "importHelp": "Choose the whole ZIP export from Strava, at most 500 MB. Duplicates are skipped, so you can run the import again.",
     "importResult": "Imported: {{imported}}. Duplicates: {{duplicates}}. Failed: {{failed}}.",
     "importEquipmentResult": "Shoes imported: {{imported}}. Existing activities linked to shoes: {{linked}}.",
     "failedImports": "Strava IDs of activities that could not be imported",
     "exportTitle": "Export data",
-    "exportHelp": "Download a ZIP with your activities as JSON, including streams, laps, tags and equipment, along with your profile and best efforts. Saved original files are included. Manual activities have no original file, and files that were not saved or were deleted when heart rate consent was withdrawn cannot be exported. Your hidden places are also included.",
+    "exportHelp": "Download a ZIP with all your activities, your profile, your records and hidden places.",
     "export": "Download ZIP",
     "exporting": "Preparing export…",
     "exportWait": "This may take several minutes. Keep this page open until the download starts.",
@@ -442,19 +455,26 @@
     "followers": "Followers",
     "importUploading": "Uploading …",
     "recalculateTitle": "Recalculate activities",
-    "recalculateHelp": "Recalculates records and training load for all your activities with recorded data, for example after the calculations have improved. Your activities and their measurements are not changed. It runs on the server and you can leave the page.",
+    "recalculateHelp": "Recalculates records and training load for all activities, for example when the calculations have improved. Your activities are not changed.",
     "recalculate": "Recalculate all activities",
     "recalculating": "Recalculating …",
     "recalculated_one": "{{count}} activity recalculated.",
     "recalculated_other": "{{count}} activities recalculated.",
-    "garmin": "Garmin Connect"
+    "garmin": "Garmin Connect",
+    "exportDetailsLabel": "What is in the export?",
+    "exportDetails": "Activities are saved as JSON with streams, laps, tags and equipment, and saved original files are included. Manual activities have no original file, and files that were not saved or were deleted when heart rate consent was withdrawn cannot be exported.",
+    "importDetailsLabel": "What is imported?",
+    "importDetails": "Names, descriptions, summaries and available streams are imported. Shoes are imported first and linked to the activities, so distance and time per shoe add up. Heart rate is saved only with your heart rate consent. Photos, contacts and private notes are not imported.",
+    "importTitle": "Import and connections",
+    "importIntro": "Get new activities automatically from your Garmin watch and bring your history from Strava.",
+    "importLink": "Connect Garmin or import from Strava"
   },
   "jobs": {
     "queued": "Queued. The job will start shortly.",
     "progress": "Processed {{processed}} of {{total}} activities"
   },
   "dangerZone": {
-    "title": "Danger zone",
+    "title": "Delete data",
     "description": "Delete all your activities and start fresh. Your account and settings will remain.",
     "delete": "Delete all activities",
     "confirmTitle": "Delete all your activities?",
@@ -551,10 +571,10 @@
     "split": "Split into sports",
     "edit": "Edit legs",
     "kind": "Activity type",
-    "instructions": "Set sport changes in seconds from the activity start. Select a leg to review its map and charts below. Original samples are preserved, and the split can be restored.",
+    "instructions": "Drag the slider or type the time from the start (h:mm:ss) where the sport changes. The distance at the change is shown below, and the map and charts underneath show the selected part. The original data points are kept, and the split can be restored.",
     "whole": "Whole activity",
     "partSport": "Sport for leg {{number}}",
-    "boundary": "End of leg {{number}} (seconds)",
+    "boundary": "Change after part {{number}} (time from start)",
     "useEquipment": "Count usage for the activity’s selected equipment",
     "addBoundary": "Split leg",
     "removeBoundary": "Merge with previous",
@@ -563,8 +583,9 @@
     "restore": "Restore imported version",
     "selected": "Showing leg {{number}}: {{sport}}",
     "distanceBySport": "Distance by sport",
-    "confirmRestore": "Restoring will remove the split. Do you want to continue?",
-    "restoreConfirm": "Restore"
+    "confirmRestore": "The split is removed and the activity gets back the parts from the import.",
+    "restoreConfirm": "Restore",
+    "atDistance": "At {{km}} km from the start"
   },
   "privacyPlaces": {
     "title": "Hidden places",
@@ -603,17 +624,19 @@
   "activityPrivacy": {
     "title": "Activity visibility",
     "default": "Default visibility for new activities",
-    "help": "Saved automatically. Applies to new manual activities, FIT uploads and Strava imports. Existing activities keep their visibility until you apply this choice to all.",
+    "help": "Saved automatically and applies to new activities. Existing activities keep their visibility until you apply the choice to all of them.",
     "applyAll": "Apply to all activities",
-    "allMatch": "All your activities have the selected visibility.",
     "confirm_one": "Change {{count}} activity to “{{visibility}}”? Its own visibility choice is replaced and not kept, so you would have to change it back on the activity.",
     "confirm_other": "Change {{count}} activities to “{{visibility}}”? Their own visibility choices are replaced and not kept, so if they differ you would have to change them back one at a time.",
     "applying": "Applying…",
     "applied": "All your activities now use this visibility.",
     "saved": "Default visibility saved.",
+    "publicProfile": "Show my profile to visitors without an account.",
+    "publicProfileHelp": "Anyone with your profile link can then see your name and the activities visible to everyone, without signing in. Heart rate, the full route, equipment and goals are never shown.",
     "newNote": "The activity will be visible to: <strong>{{visibility}}</strong>.",
     "importNote": "Imported activities will be visible to: <strong>{{visibility}}</strong>, whatever their sharing on Strava. Change the default under Activity visibility.",
-    "changeDefault": "Change default"
+    "changeDefault": "Change default",
+    "allMatch": "All your activities have the selected visibility."
   },
   "social": {
     "follow": "Request to follow",
@@ -641,10 +664,10 @@
     "followersVisibility": "Approved followers",
     "public": "Anyone with a Kuta account",
     "publicHint": "Anyone can create an account, so in practice anyone with the link can see it.",
-    "noHiddenPlaces": "You have no hidden places. Map previews hide 500 m around the start and finish, but activities that start at home can still show roughly where you live.",
+    "noHiddenPlaces": "You have no hidden places, so activities that start at home can still show roughly where you live.",
     "addHiddenPlace": "Add Home as a hidden place",
     "sharingHint": "Shared activities show title, description and training data. Map previews hide at least 500 m around start and finish. Heart rate, the full GPS route and equipment remain visible only to you.",
-    "sharedDetail": "Shared by {{name}}. Heart rate, the full GPS route and equipment are visible only to the owner. The feed may show a map preview with start and finish hidden.",
+    "sharedDetail": "Shared by {{name}}. Heart rate, the full GPS route and equipment are visible only to the owner.",
     "noActivities": "No activities to show.",
     "runnerNotFound": "Runner not found.",
     "shareProfile": "Share profile",
@@ -652,6 +675,9 @@
     "profileLinkCopyFailed": "Could not copy the link. You can copy it from the field below.",
     "profileLink": "Profile link",
     "profileLinksHint": "To follow someone, open their shared profile link. You can copy your own link from your profile.",
+    "requestsTitle_one": "{{name}} wants to follow you",
+    "requestsTitle_other": "{{count}} people want to follow you",
+    "manageFollowers": "Manage followers",
     "profileLinkHint": "Share profile copies a short link to your profile. If you create a new link, the old one stops working.",
     "newProfileLink": "Create new link",
     "newProfileLinkCreating": "Creating …",
@@ -745,58 +771,7 @@
     "paddling": "Paddling",
     "rowing": "Rowing"
   },
-  "profile": {
-    "onboarding": {
-      "title": "Your training story starts with one activity.",
-      "description": "From your first loop to your next milestone, your activities belong here. Add an activity and start building your training story. You choose which activities to share.",
-      "identityTitle": "Your place on Kuta",
-      "identityDescription": "Your activities and visible goals come together on your profile.",
-      "connectionsTitle": "Find each other",
-      "connectionsDescription": "Share your profile link or ask a friend for theirs to start following each other.",
-      "privacyTitle": "You choose what to share",
-      "privacyDescription": "Choose who can see each activity and goal: only you, your followers or everyone on Kuta."
-    },
-    "calendar": {
-      "title": "Last year",
-      "activeDays_one": "{{count}} active day",
-      "activeDays_other": "{{count}} active days",
-      "streak_one": "{{count}} week in a row",
-      "streak_other": "{{count}} weeks in a row",
-      "longest_one": "longest streak {{count}} week",
-      "longest_other": "longest streak {{count}} weeks",
-      "summary_one": "Activity calendar: {{count}} day with activities in the last year",
-      "summary_other": "Activity calendar: {{count}} days with activities in the last year",
-      "day_one": "{{count}} activity, {{distance}} km",
-      "day_other": "{{count}} activities, {{distance}} km"
-    },
-    "stats": {
-      "memberSince": "On Kuta since {{date}}",
-      "thisYear": "This year",
-      "allTime": "All time",
-      "sessions_one": "{{count}} activity",
-      "sessions_other": "{{count}} activities",
-      "topSports": "Most common sports",
-      "followers_one": "{{count}} follower",
-      "followers_other": "{{count}} followers",
-      "following_one": "{{count}} following",
-      "following_other": "{{count}} following"
-    },
-    "records": {
-      "title": "Personal bests"
-    },
-    "viewAs": {
-      "label": "View as",
-      "me": "Me",
-      "followers": "Approved follower",
-      "public": "Anyone with a Kuta account",
-      "followersHint": "This is how your approved followers see your profile. Private activities and goals are not shown, and maps hide the start, finish and your hidden places.",
-      "publicHint": "This is how anyone with a Kuta account and the link sees your profile. Only what you share with everyone is shown, and maps hide the start, finish and your hidden places."
-    },
-    "latestActivities": "Latest activities",
-    "allActivities": "All activities"
-  },
   "onboarding": {
-    "eyebrow": "Your progress starts here",
     "addActivity": "Add an activity"
   },
   "supporter": {
@@ -839,5 +814,70 @@
     "titleSingle": "New activity from Garmin: {{title}}",
     "editSingle": "Edit",
     "dismissSingle": "OK, got it"
+  },
+  "common": {
+    "cancel": "Cancel",
+    "back": "Back"
+  },
+  "emptyState": {
+    "activities": {
+      "title": "No activities yet",
+      "description": "Your activities are collected here, with notes, tags and shoes."
+    },
+    "stats": {
+      "title": "No statistics yet",
+      "description": "Statistics, records and training load are calculated from your activities."
+    },
+    "profile": {
+      "title": "Your profile is empty for now",
+      "description": "Your activities and visible goals appear here. You choose what others can see."
+    }
+  },
+  "visitor": {
+    "closedTitle": "Sign in to see more",
+    "closed": {
+      "runner": "This profile is only shown to signed-in runners. Create an account or log in to see it and ask to follow.",
+      "activity": "This activity is only shown to signed-in runners. Create an account or log in to see it."
+    }
+  },
+  "profile": {
+    "calendar": {
+      "title": "Last year",
+      "activeDays_one": "{{count}} active day",
+      "activeDays_other": "{{count}} active days",
+      "streak_one": "{{count}} week in a row",
+      "streak_other": "{{count}} weeks in a row",
+      "longest_one": "longest streak {{count}} week",
+      "longest_other": "longest streak {{count}} weeks",
+      "summary_one": "Activity calendar: {{count}} day with activities in the last year",
+      "summary_other": "Activity calendar: {{count}} days with activities in the last year",
+      "day_one": "{{count}} activity, {{distance}} km",
+      "day_other": "{{count}} activities, {{distance}} km"
+    },
+    "stats": {
+      "memberSince": "On Kuta since {{date}}",
+      "thisYear": "This year",
+      "allTime": "All time",
+      "sessions_one": "{{count}} activity",
+      "sessions_other": "{{count}} activities",
+      "topSports": "Most common sports",
+      "followers_one": "{{count}} follower",
+      "followers_other": "{{count}} followers",
+      "following_one": "{{count}} following",
+      "following_other": "{{count}} following"
+    },
+    "records": {
+      "title": "Personal bests"
+    },
+    "viewAs": {
+      "label": "View as",
+      "me": "Me",
+      "followers": "Approved follower",
+      "public": "Anyone with a Kuta account",
+      "followersHint": "This is how your approved followers see your profile. Private activities and goals are not shown, and maps hide the start, finish and your hidden places.",
+      "publicHint": "This is how anyone with a Kuta account and the link sees your profile. Only what you share with everyone is shown, and maps hide the start, finish and your hidden places."
+    },
+    "latestActivities": "Latest activities",
+    "allActivities": "All activities"
   }
 }

@@ -30,6 +30,8 @@ import { Input } from '@/components/ui/input'
 import { Modal } from '@/components/ui/modal'
 import { ErrorMessage } from '@/components/error-message'
 import { SportIcon } from '@/components/sport-icon'
+import { card } from '@/components/ui/card-variants'
+import { Select } from '@/components/ui/select'
 
 // Under 'activities' so that new, edited and deleted activities also refresh the goals.
 const goalsQueryKey = (timeZone: string) => ['activities', 'goals', timeZone]
@@ -143,9 +145,7 @@ function GoalCard({
         'aria-label': t('goals.editLabel', { title: goalTitle }),
       })}
       className={cn(
-        'w-full rounded-xl border bg-card p-4 text-left text-card-foreground shadow-xs',
-        onSelect &&
-          'transition-colors hover:bg-accent/50 focus-visible:ring-[3px] focus-visible:ring-ring/50 focus-visible:outline-none',
+        card({ interactive: !!onSelect, className: 'w-full text-left shadow-xs' }),
         goal.ended && 'opacity-70',
       )}
     >
@@ -270,7 +270,6 @@ export function GoalDialog({ goal, onClose }: { goal: Goal | null; onClose: () =
     if (!busy && parsedTarget !== null) save.mutate()
   }
 
-  const selectClass = 'h-9 w-full rounded-md border bg-background px-3 text-sm'
   return (
     <Modal
       ref={dialog}
@@ -280,18 +279,17 @@ export function GoalDialog({ goal, onClose }: { goal: Goal | null; onClose: () =
         if (busy) event.preventDefault()
       }}
     >
-      <h2 id="goal-form-title" className="text-xl font-semibold">
+      <Heading level={2} id="goal-form-title">
         {goal ? t('goals.editTitle') : t('goals.new')}
-      </h2>
+      </Heading>
       {goal && <p className="mt-1 break-words text-sm text-muted-foreground">{title(goal)}</p>}
       <form onSubmit={onSubmit}>
         <fieldset disabled={busy} className="mt-5 grid grid-cols-2 gap-4">
           <FormField label={t('activities.sport')} className="text-sm font-medium col-span-2">
             {(id) => (
               <>
-                <select
+                <Select
                   id={id}
-                  className={selectClass}
                   value={sportGroup}
                   aria-describedby={
                     included && included.length > 1 ? 'goal-sport-included' : undefined
@@ -306,7 +304,7 @@ export function GoalDialog({ goal, onClose }: { goal: Goal | null; onClose: () =
                       </option>
                     ),
                   )}
-                </select>
+                </Select>
                 {included && included.length > 1 && (
                   <span
                     id="goal-sport-included"
@@ -329,9 +327,8 @@ export function GoalDialog({ goal, onClose }: { goal: Goal | null; onClose: () =
           )}
           <FormField label={t('goals.metric')} className="text-sm font-medium">
             {(id) => (
-              <select
+              <Select
                 id={id}
-                className={selectClass}
                 value={metric}
                 onChange={(e) => setMetric(e.currentTarget.value as GoalMetric)}
               >
@@ -340,7 +337,7 @@ export function GoalDialog({ goal, onClose }: { goal: Goal | null; onClose: () =
                     {t(`goals.metrics.${value}`)}
                   </option>
                 ))}
-              </select>
+              </Select>
             )}
           </FormField>
           <FormField label={t(`goals.targetLabel.${metric}`)} className="text-sm font-medium">
@@ -359,9 +356,8 @@ export function GoalDialog({ goal, onClose }: { goal: Goal | null; onClose: () =
           </FormField>
           <FormField label={t('goals.period')} className="text-sm font-medium">
             {(id) => (
-              <select
+              <Select
                 id={id}
-                className={selectClass}
                 value={period}
                 onChange={(e) => setPeriod(e.currentTarget.value as GoalPeriod)}
               >
@@ -370,14 +366,13 @@ export function GoalDialog({ goal, onClose }: { goal: Goal | null; onClose: () =
                     {t(`goals.periods.${value}`)}
                   </option>
                 ))}
-              </select>
+              </Select>
             )}
           </FormField>
           <FormField label={t('goals.repeat')} className="text-sm font-medium">
             {(id) => (
-              <select
+              <Select
                 id={id}
-                className={selectClass}
                 value={recurring ? 'recurring' : 'once'}
                 onChange={(e) => setRecurring(e.currentTarget.value === 'recurring')}
               >
@@ -387,15 +382,14 @@ export function GoalDialog({ goal, onClose }: { goal: Goal | null; onClose: () =
                     ? t('goals.onceSaved')
                     : t(`goals.onceCurrent.${period}`)}
                 </option>
-              </select>
+              </Select>
             )}
           </FormField>
           <FormField label={t('goals.visibility')} className="text-sm font-medium col-span-2">
             {(id) => (
               <>
-                <select
+                <Select
                   id={id}
-                  className={selectClass}
                   value={privacy}
                   aria-describedby="goal-visibility-help"
                   onChange={(e) => setPrivacy(e.currentTarget.value as GoalPrivacy)}
@@ -405,7 +399,7 @@ export function GoalDialog({ goal, onClose }: { goal: Goal | null; onClose: () =
                       {privacyLabel(value)}
                     </option>
                   ))}
-                </select>
+                </Select>
                 <span
                   id="goal-visibility-help"
                   className="mt-2 block text-xs font-normal text-muted-foreground"
@@ -435,10 +429,14 @@ export function GoalDialog({ goal, onClose }: { goal: Goal | null; onClose: () =
                 {t('goals.confirmDelete')}
               </p>
               <div className="mt-3 flex flex-wrap justify-end gap-3">
-                <Button type="button" variant="outline" onClick={() => setConfirmingDelete(false)}>
+                <Button
+                  type="button"
+                  variant="secondary-outline"
+                  onClick={() => setConfirmingDelete(false)}
+                >
                   {t('goals.cancel')}
                 </Button>
-                <Button type="button" variant="destructive" onClick={() => remove.mutate()}>
+                <Button type="button" variant="destructive-outline" onClick={() => remove.mutate()}>
                   {remove.isPending ? t('goals.deleting') : t('goals.deleteConfirmed')}
                 </Button>
               </div>
@@ -448,15 +446,18 @@ export function GoalDialog({ goal, onClose }: { goal: Goal | null; onClose: () =
               {goal && (
                 <Button
                   type="button"
-                  variant="ghost"
-                  className="text-destructive"
+                  variant="destructive-outline"
                   onClick={() => setConfirmingDelete(true)}
                 >
                   {t('goals.delete')}
                 </Button>
               )}
               <div className="ml-auto flex gap-3">
-                <Button type="button" variant="outline" onClick={() => dialog.current?.close()}>
+                <Button
+                  type="button"
+                  variant="secondary-outline"
+                  onClick={() => dialog.current?.close()}
+                >
                   {t('goals.cancel')}
                 </Button>
                 <Button type="submit" disabled={parsedTarget === null}>

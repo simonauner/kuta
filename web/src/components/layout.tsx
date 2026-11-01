@@ -6,8 +6,12 @@ import { Link, Outlet, useRouterState } from '@tanstack/react-router'
 import { Activity, BarChart3, Home, User } from 'lucide-react'
 import { motion } from 'motion/react'
 import { meQuery } from '@/lib/auth'
+import { pendingRequests, followsQuery } from '@/lib/follows'
 import { cn } from '@/lib/utils'
 import { AuthPage, ChooseNamePage, ResetPasswordPage } from '@/routes/auth'
+import { useState } from 'react'
+import { Button } from '@/components/ui/button'
+import { VisitorContext } from '@/lib/visitor'
 
 const tabs = [
   { to: '/app', label: 'nav.feed', icon: Home },
@@ -20,6 +24,8 @@ export function Layout() {
   const { t, i18n } = useTranslation()
   const pathname = useRouterState({ select: (s) => s.location.pathname })
   const me = useQuery(meQuery)
+  const follows = useQuery({ ...followsQuery, enabled: !!me.data?.displayName })
+  const requests = pendingRequests(follows.data).length
 
   if (new URLSearchParams(window.location.search).get('reset') === 'password')
     return <ResetPasswordPage />
@@ -35,7 +41,12 @@ export function Layout() {
         </p>
       </div>
     )
-  if (!me.data) return <AuthPage />
+  if (!me.data)
+    return /^\/app\/((runners|activities)\/[0-9a-f-]{36}|r\/[a-z0-9]+)\/?$/i.test(pathname) ? (
+      <VisitorShell />
+    ) : (
+      <AuthPage />
+    )
   if (me.data.displayName === null) return <ChooseNamePage />
 
   return (
@@ -70,8 +81,23 @@ export function Layout() {
                         active ? 'text-primary md:bg-primary/10' : 'text-muted-foreground',
                       )}
                     >
-                      <Icon aria-hidden="true" className="size-5" />
+                      <span className="relative">
+                        <Icon aria-hidden="true" className="size-5" />
+                        {to === '/app' && requests > 0 && (
+                          <span
+                            aria-hidden="true"
+                            className="absolute -right-2 -top-1.5 flex min-w-4 items-center justify-center rounded-full bg-primary px-1 text-[10px] font-semibold leading-4 text-primary-foreground"
+                          >
+                            {requests}
+                          </span>
+                        )}
+                      </span>
                       {t(label)}
+                      {to === '/app' && requests > 0 && (
+                        <span className="sr-only">
+                          {t('nav.followRequests', { count: requests })}
+                        </span>
+                      )}
                     </Link>
                   </li>
                 )
@@ -106,5 +132,44 @@ export function Layout() {
         })}
       />
     </div>
+  )
+}
+
+// A shared profile or activity link opened without an account: the page itself (only what the owner made public),
+// with sign-in and sign-up a click away and the visitor staying on the same link afterwards.
+function VisitorShell() {
+  const { t } = useTranslation()
+  const [signingIn, setSigningIn] = useState(false)
+  if (signingIn) return <AuthPage />
+  const signIn = (mode: 'login' | 'signup') => {
+    window.location.hash = mode === 'signup' ? 'signup' : ''
+    setSigningIn(true)
+  }
+  return (
+    <VisitorContext value={{ signIn }}>
+      <div className="flex min-h-dvh flex-col">
+        <header className="border-b">
+          <div className="mx-auto flex max-w-2xl items-center justify-between gap-4 px-4 py-3">
+            <a href="/" aria-label={t('home')}>
+              <picture>
+                <source media="(prefers-color-scheme: dark)" srcSet="/brand/logo-light.svg" />
+                <img src="/brand/logo.svg" alt="" width="96" height="32" className="h-8 w-auto" />
+              </picture>
+            </a>
+            <div className="flex gap-2">
+              <Button size="sm" variant="secondary-outline" onClick={() => signIn('login')}>
+                {t('auth.login')}
+              </Button>
+              <Button size="sm" onClick={() => signIn('signup')}>
+                {t('auth.signup')}
+              </Button>
+            </div>
+          </div>
+        </header>
+        <main className="mx-auto w-full max-w-2xl flex-1 px-4 pb-8 pt-6">
+          <Outlet />
+        </main>
+      </div>
+    </VisitorContext>
   )
 }

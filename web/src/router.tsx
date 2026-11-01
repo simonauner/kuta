@@ -15,8 +15,9 @@ import { RunnerPage } from '@/routes/runner'
 import { SharedProfilePage } from '@/routes/shared-profile'
 import { ProfilePage } from '@/routes/profile'
 import { SettingsPage } from '@/routes/settings'
+import { ImportPage } from '@/routes/import'
 import { AnalysisPage, StatsPage } from '@/routes/stats'
-import { activitySearch } from '@/lib/activity'
+import { activityPageSearch, activitySearch } from '@/lib/activity'
 import { activityQuery } from '@/lib/activity-query'
 import { queryClient } from '@/lib/query-client'
 
@@ -43,7 +44,7 @@ const newActivityRoute = createRoute({
 const activityRoute = createRoute({
   getParentRoute: () => rootRoute,
   path: '/app/activities/$activityId',
-  validateSearch: activitySearch,
+  validateSearch: activityPageSearch,
   // Wait for the title before the snapshot; the query keeps the activity page's error handling.
   loader: ({ params }) => queryClient.prefetchQuery(activityQuery(params.activityId)),
   component: lazyRouteComponent(() => import('@/routes/activity'), 'ActivityPage'),
@@ -51,7 +52,7 @@ const activityRoute = createRoute({
 const editActivityRoute = createRoute({
   getParentRoute: () => rootRoute,
   path: '/app/activities/$activityId/edit',
-  validateSearch: activitySearch,
+  validateSearch: activityPageSearch,
   component: EditActivityPage,
 })
 const statsRoute = createRoute({
@@ -106,6 +107,12 @@ const privacyPlacesRoute = createRoute({
   component: lazyRouteComponent(() => import('@/routes/privacy-places'), 'PrivacyPlacesPage'),
 })
 
+const importRoute = createRoute({
+  getParentRoute: () => rootRoute,
+  path: '/app/settings/import',
+  component: ImportPage,
+})
+
 const routeTree = rootRoute.addChildren([
   feedRoute,
   activitiesRoute,
@@ -121,6 +128,7 @@ const routeTree = rootRoute.addChildren([
   settingsRoute,
   followersRoute,
   privacyPlacesRoute,
+  importRoute,
 ])
 
 export const router = createRouter({

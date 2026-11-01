@@ -15,8 +15,10 @@ import {
   type DailyTotal,
   type YearMetric,
 } from '@/lib/year-comparison'
+import { Card } from '@/components/ui/card'
+import { Select } from '@/components/ui/select'
+import { HelpPopover } from '@/components/help-popover'
 
-const selectClass = 'rounded-md border bg-background px-3 py-2 text-sm text-foreground'
 const shownYears = 5
 
 // Accumulated volume per year on the same calendar, with the selected year highlighted and comparison at the same date.
@@ -78,16 +80,21 @@ export function YearComparison({ year, sportGroup }: { year: number; sportGroup:
     <section className="mt-10" aria-labelledby="year-comparison-title">
       <div className="flex flex-wrap items-end justify-between gap-3">
         <div>
-          <Heading level={2} id="year-comparison-title">
-            {t('yearComparison.title')}
-          </Heading>
+          <div className="flex items-center gap-2">
+            <Heading level={2} id="year-comparison-title">
+              {t('yearComparison.title')}
+            </Heading>
+            <HelpPopover label={t('yearComparison.methodLabel')}>
+              {t('yearComparison.method', { years: shownYears })}
+            </HelpPopover>
+          </div>
           <p className="mt-2 text-body text-muted-foreground">{t('yearComparison.description')}</p>
         </div>
         <FormField label={t('yearComparison.metric')} className="text-sm font-medium">
           {(id) => (
-            <select
+            <Select
               id={id}
-              className={selectClass}
+              className="w-fit"
               value={metric}
               onChange={(e) => setMetric(e.target.value as YearMetric)}
             >
@@ -96,14 +103,14 @@ export function YearComparison({ year, sportGroup }: { year: number; sportGroup:
                   {t(`yearComparison.metrics.${key}`)}
                 </option>
               ))}
-            </select>
+            </Select>
           )}
         </FormField>
       </div>
       {days.error && (
         <p role="alert" className="mt-4 text-sm text-destructive">
           <ErrorMessage error={days.error} />{' '}
-          <Button variant="outline" size="sm" onClick={() => void days.refetch()}>
+          <Button variant="secondary-outline" size="sm" onClick={() => void days.refetch()}>
             {t('activities.retry')}
           </Button>
         </p>
@@ -114,7 +121,7 @@ export function YearComparison({ year, sportGroup }: { year: number; sportGroup:
             <p className="mt-4 text-muted-foreground">{t('yearComparison.empty')}</p>
           ) : (
             <>
-              <div className="mt-4 rounded-xl border bg-card p-4">
+              <Card className="mt-4">
                 <p className="text-xs text-muted-foreground">
                   {t('stats.chartScale', { max: format(maximum) })}
                 </p>
@@ -179,7 +186,7 @@ export function YearComparison({ year, sportGroup }: { year: number; sportGroup:
                     )
                   })}
                 </svg>
-              </div>
+              </Card>
               <div className="mt-4 overflow-x-auto">
                 <table className="w-full text-right text-sm tabular-nums">
                   <caption className="pb-3 text-left font-medium">
@@ -220,9 +227,6 @@ export function YearComparison({ year, sportGroup }: { year: number; sportGroup:
                   </tbody>
                 </table>
               </div>
-              <p className="mt-4 text-metadata leading-relaxed text-muted-foreground">
-                {t('yearComparison.method', { years: shownYears })}
-              </p>
             </>
           )}
         </div>

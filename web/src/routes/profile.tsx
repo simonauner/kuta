@@ -21,6 +21,7 @@ import { ShareProfile } from '@/components/share-profile'
 import { SupporterBadge } from '@/components/supporter'
 import { api } from '@/lib/api'
 import { meQuery, type SupporterTier } from '@/lib/auth'
+import { Select } from '@/components/ui/select'
 
 export function ProfilePage() {
   const { t } = useTranslation()
@@ -38,10 +39,10 @@ export function ProfilePage() {
   return (
     <section className="space-y-6">
       <div className="flex flex-wrap items-start justify-between gap-4">
-        <h1 className="flex min-w-0 items-center gap-2 break-words text-2xl font-semibold tracking-tight">
+        <Heading level={1} className="flex min-w-0 items-center gap-2 break-words">
           {me?.displayName}
           <SupporterBadge tier={tier} />
-        </h1>
+        </Heading>
         <div className="flex max-w-full items-start gap-2">
           <ShareProfile />
           <Button asChild variant="ghost" size="icon">
@@ -53,16 +54,16 @@ export function ProfilePage() {
       </div>
       <FormField layout="inline" label={t('profile.viewAs.label')} className="text-sm">
         {(id) => (
-          <select
+          <Select
             id={id}
-            className="rounded-md border bg-background px-3 py-2 text-foreground"
+            className="w-fit"
             value={viewAs ?? ''}
             onChange={(e) => setViewAs((e.target.value || undefined) as ViewAs | undefined)}
           >
             <option value="">{t('profile.viewAs.me')}</option>
             <option value="followers">{t('profile.viewAs.followers')}</option>
             <option value="public">{t('profile.viewAs.public')}</option>
-          </select>
+          </Select>
         )}
       </FormField>
       {viewAs && (
@@ -85,7 +86,7 @@ export function ProfilePage() {
             {!viewAs && (
               <Link
                 to="/app/activities"
-                className="text-sm text-muted-foreground underline-offset-2 hover:underline"
+                className="text-sm text-muted-foreground underline underline-offset-2"
               >
                 {t('profile.allActivities')} →
               </Link>

@@ -8,6 +8,7 @@ import { Button } from '@/components/ui/button'
 import { refreshActivityQueries } from '@/lib/activity-query'
 import { activityTitle } from '@/lib/activity'
 import { api } from '@/lib/api'
+import { Card } from '@/components/ui/card'
 
 type Unreviewed = {
   count: number
@@ -33,7 +34,7 @@ export function UnreviewedActivities({ className }: { className?: string }) {
     <Reveal>
       {/* Spacing goes on a padded wrapper: a margin inside Reveal collapses out of its animated height. */}
       <div className={className}>
-        <div role="status" className="flex gap-3 rounded-xl border bg-card p-4 text-sm">
+        <Card role="status" className="flex gap-3 text-sm">
           <Sparkles className="mt-0.5 size-5 shrink-0 text-primary" />
           <div>
             {single
@@ -48,7 +49,7 @@ export function UnreviewedActivities({ className }: { className?: string }) {
               </Button>
               <Button
                 size="sm"
-                variant="outline"
+                variant="secondary-outline"
                 disabled={dismiss.isPending}
                 onClick={() => dismiss.mutate()}
               >
@@ -61,7 +62,7 @@ export function UnreviewedActivities({ className }: { className?: string }) {
               </p>
             )}
           </div>
-        </div>
+        </Card>
       </div>
     </Reveal>
   )

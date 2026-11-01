@@ -10,6 +10,8 @@ import { Modal } from '@/components/ui/modal'
 import { api } from '@/lib/api'
 import { SharingHints } from '@/components/privacy-places'
 import { meQuery, type Me } from '@/lib/auth'
+import { Select } from '@/components/ui/select'
+import { Heading } from '@/components/ui/heading'
 
 // New and imported activities silently get the default visibility, so the forms that create them say which it is.
 export function DefaultPrivacyNote({ imported = false }: { imported?: boolean }) {
@@ -67,16 +69,20 @@ export function ActivityPrivacy() {
     },
   })
 
+  const publicProfile = useMutation({
+    mutationFn: (enabled: boolean) => api.send<Me>('PUT', '/api/me/public-profile', { enabled }),
+    onSuccess: (updated) => queryClient.setQueryData(meQuery.queryKey, updated),
+  })
+
   return (
     <section aria-labelledby="activity-privacy-heading" className="mt-8 border-t pt-6">
-      <h2 id="activity-privacy-heading" className="text-lg font-semibold">
+      <Heading level={2} id="activity-privacy-heading">
         {t('activityPrivacy.title')}
-      </h2>
+      </Heading>
       <FormField label={t('activityPrivacy.default')} className="text-sm font-medium mt-4">
         {(id) => (
-          <select
+          <Select
             id={id}
-            className="block w-full rounded-md border bg-background px-3 py-2"
             value={privacy}
             disabled={!me || save.isPending}
             aria-describedby="activity-privacy-help"
@@ -92,7 +98,7 @@ export function ActivityPrivacy() {
                 {label}
               </option>
             ))}
-          </select>
+          </Select>
         )}
       </FormField>
       <p id="activity-privacy-help" className="mt-2 text-sm text-muted-foreground">
@@ -102,7 +108,7 @@ export function ActivityPrivacy() {
       <SharingHints privacy={privacy} />
       <div className="mt-4 flex items-center gap-2">
         <Button
-          variant="outline"
+          variant="secondary-outline"
           disabled={!me || isFetching || save.isPending || me.activitiesWithOtherPrivacy === 0}
           onClick={() => {
             save.reset()
@@ -128,6 +134,33 @@ export function ActivityPrivacy() {
           <ErrorMessage error={save.error} />
         </p>
       )}
+      <FormField
+        layout="choice"
+        className="mt-6 items-start"
+        labelClassName="font-normal leading-relaxed"
+        label={
+          <>
+            <span className="font-medium">{t('activityPrivacy.publicProfile')}</span>{' '}
+            <span className="text-muted-foreground">{t('activityPrivacy.publicProfileHelp')}</span>
+          </>
+        }
+      >
+        {(id) => (
+          <input
+            id={id}
+            type="checkbox"
+            className="mt-1 size-4 accent-primary"
+            checked={me?.publicProfile ?? false}
+            disabled={!me || publicProfile.isPending}
+            onChange={(event) => publicProfile.mutate(event.currentTarget.checked)}
+          />
+        )}
+      </FormField>
+      {publicProfile.error && (
+        <p role="alert" className="mt-2 text-sm text-destructive">
+          <ErrorMessage error={publicProfile.error} />
+        </p>
+      )}
       <Modal
         ref={dialog}
         aria-labelledby="apply-privacy-title"
@@ -136,9 +169,9 @@ export function ActivityPrivacy() {
           if (save.isPending) event.preventDefault()
         }}
       >
-        <h3 id="apply-privacy-title" className="text-lg font-semibold">
+        <Heading level={3} id="apply-privacy-title">
           {t('activityPrivacy.applyAll')}
-        </h3>
+        </Heading>
         <p id="apply-privacy-help" className="mt-3 text-sm text-muted-foreground">
           {t('activityPrivacy.confirm', {
             count: me?.activitiesWithOtherPrivacy ?? 0,
@@ -152,7 +185,7 @@ export function ActivityPrivacy() {
         )}
         <div className="mt-5 flex justify-end gap-2">
           <Button
-            variant="outline"
+            variant="secondary-outline"
             disabled={save.isPending}
             onClick={() => dialog.current?.close()}
           >

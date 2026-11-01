@@ -14,10 +14,12 @@ export async function clearHeartRateQueries(queryClient: QueryClient) {
   queryClient.removeQueries(filter)
 }
 
-export const activityQuery = (activityId: string) =>
+// A visitor without an account reads the same detail through the public API (only public activities).
+export const activityQuery = (activityId: string, visitor = false) =>
   queryOptions({
-    queryKey: ['activity', activityId],
-    queryFn: () => api.get<ActivityDetail>(`/api/activities/${activityId}`),
+    queryKey: visitor ? ['activity', activityId, 'public'] : ['activity', activityId],
+    queryFn: () =>
+      api.get<ActivityDetail>(`/api/${visitor ? 'public/' : ''}activities/${activityId}`),
     retry: (count, error) => !(error instanceof ApiError && error.status === 404) && count < 1,
   })
 

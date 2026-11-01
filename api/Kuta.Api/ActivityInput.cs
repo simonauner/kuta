@@ -1,7 +1,8 @@
 // Manual activity from the "Skapa ny aktivitet" form. Times in UTC, SI units.
 public record ManualActivityRequest(
     string? Sport, string? Title, DateTimeOffset? StartedAt, int? DurationS, double? DistanceM,
-    float? ElevationGainM, short? AvgHr, string[]? Tags = null, Guid[]? EquipmentIds = null, string? Description = null);
+    float? ElevationGainM, short? AvgHr, string[]? Tags = null, Guid[]? EquipmentIds = null, string? Description = null,
+    string? Privacy = null);
 
 // What the runner fills in, validated before it is saved
 public static class ActivityInput

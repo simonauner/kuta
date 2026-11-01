@@ -33,7 +33,7 @@ test('only an empty home feed offers onboarding, with different copy when follow
       const client = new QueryClient({ defaultOptions: { queries: { staleTime: Infinity } } })
       client.setQueryData(['me'], { id: 'me' })
       client.setQueryData(['follows'], { following, followers: [] })
-      client.setQueryData(runnerId ? ['feed', runnerId] : ['feed'], {
+      client.setQueryData(runnerId ? ['feed', runnerId, false] : ['feed'], {
         pages: [{ items, nextCursor: null }],
         pageParams: [null],
       })
@@ -58,22 +58,22 @@ test('only an empty home feed offers onboarding, with different copy when follow
       }
     }
     const welcome = await render()
-    assert.match(welcome, /Dags för ditt första pass/)
+    assert.match(welcome, /Dags för din första aktivitet/)
     assert.match(welcome, /href="\/app\/activities\/new"/)
-    assert.match(welcome, /href="\/app\/settings#import-heading"/)
+    assert.match(welcome, /href="\/app\/settings\/import"/)
     assert.match(welcome, /Kopiera min profillänk/)
     const following = await render({ following: [{ id: 'friend' }] })
-    assert.match(following, /Ingen du följer har delat något pass ännu/)
-    assert.doesNotMatch(following, /Dags för ditt första pass/)
+    assert.match(following, /Ingen du följer har delat någon aktivitet ännu/)
+    assert.doesNotMatch(following, /Dags för din första aktivitet/)
     const profile = await render({ runnerId: 'friend' })
-    assert.match(profile, /Inga pass/)
-    assert.doesNotMatch(profile, /Kopiera min profillänk|Dags för ditt första pass/)
+    assert.match(profile, /Inga aktiviteter/)
+    assert.doesNotMatch(profile, /Kopiera min profillänk|Dags för din första aktivitet/)
     const ownProfile = await render({
       runnerId: 'me',
       emptyState: createElement('p', null, 'Own training story'),
     })
     assert.match(ownProfile, /Own training story/)
-    assert.doesNotMatch(ownProfile, /Inga pass|Dags för ditt första pass/)
+    assert.doesNotMatch(ownProfile, /Inga aktiviteter|Dags för din första aktivitet/)
     const populated = await render({
       items: [
         {
@@ -90,7 +90,7 @@ test('only an empty home feed offers onboarding, with different copy when follow
       ],
     })
     assert.match(populated, /Morning run/)
-    assert.doesNotMatch(populated, /Kopiera min profillänk|Dags för ditt första pass/)
+    assert.doesNotMatch(populated, /Kopiera min profillänk|Dags för din första aktivitet/)
   } finally {
     globalThis.window = previousWindow
     await server.close()

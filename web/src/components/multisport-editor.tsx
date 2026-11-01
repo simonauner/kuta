@@ -3,9 +3,9 @@ import { lazy, Suspense, useId, useRef, useState } from 'react'
 import { useTranslation } from 'react-i18next'
 import { AnimatePresence, motion, useReducedMotion } from 'motion/react'
 import { Button } from '@/components/ui/button'
+import { ConfirmationModal } from '@/components/ui/confirmation-modal'
 import { Input } from '@/components/ui/input'
-import { Modal } from '@/components/ui/modal'
-import { formatDuration, type ActivityDetail } from '@/lib/activity'
+import { formatDuration, parseDuration, type ActivityDetail } from '@/lib/activity'
 import {
   multisportKinds,
   partSports,
@@ -15,6 +15,9 @@ import {
   type ActivityPart,
   type MultisportDraft,
 } from '@/lib/multisport'
+import { card } from '@/components/ui/card-variants'
+import { Select } from '@/components/ui/select'
+import { Heading } from '@/components/ui/heading'
 
 const MultisportPreview = lazy(() => import('./multisport-preview'))
 
@@ -33,9 +36,8 @@ export function MultisportEditor({
   disabled?: boolean
 }) {
   const { t, i18n } = useTranslation()
-  const restoreDialog = useRef<HTMLDialogElement>(null)
-  const restoreTitleId = useId()
-  const restoreWarningId = useId()
+  const [confirmingRestore, setConfirmingRestore] = useState(false)
+  const distanceId = useId()
   const [editing, setEditing] = useState(false)
   const kind = multisportKinds.find((k) => k === a.sport) ?? 'swimrun'
   const [parts, setParts] = useState<ActivityPart[]>(a.parts)
@@ -90,11 +92,11 @@ export function MultisportEditor({
   if (!a.parts.length && !onChange) return null
   if (!a.canSplit && !a.parts.length) return null
   return (
-    <section className="mt-6 space-y-3 rounded-lg border p-4" aria-label={t('multisport.title')}>
+    <section className={card({ className: 'mt-6 space-y-3' })} aria-label={t('multisport.title')}>
       <div className="flex flex-wrap items-center justify-between gap-2">
-        <h2 className="font-semibold">{t('multisport.title')}</h2>
+        <Heading level={2}>{t('multisport.title')}</Heading>
         {onChange && !editing && a.canSplit && (
-          <Button type="button" size="sm" variant="outline" onClick={begin}>
+          <Button type="button" size="sm" variant="secondary-outline" onClick={begin}>
             {t(a.parts.length ? 'multisport.edit' : 'multisport.split')}
           </Button>
         )}
@@ -104,9 +106,9 @@ export function MultisportEditor({
           <p className="text-sm text-muted-foreground">{t('multisport.instructions')}</p>
           <FormField layout="inline" label={t('multisport.kind')} className="text-sm">
             {(id) => (
-              <select
+              <Select
                 id={id}
-                className="rounded-md border bg-background p-2"
+                className="w-fit"
                 value={kind}
                 disabled={disabled}
                 onChange={(e) => {
@@ -118,7 +120,7 @@ export function MultisportEditor({
                     {t(sportNameKey(k))}
                   </option>
                 ))}
-              </select>
+              </Select>
             )}
           </FormField>
         </>
@@ -127,7 +129,7 @@ export function MultisportEditor({
         <Button
           type="button"
           size="sm"
-          variant={selected === null ? 'secondary' : 'ghost'}
+          variant={selected === null ? 'secondary-filled' : 'ghost'}
           onClick={() => preview(null)}
         >
           {t('multisport.whole')}
@@ -147,12 +149,11 @@ export function MultisportEditor({
                 className={`relative cursor-pointer space-y-2 rounded-md border p-3 ${selected === i ? 'bg-secondary' : 'hover:bg-accent/50'}`}
               >
                 <div className="flex flex-wrap items-center justify-between gap-2">
-                  <Button
+                  {/* The whole card selects the part, so this is a plain button stretched over the card */}
+                  <button
                     type="button"
-                    size="sm"
-                    variant={selected === i ? 'secondary' : 'ghost'}
                     aria-pressed={selected === i}
-                    className="h-auto justify-start whitespace-normal text-left after:absolute after:inset-0 after:rounded-md after:content-[''] focus-visible:after:ring-2 focus-visible:after:ring-ring"
+                    className="text-left text-sm font-medium outline-none after:absolute after:inset-0 after:rounded-md after:content-[''] focus-visible:after:ring-2 focus-visible:after:ring-ring"
                     onClick={() => preview(p)}
                   >
                     <span aria-hidden="true" style={{ color: sportColors[p.sport] ?? '#ae3ec9' }}>
@@ -160,7 +161,7 @@ export function MultisportEditor({
                     </span>
                     {i + 1}. {t(sportNameKey(p.sport))} · {number.format(p.distanceM / 1000)} km ·{' '}
                     {formatDuration(p.endS - p.startS)}
-                  </Button>
+                  </button>
                   {editing && (
                     <FormField
                       label={t('multisport.partSport', { number: i + 1 })}
@@ -168,9 +169,9 @@ export function MultisportEditor({
                       className="relative z-10"
                     >
                       {(id) => (
-                        <select
+                        <Select
                           id={id}
-                          className="relative z-10 rounded-md border bg-background p-2 text-sm"
+                          className="relative z-10 w-fit"
                           value={p.sport}
                           onChange={(e) =>
                             update(
@@ -183,7 +184,7 @@ export function MultisportEditor({
                               {t(sportNameKey(s))}
                             </option>
                           ))}
-                        </select>
+                        </Select>
                       )}
                     </FormField>
                   )}
@@ -204,22 +205,18 @@ export function MultisportEditor({
                             <Input
                               id={id}
                               className="w-28"
-                              type="number"
-                              min={p.startS + 1}
-                              max={parts[i + 1].endS - 1}
-                              step="1"
+                              inputMode="numeric"
+                              pattern="\d+(:[0-5]\d){0,2}"
+                              placeholder="0:45:00"
                               required
                               key={p.endS}
                               name={`endS-${i}`}
-                              defaultValue={p.endS}
+                              defaultValue={formatDuration(p.endS)}
+                              aria-describedby={`${distanceId}-${i}`}
                               onBlur={(e) => {
                                 if (!e.currentTarget.checkValidity()) return
-                                const end = Number(e.target.value)
-                                if (
-                                  !Number.isInteger(end) ||
-                                  end <= p.startS ||
-                                  end >= parts[i + 1].endS
-                                )
+                                const end = parseDuration(e.target.value)
+                                if (end === null || end <= p.startS || end >= parts[i + 1].endS)
                                   return
                                 update(
                                   parts.map((v, j) =>
@@ -234,6 +231,14 @@ export function MultisportEditor({
                             />
                           )}
                         </FormField>
+                        <p id={`${distanceId}-${i}`} className="text-xs text-muted-foreground">
+                          {t('multisport.atDistance', {
+                            km: number.format(
+                              shown.slice(0, i + 1).reduce((sum, part) => sum + part.distanceM, 0) /
+                                1000,
+                            ),
+                          })}
+                        </p>
                         <FormField label={t('multisport.boundary', { number: i + 1 })} hideLabel>
                           {(id) => (
                             <input
@@ -335,54 +340,31 @@ export function MultisportEditor({
       {onChange && a.partsEdited && !editing && (
         <Button
           type="button"
-          variant="outline"
+          variant="secondary-outline"
           size="sm"
           disabled={disabled}
           onClick={() => {
-            restoreDialog.current?.showModal()
+            setConfirmingRestore(true)
           }}
         >
           {t('multisport.restore')}
         </Button>
       )}
-      <Modal
-        ref={restoreDialog}
-        aria-labelledby={restoreTitleId}
-        aria-describedby={restoreWarningId}
-        onCancel={(event) => {
-          if (disabled) event.preventDefault()
+      <ConfirmationModal
+        open={confirmingRestore}
+        title={t('multisport.restore')}
+        description={t('multisport.confirmRestore')}
+        confirmLabel={t('multisport.restoreConfirm')}
+        cancelLabel={t('common.cancel')}
+        pending={disabled}
+        onConfirm={() => {
+          setEditing(false)
+          preview(null)
+          onChange?.(null)
+          setConfirmingRestore(false)
         }}
-      >
-        <h2 id={restoreTitleId} className="text-xl font-semibold">
-          {t('multisport.restore')}
-        </h2>
-        <p id={restoreWarningId} className="mt-3 text-sm text-muted-foreground">
-          {t('multisport.confirmRestore')}
-        </p>
-        <div className="mt-6 flex justify-end gap-3">
-          <Button
-            type="button"
-            variant="outline"
-            autoFocus
-            disabled={disabled}
-            onClick={() => restoreDialog.current?.close()}
-          >
-            {t('multisport.cancel')}
-          </Button>
-          <Button
-            type="button"
-            disabled={disabled}
-            onClick={() => {
-              setEditing(false)
-              preview(null)
-              onChange?.(null)
-              restoreDialog.current?.close()
-            }}
-          >
-            {t('multisport.restoreConfirm')}
-          </Button>
-        </div>
-      </Modal>
+        onClose={() => setConfirmingRestore(false)}
+      />
       {onChange && editing && a.streams && (
         <Suspense fallback={null}>
           <MultisportPreview streams={a.streams} parts={shown} selected={selected} />

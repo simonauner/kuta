@@ -41,7 +41,7 @@ public static class GarminEndpoints
     };
 
     static string RedirectUri(HttpContext http) => $"{http.Request.Scheme}://{http.Request.Host}/api/garmin/callback";
-    static IResult BackToSettings(string result) => Results.Redirect($"/app/settings?garmin={result}");
+    static IResult BackToSettings(string result) => Results.Redirect($"/app/settings/import?garmin={result}");
 
     public static void MapGarmin(this RouteGroupBuilder api)
     {

@@ -40,6 +40,7 @@ public record ActivityUpdateRequest(string? Title, string? Description, string[]
 public static class ActivityEndpoints
 {
     private const int MaxFitFileBytes = 20 * 1024 * 1024;
+    static readonly ApiError InvalidPrivacy = new("Välj giltig synlighet.", "invalidPrivacy");
 
     public static void MapActivities(this RouteGroupBuilder api)
     {
@@ -115,7 +116,7 @@ public static class ActivityEndpoints
             if (year is < 1 or > 9998)
                 return Results.BadRequest(new ApiError("Ange ett år mellan 1 och 9998.", "invalidActivityYear"));
             if (sportGroup is not null && !SportGroups.IsValid(sportGroup))
-                return Results.BadRequest(new ApiError("Välj en giltig träningsform.", "invalidSportGroup"));
+                return Results.BadRequest(new ApiError("Välj en giltig sport.", "invalidSportGroup"));
             timeZone ??= "UTC";
             await using var conn = await db.OpenConnectionAsync(cancellationToken);
             if (!await ActivityList.IsValidTimeZoneAsync(conn, timeZone, cancellationToken))
@@ -128,7 +129,7 @@ public static class ActivityEndpoints
             string? sportGroup, CancellationToken cancellationToken) =>
         {
             if (sportGroup is not null && !SportGroups.IsValid(sportGroup))
-                return Results.BadRequest(new ApiError("Välj en giltig träningsform.", "invalidSportGroup"));
+                return Results.BadRequest(new ApiError("Välj en giltig sport.", "invalidSportGroup"));
             timeZone ??= "UTC";
             await using var conn = await db.OpenConnectionAsync(cancellationToken);
             if (!await ActivityList.IsValidTimeZoneAsync(conn, timeZone, cancellationToken))
@@ -168,6 +169,7 @@ public static class ActivityEndpoints
             CancellationToken cancellationToken) =>
         {
             if (ActivityInput.Validate(req, DateTimeOffset.UtcNow) is { } invalid) return Results.BadRequest(invalid);
+            if (req.Privacy is not null && !ActivityInput.IsValidPrivacy(req.Privacy)) return Results.BadRequest(InvalidPrivacy);
             await using var conn = await db.OpenConnectionAsync(cancellationToken);
             ActivitySummary? activity;
             try { activity = await ActivityStorage.SaveManualAsync(conn, user.GetUserId(), req, cancellationToken); }
@@ -185,6 +187,8 @@ public static class ActivityEndpoints
         {
             var tags = form["tags"].Select(tag => tag!).ToArray();
             string? description = form["description"];
+            string? privacy = form["privacy"];
+            if (privacy is not null && !ActivityInput.IsValidPrivacy(privacy)) return Results.BadRequest(InvalidPrivacy);
             var equipmentIds = new List<Guid>();
             foreach (var value in form["equipmentIds"])
             {
@@ -213,7 +217,7 @@ public static class ActivityEndpoints
             try
             {
                 id = await ActivityStorage.SaveAsync(conn, store, userId, parsed, "fit", title, null, bytes, ".fit",
-                    cancellationToken, tags, equipmentIds.ToArray(), description, split);
+                    cancellationToken, tags, equipmentIds.ToArray(), description, split, privacy);
             }
             catch (InvalidEquipmentException)
             {
@@ -224,7 +228,7 @@ public static class ActivityEndpoints
                 // Composite foreign keys reject unknown equipment and equipment owned by another user.
                 return Results.BadRequest(EquipmentEndpoints.InvalidEquipment);
             }
-            if (id is null) return Results.Conflict(new ApiError("Det här passet är redan uppladdat.", "duplicateActivity"));
+            if (id is null) return Results.Conflict(new ApiError("Den här aktiviteten är redan uppladdad.", "duplicateActivity"));
 
             return Results.Created($"/api/activities/{id}", new ActivitySummary(
                 id.Value, split?.Kind ?? parsed.Sport, title, parsed.StartedAt, parsed.DurationS, split is null ? parsed.DistanceM : Multisport.Build(split, parsed.T, parsed.Dist)!.Sum(p => p.DistanceM), parsed.AvgHr, ActivityInput.NormalizeTags(tags), equipmentIds.Distinct().ToArray()));
@@ -237,7 +241,7 @@ public static class ActivityEndpoints
             NpgsqlDataSource db, ClaimsPrincipal user) =>
         {
             if (req.Privacy is not null && !ActivityInput.IsValidPrivacy(req.Privacy))
-                return Results.BadRequest(new ApiError("Välj giltig synlighet.", "invalidPrivacy"));
+                return Results.BadRequest(InvalidPrivacy);
             if (req.Tags is null) return Results.BadRequest(new ApiError("Välj giltiga taggar.", "invalidTags"));
             if ((ActivityInput.ValidateTitle(req.Title) ?? ActivityInput.ValidateDescription(req.Description) ?? ActivityInput.ValidateTags(req.Tags)) is { } invalid) return Results.BadRequest(invalid);
             if (req.EquipmentIds is null) return Results.BadRequest(EquipmentEndpoints.InvalidEquipment);
@@ -377,14 +381,14 @@ public static class ActivityEndpoints
         if (await conn.ExecuteScalarAsync<bool>(
                 "select exists (select 1 from activities where user_id = @userId and raw_file_sha256 = @sha256)",
                 new { userId, sha256 }))
-            return (null, Results.Conflict(new ApiError("Det här passet är redan uppladdat.", "duplicateActivity")));
+            return (null, Results.Conflict(new ApiError("Den här aktiviteten är redan uppladdad.", "duplicateActivity")));
 
         ParsedActivity? parsed;
         // The SDK throws more than FitException for a corrupt file with a valid checksum (as in the Garmin import).
         try { parsed = FitImport.Parse(bytes); }
         catch (Exception e) when (e is not OperationCanceledException) { parsed = null; }
         if (parsed is null)
-            return (null, Results.BadRequest(new ApiError("Filen kunde inte läsas som ett pass från en FIT-fil.", "invalidFit")));
+            return (null, Results.BadRequest(new ApiError("Filen kunde inte läsas som en aktivitet från en FIT-fil.", "invalidFit")));
         return (new FitUpload(bytes, sha256, profile.HrConsent ? parsed : parsed.WithoutHeartRate(), profile.HrConsent), null);
     }
 }

@@ -1,9 +1,10 @@
 import { useQuery } from '@tanstack/react-query'
-import { Link } from '@tanstack/react-router'
+import { Link, useRouterState } from '@tanstack/react-router'
 import { Trophy } from 'lucide-react'
 import { useTranslation } from 'react-i18next'
 import { ErrorMessage } from '@/components/error-message'
 import { SportIcon } from '@/components/sport-icon'
+import { card } from '@/components/ui/card-variants'
 import { Heading } from '@/components/ui/heading'
 import { api } from '@/lib/api'
 import { meQuery } from '@/lib/auth'
@@ -63,7 +64,7 @@ export function ProfileStats({ runnerId, viewAs }: ProfileProps) {
     timeZone: 'UTC',
   })
   const tile = (label: string, totals: Totals) => (
-    <div className="rounded-xl border p-4">
+    <div className={card()}>
       <p className="text-metadata text-muted-foreground">{label}</p>
       <p className="text-2xl font-semibold tabular-nums">{km.format(totals.distanceM / 1000)}</p>
       <p className="text-metadata text-muted-foreground">
@@ -77,7 +78,7 @@ export function ProfileStats({ runnerId, viewAs }: ProfileProps) {
       <p className="text-metadata text-muted-foreground">
         {t('profile.stats.memberSince', { date: since.format(new Date(data.joinedAt)) })} ·{' '}
         {me?.id === runnerId && !viewAs ? (
-          <Link to="/app/settings/followers" className="underline-offset-2 hover:underline">
+          <Link to="/app/settings/followers" className="underline underline-offset-2">
             {follows}
           </Link>
         ) : (
@@ -109,6 +110,7 @@ export function ProfileStats({ runnerId, viewAs }: ProfileProps) {
 // Personal bests as a row of cards, each linking to the activity it was set in.
 export function RecordShelf({ runnerId, viewAs }: ProfileProps) {
   const { t, i18n } = useTranslation()
+  const returnTo = useRouterState({ select: (s) => s.location.href })
   const { data } = useQuery(runnerSummaryQuery(runnerId, viewAs))
   if (!data?.records.length) return null
   const date = new Intl.DateTimeFormat(i18n.resolvedLanguage, { dateStyle: 'medium' })
@@ -123,7 +125,8 @@ export function RecordShelf({ runnerId, viewAs }: ProfileProps) {
             <Link
               to="/app/activities/$activityId"
               params={{ activityId: record.activityId }}
-              className="block h-full rounded-xl border p-4 transition-colors hover:bg-muted"
+              search={{ returnTo }}
+              className={card({ interactive: true, className: 'block h-full' })}
             >
               <p className="flex items-center gap-1.5 text-metadata text-muted-foreground">
                 <Trophy aria-hidden="true" className="size-3.5 text-primary" />

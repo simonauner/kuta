@@ -88,6 +88,17 @@ public sealed class SupabaseAuthClient(HttpClient http, IConfiguration configura
         // Same response for unknown addresses and rejected emails too, so accounts aren't revealed.
     }
 
+    // A new confirmation email for an address that has signed up but not confirmed yet.
+    public async Task ResendSignupAsync(string email, CancellationToken cancellationToken)
+    {
+        using var request = ClientRequest(HttpMethod.Post, "/auth/v1/resend");
+        request.Content = JsonContent.Create(new { type = "signup", email });
+        using var response = await http.SendAsync(request, cancellationToken);
+        // As for recovery: neither the cooldown nor unknown or confirmed addresses may reveal accounts.
+        if (response.StatusCode == HttpStatusCode.TooManyRequests) return;
+        ThrowIfUnavailable(response);
+    }
+
     public async Task<PasswordResetResult> ResetPasswordAsync(string accessToken, string password,
         CancellationToken cancellationToken)
     {

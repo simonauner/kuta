@@ -1,11 +1,11 @@
 import { queryOptions, useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
-import { useEffect, useRef, useState } from 'react'
+import { useState } from 'react'
 import { useTranslation } from 'react-i18next'
 import { ErrorMessage } from '@/components/error-message'
 import { CircleCheckIcon } from 'lucide-react'
 import { Alert, AlertTitle } from '@/components/ui/alert'
 import { Button } from '@/components/ui/button'
-import { Modal } from '@/components/ui/modal'
+import { ConfirmationModal } from '@/components/ui/confirmation-modal'
 import { refreshActivityQueries } from '@/lib/activity-query'
 import { api } from '@/lib/api'
 import { meQuery } from '@/lib/auth'
@@ -60,7 +60,6 @@ export function GarminConnect() {
   const status = useQuery(garminStatusQuery)
   const [result, setResult] = useState(resultFromUrl)
   const [confirming, setConfirming] = useState(false)
-  const dialog = useRef<HTMLDialogElement>(null)
 
   const connect = useMutation({
     mutationFn: () => api.send<{ url: string }>('POST', '/api/garmin/connect'),
@@ -78,11 +77,6 @@ export function GarminConnect() {
       ])
     },
   })
-
-  useEffect(() => {
-    if (confirming) dialog.current?.showModal()
-    else dialog.current?.close()
-  }, [confirming])
 
   if (status.error)
     return (
@@ -106,7 +100,7 @@ export function GarminConnect() {
           {!activityExport && <p className="text-destructive">{t('garmin.noActivityExport')}</p>}
           <p className="text-muted-foreground">{t('garmin.privateForNow')}</p>
           <Button
-            variant="outline"
+            variant="secondary-outline"
             onClick={() => {
               disconnect.reset()
               setConfirming(true)
@@ -131,43 +125,17 @@ export function GarminConnect() {
       ) : (
         <p className="text-muted-foreground">{t('garmin.notAvailable')}</p>
       )}
-      <Modal
-        ref={dialog}
-        aria-labelledby="garmin-disconnect-title"
-        aria-describedby="garmin-disconnect-warning"
-        onCancel={(event) => {
-          event.preventDefault()
-          if (!disconnect.isPending) setConfirming(false)
-        }}
-      >
-        <h2 id="garmin-disconnect-title" className="text-xl font-semibold">
-          {t('garmin.disconnectTitle')}
-        </h2>
-        <p id="garmin-disconnect-warning" className="mt-3 text-sm text-muted-foreground">
-          {t('garmin.disconnectWarning')}
-        </p>
-        {disconnect.error && (
-          <p role="alert" className="mt-3 text-sm text-destructive">
-            <ErrorMessage error={disconnect.error} />
-          </p>
-        )}
-        <div className="mt-6 flex flex-wrap justify-end gap-3">
-          <Button
-            variant="outline"
-            disabled={disconnect.isPending}
-            onClick={() => setConfirming(false)}
-          >
-            {t('dangerZone.cancel')}
-          </Button>
-          <Button
-            variant="destructive"
-            disabled={disconnect.isPending}
-            onClick={() => disconnect.mutate()}
-          >
-            {t('garmin.disconnect')}
-          </Button>
-        </div>
-      </Modal>
+      <ConfirmationModal
+        open={confirming}
+        title={t('garmin.disconnectTitle')}
+        description={t('garmin.disconnectWarning')}
+        confirmLabel={t('garmin.disconnect')}
+        cancelLabel={t('common.cancel')}
+        pending={disconnect.isPending}
+        error={disconnect.error}
+        onConfirm={() => disconnect.mutate()}
+        onClose={() => setConfirming(false)}
+      />
     </div>
   )
 }

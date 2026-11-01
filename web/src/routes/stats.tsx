@@ -16,6 +16,9 @@ import { api } from '@/lib/api'
 import { formatDuration } from '@/lib/activity'
 import { sportGroupsQuery, activityYearsQuery } from '@/lib/activity-query'
 import { sportGroupLabel } from '@/lib/sport-groups'
+import { card } from '@/components/ui/card-variants'
+import { Select } from '@/components/ui/select'
+import { HelpPopover } from '@/components/help-popover'
 
 type StatisticsMonth = {
   month: number
@@ -104,7 +107,6 @@ export function StatsPage() {
     if (key === 'paceSPerKm') return `${formatDuration(Math.round(value))} /km`
     return `${number.format(value)} bpm`
   }
-  const selectClass = 'rounded-md border bg-background px-3 py-2 text-sm text-foreground'
 
   if (years.isPending || hasNoActivities) {
     return (
@@ -128,9 +130,9 @@ export function StatsPage() {
       <div className="mt-6 flex flex-wrap gap-4">
         <FormField label={t('activities.year')} className="text-sm font-medium">
           {(id) => (
-            <select
+            <Select
               id={id}
-              className={selectClass}
+              className="w-fit"
               value={year}
               onChange={(e) => setYear(Number(e.target.value))}
             >
@@ -139,14 +141,14 @@ export function StatsPage() {
                   {value}
                 </option>
               ))}
-            </select>
+            </Select>
           )}
         </FormField>
         <FormField label={t('newActivity.sport')} className="text-sm font-medium">
           {(id) => (
-            <select
+            <Select
               id={id}
-              className={selectClass}
+              className="w-fit"
               value={sportGroup}
               onChange={(e) => setSportGroup(e.target.value)}
             >
@@ -156,7 +158,7 @@ export function StatsPage() {
                   {sportGroupLabel(key, t)}
                 </option>
               ))}
-            </select>
+            </Select>
           )}
         </FormField>
       </div>
@@ -168,7 +170,7 @@ export function StatsPage() {
       {years.error && (
         <p role="alert" className="mt-4 text-sm text-destructive">
           <ErrorMessage error={years.error} />{' '}
-          <Button variant="outline" size="sm" onClick={() => void years.refetch()}>
+          <Button variant="secondary-outline" size="sm" onClick={() => void years.refetch()}>
             {t('activities.retry')}
           </Button>
         </p>
@@ -177,7 +179,7 @@ export function StatsPage() {
         {statistics.error && (
           <p role="alert" className="mt-4 text-sm text-destructive">
             <ErrorMessage error={statistics.error} />{' '}
-            <Button variant="outline" size="sm" onClick={() => void statistics.refetch()}>
+            <Button variant="secondary-outline" size="sm" onClick={() => void statistics.refetch()}>
               {t('activities.retry')}
             </Button>
           </p>
@@ -195,7 +197,7 @@ export function StatsPage() {
                   [t('stats.distanceM'), format(distance, 'distanceM')],
                   [t('stats.durationS'), format(duration, 'durationS')],
                 ].map(([label, value]) => (
-                  <div key={label} className="rounded-xl border bg-card p-3 sm:p-4">
+                  <div key={label} className={card({ padding: 'compact' })}>
                     <dt className="text-xs text-muted-foreground">{label}</dt>
                     <dd className="mt-2 break-words text-lg font-semibold tabular-nums sm:text-2xl">
                       {value}
@@ -203,19 +205,20 @@ export function StatsPage() {
                   </div>
                 ))}
               </dl>
-              <Heading level={2} className="mt-8">
-                {t('stats.monthly')}
-              </Heading>
-              <div className="mt-4 rounded-xl border bg-card p-4">
+              <div className="mt-8 flex items-center justify-between gap-4">
+                <Heading level={2}>{t('stats.monthly')}</Heading>
+                <HelpPopover label={t('stats.methodLabel')}>{t('stats.method')}</HelpPopover>
+              </div>
+              <div className={card({ className: 'mt-4' })}>
                 <FormField
                   layout="inline"
                   label={t('yearComparison.metric')}
                   className="justify-between text-sm font-medium"
                 >
                   {(id) => (
-                    <select
+                    <Select
                       id={id}
-                      className={selectClass}
+                      className="w-fit"
                       value={metric}
                       onChange={(e) => setMetric(e.target.value as Metric)}
                     >
@@ -224,7 +227,7 @@ export function StatsPage() {
                           {t(`stats.${key}`)}
                         </option>
                       ))}
-                    </select>
+                    </Select>
                   )}
                 </FormField>
                 <p className="mt-3 text-xs text-muted-foreground">
@@ -306,9 +309,6 @@ export function StatsPage() {
                   </tbody>
                 </table>
               </div>
-              <p className="mt-4 text-metadata leading-relaxed text-muted-foreground">
-                {t('stats.method')}
-              </p>
             </div>
           ))}
       </SlowLoading>

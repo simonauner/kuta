@@ -9,6 +9,8 @@ import { Input } from '@/components/ui/input'
 import { refreshActivityQueries } from '@/lib/activity-query'
 import { api } from '@/lib/api'
 import { useSessionChanged } from '@/lib/auth'
+import { card } from '@/components/ui/card-variants'
+import { Heading } from '@/components/ui/heading'
 
 export function DangerZone() {
   const { t } = useTranslation()
@@ -59,19 +61,27 @@ export function DangerZone() {
 
   return (
     <section
-      className="mt-10 rounded-lg border border-destructive/40 p-4"
+      className={card({ tone: 'destructive', className: 'mt-10' })}
       aria-labelledby="danger-zone-title"
     >
-      <h2 id="danger-zone-title" className="font-semibold text-destructive">
+      <Heading level={2} id="danger-zone-title" className="text-destructive">
         {t('dangerZone.title')}
-      </h2>
+      </Heading>
       <p className="mt-2 text-sm text-muted-foreground">{t('dangerZone.description')}</p>
-      <Button variant="destructive" className="mt-4" onClick={() => openDialog('activities')}>
+      <Button
+        variant="destructive-outline"
+        className="mt-4"
+        onClick={() => openDialog('activities')}
+      >
         {t('dangerZone.delete')}
       </Button>
       <div className="mt-6 border-t border-destructive/20 pt-4">
         <p className="text-sm text-muted-foreground">{t('dangerZone.accountDescription')}</p>
-        <Button variant="destructive" className="mt-4" onClick={() => openDialog('account')}>
+        <Button
+          variant="destructive-outline"
+          className="mt-4"
+          onClick={() => openDialog('account')}
+        >
           {t('dangerZone.deleteAccount')}
         </Button>
       </div>
@@ -84,11 +94,11 @@ export function DangerZone() {
           if (!remove.isPending) setWord(null)
         }}
       >
-        <h2 id="delete-all-title" className="text-xl font-semibold">
+        <Heading level={2} id="delete-all-title">
           {target === 'account'
             ? t('dangerZone.accountConfirmTitle')
             : t('dangerZone.confirmTitle')}
-        </h2>
+        </Heading>
         <p id="delete-all-warning" className="mt-3 text-sm leading-relaxed text-muted-foreground">
           {target === 'account' ? t('dangerZone.accountWarning') : t('dangerZone.warning')}
         </p>
@@ -130,14 +140,18 @@ export function DangerZone() {
           <div className="mt-6 flex flex-wrap justify-end gap-3">
             <Button
               type="button"
-              variant="outline"
+              variant="secondary-outline"
               disabled={remove.isPending}
               onClick={() => setWord(null)}
             >
               {t('dangerZone.cancel')}
             </Button>
 
-            <Button type="submit" variant="destructive" disabled={!confirmed || remove.isPending}>
+            <Button
+              type="submit"
+              variant="destructive-outline"
+              disabled={!confirmed || remove.isPending}
+            >
               {remove.isPending
                 ? t('dangerZone.deleting')
                 : target === 'account'

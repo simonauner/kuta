@@ -3,13 +3,13 @@
     "derived": "Insikter delvis baserade på data från Garmin-enheter.",
     "connect": "Anslut Garmin",
     "disconnect": "Koppla från Garmin",
-    "description": "Nya pass från din Garminklocka hämtas automatiskt. Bara pass som synkas efter anslutningen hämtas. Puls sparas bara med ditt pulssamtycke.",
-    "privateForNow": "Pass från Garmin visas tills vidare bara för dig.",
-    "connected": "Ditt Garminkonto är anslutet. Nya pass hämtas automatiskt.",
+    "description": "Nya aktiviteter från din Garminklocka hämtas automatiskt. Bara aktiviteter som synkas efter anslutningen hämtas. Puls sparas bara med ditt pulssamtycke.",
+    "privateForNow": "Aktiviteter från Garmin visas tills vidare bara för dig.",
+    "connected": "Ditt Garminkonto är anslutet. Nya aktiviteter hämtas automatiskt.",
     "noActivityExport": "Garmin delar inte dina aktiviteter med Kuta. Slå på delning av aktiviteter för Kuta i Garmin Connect.",
     "notAvailable": "Anslutning till Garmin Connect är inte tillgänglig ännu.",
     "disconnectTitle": "Koppla från Garmin?",
-    "disconnectWarning": "Kuta slutar hämta från Garmin och raderar alla pass som hämtats därifrån. Det går inte att ångra.",
+    "disconnectWarning": "Kuta slutar hämta från Garmin och raderar alla aktiviteter som hämtats därifrån. Det går inte att ångra.",
     "result": {
       "connected": "Garmin är anslutet.",
       "declined": "Du godkände inte anslutningen hos Garmin.",
@@ -20,22 +20,24 @@
   },
   "nav": {
     "feed": "Flöde",
-    "activities": "Pass",
+    "activities": "Aktiviteter",
     "stats": "Statistik",
     "profile": "Profil",
-    "main": "Huvudnavigering"
+    "main": "Huvudnavigering",
+    "followRequests_one": ", {{count}} ny följförfrågan",
+    "followRequests_other": ", {{count}} nya följförfrågningar"
   },
   "language": "Språk",
   "slowLoading": "Detta tar ovanligt lång tid...",
   "connectionError": "Kunde inte nå Kuta. Kontrollera anslutningen och ladda om sidan.",
   "feed": {
-    "welcomeTitle": "Dags för ditt första pass",
-    "welcomeDescription": "Lägg till ett pass eller ta med din träningshistorik. Här samlas sedan pass från dig och löpare du följer.",
+    "welcomeTitle": "Dags för din första aktivitet",
+    "welcomeDescription": "Lägg till en aktivitet eller ta med din träningshistorik. Här samlas sedan aktiviteter från dig och löpare du följer.",
     "waitingTitle": "Här börjar ditt flöde",
-    "waitingDescription": "Ingen du följer har delat något pass ännu. Lägg till ett eget pass medan du väntar.",
+    "waitingDescription": "Ingen du följer har delat någon aktivitet ännu. Lägg till en egen aktivitet medan du väntar.",
     "addActivityHelp": "Registrera manuellt eller ladda upp en FIT-fil från din klocka.",
-    "stravaTitle": "Flyttar du från Strava?",
-    "stravaDescription": "Importera ditt arkiv och behåll din träningshistorik.",
+    "stravaTitle": "Ny på Kuta?",
+    "stravaDescription": "Börja med att koppla din Garmin och föra över gamla aktiviteter från Strava.",
     "socialTitle": "Träna tillsammans",
     "socialDescription": "Be en kompis dela sin profillänk för att börja följa dem, eller dela din egen.",
     "copyProfileLink": "Kopiera min profillänk"
@@ -44,30 +46,21 @@
     "views": "Vyer i statistiken",
     "overview": "Översikt",
     "analysis": "Analys",
-    "analysisDescription": "Din form och prognos just nu, utifrån de senaste veckornas pass.",
+    "analysisDescription": "Din form och prognos just nu, utifrån de senaste veckornas aktiviteter.",
     "description": "Följ din träningsmängd, distans, tempo och puls över tid.",
     "allSports": "Alla sporter",
-    "count": "Pass",
+    "count": "Aktiviteter",
     "distanceM": "Distans",
     "durationS": "Träningstid",
     "paceSPerKm": "Snittempo",
     "avgHr": "Snittpuls",
     "monthly": "Månad för månad",
     "month": "Månad",
-    "empty": "Inga pass för vald sport och år.",
+    "empty": "Inga aktiviteter för vald sport och år.",
     "noHeartRate": "Inga sparade pulsdata under perioden.",
     "chartScale": "Skala: 0–{{max}}. Alla värden finns i tabellen nedan.",
-    "method": "Tid inkluderar pauser. Tempo beräknas som total tid per kilometer för pass med distans och tid. Lägre tempo betyder snabbare fart. Snittpuls vägs med passens tid, endast för pass med sparad puls. Saknade värden visas som –. Alla sporter kombinerar även tempo och puls mellan sporter. Månader följer din enhets tidszon.",
-    "onboarding": {
-      "title": "Små steg. Stora framsteg.",
-      "description": "Ditt första pass är starten på din träningshistoria. Lägg till det manuellt eller ladda upp en fil från din klocka – så börjar siffrorna berätta din historia.",
-      "volumeTitle": "Se vad du lägger in",
-      "volumeDescription": "Följ distans och träningstid, månad för månad.",
-      "compareTitle": "Hitta ditt perspektiv",
-      "compareDescription": "Jämför dina träningsår och se hur långt du har kommit.",
-      "recordsTitle": "Upptäck dina rekord",
-      "recordsDescription": "Ladda upp löppass från klockan för att hitta dina snabbaste sträckor."
-    }
+    "method": "Tid inkluderar pauser. Tempo beräknas som total tid per kilometer för aktiviteter med distans och tid. Lägre tempo betyder snabbare fart. Snittpuls vägs med aktiviteternas tid, endast för aktiviteter med sparad puls. Saknade värden visas som –. Alla sporter kombinerar även tempo och puls mellan sporter. Månader följer din enhets tidszon.",
+    "methodLabel": "Så räknas statistiken"
   },
   "yearComparison": {
     "title": "År för år",
@@ -76,26 +69,27 @@
     "metrics": {
       "distanceM": "Distans",
       "durationS": "Träningstid",
-      "count": "Pass"
+      "count": "Aktiviteter"
     },
     "chart": "Ackumulerad {{metric}} per år. Valt år är framhävt.",
     "table": "{{metric}} per år",
     "toDate": "T.o.m. {{date}}",
     "change": "Mot året före",
     "fullYear": "Helår",
-    "empty": "Inga pass för vald sport.",
-    "method": "Diagrammet visar valt år och upp till {{years}} senaste år. Jämförelsen gäller samma månad och dag varje år, och förändringen jämför med året före. Tid inkluderar pauser, och hela passet räknas till dagen det startar i din enhets tidszon."
+    "empty": "Inga aktiviteter för vald sport.",
+    "method": "Diagrammet visar valt år och upp till {{years}} senaste år. Jämförelsen gäller samma månad och dag varje år, och förändringen jämför med året före. Tid inkluderar pauser, och hela aktiviteten räknas till dagen den startar i din enhets tidszon.",
+    "methodLabel": "Så räknas jämförelsen"
   },
   "trainingLoad": {
     "title": "Träningsbelastning",
-    "description": "Kondition, trötthet och form ur dina löppass, beräknat med fart mot ditt tröskeltempo.",
+    "description": "Kondition, trötthet och form ur dina löprundor, beräknat med fart mot ditt tröskeltempo.",
     "threshold": "Tröskeltempo",
     "thresholdManual": "Du har angett tröskeltempot själv.",
     "thresholdPredicted": "Automatiskt {{pace}} /km ur din prognos. Ange ett eget om du vet bättre.",
     "thresholdMissing": "Ingen prognos än. Ange tröskeltempot, eller spring 5 km eller längre med distansdata.",
     "save": "Spara",
     "useAutomatic": "Använd automatiskt",
-    "empty": "Inga löppass att räkna belastning på än.",
+    "empty": "Inga löprundor att räkna belastning på än.",
     "fitness": "Kondition",
     "fatigue": "Trötthet",
     "form": "Form",
@@ -103,21 +97,24 @@
     "dailyLoad": "Daglig belastning",
     "chartScale": "Skala: 0–{{max}}.",
     "chart": "Kondition, trötthet och daglig belastning {{from}}–{{to}}.",
-    "method": "Ett pass i tröskeltempo i en timme ger belastningen 100; belastningen växer med farten i kvadrat. Farten jämnas ut över 30 sekunder och pauser räknas inte. Pass utan fil uppskattas ur snittfarten. Kondition är snittet av daglig belastning över cirka 42 dagar, trötthet över 7 dagar och form skillnaden. Tröskeltempot är farten du orkar hålla i en timme, härlett ur VDOT om du inte angett det själv, och gäller hela historiken. Backar justeras inte än. Bara löpning räknas.",
+    "method": "En timme i tröskeltempo ger belastningen 100, och belastningen växer med farten i kvadrat. Farten jämnas ut över 30 sekunder, pauser räknas inte och backar justeras efter hur mycket energi löpningen kostar i lutningen. Aktiviteter utan fil uppskattas ur snittfarten. Kondition är snittet av daglig belastning över cirka 42 dagar, trötthet över 7 dagar och form skillnaden mellan dem. Bara löpning räknas.",
     "warningTitle": "Belastningen ökar snabbt",
     "warningText": "Konditionen har ökat med {{ramp}} på en vecka. En vanlig tumregel är högst cirka 7 per vecka; en lugnare period minskar risken för överbelastning.",
-    "warningLink": "Se träningsbelastning"
+    "warningLink": "Se träningsbelastning",
+    "methodLabel": "Så räknas träningsbelastningen",
+    "thresholdHelpLabel": "Vad är tröskeltempo?",
+    "thresholdHelp": "Tröskeltempot är det snabbaste tempo du orkar hålla i ungefär en timme. För många ligger det nära tempot på ett lopp mellan 10 km och halvmaraton. Kuta använder det för att räkna hur hård varje löprunda var. Utan eget värde räknas det fram ur din prognos."
   },
   "records": {
     "helpLabel": "Hjälp om löprekord",
-    "help": "Ser något fel ut? Ett pass med felaktiga siffror kan undantas från löprekord genom att redigera passet.",
+    "help": "Ser något fel ut? En aktivitet med felaktiga siffror kan undantas från löprekord genom att redigera aktiviteten.",
     "bestEfforts": "Bästa insatser",
     "title": "Löprekord",
-    "description": "Bästa insatser ur dina löppass med tidsserier från fil. Tid inkluderar pauser.",
-    "empty": "Inga rekord än. Rekord räknas ur löppass som laddats upp från en fil med distansdata.",
+    "description": "Bästa insatser ur dina löprundor med tidsserier från fil. Tid inkluderar pauser.",
+    "empty": "Inga rekord än. Rekord räknas ur löprundor som laddats upp från en fil med distansdata.",
     "distance": "Distans",
     "personalBest": "Personbästa",
-    "activityRecords": "Rekord på passet",
+    "activityRecords": "Rekord i aktiviteten",
     "currentBest": "Nuvarande personbäst",
     "previousBest": "Tidigare personbäst",
     "yearBest": "Bästa {{year}}",
@@ -142,39 +139,27 @@
     "improvement": "Förbättring",
     "predictions": "Prognos",
     "predictionsBasis": "Baserad på {{distance}} på {{time}} den {{date}} (VDOT {{vdot}}).",
-    "showActivity": "Visa passet",
+    "showActivity": "Visa aktiviteten",
     "predictionsEmpty": "Ingen prognos än. Den behöver en insats på 5 km eller längre de senaste 90 dagarna.",
-    "predictionsMethod": "Prognosen använder Jack Daniels och Jimmy Gilberts VDOT-formler och utgår från din starkaste insats på 5 km eller längre de senaste 90 dagarna. Den förutsätter att du tränat för distansen; maraton kräver uthållighet som en kortare insats inte visar. Insatser ur träningspass är ofta långsammare än lopp."
+    "predictionsMethod": "Prognosen utgår från din starkaste insats på 5 km eller längre de senaste 90 dagarna och använder Jack Daniels och Jimmy Gilberts VDOT-formler. VDOT är ett mått på din löpkondition. Prognosen förutsätter att du tränat för distansen; maraton kräver uthållighet som en kortare insats inte visar. Insatser från vanlig träning är ofta långsammare än lopp.",
+    "predictionsMethodLabel": "Så räknas prognosen"
   },
   "activities": {
     "year": "År",
     "allYears": "Alla år",
     "retry": "Försök igen",
-    "loadOlder": "Visa äldre pass",
+    "loadOlder": "Visa äldre aktiviteter",
     "week": "v. {{week}}",
-    "hrSaved": "Pulsdata sparas. Ändra i",
-    "empty": "Inga pass än.",
-    "delete": "Ta bort",
-    "deleteLabel": "Ta bort passet {{date}}",
-    "confirmDelete": "Ta bort passet? Det går inte att ångra.",
-    "hrNotSaved": "Pulsdata sparas inte. Ändra före uppladdning i",
-    "sport": "Träningsform",
-    "allSports": "Alla träningsformer",
-    "noMatches": "Inga pass matchar filtren.",
-    "onboarding": {
-      "title": "Ditt nästa äventyr börjar här.",
-      "description": "En kort runda eller ett långt äventyr? Här samlar du dina pass, minnen och framsteg. Lägg till ditt första pass manuellt eller ladda upp en fil från din klocka.",
-      "historyTitle": "Samla dina pass",
-      "historyDescription": "Spara rundor, anteckningar och taggar i din träningsdagbok.",
-      "importTitle": "Ta med din historik",
-      "importDescription": "Importera ditt Strava-arkiv eller ladda upp FIT-filer från klockan.",
-      "equipmentTitle": "Följ dina skor",
-      "equipmentDescription": "Koppla skor till passen och se hur långt de har hängt med."
-    }
+    "empty": "Inga aktiviteter än.",
+    "delete": "Radera",
+    "confirmDelete": "Radera aktiviteten?",
+    "sport": "Sport",
+    "allSports": "Alla sporter",
+    "noMatches": "Inga aktiviteter matchar filtren.",
+    "deleteWarning": "Aktiviteten, dess mätserier, rekord och originalfil raderas. Det går inte att ångra."
   },
   "newActivity": {
-    "title": "Skapa ny aktivitet",
-    "upload": "Ladda upp fil",
+    "title": "Ny aktivitet",
     "file": "FIT-fil från din klocka",
     "overwrite": "Filen ersätter det du fyllt i: {{fields}}.",
     "useFile": "Fyll i från filen",
@@ -255,14 +240,33 @@
     "lockedFrom": "Mätvärdena kommer från filen ({{device}}).",
     "save": "Spara",
     "saving": "Sparar …",
-    "description": "Beskrivning (valfritt)"
+    "description": "Beskrivning (valfritt)",
+    "hrSaved": "Puls sparas från filen. Ändra i <settings>Inställningar</settings>.",
+    "dropTitle": "Ladda upp från klockan",
+    "dropHelp": "Dra hit en eller flera FIT-filer, eller välj filer. En fil fyller i formuläret nedan, flera sparas direkt.",
+    "chooseFiles": "Välj filer",
+    "manualTitle": "Eller fyll i manuellt",
+    "detailsTitle": "Detaljer",
+    "overwriteTitle": "Ersätta det du fyllt i?",
+    "bulkTitle_one": "Laddar upp {{count}} fil",
+    "bulkTitle_other": "Laddar upp {{count}} filer",
+    "bulkDone": "Klart: {{saved}} sparade, {{duplicates}} redan uppladdade, {{failed}} misslyckades.",
+    "bulkLimit": "Högst {{max}} filer åt gången. De första {{max}} laddas upp.",
+    "showActivities": "Visa aktiviteter",
+    "uploadMore": "Ladda upp fler",
+    "bulk": {
+      "waiting": "Väntar",
+      "uploading": "Laddar upp …",
+      "saved": "Sparad",
+      "duplicate": "Redan uppladdad"
+    }
   },
   "activity": {
     "excludeFromRecords": "Undanta från löprekord",
-    "excludeFromRecordsHint": "Hela passet undantas från personbästa, årsrekord, rekordutveckling och prognoser. Det räknas fortfarande i träningsstatistik och mål. Du kan ångra valet senare.",
-    "excludedFromRecords": "Det här passet är undantaget från löprekord och prognoser.",
-    "back": "Alla pass",
-    "notFound": "Passet finns inte.",
+    "excludeFromRecordsHint": "Hela aktiviteten undantas från personbästa, årsrekord, rekordutveckling och prognoser. Den räknas fortfarande i träningsstatistik och mål. Du kan ångra valet senare.",
+    "excludedFromRecords": "Den här aktiviteten är undantagen från löprekord och prognoser.",
+    "back": "Alla aktiviteter",
+    "notFound": "Aktiviteten finns inte.",
     "distance": "Distans",
     "time": "Tid",
     "pace": "Tempo",
@@ -291,14 +295,14 @@
       "laps": "Varv"
     },
     "map": "Karta över rutten",
-    "noRoute": "Passet har ingen GPS-rutt.",
+    "noRoute": "Aktiviteten har ingen GPS-rutt.",
     "defaultTitle": "{{sport}} {{timeOfDay}}",
     "sport": {
       "running": "Löpning",
       "cycling": "Cykling",
       "walking": "Promenad",
       "hiking": "Vandring",
-      "other": "Pass",
+      "other": "Aktivitet",
       "swimming": "Simning",
       "triathlon": "Triathlon",
       "swimrun": "Swimrun",
@@ -315,12 +319,17 @@
     "speed": "Hastighet",
     "edit": "Redigera aktivitet",
     "save": "Spara ändringar",
-    "cancel": "Avbryt"
+    "cancel": "Avbryt",
+    "noRecordsWithoutFile": "Rekord räknas bara ur löprundor som laddats upp från en fil med distansdata.",
+    "backToRunner": "Tillbaka till profilen",
+    "delete": "Radera aktivitet"
   },
   "consent": {
-    "title": "Spara puls från mina pass.",
-    "description": "Puls är hälsodata. Utan ditt samtycke sparar Kuta passen utan puls och behåller inte originalfilen. Stänger du av det raderas all sparad puls.",
-    "revoke": "All puls som redan sparats från dina pass raderas. Fortsätta?"
+    "title": "Spara puls från mina aktiviteter.",
+    "description": "Puls är hälsodata. Utan ditt samtycke sparar Kuta aktiviteterna utan puls och behåller inte originalfilen. Stänger du av det raderas all sparad puls.",
+    "revoke": "All puls som redan sparats från dina aktiviteter raderas. Det går inte att ångra.",
+    "revokeTitle": "Sluta spara puls?",
+    "revokeConfirm": "Radera sparad puls"
   },
   "auth": {
     "checkEmail": "Kolla din e-post",
@@ -352,7 +361,11 @@
     "confirmSent": "Kolla din e-post och klicka på länken för att aktivera kontot.",
     "recoverySent": "Om adressen har ett konto får du ett mejl med en länk för att återställa lösenordet.",
     "acceptTerms": "Jag godkänner <terms>användarvillkoren</terms> och <privacy>integritetspolicyn</privacy>.",
-    "turnstileNotice": "Vi kontrollerar med Cloudflare Turnstile att du är en människa. Läs mer i <privacy>integritetspolicyn</privacy>."
+    "turnstileNotice": "Vi kontrollerar med Cloudflare Turnstile att du är en människa. Läs mer i <privacy>integritetspolicyn</privacy>.",
+    "checkSpam": "Hittar du inget mejl? Titta i skräpposten.",
+    "resend": "Skicka mejlet igen",
+    "resendIn": "Skicka igen om {{seconds}} s",
+    "resent": "Ett nytt mejl är skickat."
   },
   "errors": {
     "invalidActivityYear": "Ange ett år mellan 1 och 9998.",
@@ -379,11 +392,11 @@
     "nameRequired": "Välj ett namn först.",
     "fileRequired": "Välj en FIT-fil att ladda upp.",
     "fileTooLarge": "Filen är för stor (högst 20 MB).",
-    "duplicateActivity": "Det här passet är redan uppladdat.",
+    "duplicateActivity": "Den här aktiviteten är redan uppladdad.",
     "invalidRecordYear": "Ange ett år mellan 1 och 9998.",
     "invalidRecordDistance": "Välj en av rekorddistanserna.",
     "invalidThresholdSpeed": "Ange ett tröskeltempo mellan 1:40 och 60:00 per km.",
-    "invalidFit": "Filen kunde inte läsas som ett pass från en FIT-fil.",
+    "invalidFit": "Filen kunde inte läsas som en aktivitet från en FIT-fil.",
     "invalidTitle": "Titeln får vara högst 100 tecken.",
     "invalidActivity": "Kontrollera sport, datum, tid och distans.",
     "passwordTooShort": "Använd minst 8 tecken i lösenordet.",
@@ -396,11 +409,11 @@
     "invalidEquipmentInput": "Kontrollera namn, typ och tidigare användning.",
     "invalidActivityParts": "Kontrollera sporter och gränser. Delarna måste täcka hela inspelningen utan luckor eller överlapp.",
     "invalidDescription": "Beskrivningen får vara högst 10 000 tecken.",
-    "stravaImportInterrupted": "Importen avbröts innan den blev klar. Redan sparade pass finns kvar. Ladda upp samma fil igen; dubbletter hoppas över.",
+    "stravaImportInterrupted": "Importen avbröts innan den blev klar. Redan sparade aktiviteter finns kvar. Ladda upp samma fil igen; dubbletter hoppas över.",
     "invalidPrivacyPlace": "Ange ett namn, en giltig kartpunkt och en radie mellan 50 och 5 000 meter.",
     "invalidPrivacy": "Välj giltig synlighet.",
     "invalidGoal": "Kontrollera sport, typ, period och mål.",
-    "invalidSportGroup": "Välj en giltig träningsform.",
+    "invalidSportGroup": "Välj en giltig sport.",
     "importInProgress": "En import pågår redan. Vänta tills den är klar.",
     "importBusy": "Många importer pågår just nu. Försök igen om en stund.",
     "uploadTooSlow": "Uppladdningen gick för långsamt eller avbröts. Försök igen.",
@@ -425,15 +438,15 @@
     "health": "Hälsodata",
     "strava": "Importera från Strava",
     "stravaFile": "Strava-export (ZIP)",
-    "import": "Importera pass",
+    "import": "Importera aktiviteter",
     "importing": "Importerar …",
     "importWait": "Importen körs på servern. Du kan lämna sidan och komma tillbaka; förloppet visas här.",
-    "importHelp": "Välj hela ZIP-exporten, högst 500 MB. Skor importeras först och kopplas till passen för rätt distans och tid per sko. Namn, sammanfattningar och tillgängliga mätserier importeras. Puls sparas enligt ditt val ovan. Efter ett avbrott kan du köra importen igen; dubbletter hoppas över. Dina importerade pass finns under Pass.",
+    "importHelp": "Välj hela ZIP-exporten från Strava, högst 500 MB. Dubbletter hoppas över, så importen går att köra igen.",
     "importResult": "Importerade: {{imported}}. Dubbletter: {{duplicates}}. Misslyckade: {{failed}}.",
-    "importEquipmentResult": "Skor importerade: {{imported}}. Tidigare pass kompletterade med skor: {{linked}}.",
-    "failedImports": "Strava-ID för pass som inte kunde importeras",
+    "importEquipmentResult": "Skor importerade: {{imported}}. Tidigare aktiviteter kompletterade med skor: {{linked}}.",
+    "failedImports": "Strava-ID för aktiviteter som inte kunde importeras",
     "exportTitle": "Exportera data",
-    "exportHelp": "Ladda ner en ZIP med dina pass som JSON, inklusive mätserier, varv, taggar och utrustning, samt din profil och dina rekord. Sparade originalfiler följer med. Manuella pass saknar originalfil, och filer som inte sparats eller har raderats när pulssamtycket återkallats kan inte exporteras. Dina dolda platser ingår också.",
+    "exportHelp": "Ladda ner en ZIP med alla dina aktiviteter, din profil, dina rekord och dolda platser.",
     "export": "Ladda ner ZIP",
     "exporting": "Förbereder export …",
     "exportWait": "Det kan ta flera minuter. Låt sidan vara öppen tills nedladdningen börjar.",
@@ -441,33 +454,40 @@
     "logout": "Logga ut",
     "followers": "Följare",
     "importUploading": "Laddar upp …",
-    "recalculateTitle": "Räkna om pass",
-    "recalculateHelp": "Räknar om rekord och träningsbelastning för alla dina pass med tidsserier, till exempel efter att beräkningarna förbättrats. Passen och deras mätvärden ändras inte. Det körs på servern och du kan lämna sidan.",
-    "recalculate": "Räkna om alla pass",
+    "recalculateTitle": "Räkna om aktiviteter",
+    "recalculateHelp": "Räknar om rekord och träningsbelastning för alla aktiviteter, till exempel när beräkningarna har förbättrats. Aktiviteterna ändras inte.",
+    "recalculate": "Räkna om alla aktiviteter",
     "recalculating": "Räknar om …",
-    "recalculated_one": "{{count}} pass omräknat.",
-    "recalculated_other": "{{count}} pass omräknade.",
-    "garmin": "Garmin Connect"
+    "recalculated_one": "{{count}} aktivitet omräknad.",
+    "recalculated_other": "{{count}} aktiviteter omräknade.",
+    "garmin": "Garmin Connect",
+    "exportDetailsLabel": "Vad ingår i exporten?",
+    "exportDetails": "Aktiviteterna sparas som JSON med mätserier, varv, taggar och utrustning, och sparade originalfiler följer med. Manuella aktiviteter saknar originalfil, och filer som inte sparats eller raderats när pulssamtycket återkallades kan inte exporteras.",
+    "importDetailsLabel": "Vad importeras?",
+    "importDetails": "Namn, beskrivningar, sammanfattningar och tillgängliga mätserier importeras. Skor importeras först och kopplas till aktiviteterna, så att distans och tid per sko stämmer. Puls sparas bara med ditt pulssamtycke. Foton, kontakter och privata anteckningar importeras inte.",
+    "importTitle": "Import och anslutningar",
+    "importIntro": "Hämta nya aktiviteter automatiskt från din Garminklocka och ta med din historik från Strava.",
+    "importLink": "Koppla Garmin eller importera från Strava"
   },
   "jobs": {
     "queued": "I kö. Jobbet startar strax.",
-    "progress": "Bearbetat {{processed}} av {{total}} pass"
+    "progress": "Bearbetat {{processed}} av {{total}} aktiviteter"
   },
   "dangerZone": {
-    "title": "Danger zone",
-    "description": "Radera alla dina pass och börja om. Ditt konto och dina inställningar finns kvar.",
-    "delete": "Radera alla pass",
+    "title": "Radera data",
+    "description": "Radera alla dina aktiviteter och börja om. Ditt konto och dina inställningar finns kvar.",
+    "delete": "Radera alla aktiviteter",
     "confirmTitle": "Vill du verkligen radera alla aktiviteter?",
-    "warning": "Alla dina pass, rekord, pulsdata och originalfiler raderas permanent. Det går inte att ångra.",
+    "warning": "Alla dina aktiviteter, rekord, pulsdata och originalfiler raderas permanent. Det går inte att ångra.",
     "confirmLabel": "Skriv {{word}} för att bekräfta.",
     "cancel": "Avbryt",
     "deleting": "Raderar …",
-    "success": "Alla dina pass har raderats.",
+    "success": "Alla dina aktiviteter har raderats.",
     "accountDescription": "Radera ditt konto och alla uppgifter som sparats i Kuta.",
     "deleteAccount": "Radera konto",
     "accountConfirmTitle": "Vill du verkligen radera ditt konto?",
     "passwordLabel": "Ditt lösenord",
-    "accountWarning": "Ditt konto, din profil, din utrustning, alla pass, rekord, pulsdata och originalfiler raderas permanent. Du loggas ut på alla enheter. Det går inte att ångra.",
+    "accountWarning": "Ditt konto, din profil, din utrustning, alla aktiviteter, rekord, pulsdata och originalfiler raderas permanent. Du loggas ut på alla enheter. Det går inte att ångra.",
     "words": [
       "FARTLEK",
       "INTERVALL",
@@ -492,15 +512,15 @@
   "tags": {
     "label": "Taggar",
     "save": "Spara taggar",
-    "all": "Alla pass",
-    "empty": "Inga pass med den här taggen."
+    "all": "Alla aktiviteter",
+    "empty": "Inga aktiviteter med den här taggen."
   },
   "equipment": {
     "activeHeading": "Aktiva",
     "retiredHeading": "Pensionerade",
     "actionsLabel": "Åtgärder för {{name}}",
     "title": "Utrustning",
-    "description": "Total distans och tid från kopplade pass, inklusive tidigare användning. Tiden räknas inklusive pauser.",
+    "description": "Total distans och tid från kopplade aktiviteter, inklusive tidigare användning. Tiden räknas inklusive pauser.",
     "empty": "Du har ingen utrustning än.",
     "edit": "Redigera utrustning",
     "add": "Lägg till utrustning",
@@ -512,7 +532,7 @@
     "kind": "Typ",
     "initialDistance": "Tidigare distans (km)",
     "initialDuration": "Tidigare tid (h:mm:ss)",
-    "initialHint": "Har utrustningen använts tidigare? Ange användning som inte redan finns i dina Kuta-pass. Lämna tomt för ny utrustning.",
+    "initialHint": "Har utrustningen använts tidigare? Ange användning som inte redan finns i dina aktiviteter i Kuta. Lämna tomt för ny utrustning.",
     "distance": "Total distans",
     "duration": "Total tid (h:mm:ss)",
     "retired": "Pensionerad",
@@ -538,7 +558,7 @@
     "delete": "Radera",
     "deleteLabel": "Radera {{name}}",
     "confirmDelete": "Radera {{name}}?",
-    "deleteWarning": "Skon raderas permanent och kopplas bort från alla dina pass. Passen behålls. Det går inte att ångra.",
+    "deleteWarning": "Skon raderas permanent och kopplas bort från alla dina aktiviteter. Aktiviteterna behålls. Det går inte att ångra.",
     "cancel": "Avbryt",
     "deleting": "Raderar …",
     "createNew": "Skapa ny",
@@ -550,12 +570,12 @@
     "title": "Sportdelar",
     "split": "Dela upp i sporter",
     "edit": "Ändra uppdelning",
-    "kind": "Typ av pass",
-    "instructions": "Ange sportbyten i sekunder från passets start. Klicka på en del för att granska karta och diagram nedanför. Originalets mätpunkter sparas, och uppdelningen går att återställa.",
-    "whole": "Hela passet",
+    "kind": "Typ av aktivitet",
+    "instructions": "Dra i reglaget eller skriv tiden från start (h:mm:ss) där sporten byts. Avståndet vid bytet visas under, och kartan och diagrammen nedanför visar vald del. Originalets mätpunkter sparas, och uppdelningen går att återställa.",
+    "whole": "Hela aktiviteten",
     "partSport": "Sport för del {{number}}",
-    "boundary": "Slut på del {{number}} (sekunder)",
-    "useEquipment": "Räkna användning för passets valda utrustning",
+    "boundary": "Byte efter del {{number}} (tid från start)",
+    "useEquipment": "Räkna användning för aktivitetens valda utrustning",
     "addBoundary": "Dela här",
     "removeBoundary": "Slå ihop med föregående",
     "save": "Spara uppdelning",
@@ -563,18 +583,19 @@
     "restore": "Återställ importerad version",
     "selected": "Visar del {{number}}: {{sport}}",
     "distanceBySport": "Distans per sport",
-    "confirmRestore": "Återställa kommer ta bort uppdelningen. Vill du fortsätta?",
-    "restoreConfirm": "Återställ"
+    "confirmRestore": "Uppdelningen tas bort och aktiviteten får tillbaka delarna från importen.",
+    "restoreConfirm": "Återställ",
+    "atDistance": "Vid {{km}} km från start"
   },
   "privacyPlaces": {
     "title": "Dolda platser",
-    "help": "Dölj ruttdelar nära exempelvis hemmet och jobbet, även för äldre pass. Du ser alltid hela rutten. Delade kartminiatyrer respekterar dessa platser.",
+    "help": "Dölj ruttdelar nära exempelvis hemmet och jobbet, även för äldre aktiviteter. Du ser alltid hela rutten. Delade kartminiatyrer respekterar dessa platser.",
     "add": "Lägg till plats",
     "edit": "Redigera plats",
-    "delete": "Ta bort",
+    "delete": "Radera",
     "editNamed": "Redigera {{name}}",
-    "deleteNamed": "Ta bort {{name}}",
-    "deleteHelp": "Området döljs inte längre för andra, även för äldre pass. Övriga dolda platser och skyddet runt start och mål behålls.",
+    "deleteNamed": "Radera {{name}}",
+    "deleteHelp": "Området döljs inte längre för andra, även för äldre aktiviteter. Övriga dolda platser och skyddet runt start och mål behålls.",
     "empty": "Inga dolda platser. Lägg till en plats för att skydda rutter i närheten.",
     "name": "Namn",
     "namePlaceholder": "Hem eller arbetsplats",
@@ -589,7 +610,7 @@
     "save": "Spara plats",
     "saving": "Sparar…",
     "cancel": "Avbryt",
-    "deleting": "Tar bort…",
+    "deleting": "Raderar…",
     "loading": "Laddar platser…",
     "loadingMap": "Laddar karta…",
     "mapUnavailable": "Kartan kunde inte laddas. Du kan fortfarande ange koordinater nedan.",
@@ -601,19 +622,21 @@
     "locationUnsupported": "Platsåtkomst är inte tillgänglig i den här webbläsaren. Välj en punkt på kartan."
   },
   "activityPrivacy": {
-    "title": "Passens synlighet",
-    "default": "Standardsynlighet för nya pass",
-    "help": "Sparas automatiskt. Gäller nya manuella pass, FIT-uppladdningar och Strava-importer. Befintliga pass behåller sin synlighet tills du tillämpar valet på alla.",
-    "applyAll": "Tillämpa på alla pass",
-    "allMatch": "Alla dina pass har den valda synligheten.",
-    "confirm_one": "Ändra {{count}} pass till ”{{visibility}}”? Passets eget synlighetsval ersätts och sparas inte, så du får ändra tillbaka det på passet.",
-    "confirm_other": "Ändra {{count}} pass till ”{{visibility}}”? Deras individuella synlighetsval ersätts och sparas inte, så om passen har olika synlighet får du ändra tillbaka dem ett i taget.",
+    "title": "Aktiviteternas synlighet",
+    "default": "Standardsynlighet för nya aktiviteter",
+    "help": "Sparas automatiskt och gäller nya aktiviteter. Befintliga aktiviteter behåller sin synlighet tills du tillämpar valet på alla.",
+    "applyAll": "Tillämpa på alla aktiviteter",
     "applying": "Tillämpar…",
-    "applied": "Alla dina pass har nu denna synlighet.",
+    "applied": "Alla dina aktiviteter har nu denna synlighet.",
     "saved": "Standardsynligheten har sparats.",
-    "newNote": "Passet får synligheten <strong>{{visibility}}</strong>.",
-    "importNote": "Importerade pass får synligheten <strong>{{visibility}}</strong>, oavsett hur de var delade på Strava. Du ändrar standarden under Passens synlighet.",
-    "changeDefault": "Ändra standard"
+    "publicProfile": "Visa min profil för besökare utan konto.",
+    "publicProfileHelp": "Den som har din profillänk ser då ditt namn och aktiviteter som är synliga för alla, utan att logga in. Puls, fullständig rutt, utrustning och mål visas aldrig.",
+    "confirm_one": "Ändra {{count}} aktivitet till ”{{visibility}}”? Aktivitetens eget synlighetsval ersätts och sparas inte, så du får ändra tillbaka det på aktiviteten.",
+    "confirm_other": "Ändra {{count}} aktiviteter till ”{{visibility}}”? Deras individuella synlighetsval ersätts och sparas inte, så om aktiviteterna har olika synlighet får du ändra tillbaka dem en i taget.",
+    "newNote": "Aktiviteten får synligheten <strong>{{visibility}}</strong>.",
+    "importNote": "Importerade aktiviteter får synligheten <strong>{{visibility}}</strong>, oavsett hur de var delade på Strava. Du ändrar standarden under Aktiviteternas synlighet.",
+    "changeDefault": "Ändra standard",
+    "allMatch": "Alla dina aktiviteter har den valda synligheten."
   },
   "social": {
     "follow": "Be att få följa",
@@ -626,7 +649,7 @@
     "block": "Blockera",
     "unblock": "Häv blockering",
     "blocked": "Blockerade",
-    "blockedHint": "Blockerade kan inte be om att följa dig eller se något du delar, inte heller publika pass. De får inte veta att de är blockerade.",
+    "blockedHint": "Blockerade kan inte be om att följa dig eller se något du delar, inte heller publika aktiviteter. De får inte veta att de är blockerade.",
     "similarName": "Du har redan en kontakt som heter {{name}}. Kontrollera att det är rätt person innan du godkänner.",
     "previousName": "Hette tidigare {{name}}",
     "joined": "Gick med {{date}}",
@@ -641,21 +664,24 @@
     "followersVisibility": "Godkända följare",
     "public": "Alla med ett Kuta-konto",
     "publicHint": "Vem som helst kan skapa ett konto, så i praktiken kan alla som har länken se det.",
-    "noHiddenPlaces": "Du har inga dolda platser. Kartminiatyrerna döljer 500 m runt start och mål, men pass som börjar hemma kan ändå visa ungefär var du bor.",
+    "noHiddenPlaces": "Du har inga dolda platser, så aktiviteter som börjar hemma kan ändå visa ungefär var du bor.",
     "addHiddenPlace": "Lägg till Hem som dold plats",
-    "sharingHint": "Delade pass visar titel, beskrivning och träningsdata. Kartminiatyrer döljer minst 500 m runt start och mål. Puls, fullständig GPS-rutt och utrustning visas bara för dig.",
-    "sharedDetail": "Delat av {{name}}. Puls, fullständig GPS-rutt och utrustning visas bara för ägaren. Flödet kan visa en kartminiatyr med dold start och mål.",
-    "noActivities": "Inga pass att visa.",
+    "sharingHint": "Delade aktiviteter visar titel, beskrivning och träningsdata. Kartminiatyrer döljer minst 500 m runt start och mål. Puls, fullständig GPS-rutt och utrustning visas bara för dig.",
+    "sharedDetail": "Delat av {{name}}. Puls, fullständig GPS-rutt och utrustning visas bara för ägaren.",
+    "noActivities": "Inga aktiviteter att visa.",
     "runnerNotFound": "Löparen hittades inte.",
     "shareProfile": "Dela profil",
     "profileLinkCopied": "Profillänken är kopierad.",
     "profileLinkCopyFailed": "Kunde inte kopiera länken. Du kan kopiera den från fältet nedan.",
     "profileLink": "Profillänk",
     "profileLinksHint": "För att följa någon öppnar du personens delade profillänk. Din egen länk kopierar du från din profil.",
+    "requestsTitle_one": "{{name}} vill följa dig",
+    "requestsTitle_other": "{{count}} personer vill följa dig",
+    "manageFollowers": "Hantera följare",
     "profileLinkHint": "Dela profil kopierar en kort länk till din profil. Skapar du en ny länk slutar den gamla att fungera.",
     "newProfileLink": "Skapa ny länk",
     "newProfileLinkCreating": "Skapar …",
-    "newProfileLinkConfirm": "Den gamla länken slutar fungera, även där du redan har delat den. Den som redan hittat din profil, till exempel via flödet eller sin följarlista, kommer fortfarande åt den. Blockering och passens synlighet styr fortfarande vad andra ser.",
+    "newProfileLinkConfirm": "Den gamla länken slutar fungera, även där du redan har delat den. Den som redan hittat din profil, till exempel via flödet eller sin följarlista, kommer fortfarande åt den. Blockering och aktiviteternas synlighet styr fortfarande vad andra ser.",
     "newProfileLinkDone": "En ny länk är skapad. Kopiera den med Dela profil.",
     "profileLinkInvalid": "Länken gäller inte längre. Be om en ny profillänk."
   },
@@ -668,12 +694,12 @@
     "metrics": {
       "distance": "Distans",
       "duration": "Tid",
-      "count": "Antal pass"
+      "count": "Antal aktiviteter"
     },
     "targetLabel": {
       "distance": "Mål (km)",
       "duration": "Mål (minuter)",
-      "count": "Mål (pass)"
+      "count": "Mål (aktiviteter)"
     },
     "period": "Period",
     "periods": {
@@ -703,8 +729,8 @@
       "month": "{{amount}} i {{month}}",
       "year": "{{amount}} {{year}}"
     },
-    "sessions_one": "{{count}} pass",
-    "sessions_other": "{{count}} pass",
+    "sessions_one": "{{count}} aktivitet",
+    "sessions_other": "{{count}} aktiviteter",
     "progress": "{{value}} av {{target}}",
     "daysLeft_one": "{{count}} dag kvar",
     "daysLeft_other": "{{count}} dagar kvar",
@@ -727,14 +753,14 @@
     "save": "Spara mål",
     "saving": "Sparar…",
     "cancel": "Avbryt",
-    "delete": "Ta bort mål",
-    "confirmDelete": "Ta bort målet? Det går inte att ångra.",
-    "deleteConfirmed": "Ta bort",
-    "deleting": "Tar bort…",
+    "delete": "Radera mål",
+    "confirmDelete": "Radera målet? Det går inte att ångra.",
+    "deleteConfirmed": "Radera",
+    "deleting": "Raderar…",
     "includes": "Räknar {{sports}}.",
     "visibility": "Synlighet",
     "visibilityHelp": "Synliga mål visas med förlopp på din profil.",
-    "visibilityRevealsActivities": "Förloppet räknar alla dina pass, även pass som de som ser målet inte får se. De kan då se när du gör ett sådant pass och ungefär hur långt eller länge det var."
+    "visibilityRevealsActivities": "Förloppet räknar alla dina aktiviteter, även aktiviteter som de som ser målet inte får se. De kan då se när du gör en sådan aktivitet och ungefär hur långt eller länge den var."
   },
   "sportGroups": {
     "running": "Löpning",
@@ -745,59 +771,8 @@
     "paddling": "Paddling",
     "rowing": "Rodd"
   },
-  "profile": {
-    "onboarding": {
-      "title": "Din träningshistoria börjar med ett pass.",
-      "description": "Här får dina pass en plats, från första rundan till nästa milstolpe. Lägg till ett pass och börja bygga din egen träningshistoria. Du väljer själv vilka pass du delar.",
-      "identityTitle": "Din plats på Kuta",
-      "identityDescription": "Dina pass och synliga mål samlas här på din profil.",
-      "connectionsTitle": "Hitta varandra",
-      "connectionsDescription": "Dela din profillänk eller be en vän om deras för att börja följa varandra.",
-      "privacyTitle": "Du väljer vad du delar",
-      "privacyDescription": "Bestäm för varje pass och mål om bara du, dina följare eller alla på Kuta får se det."
-    },
-    "calendar": {
-      "title": "Senaste året",
-      "activeDays_one": "{{count}} aktiv dag",
-      "activeDays_other": "{{count}} aktiva dagar",
-      "streak_one": "{{count}} vecka i rad",
-      "streak_other": "{{count}} veckor i rad",
-      "longest_one": "längsta svit {{count}} vecka",
-      "longest_other": "längsta svit {{count}} veckor",
-      "summary_one": "Aktivitetskalender: {{count}} dag med pass det senaste året",
-      "summary_other": "Aktivitetskalender: {{count}} dagar med pass det senaste året",
-      "day_one": "{{count}} pass, {{distance}} km",
-      "day_other": "{{count}} pass, {{distance}} km"
-    },
-    "stats": {
-      "memberSince": "På Kuta sedan {{date}}",
-      "thisYear": "I år",
-      "allTime": "Totalt",
-      "sessions_one": "{{count}} pass",
-      "sessions_other": "{{count}} pass",
-      "topSports": "Vanligaste sporter",
-      "followers_one": "{{count}} följare",
-      "followers_other": "{{count}} följare",
-      "following_one": "följer {{count}}",
-      "following_other": "följer {{count}}"
-    },
-    "records": {
-      "title": "Personbästa"
-    },
-    "viewAs": {
-      "label": "Visa som",
-      "me": "Jag",
-      "followers": "Godkänd följare",
-      "public": "Någon med ett Kuta-konto",
-      "followersHint": "Så här ser dina godkända följare din profil. Privata pass och mål visas inte, och kartorna döljer start, mål och dina dolda platser.",
-      "publicHint": "Så här ser alla med ett Kuta-konto och länken profilen. Bara det du delar med alla visas, och kartorna döljer start, mål och dina dolda platser."
-    },
-    "latestActivities": "Senaste passen",
-    "allActivities": "Alla pass"
-  },
   "onboarding": {
-    "eyebrow": "Här börjar din utveckling",
-    "addActivity": "Lägg till ett pass"
+    "addActivity": "Lägg till en aktivitet"
   },
   "supporter": {
     "title": "Supporter",
@@ -831,13 +806,78 @@
     "manageNotice": "Betalningar är inte aktiverade än, så supporterskapet går inte att ändra eller avsluta här ännu. Det gäller till och med {{until}}."
   },
   "unreviewed": {
-    "title_other": "{{count}} nya pass från Garmin",
+    "title_other": "{{count}} nya aktiviteter från Garmin",
     "text": "Garmin skickar bara aktivitetsnamnet. Lägg till titel, beskrivning och utrustning om du vill.",
     "edit": "Redigera senaste",
     "dismiss": "Markera som granskade",
     "label": "Ny",
-    "titleSingle": "Nytt pass från Garmin: {{title}}",
+    "titleSingle": "Ny aktivitet från Garmin: {{title}}",
     "editSingle": "Redigera",
     "dismissSingle": "Ok, då vet jag"
+  },
+  "common": {
+    "cancel": "Avbryt",
+    "back": "Tillbaka"
+  },
+  "emptyState": {
+    "activities": {
+      "title": "Inga aktiviteter än",
+      "description": "Dina aktiviteter samlas här, med anteckningar, taggar och skor."
+    },
+    "stats": {
+      "title": "Ingen statistik än",
+      "description": "Statistik, rekord och träningsbelastning räknas fram ur dina aktiviteter."
+    },
+    "profile": {
+      "title": "Din profil är tom än",
+      "description": "Dina aktiviteter och synliga mål visas här. Du väljer själv vad andra får se."
+    }
+  },
+  "visitor": {
+    "closedTitle": "Logga in för att se mer",
+    "closed": {
+      "runner": "Den här profilen visas bara för inloggade. Skapa ett konto eller logga in för att se den och be att få följa.",
+      "activity": "Den här aktiviteten visas bara för inloggade. Skapa ett konto eller logga in för att se den."
+    }
+  },
+  "profile": {
+    "calendar": {
+      "title": "Senaste året",
+      "activeDays_one": "{{count}} aktiv dag",
+      "activeDays_other": "{{count}} aktiva dagar",
+      "streak_one": "{{count}} vecka i rad",
+      "streak_other": "{{count}} veckor i rad",
+      "longest_one": "längsta svit {{count}} vecka",
+      "longest_other": "längsta svit {{count}} veckor",
+      "summary_one": "Aktivitetskalender: {{count}} dag med aktiviteter det senaste året",
+      "summary_other": "Aktivitetskalender: {{count}} dagar med aktiviteter det senaste året",
+      "day_one": "{{count}} aktivitet, {{distance}} km",
+      "day_other": "{{count}} aktiviteter, {{distance}} km"
+    },
+    "stats": {
+      "memberSince": "På Kuta sedan {{date}}",
+      "thisYear": "I år",
+      "allTime": "Totalt",
+      "sessions_one": "{{count}} aktivitet",
+      "sessions_other": "{{count}} aktiviteter",
+      "topSports": "Vanligaste sporter",
+      "followers_one": "{{count}} följare",
+      "followers_other": "{{count}} följare",
+      "following_one": "följer {{count}}",
+      "following_other": "följer {{count}}"
+    },
+    "records": {
+      "title": "Personbästa"
+    },
+    "viewAs": {
+      "label": "Visa som",
+      "me": "Jag",
+      "followers": "Godkänd följare",
+      "public": "Någon med ett Kuta-konto",
+      "followersHint": "Så här ser dina godkända följare din profil. Privata aktiviteter och mål visas inte, och kartorna döljer start, mål och dina dolda platser.",
+      "publicHint": "Så här ser alla med ett Kuta-konto och länken profilen. Bara det du delar med alla visas, och kartorna döljer start, mål och dina dolda platser."
+    },
+    "latestActivities": "Senaste aktiviteterna",
+    "allActivities": "Alla aktiviteter"
   }
 }

@@ -13,8 +13,9 @@ import { Input } from '@/components/ui/input'
 import { meQuery } from '@/lib/auth'
 import { ApiError, api } from '@/lib/api'
 import { activityQuery, refreshActivityQueries } from '@/lib/activity-query'
-import { SharingHints } from '@/components/privacy-places'
+import { VisibilityField } from '@/components/activity-visibility'
 import { activityTitle, type ActivityDetail } from '@/lib/activity'
+import { Heading } from '@/components/ui/heading'
 
 export function EditActivityPage() {
   const { activityId } = useParams({ from: '/app/activities/$activityId/edit' })
@@ -72,7 +73,7 @@ function EditActivityForm({ activity }: { activity: ActivityDetail }) {
   })
   return (
     <section>
-      <h1 className="text-2xl font-semibold tracking-tight">{t('activity.edit')}</h1>
+      <Heading level={1}>{t('activity.edit')}</Heading>
       <p className="mt-2 text-sm text-muted-foreground">{activityTitle(activity, t)}</p>
       <form
         className="mt-6 space-y-6"
@@ -106,27 +107,7 @@ function EditActivityForm({ activity }: { activity: ActivityDetail }) {
             />
           )}
         </FormField>
-        <FormField label={t('social.visibility')} className="text-sm font-medium">
-          {(id) => (
-            <>
-              <select
-                id={id}
-                className="block w-full rounded-md border bg-background px-3 py-2"
-                value={privacy}
-                disabled={save.isPending}
-                onChange={(event) => setPrivacy(event.target.value as ActivityDetail['privacy'])}
-              >
-                <option value="private">{t('social.private')}</option>
-                <option value="followers">{t('social.followersVisibility')}</option>
-                <option value="public">{t('social.public')}</option>
-              </select>
-              <span className="mt-2 block text-xs font-normal text-muted-foreground">
-                {t('social.sharingHint')}
-              </span>
-              <SharingHints privacy={privacy} />
-            </>
-          )}
-        </FormField>
+        <VisibilityField value={privacy} onChange={setPrivacy} disabled={save.isPending} />
         {activity.streams && (
           <div className="space-y-2">
             <FormField label={t('activity.excludeFromRecords')} layout="choice">
@@ -166,11 +147,11 @@ function EditActivityForm({ activity }: { activity: ActivityDetail }) {
             {save.isPending ? t('newActivity.saving') : t('activity.save')}
           </Button>
           {save.isPending ? (
-            <Button type="button" variant="outline" disabled>
+            <Button type="button" variant="secondary-outline" disabled>
               {t('activity.cancel')}
             </Button>
           ) : (
-            <Button asChild variant="outline">
+            <Button asChild variant="secondary-outline">
               <Link {...destination}>{t('activity.cancel')}</Link>
             </Button>
           )}

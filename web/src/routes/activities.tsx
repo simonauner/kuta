@@ -3,7 +3,7 @@ import { SportIcon } from '@/components/sport-icon'
 import { sports } from '@/lib/sports'
 import { UnreviewedActivities } from '@/components/unreviewed-activities'
 import { TagLabels } from '@/components/activity-tags'
-import { activityTagsQuery, activityYearsQuery, refreshActivityQueries } from '@/lib/activity-query'
+import { activityTagsQuery, activityYearsQuery } from '@/lib/activity-query'
 import { ErrorMessage } from '@/components/error-message'
 import { ActivitiesEmptyState } from '@/components/activities-empty-state'
 import { SlowLoading } from '@/components/slow-loading'
@@ -14,7 +14,7 @@ import { useState } from 'react'
 import { motion, useReducedMotion } from 'motion/react'
 import { Reveal } from '@/components/reveal'
 import { useTranslation } from 'react-i18next'
-import { useInfiniteQuery, useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
+import { useInfiniteQuery, useQuery } from '@tanstack/react-query'
 import { getRouteApi, Link } from '@tanstack/react-router'
 import { Button } from '@/components/ui/button'
 import { api } from '@/lib/api'
@@ -27,6 +27,8 @@ import {
   type ActivityCursor,
   type ActivityPage,
 } from '@/lib/activity'
+import { Select } from '@/components/ui/select'
+import { Heading } from '@/components/ui/heading'
 
 const route = getRouteApi('/app/activities')
 
@@ -43,7 +45,6 @@ export function ActivitiesPage() {
     minimumFractionDigits: 2,
     maximumFractionDigits: 2,
   })
-  const queryClient = useQueryClient()
   const reduceMotion = useReducedMotion()
   const tagOptions = useQuery(activityTagsQuery)
   const timeZone = Intl.DateTimeFormat().resolvedOptions().timeZone
@@ -77,17 +78,12 @@ export function ActivitiesPage() {
   // null = closed, 'new' = new goal, otherwise the goal being edited
   const [goalForm, setGoalForm] = useState<Goal | 'new' | null>(null)
 
-  const remove = useMutation({
-    mutationFn: (id: string) => api.send('DELETE', `/api/activities/${id}`),
-    onSuccess: () => refreshActivityQueries(queryClient),
-  })
-
   return (
     <section>
       <div className="flex items-center justify-between gap-4">
-        <h1 className="text-2xl font-semibold tracking-tight">{t('nav.activities')}</h1>
+        <Heading level={1}>{t('nav.activities')}</Heading>
         <div className="flex flex-wrap justify-end gap-2">
-          <Button size="sm" variant="outline" onClick={() => setGoalForm('new')}>
+          <Button size="sm" variant="secondary-outline" onClick={() => setGoalForm('new')}>
             {t('goals.new')}
           </Button>
           {!showOnboarding && (
@@ -113,9 +109,9 @@ export function ActivitiesPage() {
         <Reveal>
           <FormField layout="inline" label={t('activities.year')} className="mt-6">
             {(id) => (
-              <select
+              <Select
                 id={id}
-                className="w-32 rounded-md border bg-background px-3 py-2 text-sm text-foreground"
+                className="w-32"
                 value={year ?? ''}
                 onChange={(e) =>
                   void navigate({
@@ -136,7 +132,7 @@ export function ActivitiesPage() {
                     {value}
                   </option>
                 ))}
-              </select>
+              </Select>
             )}
           </FormField>
         </Reveal>
@@ -145,7 +141,7 @@ export function ActivitiesPage() {
         <div role="alert" className="mt-4 text-sm text-destructive">
           <ErrorMessage error={years.error} />{' '}
           <Button
-            variant="outline"
+            variant="secondary-outline"
             size="sm"
             disabled={years.isFetching}
             onClick={() => void years.refetch()}
@@ -158,9 +154,9 @@ export function ActivitiesPage() {
         <>
           <FormField layout="inline" label={t('tags.label')} className="mt-5 text-sm">
             {(id) => (
-              <select
+              <Select
                 id={id}
-                className="w-44 rounded-md border bg-background px-3 py-2"
+                className="w-44"
                 value={tag ?? ''}
                 onChange={(e) =>
                   void navigate({
@@ -174,14 +170,14 @@ export function ActivitiesPage() {
                     {t(`tagNames.${value}`)}
                   </option>
                 ))}
-              </select>
+              </Select>
             )}
           </FormField>
           <FormField layout="inline" label={t('activities.sport')} className="mt-5 text-sm">
             {(id) => (
-              <select
+              <Select
                 id={id}
-                className="w-52 rounded-md border bg-background px-3 py-2"
+                className="w-52"
                 value={sport ?? ''}
                 onChange={(e) =>
                   void navigate({
@@ -195,15 +191,10 @@ export function ActivitiesPage() {
                     {t(`newActivity.sports.${value}`)}
                   </option>
                 ))}
-              </select>
+              </Select>
             )}
           </FormField>
         </>
-      )}
-      {remove.error && (
-        <p role="alert" className="mt-4 text-sm text-destructive">
-          <ErrorMessage error={remove.error} />
-        </p>
       )}
 
       <SlowLoading loading={activities.isPending}>
@@ -225,21 +216,25 @@ export function ActivitiesPage() {
           {groupActivities(items).map((period) => (
             <div key={period.activities[0].id}>
               {period.year !== null && (
-                <h2 className="mb-4 text-xl font-semibold tracking-tight">{period.year}</h2>
+                <Heading level={2} className="mb-4">
+                  {period.year}
+                </Heading>
               )}
               {period.month !== null && (
-                <h3 className="mb-3 text-lg font-medium">{monthFormat.format(period.month)}</h3>
+                <Heading level={3} className="mb-3">
+                  {monthFormat.format(period.month)}
+                </Heading>
               )}
               {period.week !== null && (
-                <h4 className="text-sm font-medium text-muted-foreground">
+                <Heading level={4} className="text-muted-foreground">
                   {t('activities.week', { week: period.week })}
-                </h4>
+                </Heading>
               )}
               <ul className="divide-y">
                 {period.activities.map((a) => (
                   <motion.li
                     key={a.id}
-                    className="flex items-start justify-between gap-4 py-4"
+                    className="py-4"
                     initial={reduceMotion ? false : { opacity: 0, y: 8 }}
                     animate={{ opacity: 1, y: 0 }}
                     transition={{ duration: 0.2, ease: 'easeOut' }}
@@ -249,7 +244,7 @@ export function ActivitiesPage() {
                         to="/app/activities/$activityId"
                         params={{ activityId: a.id }}
                         search={{ year, tag, sport }}
-                        className="inline-flex items-center gap-2 font-medium underline-offset-2 hover:underline"
+                        className="inline-flex items-center gap-2 font-medium underline-offset-2 underline"
                       >
                         <span
                           className="inline-block"
@@ -280,20 +275,6 @@ export function ActivitiesPage() {
                       </p>
                       <TagLabels tags={a.tags} />
                     </div>
-                    <Button
-                      variant="ghost"
-                      size="sm"
-                      className="text-muted-foreground"
-                      disabled={remove.isPending}
-                      aria-label={t('activities.deleteLabel', {
-                        date: dateFormat.format(new Date(a.startedAt)),
-                      })}
-                      onClick={() => {
-                        if (window.confirm(t('activities.confirmDelete'))) remove.mutate(a.id)
-                      }}
-                    >
-                      {t('activities.delete')}
-                    </Button>
                   </motion.li>
                 ))}
               </ul>
@@ -303,7 +284,7 @@ export function ActivitiesPage() {
         <SlowLoading loading={activities.isFetchingNextPage}>
           {(activities.hasNextPage || (activities.isError && !activities.data)) && (
             <Button
-              variant="outline"
+              variant="secondary-outline"
               className="mt-6"
               disabled={activities.isFetching}
               onClick={() => {

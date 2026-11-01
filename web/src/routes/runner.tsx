@@ -11,6 +11,9 @@ import { Button } from '@/components/ui/button'
 import { ApiError, api } from '@/lib/api'
 import { ProfilePage } from '@/routes/profile'
 import { meQuery, type SupporterTier } from '@/lib/auth'
+import { Heading } from '@/components/ui/heading'
+import { VisitorNotice } from '@/components/visitor-notice'
+import { useVisitor } from '@/lib/visitor'
 
 type Runner = {
   id: string
@@ -25,9 +28,11 @@ export function RunnerPage() {
   const { t } = useTranslation()
   const queryClient = useQueryClient()
   const { data: me } = useQuery(meQuery)
+  const visitor = me === null
+  const signIn = useVisitor()?.signIn
   const runner = useQuery({
-    queryKey: ['runner', runnerId],
-    queryFn: () => api.get<Runner>(`/api/runners/${runnerId}`),
+    queryKey: ['runner', runnerId, visitor],
+    queryFn: () => api.get<Runner>(`/api/${visitor ? 'public/' : ''}runners/${runnerId}`),
     retry: (count, error) => !(error instanceof ApiError && error.status === 404) && count < 1,
   })
   const follow = useMutation({
@@ -42,11 +47,15 @@ export function RunnerPage() {
     },
   })
   if (me?.id === runnerId) return <ProfilePage />
+  if (visitor && runner.error instanceof ApiError && runner.error.status === 404)
+    return <VisitorNotice kind="runner" />
   return (
     <section className="space-y-6">
-      <Link to="/app" className="text-sm text-muted-foreground underline-offset-2 hover:underline">
-        ← {t('nav.feed')}
-      </Link>
+      {!visitor && (
+        <Link to="/app" className="text-sm text-muted-foreground underline-offset-2 underline">
+          ← {t('nav.feed')}
+        </Link>
+      )}
       <SlowLoading loading={runner.isPending}>
         {runner.error && (
           <div role="alert">
@@ -55,7 +64,7 @@ export function RunnerPage() {
             ) : (
               <>
                 <ErrorMessage error={runner.error} />
-                <Button variant="outline" onClick={() => void runner.refetch()}>
+                <Button variant="secondary-outline" onClick={() => void runner.refetch()}>
                   {t('activities.retry')}
                 </Button>
               </>
@@ -65,10 +74,10 @@ export function RunnerPage() {
         {runner.data && !runner.isError && (
           <>
             <div className="flex flex-wrap items-center justify-between gap-3">
-              <h1 className="flex min-w-0 items-center gap-2 break-words text-2xl font-semibold tracking-tight">
+              <Heading level={1} className="flex min-w-0 items-center gap-2 break-words">
                 {runner.data.displayName}
                 <SupporterBadge tier={runner.data.supporterTier} />
-              </h1>
+              </Heading>
               {runner.data.previousName && (
                 <p className="basis-full text-metadata text-muted-foreground">
                   {t('social.previousName', { name: runner.data.previousName })}
@@ -80,9 +89,10 @@ export function RunnerPage() {
                     <span className="text-sm text-muted-foreground">{t('social.pending')}</span>
                   )}
                   <Button
-                    variant="outline"
+                    variant="secondary-outline"
                     disabled={follow.isPending}
-                    onClick={() => follow.mutate()}
+                    // A visitor first needs an account; the profile link stays open meanwhile
+                    onClick={() => (visitor ? signIn?.('signup') : follow.mutate())}
                   >
                     {t(
                       runner.data.status === 'accepted'
@@ -100,12 +110,17 @@ export function RunnerPage() {
                 <ErrorMessage error={follow.error} />
               </p>
             )}
-            <ProfileStats runnerId={runnerId} />
-            <ActivityCalendar runnerId={runnerId} />
-            <RecordShelf runnerId={runnerId} />
-            <GoalList key={`goals-${runnerId}`} runnerId={runnerId} />
-            <h2 className="text-lg font-semibold">{t('nav.activities')}</h2>
-            <ActivityFeed key={runnerId} runnerId={runnerId} />
+            {/* A visitor without an account only sees the public activities */}
+            {!visitor && (
+              <>
+                <ProfileStats runnerId={runnerId} />
+                <ActivityCalendar runnerId={runnerId} />
+                <RecordShelf runnerId={runnerId} />
+                <GoalList key={`goals-${runnerId}`} runnerId={runnerId} />
+              </>
+            )}
+            <Heading level={2}>{t('nav.activities')}</Heading>
+            <ActivityFeed key={runnerId} runnerId={runnerId} visitor={visitor} />
           </>
         )}
       </SlowLoading>

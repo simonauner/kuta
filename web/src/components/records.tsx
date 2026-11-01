@@ -2,7 +2,7 @@ import { FormField } from '@/components/ui/form-field'
 import { Heading } from '@/components/ui/heading'
 import { useState } from 'react'
 import { useQuery } from '@tanstack/react-query'
-import { Link } from '@tanstack/react-router'
+import { Link, useRouterState } from '@tanstack/react-router'
 import { useTranslation } from 'react-i18next'
 import { HelpPopover } from '@/components/help-popover'
 import { ErrorMessage } from '@/components/error-message'
@@ -19,15 +19,15 @@ import {
   type RecordTrend,
   type StoredBestEffort,
 } from '@/lib/records'
-
-const selectClass = 'rounded-md border bg-background px-3 py-2 text-sm text-foreground'
+import { Card } from '@/components/ui/card'
+import { Select } from '@/components/ui/select'
 
 function QueryError({ error, retry }: { error: Error; retry: () => void }) {
   const { t } = useTranslation()
   return (
     <p role="alert" className="mt-4 text-sm text-destructive">
       <ErrorMessage error={error} />{' '}
-      <Button variant="outline" size="sm" onClick={retry}>
+      <Button variant="secondary-outline" size="sm" onClick={retry}>
         {t('activities.retry')}
       </Button>
     </p>
@@ -35,11 +35,13 @@ function QueryError({ error, retry }: { error: Error; retry: () => void }) {
 }
 
 function EffortLink({ effort }: { effort: { activityId: string; elapsedS: number } }) {
+  const returnTo = useRouterState({ select: (s) => s.location.href })
   return (
     <Link
       to="/app/activities/$activityId"
       params={{ activityId: effort.activityId }}
-      className="font-medium underline-offset-2 hover:underline"
+      search={{ returnTo }}
+      className="font-medium underline-offset-2 underline"
     >
       {formatDuration(effort.elapsedS)}
     </Link>
@@ -136,7 +138,7 @@ export function RecordsSection({ year }: { year: number }) {
           </div>
         ))}
 
-      <div className="mt-6 rounded-xl border bg-card p-4">
+      <Card className="mt-6">
         <Heading level={3} className="mb-3">
           {t('records.trend')}
         </Heading>
@@ -146,9 +148,9 @@ export function RecordsSection({ year }: { year: number }) {
           className="justify-between text-sm font-medium"
         >
           {(id) => (
-            <select
+            <Select
               id={id}
-              className={selectClass}
+              className="w-fit"
               value={distance}
               onChange={(e) => setDistance(Number(e.target.value) as RecordDistance)}
             >
@@ -157,7 +159,7 @@ export function RecordsSection({ year }: { year: number }) {
                   {distanceLabel(d)}
                 </option>
               ))}
-            </select>
+            </Select>
           )}
         </FormField>
         {trend.error && <QueryError error={trend.error} retry={() => void trend.refetch()} />}
@@ -166,7 +168,7 @@ export function RecordsSection({ year }: { year: number }) {
             <RecordTrendView trend={trend.data} distanceLabel={distanceLabel(distance)} />
           </div>
         )}
-      </div>
+      </Card>
     </section>
   )
 }
@@ -174,6 +176,7 @@ export function RecordsSection({ year }: { year: number }) {
 // Race prediction (VDOT) from the strongest recent effort.
 export function PredictionsSection() {
   const { t, i18n } = useTranslation()
+  const returnTo = useRouterState({ select: (s) => s.location.href })
   const date = new Intl.DateTimeFormat(i18n.resolvedLanguage, { dateStyle: 'medium' })
   const distanceLabel = (d: number) => t(`records.distances.${d as RecordDistance}`)
   const predictions = useQuery({
@@ -183,10 +186,15 @@ export function PredictionsSection() {
 
   return (
     <section className="mt-10" aria-labelledby="predictions-title">
-      <Heading level={2} id="predictions-title">
-        {t('records.predictions')}
-      </Heading>
-      <div className="mt-4 rounded-xl border bg-card p-4">
+      <div className="flex items-center justify-between gap-4">
+        <Heading level={2} id="predictions-title">
+          {t('records.predictions')}
+        </Heading>
+        <HelpPopover label={t('records.predictionsMethodLabel')}>
+          {t('records.predictionsMethod')}
+        </HelpPopover>
+      </div>
+      <Card className="mt-4">
         {predictions.error && (
           <QueryError error={predictions.error} retry={() => void predictions.refetch()} />
         )}
@@ -208,6 +216,7 @@ export function PredictionsSection() {
                   <Link
                     to="/app/activities/$activityId"
                     params={{ activityId: predictions.data.basis.activityId }}
+                    search={{ returnTo }}
                     className="underline underline-offset-2"
                   >
                     {t('records.showActivity')}
@@ -215,7 +224,7 @@ export function PredictionsSection() {
                 </p>
                 <dl className="mt-4 grid grid-cols-2 gap-3 sm:grid-cols-3">
                   {predictions.data.predictions.map((p) => (
-                    <div key={p.distanceM} className="rounded-lg border p-3">
+                    <Card key={p.distanceM} padding="compact">
                       <dt className="text-xs text-muted-foreground">
                         {distanceLabel(p.distanceM)}
                       </dt>
@@ -225,23 +234,21 @@ export function PredictionsSection() {
                       <dd className="text-xs text-muted-foreground tabular-nums">
                         {formatPace(p.elapsedS, recordMeters(p.distanceM))}
                       </dd>
-                    </div>
+                    </Card>
                   ))}
                 </dl>
-                <p className="mt-4 text-metadata leading-relaxed text-muted-foreground">
-                  {t('records.predictionsMethod')}
-                </p>
               </>
             )}
           </div>
         )}
-      </div>
+      </Card>
     </section>
   )
 }
 
 function RecordTrendView({ trend, distanceLabel }: { trend: RecordTrend; distanceLabel: string }) {
   const { t, i18n } = useTranslation()
+  const returnTo = useRouterState({ select: (s) => s.location.href })
   const date = new Intl.DateTimeFormat(i18n.resolvedLanguage, { dateStyle: 'medium' })
   const width = 600
   const height = 200
@@ -348,7 +355,8 @@ function RecordTrendView({ trend, distanceLabel }: { trend: RecordTrend; distanc
                       <Link
                         to="/app/activities/$activityId"
                         params={{ activityId: effort.activityId }}
-                        className="underline-offset-2 hover:underline"
+                        search={{ returnTo }}
+                        className="underline-offset-2 underline"
                       >
                         {date.format(new Date(effort.achievedAt))}
                       </Link>

@@ -8,14 +8,15 @@ const buttonVariants = cva(
   {
     variants: {
       variant: {
-        default: 'bg-primary text-primary-foreground hover:bg-primary/90',
-        destructive:
-          'bg-destructive text-white hover:bg-destructive/90 focus-visible:ring-destructive/20 dark:bg-destructive/60 dark:focus-visible:ring-destructive/40',
-        outline:
+        'primary-filled': 'bg-primary text-primary-foreground hover:bg-primary/90',
+        'secondary-filled': 'bg-secondary text-secondary-foreground hover:bg-secondary/80',
+        'secondary-outline':
           'border bg-background shadow-xs hover:bg-accent hover:text-accent-foreground dark:border-input dark:bg-input/30 dark:hover:bg-input/50',
-        secondary: 'bg-secondary text-secondary-foreground hover:bg-secondary/80',
         ghost: 'hover:bg-accent hover:text-accent-foreground dark:hover:bg-accent/50',
-        link: 'text-primary underline-offset-4 hover:underline',
+        'destructive-outline':
+          'border border-destructive/50 bg-background text-destructive shadow-xs hover:bg-destructive/10 focus-visible:ring-destructive/20 dark:bg-input/30 dark:hover:bg-destructive/20',
+        // Text only: no padding or height, always underlined so it reads as a link
+        link: 'h-auto p-0 text-left whitespace-normal text-primary underline underline-offset-4 hover:text-primary/80',
       },
       size: {
         default: 'h-9 px-4 py-2 has-[>svg]:px-3',
@@ -29,15 +30,16 @@ const buttonVariants = cva(
       },
     },
     defaultVariants: {
-      variant: 'default',
+      variant: 'primary-filled',
       size: 'default',
     },
   },
 )
 
+// className is for layout only (margins, width, placement); appearance comes from the variants.
 function Button({
   className,
-  variant = 'default',
+  variant = 'primary-filled',
   size = 'default',
   asChild = false,
   ...props
@@ -52,7 +54,7 @@ function Button({
       data-slot="button"
       data-variant={variant}
       data-size={size}
-      className={cn(buttonVariants({ variant, size, className }))}
+      className={cn(buttonVariants({ variant, size: variant === 'link' ? null : size, className }))}
       {...props}
     />
   )

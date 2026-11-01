@@ -35,6 +35,51 @@ public static class SocialEndpoints
         case when u.display_name_changed_at > now() - interval '30 days' then u.previous_display_name end as previous_name
         """;
 
+    // Visitors without an account, via a shared link: only runners who turned on public_profile, and only activities
+    // that are public. Guid.Empty is no user, so CanRead allows exactly the public activities and every route is masked.
+    public static void MapPublic(this RouteGroupBuilder api)
+    {
+        var open = api.MapGroup("/public").RequireRateLimiting("public");
+        open.MapGet("/runners/{id:guid}", async (Guid id, NpgsqlDataSource db) =>
+        {
+            await using var conn = await db.OpenConnectionAsync();
+            var runner = await conn.QuerySingleOrDefaultAsync<Runner>($"""
+                select u.id, u.display_name, 'none' as status, {Supporters.VisibleTier} as supporter_tier,
+                    null::timestamptz as joined_at, null::text as similar_to, {PreviousName}
+                from users u where u.id = @id and u.public_profile
+                """, new { id, userId = Guid.Empty });
+            return runner is null ? Results.NotFound() : Results.Ok(runner);
+        });
+        open.MapGet("/runners/{id:guid}/activities", async (Guid id, NpgsqlDataSource db,
+            DateTimeOffset? beforeStartedAt, Guid? beforeId) =>
+        {
+            if (beforeStartedAt.HasValue != beforeId.HasValue)
+                return Results.BadRequest(new ApiError("Sidmarkören är ogiltig. Ladda om sidan.", "invalidActivityPage"));
+            await using var conn = await db.OpenConnectionAsync();
+            if (!await IsPublicAsync(conn, id)) return Results.NotFound();
+            return Results.Ok(await ReadFeedAsync(conn, Guid.Empty, beforeStartedAt, beforeId, id));
+        });
+        open.MapGet("/activities/{id:guid}", async (Guid id, NpgsqlDataSource db, CancellationToken cancellationToken) =>
+        {
+            await using var conn = await db.OpenConnectionAsync(cancellationToken);
+            var detail = await ActivityEndpoints.ReadDetailAsync(conn, Guid.Empty, id, cancellationToken);
+            return detail is not null && await IsPublicAsync(conn, detail.UserId) ? Results.Ok(detail) : Results.NotFound();
+        });
+
+        // A short profile link opened without an account. Only finds the runner; the endpoints above still answer 404
+        // unless the profile is public. Limited per IP like the rest of the group (codes are too many to guess).
+        open.MapGet("/share-codes/{code}", async (string code, NpgsqlDataSource db) =>
+        {
+            await using var conn = await db.OpenConnectionAsync();
+            var runnerId = await conn.ExecuteScalarAsync<Guid?>("select id from users where share_code = @code",
+                new { code = code.ToLowerInvariant() });
+            return runnerId is { } id ? Results.Ok(new SharedRunner(id)) : Results.NotFound();
+        });
+
+        static Task<bool> IsPublicAsync(NpgsqlConnection conn, Guid userId) =>
+            conn.ExecuteScalarAsync<bool>("select exists(select 1 from users where id = @userId and public_profile)", new { userId });
+    }
+
     public static void MapSocial(this RouteGroupBuilder api)
     {
         var social = api.MapGroup("").RequireAuthorization();
