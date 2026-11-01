@@ -47,3 +47,18 @@ jobs:
           flyctl deploy --config fly.toml --app kuta --remote-only --ha=false
         env:
           FLY_API_TOKEN: ${{ secrets.FLY_API_TOKEN }}
+      # When flyctl replaces a machine instead of updating it, it can leave the old one behind,
+      # and the proxy starts it again with the previous release.
+      - name: Remove machines left on older releases
+        if: steps.latest.outputs.deploy == 'true'
+        run: |
+          stale=$(flyctl machines list --app kuta --json | jq -r '
+            [.[] | select(.config.metadata.fly_process_group == "app")]
+            | (map(.config.metadata.fly_release_version | tonumber) | max) as $latest
+            | .[] | select((.config.metadata.fly_release_version | tonumber) < $latest) | .id')
+          for id in $stale; do
+            echo "Destroying machine $id from an older release."
+            flyctl machine destroy "$id" --app kuta --force
+          done
+        env:
+          FLY_API_TOKEN: ${{ secrets.FLY_API_TOKEN }}
