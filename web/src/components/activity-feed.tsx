@@ -30,17 +30,20 @@ type FeedPage = { items: FeedItem[]; nextCursor: ActivityCursor | null }
 
 export function ActivityFeed({
   runnerId,
+  viewAs,
   emptyState,
 }: {
   runnerId?: string
+  viewAs?: 'followers' | 'public'
   emptyState?: ReactNode
 }) {
   const { t, i18n } = useTranslation()
   const feed = useInfiniteQuery({
-    queryKey: runnerId ? ['feed', runnerId] : ['feed'],
+    queryKey: runnerId ? ['feed', runnerId, ...(viewAs ? [viewAs] : [])] : ['feed'],
     initialPageParam: null as ActivityCursor | null,
     queryFn: ({ pageParam }) => {
       const params = new URLSearchParams()
+      if (viewAs) params.set('viewAs', viewAs)
       if (pageParam) {
         params.set('beforeStartedAt', pageParam.startedAt)
         params.set('beforeId', pageParam.id)

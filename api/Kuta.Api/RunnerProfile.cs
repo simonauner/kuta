@@ -15,7 +15,7 @@ public static class RunnerProfile
 {
     public static void MapRunnerProfile(this RouteGroupBuilder api)
     {
-        api.MapGet("/runners/{id:guid}/summary", async (Guid id, string? timeZone, NpgsqlDataSource db, ClaimsPrincipal user,
+        api.MapGet("/runners/{id:guid}/summary", async (Guid id, string? timeZone, string? viewAs, NpgsqlDataSource db, ClaimsPrincipal user,
             CancellationToken ct) =>
         {
             timeZone ??= "UTC";
@@ -25,8 +25,27 @@ public static class RunnerProfile
             if (!await conn.ExecuteScalarAsync<bool>(new CommandDefinition(
                     "select exists(select 1 from users where id = @id)", new { id }, cancellationToken: ct)))
                 return Results.NotFound();
-            return Results.Ok(await ReadAsync(conn, user.GetUserId(), id, timeZone, ct));
+            var (viewer, error) = await ViewerAsync(conn, user.GetUserId(), id, viewAs, ct);
+            return error ?? Results.Ok(await ReadAsync(conn, viewer, id, timeZone, ct));
         }).RequireAuthorization();
+    }
+
+    // Who a profile request reads as. viewAs lets the owner preview their own profile as a signed-in stranger ("public")
+    // or as an approved follower ("followers"); the preview viewer is no real user, so nothing counts as their own. The
+    // follower case marks the owner as followed in a transaction that ends with the connection, or with tx when given.
+    public static async Task<(Guid Viewer, IResult? Error)> ViewerAsync(NpgsqlConnection conn, Guid userId, Guid runnerId,
+        string? viewAs, CancellationToken ct, NpgsqlTransaction? tx = null)
+    {
+        if (viewAs is null) return (userId, null);
+        if (runnerId != userId || viewAs is not ("followers" or "public"))
+            return (default, Results.BadRequest(new ApiError("Förhandsvisningen gäller bara din egen profil.", "invalidViewAs")));
+        if (viewAs == "followers")
+        {
+            tx ??= await conn.BeginTransactionAsync(ct);
+            await conn.ExecuteAsync(new CommandDefinition("select set_config('kuta.preview_follower_of', @runnerId::text, true)",
+                new { runnerId }, tx, cancellationToken: ct));
+        }
+        return (Guid.Empty, null);
     }
 
     public static async Task<RunnerSummary> ReadAsync(NpgsqlConnection conn, Guid userId, Guid runnerId, string timeZone,

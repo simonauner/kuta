@@ -401,7 +401,8 @@
     "jobFailed": "Jobbet misslyckades. Försök igen senare.",
     "jobCancelled": "Jobbet avbröts.",
     "termsRequired": "Godkänn användarvillkoren och integritetspolicyn för att skapa ett konto.",
-    "garminUnavailable": "Garmin Connect är inte tillgängligt just nu."
+    "garminUnavailable": "Garmin Connect är inte tillgängligt just nu.",
+    "invalidViewAs": "Förhandsvisningen gäller bara din egen profil."
   },
   "home": "Kuta – startsida",
   "footer": {
@@ -763,6 +764,14 @@
     },
     "records": {
       "title": "Personbästa"
+    },
+    "viewAs": {
+      "label": "Visa som",
+      "me": "Jag",
+      "followers": "Godkänd följare",
+      "public": "Någon med ett Kuta-konto",
+      "followersHint": "Så här ser dina godkända följare din profil. Privata pass och mål visas inte, och kartorna döljer start, mål och dina dolda platser.",
+      "publicHint": "Så här ser alla med ett Kuta-konto och länken profilen. Bara det du delar med alla visas, och kartorna döljer start, mål och dina dolda platser."
     }
   },
   "onboarding": {

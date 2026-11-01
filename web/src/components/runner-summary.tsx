@@ -25,21 +25,24 @@ type RunnerSummary = {
 
 const levelClass = ['bg-muted', 'bg-primary/25', 'bg-primary/50', 'bg-primary/75', 'bg-primary']
 
-export function runnerSummaryQuery(runnerId: string) {
+// The owner's preview of their profile as others see it.
+export type ViewAs = 'followers' | 'public'
+type ProfileProps = { runnerId: string; viewAs?: ViewAs }
+
+export function runnerSummaryQuery(runnerId: string, viewAs?: ViewAs) {
   const timeZone = Intl.DateTimeFormat().resolvedOptions().timeZone
+  const params = new URLSearchParams({ timeZone })
+  if (viewAs) params.set('viewAs', viewAs)
   return {
-    queryKey: ['runner', runnerId, 'summary', timeZone],
-    queryFn: () =>
-      api.get<RunnerSummary>(
-        `/api/runners/${runnerId}/summary?${new URLSearchParams({ timeZone })}`,
-      ),
+    queryKey: ['runner', runnerId, 'summary', timeZone, viewAs],
+    queryFn: () => api.get<RunnerSummary>(`/api/runners/${runnerId}/summary?${params}`),
   }
 }
 
 // Member since, distance, sessions and time this year and in total, and the most common sports.
-export function ProfileStats({ runnerId }: { runnerId: string }) {
+export function ProfileStats({ runnerId, viewAs }: ProfileProps) {
   const { t, i18n } = useTranslation()
-  const { data } = useQuery(runnerSummaryQuery(runnerId))
+  const { data } = useQuery(runnerSummaryQuery(runnerId, viewAs))
   const { data: me } = useQuery(meQuery)
   if (!data) return null
   const follows = `${t('profile.stats.followers', { count: data.followerCount })} · ${t('profile.stats.following', { count: data.followingCount })}`
@@ -73,7 +76,7 @@ export function ProfileStats({ runnerId }: { runnerId: string }) {
     <div className="space-y-3">
       <p className="text-metadata text-muted-foreground">
         {t('profile.stats.memberSince', { date: since.format(new Date(data.joinedAt)) })} ·{' '}
-        {me?.id === runnerId ? (
+        {me?.id === runnerId && !viewAs ? (
           <Link to="/app/settings/followers" className="underline-offset-2 hover:underline">
             {follows}
           </Link>
@@ -104,9 +107,9 @@ export function ProfileStats({ runnerId }: { runnerId: string }) {
 }
 
 // Personal bests as a row of cards, each linking to the activity it was set in.
-export function RecordShelf({ runnerId }: { runnerId: string }) {
+export function RecordShelf({ runnerId, viewAs }: ProfileProps) {
   const { t, i18n } = useTranslation()
-  const { data } = useQuery(runnerSummaryQuery(runnerId))
+  const { data } = useQuery(runnerSummaryQuery(runnerId, viewAs))
   if (!data?.records.length) return null
   const date = new Intl.DateTimeFormat(i18n.resolvedLanguage, { dateStyle: 'medium' })
   return (
@@ -142,9 +145,9 @@ export function RecordShelf({ runnerId }: { runnerId: string }) {
 }
 
 // A year of activity, one square per day, coloured by distance.
-export function ActivityCalendar({ runnerId }: { runnerId: string }) {
+export function ActivityCalendar({ runnerId, viewAs }: ProfileProps) {
   const { t, i18n } = useTranslation()
-  const summary = useQuery(runnerSummaryQuery(runnerId))
+  const summary = useQuery(runnerSummaryQuery(runnerId, viewAs))
   if (summary.error)
     return (
       <p role="alert" className="text-sm text-destructive">
