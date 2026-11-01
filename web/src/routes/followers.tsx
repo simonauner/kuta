@@ -24,6 +24,8 @@ type Runner = {
   supporterTier: SupporterTier | null
   // Only for incoming requests: names are free, so the account's age helps spot impersonation.
   joinedAt: string | null
+  // Only for incoming requests: the name of an existing contact that this name looks like.
+  similarTo: string | null
 }
 
 export function FollowersPage() {
@@ -68,6 +70,11 @@ export function FollowersPage() {
           </span>
         )}
       </span>
+      {runner.similarTo && (
+        <p role="status" className="basis-full text-metadata text-destructive">
+          {t('social.similarName', { name: runner.similarTo })}
+        </p>
+      )}
       <div className="flex flex-wrap gap-2">
         {runner.status === 'pending' && (
           <span className="self-center text-xs text-muted-foreground">{t('social.pending')}</span>

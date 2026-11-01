@@ -626,6 +626,7 @@
     "unblock": "Häv blockering",
     "blocked": "Blockerade",
     "blockedHint": "Blockerade kan inte be om att följa dig eller se något du delar, inte heller publika pass. De får inte veta att de är blockerade.",
+    "similarName": "Du har redan en kontakt som heter {{name}}. Kontrollera att det är rätt person innan du godkänner.",
     "joined": "Gick med {{date}}",
     "requestHint": "Godkänn bara personer du känner igen. Namn kan väljas fritt, så någon kan utge sig för att vara någon annan – ett nyss skapat konto är ett varningstecken.",
     "followers": "Följare och förfrågningar",

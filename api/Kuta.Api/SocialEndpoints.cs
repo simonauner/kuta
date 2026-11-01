@@ -2,8 +2,9 @@ using System.Security.Claims;
 using Dapper;
 using Npgsql;
 
-// JoinedAt is shown only for someone asking to follow: names are free, so account age helps against impersonation.
-public record Runner(Guid Id, string DisplayName, string Status, string? SupporterTier, DateTime? JoinedAt);
+// JoinedAt and SimilarTo are shown only for someone asking to follow: names are free, so account age and a warning about
+// a look-alike of an existing contact's name help against impersonation.
+public record Runner(Guid Id, string DisplayName, string Status, string? SupporterTier, DateTime? JoinedAt, string? SimilarTo);
 public record FollowLists(IEnumerable<Runner> Following, IEnumerable<Runner> Followers, IEnumerable<Runner> Blocked);
 public record FeedItem(Guid Id, Guid UserId, string DisplayName, string Sport, string? Title,
     DateTime StartedAt, int DurationS, double DistanceM, string Privacy, string? RouteGeoJson, string? SupporterTier,
@@ -41,7 +42,7 @@ public static class SocialEndpoints
             var runner = await conn.QuerySingleOrDefaultAsync<Runner>($"""
                 select u.id, u.display_name, case when f.follower_id is null then 'none'
                     when f.accepted_at is null then 'pending' else 'accepted' end as status,
-                    {Supporters.VisibleTier} as supporter_tier, null::timestamptz as joined_at
+                    {Supporters.VisibleTier} as supporter_tier, null::timestamptz as joined_at, null::text as similar_to
                 from users u left join follows f on f.following_id = u.id and f.follower_id = @userId
                 where u.id = @id
                 """, new { id, userId });
@@ -64,24 +65,31 @@ public static class SocialEndpoints
             var userId = user.GetUserId();
             var following = await conn.QueryAsync<Runner>($"""
                 select u.id, u.display_name, case when f.accepted_at is null then 'pending' else 'accepted' end as status,
-                    {Supporters.VisibleTier} as supporter_tier, null::timestamptz as joined_at
+                    {Supporters.VisibleTier} as supporter_tier, null::timestamptz as joined_at, null::text as similar_to
                 from follows f join users u on u.id = f.following_id where f.follower_id = @userId
                 order by u.display_name, u.id
                 """, new { userId });
             var followers = await conn.QueryAsync<Runner>($"""
                 select u.id, u.display_name, case when f.accepted_at is null then 'pending' else 'accepted' end as status,
                     {Supporters.VisibleTier} as supporter_tier,
-                    case when f.accepted_at is null then u.created_at end as joined_at
+                    case when f.accepted_at is null then u.created_at end as joined_at, null::text as similar_to
                 from follows f join users u on u.id = f.follower_id
                 where f.following_id = @userId and {NotBlocked("@userId", "f.follower_id")}
                 order by f.accepted_at nulls first, u.display_name, u.id
                 """, new { userId });
             var blocked = await conn.QueryAsync<Runner>("""
-                select u.id, u.display_name, 'blocked' as status, null as supporter_tier, null::timestamptz as joined_at
+                select u.id, u.display_name, 'blocked' as status, null as supporter_tier, null::timestamptz as joined_at, null::text as similar_to
                 from follow_blocks b join users u on u.id = b.blocked_id where b.blocker_id = @userId
                 order by u.display_name, u.id
                 """, new { userId });
-            return Results.Ok(new FollowLists(following, followers, blocked));
+            // Contacts are the people you follow or have asked to follow, and your approved followers.
+            var contacts = following.Concat(followers.Where(f => f.Status == "accepted"))
+                .Select(c => (c.Id, c.DisplayName, Skeleton: MeEndpoints.NameSkeleton(c.DisplayName))).ToList();
+            var requests = followers.Select(f => f.Status != "pending" ? f : f with
+            {
+                SimilarTo = contacts.FirstOrDefault(c => c.Id != f.Id && c.Skeleton == MeEndpoints.NameSkeleton(f.DisplayName)).DisplayName,
+            }).ToList();
+            return Results.Ok(new FollowLists(following, requests, blocked));
         });
         social.MapPost("/following/{id:guid}", async (Guid id, NpgsqlDataSource db, ClaimsPrincipal user) =>
         {

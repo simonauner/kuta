@@ -296,6 +296,36 @@ public class SocialTests(KutaFactory factory) : IClassFixture<KutaFactory>
         }
     }
 
+    // The warning is computed in the endpoint from the owner's contacts, so it is checked over HTTP.
+    [Fact]
+    public async Task Follow_request_with_a_look_alike_of_a_contacts_name_is_flagged()
+    {
+        var ct = TestContext.Current.CancellationToken;
+        await using var conn = await factory.Services.GetRequiredService<NpgsqlDataSource>().OpenConnectionAsync(ct);
+        using var owner = factory.CreateClient();
+        using var friend = factory.CreateClient();
+        using var impostor = factory.CreateClient();
+        using var stranger = factory.CreateClient();
+        var tag = Guid.NewGuid().ToString("N");
+        string[] emails = [$"owner-{tag}@example.com", $"friend-{tag}@example.com", $"impostor-{tag}@example.com", $"stranger-{tag}@example.com"];
+        try
+        {
+            await TestSession.CreateRunnerAsync(factory, owner, conn, emails[0], "Owner", ct);
+            await TestSession.CreateRunnerAsync(factory, friend, conn, emails[1], "Anna Svensson", ct);
+            await TestSession.CreateRunnerAsync(factory, impostor, conn, emails[2], "\u0410nna  Svensson", ct);
+            await TestSession.CreateRunnerAsync(factory, stranger, conn, emails[3], "Bertil", ct);
+            var ownerId = (await owner.GetFromJsonAsync<Me>("/api/me", ct))!.Id;
+            var friendId = (await friend.GetFromJsonAsync<Me>("/api/me", ct))!.Id;
+            await owner.PostAsync($"/api/following/{friendId}", null, ct);
+            await impostor.PostAsync($"/api/following/{ownerId}", null, ct);
+            await stranger.PostAsync($"/api/following/{ownerId}", null, ct);
+            var requests = (await owner.GetFromJsonAsync<FollowLists>("/api/follows", ct))!.Followers.ToDictionary(r => r.DisplayName);
+            Assert.Equal("Anna Svensson", requests["\u0410nna  Svensson"].SimilarTo);
+            Assert.Null(requests["Bertil"].SimilarTo);
+        }
+        finally { await conn.ExecuteAsync("delete from auth.users where email = any(@emails)", new { emails }); }
+    }
+
     [Fact]
     public async Task Feed_query_pages_equal_timestamps_and_survives_deleted_cursor()
     {

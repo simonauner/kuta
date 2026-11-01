@@ -47,6 +47,34 @@ public static class MeEndpoints
         return name;
     }
 
+    // Latin look-alikes in Cyrillic and Greek, in both cases since lowercasing changes some shapes (Н becomes н).
+    static readonly Dictionary<char, char> Confusables = new()
+    {
+        ['А'] = 'a', ['В'] = 'b', ['Е'] = 'e', ['К'] = 'k', ['М'] = 'm', ['Н'] = 'h', ['О'] = 'o', ['Р'] = 'p', ['С'] = 'c',
+        ['Т'] = 't', ['Х'] = 'x', ['У'] = 'y', ['І'] = 'i', ['Ј'] = 'j', ['Ѕ'] = 's', ['а'] = 'a', ['е'] = 'e', ['о'] = 'o',
+        ['р'] = 'p', ['с'] = 'c', ['у'] = 'y', ['х'] = 'x', ['і'] = 'i', ['ј'] = 'j', ['ѕ'] = 's', ['ԁ'] = 'd', ['ӏ'] = 'l',
+        ['һ'] = 'h', ['ԛ'] = 'q', ['ԝ'] = 'w', ['ү'] = 'y', ['Α'] = 'a', ['Β'] = 'b', ['Ε'] = 'e', ['Ζ'] = 'z', ['Η'] = 'h',
+        ['Ι'] = 'i', ['Κ'] = 'k', ['Μ'] = 'm', ['Ν'] = 'n', ['Ο'] = 'o', ['Ρ'] = 'p', ['Τ'] = 't', ['Υ'] = 'y', ['Χ'] = 'x',
+        ['α'] = 'a', ['ο'] = 'o', ['ν'] = 'v', ['ρ'] = 'p', ['ι'] = 'i', ['κ'] = 'k', ['υ'] = 'u', ['χ'] = 'x',
+        ['0'] = 'o', ['1'] = 'l', ['i'] = 'l', ['I'] = 'l',
+    };
+
+    // What a name looks like, so that "Anna", "anna", "Аnna" (Cyrillic А), "Ánna" and "Anna 🏃" compare equal. Only for
+    // warning about look-alikes, never for identity.
+    // shortcut: a hand-picked subset of Unicode's confusables (UTS #39); use the full table if look-alikes get through.
+    public static string NameSkeleton(string name)
+    {
+        var skeleton = new StringBuilder();
+        foreach (var c in name.Normalize(NormalizationForm.FormKD))
+        {
+            if (CharUnicodeInfo.GetUnicodeCategory(c) == UnicodeCategory.NonSpacingMark) continue;
+            var mapped = Confusables.GetValueOrDefault(c, char.ToLowerInvariant(c));
+            mapped = Confusables.GetValueOrDefault(mapped, mapped);
+            if (char.IsLetterOrDigit(mapped)) skeleton.Append(mapped);
+        }
+        return skeleton.Replace("rn", "m").Replace("vv", "w").ToString();
+    }
+
     public static void MapMe(this RouteGroupBuilder api)
     {
         var me = api.MapGroup("/me").RequireAuthorization();
