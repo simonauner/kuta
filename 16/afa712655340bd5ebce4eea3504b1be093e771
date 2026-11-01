@@ -1,0 +1,45 @@
+web/src/components/multisport-editor.tsx
+  s_bee2e5fcf7ec11::t_ab03e6e4cdee73 19,107,109,121,170,172,185
+web/src/routes/edit-activity.tsx
+  s_bee2e5fcf7ec11::t_ab03e6e4cdee73 18,113,122
+web/src/components/year-comparison.tsx
+  s_bee2e5fcf7ec11::t_ab03e6e4cdee73 19,89,91,100
+web/src/components/equipment.tsx
+  s_bee2e5fcf7ec11::t_b035ebedc2738d 19,241,251
+web/src/components/ui/select.tsx
+  s_bee2e5fcf7ec11::t_0bac445cd820c8 1-38
+web/src/components/goals.tsx
+  s_bee2e5fcf7ec11::t_ab03e6e4cdee73 34,288,304,327,337,356,366,371,382,388,399
+web/src/routes/new-activity.tsx
+  s_bee2e5fcf7ec11::t_ab03e6e4cdee73 36,256,267,289,303
+web/src/routes/activities.tsx
+  s_bee2e5fcf7ec11::t_ab03e6e4cdee73 31,122,124,145,167,169,183,188,190,204
+web/src/components/activity-privacy.tsx
+  s_bee2e5fcf7ec11::t_ab03e6e4cdee73 12,48,65
+web/src/components/records.tsx
+  s_bee2e5fcf7ec11::t_ab03e6e4cdee73 23,153,155,164
+web/src/components/language-select.tsx
+  s_bee2e5fcf7ec11::t_ab03e6e4cdee73 3,10,12-13,25
+web/src/routes/stats.tsx
+  s_bee2e5fcf7ec11::t_ab03e6e4cdee73 19,92,94,103,108,110,120,177,179,188
+web/src/components/supporter.tsx
+  s_bee2e5fcf7ec11::t_ab03e6e4cdee73 13,108,118
+AGENTS.md
+  s_bee2e5fcf7ec11::t_066e4a3bd7f993 136
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.7.5",
+  "base_commit_sha": "16afa712655340bd5ebce4eea3504b1be093e771",
+  "prompts": {},
+  "sessions": {
+    "s_bee2e5fcf7ec11": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "cd696b42-7e9f-47b1-8f97-a4d814189962",
+        "model": "claude-opus-5-5"
+      },
+      "human_author": "Simon Aunér <simonauner@gmail.com>"
+    }
+  }
+}
