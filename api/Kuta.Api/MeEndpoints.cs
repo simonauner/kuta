@@ -10,7 +10,7 @@ using Npgsql;
 
 public record UpdateMeRequest(string? DisplayName);
 // HasGarminData controls Garmin attribution on statistics and other views derived from the activities.
-public record Me(Guid Id, string? Email, string? DisplayName, bool HrConsent, string DefaultActivityPrivacy, bool AllActivitiesMatchDefaultPrivacy,
+public record Me(Guid Id, string? Email, string? DisplayName, bool HrConsent, string DefaultActivityPrivacy, int ActivitiesWithOtherPrivacy,
     Supporter Supporter, bool HasGarminData);
 // Tier is null when there is no supporter membership or it has expired.
 public record Supporter(string? Tier, DateTime? Until, string BadgePrivacy);
@@ -201,8 +201,9 @@ public static class MeEndpoints
     {
         var profile = await LoadProfileAsync(conn, user.GetUserId());
         var privacy = profile?.DefaultActivityPrivacy ?? "private";
-        var (allMatch, hasGarminData) = await conn.QuerySingleAsync<(bool, bool)>("""
-            select not exists (select 1 from activities where user_id = @id and privacy <> @privacy and source <> 'garmin'),
+        // How many activities "apply to all" would change; Garmin activities stay private.
+        var (otherPrivacy, hasGarminData) = await conn.QuerySingleAsync<(int, bool)>("""
+            select (select count(*)::int from activities where user_id = @id and privacy <> @privacy and source <> 'garmin'),
                 exists (select 1 from activities where user_id = @id and source = 'garmin')
             """, new { id = user.GetUserId(), privacy });
         var supporter = await conn.QuerySingleOrDefaultAsync<Supporter>("""
@@ -210,7 +211,7 @@ public static class MeEndpoints
                 supporter_badge_privacy as badge_privacy
             from users where id = @id
             """, new { id = user.GetUserId() }) ?? new Supporter(null, null, "private");
-        return new Me(user.GetUserId(), user.FindFirstValue(ClaimTypes.Email), profile?.DisplayName, profile?.HrConsent ?? false, privacy, allMatch,
+        return new Me(user.GetUserId(), user.FindFirstValue(ClaimTypes.Email), profile?.DisplayName, profile?.HrConsent ?? false, privacy, otherPrivacy,
             supporter, hasGarminData);
     }
 }

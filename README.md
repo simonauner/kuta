@@ -128,8 +128,9 @@ synlighetsval med standardvalet. Andras pass påverkas inte. Standardvalet och
 massändringen sparas atomiskt via `PUT /api/me/activity-privacy`
 (`{ privacy: "private" | "followers" | "public", applyToAll?: boolean }`, CSRF krävs).
 `GET /api/me` returnerar `defaultActivityPrivacy`, som även ingår i exportens
-`profile.json`, och `allActivitiesMatchDefaultPrivacy`, som kontrolleras mot alla egna
-pass. När alla redan har standardvalet är knappen inaktiv och visar en bock efter
+`profile.json`, och `activitiesWithOtherPrivacy`, antalet egna pass (utom Garmin-pass)
+med annan synlighet. Bekräftelsen visar antalet och att de individuella valen inte går
+att återställa i ett svep. När alla redan har standardvalet är knappen inaktiv och visar en bock efter
 knappen; det gäller även utan pass. Migrering 015 lägger till `users.default_activity_privacy`.
 Samma profillås som importerna gör att en pågående import inte kan spara ett
 äldre standardval efter massändringen. Importdubbletter behåller sina val.

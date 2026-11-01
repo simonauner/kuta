@@ -103,7 +103,7 @@ export function ActivityPrivacy() {
       <div className="mt-4 flex items-center gap-2">
         <Button
           variant="outline"
-          disabled={!me || isFetching || save.isPending || me.allActivitiesMatchDefaultPrivacy}
+          disabled={!me || isFetching || save.isPending || me.activitiesWithOtherPrivacy === 0}
           onClick={() => {
             save.reset()
             dialog.current?.showModal()
@@ -111,7 +111,7 @@ export function ActivityPrivacy() {
         >
           {t('activityPrivacy.applyAll')}
         </Button>
-        {me?.allActivitiesMatchDefaultPrivacy && !isFetching && (
+        {me?.activitiesWithOtherPrivacy === 0 && !isFetching && (
           <span role="status">
             <Check className="size-5 text-primary" aria-hidden="true" />
             <span className="sr-only">{t('activityPrivacy.allMatch')}</span>
@@ -140,7 +140,10 @@ export function ActivityPrivacy() {
           {t('activityPrivacy.applyAll')}
         </h3>
         <p id="apply-privacy-help" className="mt-3 text-sm text-muted-foreground">
-          {t('activityPrivacy.confirm', { visibility: labels[privacy] })}
+          {t('activityPrivacy.confirm', {
+            count: me?.activitiesWithOtherPrivacy ?? 0,
+            visibility: labels[privacy],
+          })}
         </p>
         {save.error && (
           <p role="alert" className="mt-3 text-sm text-destructive">
