@@ -3,7 +3,7 @@ using Dynastream.Fit;
 using Microsoft.AspNetCore.DataProtection;
 using Npgsql;
 
-// Push-innehåll från Garmin (en lista per summary type; okända typer ignoreras).
+// Push payload from Garmin (one list per summary type; unknown types are ignored).
 public sealed record GarminPush(GarminFileNotice[]? ActivityFiles, GarminUserRef[]? Deregistrations,
     GarminPermissionChange[]? UserPermissionsChange);
 public sealed record GarminFileNotice(string? UserId, string? SummaryId, string? FileType, string? CallbackUrl,
@@ -20,7 +20,7 @@ public static class Garmin
     sealed record PendingFile(string SummaryId, string CallbackUrl, string FileType, string? DeviceName,
         string? ActivityName, string? ActivityDescription, System.DateTime ReceivedAt);
 
-    // false när Garminkontot redan är kopplat till en annan Kuta-användare.
+    // false when the Garmin account is already connected to another Kuta user.
     public static async Task<bool> SaveConnectionAsync(NpgsqlConnection conn, IDataProtectionProvider provider,
         Guid userId, string garminUserId, GarminTokens tokens, string[] permissions, CancellationToken ct)
     {
@@ -49,8 +49,8 @@ public static class Garmin
         }
     }
 
-    // Giltig access-token, förnyad vid behov under radlås så att två förnyelser inte krockar. null när anslutningen
-    // saknas eller Garmin har återkallat den.
+    // A valid access token, refreshed when needed under a row lock so two refreshes do not collide. null when there is
+    // no connection or Garmin has revoked it.
     public static async Task<string?> AccessTokenAsync(NpgsqlConnection conn, GarminClient garmin,
         IDataProtectionProvider provider, Guid userId, CancellationToken ct, bool forceRefresh = false)
     {
@@ -76,7 +76,7 @@ public static class Garmin
         return tokens.AccessToken;
     }
 
-    // Sparar aviseringarna snabbt (Garmin kräver svar inom 30 s) och lämnar hämtningen åt jobbkön.
+    // Stores the notices quickly (Garmin requires a response within 30 s) and leaves downloading to the job queue.
     public static async Task HandlePushAsync(NpgsqlConnection conn, RawFileStore store, GarminPush push, CancellationToken ct)
     {
         foreach (var file in push.ActivityFiles ?? [])
@@ -103,14 +103,14 @@ public static class Garmin
         {
             var userId = await conn.QuerySingleOrDefaultAsync<Guid?>(new CommandDefinition(
                 "select user_id from garmin_connections where garmin_user_id = @UserId", deregistration, cancellationToken: ct));
-            // Integritetspolicyn: frånkoppling hos Garmin raderar också det som hämtats därifrån.
-            // shortcut: raderar råfilerna innan svaret till Garmin; flytta till jobbkön om det närmar sig 30 s.
+            // Privacy policy: disconnecting at Garmin also deletes what was retrieved from it.
+            // shortcut: deletes raw files before answering Garmin; move to the job queue if this approaches 30 s.
             if (userId is { } id) await DeleteDataAsync(conn, store, id, ct);
         }
     }
 
-    // Tar bort anslutningen, väntande filer och alla pass från Garmin. Råfilerna raderas först, under samma profillås
-    // som importen, så att inga nya hinner sparas emellan.
+    // Removes the connection, pending files and all Garmin activities. Raw files are deleted first, under the same
+    // profile lock as the import, so no new ones can be saved in between.
     public static async Task DeleteDataAsync(NpgsqlConnection conn, RawFileStore store, Guid userId, CancellationToken ct)
     {
         await using var tx = await conn.BeginTransactionAsync(ct);
@@ -128,8 +128,8 @@ public static class Garmin
         await tx.CommitAsync(ct);
     }
 
-    // Avregistrerar hos Garmin (krävs när användaren kopplar från eller raderar kontot hos Kuta). Fel hos Garmin
-    // stoppar inte den lokala raderingen; Garmin skickar då data som Kuta ignorerar eftersom anslutningen saknas.
+    // Deregisters at Garmin (required when the user disconnects or deletes the account in Kuta). Garmin errors do not
+    // stop the local deletion; Garmin may then send data that Kuta ignores because the connection is gone.
     public static async Task DeregisterAsync(NpgsqlConnection conn, GarminClient garmin, IDataProtectionProvider provider,
         Guid userId, CancellationToken ct)
     {
@@ -164,7 +164,7 @@ public static class Garmin
     static async Task<bool> ImportAsync(NpgsqlConnection conn, RawFileStore store, GarminClient garmin,
         IDataProtectionProvider provider, Guid userId, PendingFile file, CancellationToken ct)
     {
-        // shortcut: bara FIT (Garmins klockor skickar nästan alltid FIT); lägg till GPX via StravaImport vid behov.
+        // shortcut: FIT only (Garmin watches almost always send FIT); add GPX via StravaImport if needed.
         if (file.FileType != "FIT" || file.ReceivedAt < System.DateTime.UtcNow.AddHours(-24)) return false;
         if (await AccessTokenAsync(conn, garmin, provider, userId, ct) is not { } token) return false;
         if (await garmin.DownloadAsync(file.CallbackUrl, token, ct) is not { } bytes) return false;
@@ -172,7 +172,7 @@ public static class Garmin
         try { parsed = FitImport.Parse(bytes); }
         catch (FitException) { parsed = null; }
         if (parsed is null) return false;
-        // Garmins märkning ska visa enhetsnamnet från API:t; manuella pass har 'unknown'.
+        // Garmin's attribution should show the device name from the API; manual activities have 'unknown'.
         if (file.DeviceName is { Length: > 0 } device and not "unknown") parsed = parsed with { Device = device };
         return await ActivityStorage.SaveAsync(conn, store, userId, parsed, "garmin", ActivityInput.NormalizeTitle(file.ActivityName), null, bytes,
             ".fit", ct, description: file.ActivityDescription) is not null;
@@ -185,8 +185,8 @@ public static class Garmin
             await JobQueue.EnqueueAsync(conn, userId, JobKinds.GarminImport, ct: ct);
     }
 
-    // Timvis: släng aviseringar vars callback-URL gått ut och förnya refresh-token (giltig i tre månader) för
-    // anslutningar utan ny data, så att avregistrering vid frånkoppling fortsätter att fungera.
+    // Hourly: drop notices whose callback URL has expired and refresh the refresh token (valid three months) for
+    // connections without new data, so deregistration on disconnect keeps working.
     public static async Task MaintainAsync(NpgsqlConnection conn, GarminClient garmin, IDataProtectionProvider provider,
         CancellationToken ct)
     {

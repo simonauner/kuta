@@ -9,7 +9,7 @@ using Xunit;
 
 public class GarminTests(KutaFactory factory) : IClassFixture<KutaFactory>
 {
-    // Syntetisk Garmin: FIT för id=ok, 410 för id=gone, 200 för övriga anrop. Sparar anropen för kontroll.
+    // Synthetic Garmin: FIT for id=ok, 410 for id=gone, 200 for other calls. Records the calls for assertions.
     sealed class FakeGarmin(byte[] fit) : HttpMessageHandler
     {
         public readonly List<string> Requests = [];
@@ -88,7 +88,7 @@ public class GarminTests(KutaFactory factory) : IClassFixture<KutaFactory>
             var activity = await conn.QuerySingleAsync<(Guid Id, string Privacy, string Device, string Title)>(
                 "select id, privacy, device, title from activities where user_id = @userId and source = 'garmin'", new { userId });
             Assert.Equal(("private", "Forerunner 965", "Morning Run"), (activity.Privacy, activity.Device, activity.Title));
-            // Integritetspolicyn: Garmin-pass får inte delas förrän Garmin godkänt visning för andra.
+            // Privacy policy: Garmin activities may not be shared until Garmin approves showing them to others.
             var error = await Assert.ThrowsAsync<PostgresException>(() => conn.ExecuteAsync(
                 "update activities set privacy = 'followers' where id = @id", new { id = activity.Id }));
             Assert.Equal(PostgresErrorCodes.CheckViolation, error.SqlState);
@@ -117,7 +117,7 @@ public class GarminTests(KutaFactory factory) : IClassFixture<KutaFactory>
             Assert.Equal(new HashSet<Guid> { aFit, bGarmin }, remaining);
             Assert.Equal([b], await conn.QueryAsync<Guid>("select user_id from garmin_connections where user_id in (@a, @b)", new { a, b }));
 
-            // Frånkoppling hos Kuta avregistrerar hos Garmin med användarens token.
+            // Disconnecting in Kuta deregisters at Garmin with the user's token.
             var fake = new FakeGarmin([]);
             await Garmin.DeregisterAsync(conn, Client(fake), Provider, b, ct);
             Assert.Equal(["DELETE https://apis.garmin.com/partner-gateway/rest/user/registration Bearer synthetic-access"], fake.Requests);

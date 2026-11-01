@@ -82,7 +82,7 @@ public static class ActivityStorage
                 userId, source, title, stravaId, description = ActivityInput.NormalizeDescription(description), parsed.Sport, parsed.StartedAt, parsed.DurationS, parsed.MovingS,
                 parsed.DistanceM, parsed.AvgHr, parsed.MaxHr, parsed.AvgSpeedMps, parsed.ElevationGainM,
                 route = (object?)parsed.Route ?? DBNull.Value, parsed.Device, key, hash, tags = ActivityInput.NormalizeTags(tags),
-                // Garmin-pass är privata tills Garmin godkänt visning för andra (constraint i migrering 025).
+                // Garmin activities are private until Garmin approves showing them to others (constraint in migration 025).
                 privacy = source == "garmin" ? "private" : profile.DefaultActivityPrivacy,
             }, tx);
         if (id is null) return null;

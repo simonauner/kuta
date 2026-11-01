@@ -29,7 +29,7 @@ const garminStatusQuery = queryOptions({
   queryFn: () => api.get<GarminStatus>('/api/garmin'),
 })
 
-// Resultatet från Garmins godkännande kommer som ?garmin=… när API:t skickar tillbaka webbläsaren.
+// The result of Garmin's consent arrives as ?garmin=… when the API redirects the browser back.
 const results = ['connected', 'declined', 'failed', 'inUse', 'unavailable'] as const
 type ConnectResult = (typeof results)[number]
 

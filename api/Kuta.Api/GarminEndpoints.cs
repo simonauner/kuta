@@ -16,8 +16,8 @@ public static class GarminEndpoints
 
     static readonly TimeSpan TicketLifetime = TimeSpan.FromMinutes(15);
 
-    // Garmins push-tjänst skickar från dessa nät (Activity API, avsnitt 4). Push saknar signatur, och en avregistrering
-    // raderar data, så andra avsändare avvisas.
+    // Garmin's push service sends from these networks (Activity API, section 4). Push has no signature and a
+    // deregistration deletes data, so other senders are rejected.
     static readonly IPNetwork[] PushNetworks = [.. new[]
     {
         "204.77.162.0/23", "204.77.163.0/24", "98.199.124.0/23", "185.132.79.0/24", "208.65.206.0/23",
@@ -31,7 +31,7 @@ public static class GarminEndpoints
         http.RequestServices.GetRequiredService<IDataProtectionProvider>()
             .CreateProtector("kuta.garmin-oauth.v1").ToTimeLimitedDataProtector();
 
-    // Lax: cookien måste följa med när Garmin skickar tillbaka webbläsaren.
+    // Lax: the cookie must be sent when Garmin redirects the browser back.
     static CookieOptions Cookie(HttpContext http) => new()
     {
         HttpOnly = true,
@@ -57,7 +57,7 @@ public static class GarminEndpoints
                 connection?.ActivityExport ?? false, connection?.CreatedAt));
         });
 
-        // Skapar PKCE-verifierare och state i en krypterad cookie och returnerar adressen till Garmins godkännande.
+        // Puts a PKCE verifier and state in an encrypted cookie and returns the URL of Garmin's consent page.
         garmin.MapPost("/connect", (HttpContext http, GarminClient client, ClaimsPrincipal user) =>
         {
             if (!client.Configured)
@@ -82,8 +82,8 @@ public static class GarminEndpoints
             return Results.Ok(new GarminConnectStart(GarminClient.AuthorizeUrl + query));
         });
 
-        // Garmin skickar tillbaka webbläsaren hit (GET enligt OAuth). Anslutningen sparas bara när state matchar
-        // cookien för samma inloggade användare.
+        // Garmin redirects the browser here (GET per OAuth). The connection is saved only when the state matches the
+        // cookie for the same signed-in user.
         garmin.MapGet("/callback", async (string? code, string? state, HttpContext http, GarminClient client,
             NpgsqlDataSource db, IDataProtectionProvider provider, ClaimsPrincipal user, CancellationToken ct) =>
         {
@@ -115,7 +115,7 @@ public static class GarminEndpoints
             return BackToSettings("connected");
         });
 
-        // Avregistrerar hos Garmin och raderar allt som hämtats därifrån.
+        // Deregisters at Garmin and deletes everything retrieved from it.
         garmin.MapDelete("", async (NpgsqlDataSource db, RawFileStore store, GarminClient client,
             IDataProtectionProvider provider, ClaimsPrincipal user, CancellationToken ct) =>
         {
@@ -127,7 +127,7 @@ public static class GarminEndpoints
         });
     }
 
-    // Utanför /api-gruppen: Garmin har varken session eller CSRF-token. Svarar 200 så fort aviseringarna är sparade.
+    // Outside the /api group: Garmin has neither a session nor a CSRF token. Responds 200 as soon as the notices are stored.
     public static void MapGarminPush(this WebApplication app)
     {
         app.MapPost("/api/garmin/push", async (GarminPush push, HttpContext http, NpgsqlDataSource db, RawFileStore store,

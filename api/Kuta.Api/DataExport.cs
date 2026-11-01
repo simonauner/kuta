@@ -53,7 +53,7 @@ public static class DataExport
                     """, new { userId }, tx, cancellationToken: ct)), ct);
                 await WriteJsonAsync(zip, "privacy-places.json", await PrivacyPlaces.LoadAsync(conn, userId, ct, tx), ct);
                 await WriteJsonAsync(zip, "goals.json", await Goals.LoadStoredAsync(conn, userId, ct, tx), ct);
-                // Tokens exporteras inte; de ger åtkomst till Garminkontot.
+                // Tokens are not exported; they grant access to the Garmin account.
                 await WriteJsonAsync(zip, "garmin.json", await conn.QuerySingleOrDefaultAsync<ExportGarmin>(new CommandDefinition(
                     "select garmin_user_id, array_to_string(permissions, ',') as permissions, created_at from garmin_connections where user_id = @userId",
                     new { userId }, tx, cancellationToken: ct)), ct);

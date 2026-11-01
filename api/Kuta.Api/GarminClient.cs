@@ -10,8 +10,8 @@ public sealed record GarminTokens(string AccessToken, string RefreshToken, DateT
 
 public sealed class GarminUnavailableException() : Exception("garminUnavailable");
 
-// Garmin Connect Developer Program med OAuth2 PKCE. Allt sker mellan servrar; klienthemligheten och användarens
-// tokens når aldrig webben.
+// Garmin Connect Developer Program with OAuth2 PKCE. Everything happens server to server; the client secret and the
+// user's tokens never reach the web app.
 public sealed class GarminClient(HttpClient http, IConfiguration configuration)
 {
     public const string AuthorizeUrl = "https://connect.garmin.com/oauth2Confirm";
@@ -32,7 +32,7 @@ public sealed class GarminClient(HttpClient http, IConfiguration configuration)
     sealed record UserId(string? userId);
     sealed record Permissions(string[]? permissions);
 
-    // PKCE: verifieraren stannar hos Kuta, Garmin får bara dess SHA-256.
+    // PKCE: the verifier stays with Kuta, Garmin only gets its SHA-256.
     public static string Challenge(string verifier) =>
         Base64Url(SHA256.HashData(Encoding.ASCII.GetBytes(verifier)));
 
@@ -46,7 +46,7 @@ public sealed class GarminClient(HttpClient http, IConfiguration configuration)
     public Task<GarminTokens?> RefreshAsync(string refreshToken, CancellationToken ct) =>
         TokenAsync([new("grant_type", "refresh_token"), new("refresh_token", refreshToken)], ct);
 
-    // null när Garmin avvisar koden eller refresh-token (t.ex. återkallad eller utgången).
+    // null when Garmin rejects the code or refresh token (for example revoked or expired).
     async Task<GarminTokens?> TokenAsync(KeyValuePair<string, string>[] fields, CancellationToken ct)
     {
         if (!Configured) return null;
@@ -58,7 +58,7 @@ public sealed class GarminClient(HttpClient http, IConfiguration configuration)
         var token = await response.Content.ReadFromJsonAsync<TokenResponse>(ct)
             ?? throw new GarminUnavailableException();
         var now = DateTimeOffset.UtcNow;
-        // Garmin rekommenderar marginal före utgång.
+        // Garmin recommends a margin before expiry.
         return new GarminTokens(token.AccessToken, token.RefreshToken, now.AddSeconds(token.ExpiresIn - 600),
             now.AddSeconds(token.RefreshTokenExpiresIn - 600));
     }
@@ -78,16 +78,16 @@ public sealed class GarminClient(HttpClient http, IConfiguration configuration)
         return (await response.Content.ReadFromJsonAsync<Permissions>(ct))?.permissions ?? [];
     }
 
-    // Garmin kräver anropet när användaren kopplar från eller raderar kontot hos Kuta.
+    // Garmin requires this call when the user disconnects or deletes the account in Kuta.
     public async Task DeleteRegistrationAsync(string accessToken, CancellationToken ct)
     {
         using var response = await SendAsync(Authorized(HttpMethod.Delete, $"{UserApi}/registration", accessToken), ct);
-        // 401/403: registreringen är redan borta hos Garmin.
+        // 401/403: the registration is already gone at Garmin.
         if (response.StatusCode is not (HttpStatusCode.Unauthorized or HttpStatusCode.Forbidden))
             response.EnsureSuccessStatusCode();
     }
 
-    // Callback-URL:er från push gäller 24 timmar och bara en hämtning (410 därefter). null = går inte att hämta.
+    // Callback URLs from push are valid for 24 hours and a single download (410 afterwards). null = cannot be downloaded.
     public async Task<byte[]?> DownloadAsync(string callbackUrl, string accessToken, CancellationToken ct)
     {
         if (!IsGarminUrl(callbackUrl)) return null;
@@ -109,7 +109,7 @@ public sealed class GarminClient(HttpClient http, IConfiguration configuration)
         return buffer.ToArray();
     }
 
-    // Push-anropen är osignerade, så Kuta hämtar bara från Garmins API över https.
+    // Push calls are unsigned, so Kuta only downloads from Garmin's API over https.
     public static bool IsGarminUrl(string url) =>
         Uri.TryCreate(url, UriKind.Absolute, out var uri) && uri.Scheme == Uri.UriSchemeHttps
         && uri.Host == "apis.garmin.com" && uri.IsDefaultPort;

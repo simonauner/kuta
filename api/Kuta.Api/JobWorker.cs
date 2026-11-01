@@ -116,7 +116,7 @@ public sealed class JobWorker(IServiceProvider services, IConfiguration configur
             };
             await JobQueue.CompleteAsync(conn, job.Id, result, CancellationToken.None);
             if (job.Kind == JobKinds.StravaImport) files.Delete(job.Id);
-            // Aviseringar som kom medan jobbet körde fick inget eget jobb (högst ett aktivt per användare).
+            // Notices that arrived while the job ran got no job of their own (at most one active per user).
             if (job.Kind == JobKinds.GarminImport) await Garmin.EnqueueIfPendingAsync(conn, job.UserId, CancellationToken.None);
         }
         catch (OperationCanceledException) when (ct.IsCancellationRequested)
