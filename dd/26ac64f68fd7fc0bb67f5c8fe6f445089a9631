@@ -1,0 +1,19 @@
+fly.toml
+  s_800f7f6e33764a::t_18aff8386149c8 24
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.7.5",
+  "base_commit_sha": "dd26ac64f68fd7fc0bb67f5c8fe6f445089a9631",
+  "prompts": {},
+  "sessions": {
+    "s_800f7f6e33764a": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "72ac4b6e-cc35-491b-94a4-ac8b17ed5330",
+        "model": "claude-opus-5-5"
+      },
+      "human_author": "Simon Aunér <simonauner@gmail.com>"
+    }
+  }
+}
