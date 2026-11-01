@@ -1,0 +1,120 @@
+AGENTS.md
+  s_0c4b6e87907d31::t_23155c59b89fcd 83
+  s_0c4b6e87907d31::t_763a7398736f2d 9,28,43-44,69,71,74-75
+web/src/routes/settings.tsx
+  s_0c4b6e87907d31::t_c00e00032f93d7 9,98-104
+README.md
+  s_0c4b6e87907d31::t_195cab5a4e4387 202-228,239-242,396-397,578,590,603,673-677,679-681,683-685,694,699,703-704,706-717,723-727,731-742
+api/Kuta.Api.Tests/JobsTests.cs
+  s_0c4b6e87907d31::t_35e1347da7143b 1-168
+api/Kuta.Api.Tests/KutaFactory.cs
+  s_0c4b6e87907d31::t_5747c23c92f69e 27-28
+api/Kuta.Api.Tests/PrivateLoggingTests.cs
+  s_0c4b6e87907d31::t_d3216110c60774 76-88
+api/Kuta.Api.Tests/SessionRetentionTests.cs
+  s_0c4b6e87907d31::t_9cdd93fd6e621f 1-50
+api/Kuta.Api.Tests/StravaImportTests.cs
+  s_0c4b6e87907d31::t_aaa7a7eb85900a 232,234,271,278,286,292,301,325,331-347,352,364,367-368,370-377,379-385
+api/Kuta.Api.Tests/TrainingLoadTests.cs
+  s_0c4b6e87907d31::t_a5079d8d18284a 37-60,65-66,68
+api/Kuta.Api/ActivityStorage.cs
+  s_0c4b6e87907d31::t_1bec7c1dd4ac30 112
+api/Kuta.Api/BestEffortEndpoints.cs
+  s_0c4b6e87907d31::t_f1eaa631180ba8 25-26
+api/Kuta.Api/BestEfforts.cs
+  s_0c4b6e87907d31::t_662419a99f5c81 9,11,26-43
+api/Kuta.Api/JobEndpoints.cs
+  s_0c4b6e87907d31::t_1d5416d6386d81 1-34
+api/Kuta.Api/JobQueue.cs
+  s_0c4b6e87907d31::t_bc4f5a4213835c 1-117
+api/Kuta.Api/JobWorker.cs
+  s_0c4b6e87907d31::t_d6826e691f0577 1-141
+api/Kuta.Api/MeEndpoints.cs
+  s_0c4b6e87907d31::t_f3b1679e4e29f3 26,30-35
+api/Kuta.Api/Migrations/019_session_retention.sql
+  s_0c4b6e87907d31::t_58c6dbf32b3987 1-9
+api/Kuta.Api/Migrations/020_jobs.sql
+  s_0c4b6e87907d31::t_d4b058a46b2492 1-28
+api/Kuta.Api/Multisport.cs
+  s_0c4b6e87907d31::t_fa78b1dd086daa 50,52-54,63-67,70,86-87,89,93-95,111,137
+api/Kuta.Api/PrivateLogProvider.cs
+  s_0c4b6e87907d31::t_33557cfe8061c7 13,44,48
+api/Kuta.Api/Program.cs
+  s_0c4b6e87907d31::t_ae8d9088beb9ba 57-58,242
+api/Kuta.Api/RecalculationJob.cs
+  s_0c4b6e87907d31::t_397e2cce9e0188 1-46
+api/Kuta.Api/StravaImportEndpoint.cs
+  s_0c4b6e87907d31::t_d89efa106846e7 14,20,23-24,32-33,35-37,40-41,43,45,48-68,70-119,121-122,124-125,127-129,131-146,148-152,154-155,157-158,160-170,172-175,177,179,181-183,186
+api/Kuta.Api/TrainingLoad.cs
+  s_0c4b6e87907d31::t_79d4a7548a2001 21-31,34,36-37,39-42,53,73,77-78,80
+fly.toml
+  s_0c4b6e87907d31::t_6984ee487a6b73 1,15
+web/package.json
+  s_0c4b6e87907d31::t_ba3e8e34d1537b 13-14
+web/privacy.html
+  s_0c4b6e87907d31::t_14a9f5ae8c8bb4 45,166-173,187-188,193-200,216-230,242-247,268-271,294,416-423,437-438,444-451,467-480,493-498,518-522
+web/src/components/danger-zone.tsx
+  s_0c4b6e87907d31::t_d968d73c86edbd 9,29
+web/src/components/equipment-name-fields.tsx
+  s_0c4b6e87907d31::t_22c8698c546e8f 1-54
+web/src/components/equipment.tsx
+  s_0c4b6e87907d31::t_d3561dd2cca38c 1,231-237
+web/src/components/goals.tsx
+  s_0c4b6e87907d31::t_591d1f632f8f29 9,228
+web/src/components/multisport-editor.tsx
+  s_0c4b6e87907d31::t_7996e9ccb1e103 40
+web/src/components/multisport-preview.tsx
+  s_0c4b6e87907d31::t_7b65f322fffd16 1,33-35,39,44
+web/src/components/strava-import.tsx
+  s_0c4b6e87907d31::t_83a0fb6a66ff65 2-3,8,10,26-76,83-86,88,91,93,108,117,126-131,138-144,146-147,149-150,154-156,161-162,165,169,178-218
+web/src/landing.css
+  s_0c4b6e87907d31::t_5478c3c17d4aff 376-379,381-382,384,395,399-402
+web/src/landing.ts
+  s_0c4b6e87907d31::t_dead07edd916f9 1-2,4-5
+web/src/lib/activity-query.ts
+  s_0c4b6e87907d31::t_835e21fb6c3323 41-62
+web/src/lib/activity.ts
+  s_0c4b6e87907d31::t_1dfe8c47a88de7 4,168,171,209
+web/src/lib/jobs.ts
+  s_0c4b6e87907d31::t_4584f048023148 1-36
+web/src/lib/sports.ts
+  s_0c4b6e87907d31::t_a92efff6d2804a 70-73
+web/src/locales/en.json
+  s_0c4b6e87907d31::t_581b5ba9c049cd 368,372-375,392,404-415
+web/src/locales/sv.json
+  s_0c4b6e87907d31::t_7641c7d2feadae 368,372-375,392,404-415
+web/src/routes/activities.tsx
+  s_0c4b6e87907d31::t_9a4da1440f371e 5,78
+web/src/routes/activity.tsx
+  s_0c4b6e87907d31::t_2df1e20197b3da 2,56,104-111,113,182,189,293
+web/src/routes/edit-activity.tsx
+  s_0c4b6e87907d31::t_a86ec978e55012 15,40,53,68
+web/src/routes/new-activity.tsx
+  s_0c4b6e87907d31::t_b077a219bd3cb9 1,34,150,449-456
+web/tests/activity-query.test.mjs
+  s_0c4b6e87907d31::t_32b0b280a275de 4-8,37-75
+web/tests/activity.test.mjs
+  s_0c4b6e87907d31::t_d33cd76279b2ab 119-121
+web/tests/jobs.test.mjs
+  s_0c4b6e87907d31::t_cbe605aa8dd513 1-21
+web/tests/landing.test.mjs
+  s_0c4b6e87907d31::t_16e564d8c1ca16 1-38
+web/tests/multisport.test.mjs
+  s_0c4b6e87907d31::t_fad16265c426fc 3,53-56
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.7.5",
+  "base_commit_sha": "fde06e8790bf1f28dd298ce8cfc289a87da3621f",
+  "prompts": {},
+  "sessions": {
+    "s_0c4b6e87907d31": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "d61396c0-631b-4f33-9309-68151e06160f",
+        "model": "claude-opus-5-5"
+      },
+      "human_author": "Simon Aunér <simonauner@gmail.com>"
+    }
+  }
+}
