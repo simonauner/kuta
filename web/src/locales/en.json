@@ -152,7 +152,7 @@
     "empty": "No activities yet.",
     "delete": "Delete",
     "deleteLabel": "Delete activity {{date}}",
-    "confirmDelete": "Delete this activity? This cannot be undone.",
+    "confirmDelete": "Delete the activity?",
     "hrNotSaved": "Heart rate is not saved. Change this before uploading in",
     "sport": "Sport",
     "allSports": "All sports",
@@ -166,7 +166,8 @@
       "importDescription": "Import your Strava archive or upload FIT files from your watch.",
       "equipmentTitle": "Track your shoes",
       "equipmentDescription": "Link shoes to your activities and see how far they have taken you."
-    }
+    },
+    "deleteWarning": "The activity, its streams, records and original file are deleted. This cannot be undone."
   },
   "newActivity": {
     "title": "Create activity",
@@ -316,7 +317,9 @@
   "consent": {
     "title": "Save heart rate from my activities.",
     "description": "Heart rate is health data. Without your consent, Kuta saves activities without heart rate and does not keep the original file. Turning this off deletes all saved heart rate data.",
-    "revoke": "All heart rate data already saved from your activities will be deleted. Continue?"
+    "revoke": "All heart rate data already saved from your activities will be deleted. This cannot be undone.",
+    "revokeTitle": "Stop saving heart rate?",
+    "revokeConfirm": "Delete saved heart rate"
   },
   "auth": {
     "checkEmail": "Check your email",
@@ -781,5 +784,8 @@
     "titleSingle": "New activity from Garmin: {{title}}",
     "editSingle": "Edit",
     "dismissSingle": "OK, got it"
+  },
+  "common": {
+    "cancel": "Cancel"
   }
 }

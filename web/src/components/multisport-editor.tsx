@@ -1,10 +1,10 @@
 import { FormField } from '@/components/ui/form-field'
-import { lazy, Suspense, useId, useRef, useState } from 'react'
+import { lazy, Suspense, useRef, useState } from 'react'
 import { useTranslation } from 'react-i18next'
 import { AnimatePresence, motion, useReducedMotion } from 'motion/react'
 import { Button } from '@/components/ui/button'
+import { ConfirmationModal } from '@/components/ui/confirmation-modal'
 import { Input } from '@/components/ui/input'
-import { Modal } from '@/components/ui/modal'
 import { formatDuration, type ActivityDetail } from '@/lib/activity'
 import {
   multisportKinds,
@@ -33,9 +33,7 @@ export function MultisportEditor({
   disabled?: boolean
 }) {
   const { t, i18n } = useTranslation()
-  const restoreDialog = useRef<HTMLDialogElement>(null)
-  const restoreTitleId = useId()
-  const restoreWarningId = useId()
+  const [confirmingRestore, setConfirmingRestore] = useState(false)
   const [editing, setEditing] = useState(false)
   const kind = multisportKinds.find((k) => k === a.sport) ?? 'swimrun'
   const [parts, setParts] = useState<ActivityPart[]>(a.parts)
@@ -338,50 +336,27 @@ export function MultisportEditor({
           size="sm"
           disabled={disabled}
           onClick={() => {
-            restoreDialog.current?.showModal()
+            setConfirmingRestore(true)
           }}
         >
           {t('multisport.restore')}
         </Button>
       )}
-      <Modal
-        ref={restoreDialog}
-        aria-labelledby={restoreTitleId}
-        aria-describedby={restoreWarningId}
-        onCancel={(event) => {
-          if (disabled) event.preventDefault()
+      <ConfirmationModal
+        open={confirmingRestore}
+        title={t('multisport.restore')}
+        description={t('multisport.confirmRestore')}
+        confirmLabel={t('multisport.restoreConfirm')}
+        cancelLabel={t('common.cancel')}
+        pending={disabled}
+        onConfirm={() => {
+          setEditing(false)
+          preview(null)
+          onChange?.(null)
+          setConfirmingRestore(false)
         }}
-      >
-        <h2 id={restoreTitleId} className="text-xl font-semibold">
-          {t('multisport.restore')}
-        </h2>
-        <p id={restoreWarningId} className="mt-3 text-sm text-muted-foreground">
-          {t('multisport.confirmRestore')}
-        </p>
-        <div className="mt-6 flex justify-end gap-3">
-          <Button
-            type="button"
-            variant="secondary-outline"
-            autoFocus
-            disabled={disabled}
-            onClick={() => restoreDialog.current?.close()}
-          >
-            {t('multisport.cancel')}
-          </Button>
-          <Button
-            type="button"
-            disabled={disabled}
-            onClick={() => {
-              setEditing(false)
-              preview(null)
-              onChange?.(null)
-              restoreDialog.current?.close()
-            }}
-          >
-            {t('multisport.restoreConfirm')}
-          </Button>
-        </div>
-      </Modal>
+        onClose={() => setConfirmingRestore(false)}
+      />
       {onChange && editing && a.streams && (
         <Suspense fallback={null}>
           <MultisportPreview streams={a.streams} parts={shown} selected={selected} />

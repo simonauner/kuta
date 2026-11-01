@@ -17,6 +17,7 @@ import { useTranslation } from 'react-i18next'
 import { useInfiniteQuery, useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
 import { getRouteApi, Link } from '@tanstack/react-router'
 import { Button } from '@/components/ui/button'
+import { ConfirmationModal } from '@/components/ui/confirmation-modal'
 import { api } from '@/lib/api'
 import {
   activityTitle,
@@ -77,9 +78,13 @@ export function ActivitiesPage() {
   // null = closed, 'new' = new goal, otherwise the goal being edited
   const [goalForm, setGoalForm] = useState<Goal | 'new' | null>(null)
 
+  const [deleting, setDeleting] = useState<string | null>(null)
   const remove = useMutation({
     mutationFn: (id: string) => api.send('DELETE', `/api/activities/${id}`),
-    onSuccess: () => refreshActivityQueries(queryClient),
+    onSuccess: async () => {
+      await refreshActivityQueries(queryClient)
+      setDeleting(null)
+    },
   })
 
   return (
@@ -200,11 +205,17 @@ export function ActivitiesPage() {
           </FormField>
         </>
       )}
-      {remove.error && (
-        <p role="alert" className="mt-4 text-sm text-destructive">
-          <ErrorMessage error={remove.error} />
-        </p>
-      )}
+      <ConfirmationModal
+        open={deleting !== null}
+        title={t('activities.confirmDelete')}
+        description={t('activities.deleteWarning')}
+        confirmLabel={t('activities.delete')}
+        cancelLabel={t('common.cancel')}
+        pending={remove.isPending}
+        error={remove.error}
+        onConfirm={() => deleting && remove.mutate(deleting)}
+        onClose={() => setDeleting(null)}
+      />
 
       <SlowLoading loading={activities.isPending}>
         {activities.isSuccess &&
@@ -288,7 +299,8 @@ export function ActivitiesPage() {
                         date: dateFormat.format(new Date(a.startedAt)),
                       })}
                       onClick={() => {
-                        if (window.confirm(t('activities.confirmDelete'))) remove.mutate(a.id)
+                        remove.reset()
+                        setDeleting(a.id)
                       }}
                     >
                       {t('activities.delete')}

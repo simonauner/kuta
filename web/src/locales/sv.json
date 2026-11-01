@@ -152,7 +152,7 @@
     "empty": "Inga pass än.",
     "delete": "Ta bort",
     "deleteLabel": "Ta bort passet {{date}}",
-    "confirmDelete": "Ta bort passet? Det går inte att ångra.",
+    "confirmDelete": "Ta bort passet?",
     "hrNotSaved": "Pulsdata sparas inte. Ändra före uppladdning i",
     "sport": "Träningsform",
     "allSports": "Alla träningsformer",
@@ -166,7 +166,8 @@
       "importDescription": "Importera ditt Strava-arkiv eller ladda upp FIT-filer från klockan.",
       "equipmentTitle": "Följ dina skor",
       "equipmentDescription": "Koppla skor till passen och se hur långt de har hängt med."
-    }
+    },
+    "deleteWarning": "Passet, dess mätserier, rekord och originalfil tas bort. Det går inte att ångra."
   },
   "newActivity": {
     "title": "Skapa ny aktivitet",
@@ -316,7 +317,9 @@
   "consent": {
     "title": "Spara puls från mina pass.",
     "description": "Puls är hälsodata. Utan ditt samtycke sparar Kuta passen utan puls och behåller inte originalfilen. Stänger du av det raderas all sparad puls.",
-    "revoke": "All puls som redan sparats från dina pass raderas. Fortsätta?"
+    "revoke": "All puls som redan sparats från dina pass raderas. Det går inte att ångra.",
+    "revokeTitle": "Sluta spara puls?",
+    "revokeConfirm": "Radera sparad puls"
   },
   "auth": {
     "checkEmail": "Kolla din e-post",
@@ -781,5 +784,8 @@
     "titleSingle": "Nytt pass från Garmin: {{title}}",
     "editSingle": "Redigera",
     "dismissSingle": "Ok, då vet jag"
+  },
+  "common": {
+    "cancel": "Avbryt"
   }
 }

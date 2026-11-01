@@ -2,7 +2,8 @@ import { FormField } from '@/components/ui/form-field'
 import { ErrorMessage } from '@/components/error-message'
 import { useTranslation } from 'react-i18next'
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
-import { type ChangeEvent } from 'react'
+import { useState, type ChangeEvent } from 'react'
+import { ConfirmationModal } from '@/components/ui/confirmation-modal'
 import { api } from '@/lib/api'
 import { meQuery, type Me } from '@/lib/auth'
 import { clearHeartRateQueries } from '@/lib/activity-query'
@@ -12,6 +13,7 @@ export function HeartRateConsent({ className }: { className?: string }) {
   const { t } = useTranslation()
   const queryClient = useQueryClient()
   const { data: me } = useQuery(meQuery)
+  const [confirmingRevoke, setConfirmingRevoke] = useState(false)
 
   const change = useMutation({
     mutationFn: (consent: boolean) =>
@@ -20,13 +22,17 @@ export function HeartRateConsent({ className }: { className?: string }) {
       if (!updated.hrConsent) await clearHeartRateQueries(queryClient)
       queryClient.setQueryData(['me'], updated)
       await queryClient.invalidateQueries({ queryKey: ['activities'] })
+      setConfirmingRevoke(false)
     },
   })
 
   function onChange(e: ChangeEvent<HTMLInputElement>) {
     const consent = e.currentTarget.checked
-    if (!consent && !window.confirm(t('consent.revoke'))) return
-    change.mutate(consent)
+    if (consent) change.mutate(true)
+    else {
+      change.reset()
+      setConfirmingRevoke(true)
+    }
   }
 
   return (
@@ -53,7 +59,18 @@ export function HeartRateConsent({ className }: { className?: string }) {
           />
         )}
       </FormField>
-      {change.error && (
+      <ConfirmationModal
+        open={confirmingRevoke}
+        title={t('consent.revokeTitle')}
+        description={t('consent.revoke')}
+        confirmLabel={t('consent.revokeConfirm')}
+        cancelLabel={t('common.cancel')}
+        pending={change.isPending}
+        error={change.error}
+        onConfirm={() => change.mutate(false)}
+        onClose={() => setConfirmingRevoke(false)}
+      />
+      {!confirmingRevoke && change.error && (
         <p role="alert" className="mt-2 text-sm text-destructive">
           <ErrorMessage error={change.error} />
         </p>

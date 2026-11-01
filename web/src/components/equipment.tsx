@@ -13,6 +13,7 @@ import { api } from '@/lib/api'
 import { formatDuration, parseDuration } from '@/lib/activity'
 import { equipmentQuery, equipmentKindsQuery, type Equipment } from '@/lib/equipment'
 import { Button } from '@/components/ui/button'
+import { ConfirmationModal } from '@/components/ui/confirmation-modal'
 import { Input } from '@/components/ui/input'
 import { ErrorMessage } from '@/components/error-message'
 
@@ -21,7 +22,6 @@ export function EquipmentSection() {
   const equipment = useQuery(equipmentQuery)
   const kinds = useQuery(equipmentKindsQuery)
   const queryClient = useQueryClient()
-  const deleteDialog = useRef<HTMLDialogElement>(null)
   const [deleting, setDeleting] = useState<Equipment | null>(null)
   const formDialog = useRef<HTMLDialogElement>(null)
   const [editing, setEditing] = useState<Equipment | null>(null)
@@ -68,7 +68,7 @@ export function EquipmentSection() {
   const remove = useMutation({
     mutationFn: (id: string) => api.send('DELETE', `/api/equipment/${id}`),
     onSuccess: async () => {
-      deleteDialog.current?.close()
+      setDeleting(null)
       await Promise.all([
         refresh(),
         queryClient.invalidateQueries({
@@ -190,7 +190,6 @@ export function EquipmentSection() {
                               onClick={() => {
                                 setDeleting(item)
                                 remove.reset()
-                                deleteDialog.current?.showModal()
                               }}
                             >
                               {t('shoes.delete')}
@@ -305,45 +304,17 @@ export function EquipmentSection() {
           </fieldset>
         </form>
       </Modal>
-      <Modal
-        ref={deleteDialog}
-        aria-labelledby="delete-shoe-title"
-        aria-describedby="delete-shoe-warning"
+      <ConfirmationModal
+        open={deleting !== null}
+        title={t('shoes.confirmDelete', { name: deleting?.name })}
+        description={t('shoes.deleteWarning')}
+        confirmLabel={remove.isPending ? t('shoes.deleting') : t('shoes.delete')}
+        cancelLabel={t('common.cancel')}
+        pending={remove.isPending}
+        error={remove.error}
+        onConfirm={() => deleting && remove.mutate(deleting.id)}
         onClose={() => setDeleting(null)}
-        onCancel={(event) => {
-          if (remove.isPending) event.preventDefault()
-        }}
-      >
-        <h2 id="delete-shoe-title" className="break-words text-xl font-semibold">
-          {t('shoes.confirmDelete', { name: deleting?.name })}
-        </h2>
-        <p id="delete-shoe-warning" className="mt-3 text-sm leading-relaxed text-muted-foreground">
-          {t('shoes.deleteWarning')}
-        </p>
-        {remove.error && (
-          <p role="alert" className="mt-3 text-sm text-destructive">
-            <ErrorMessage error={remove.error} />
-          </p>
-        )}
-        <div className="mt-6 flex flex-wrap justify-end gap-3">
-          <Button
-            variant="secondary-outline"
-            disabled={remove.isPending}
-            onClick={() => deleteDialog.current?.close()}
-          >
-            {t('shoes.cancel')}
-          </Button>
-          <Button
-            variant="destructive-outline"
-            disabled={remove.isPending || !deleting}
-            onClick={() => {
-              if (deleting) remove.mutate(deleting.id)
-            }}
-          >
-            {remove.isPending ? t('shoes.deleting') : t('shoes.delete')}
-          </Button>
-        </div>
-      </Modal>
+      />
     </section>
   )
 }

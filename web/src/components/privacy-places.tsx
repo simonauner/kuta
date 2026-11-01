@@ -7,6 +7,7 @@ import { api } from '@/lib/api'
 import { currentLocation, LocationError } from '@/lib/geolocation'
 import { Modal } from '@/components/ui/modal'
 import { Button } from '@/components/ui/button'
+import { ConfirmationModal } from '@/components/ui/confirmation-modal'
 import { Input } from '@/components/ui/input'
 import { ErrorMessage } from '@/components/error-message'
 import { Link } from '@tanstack/react-router'
@@ -56,12 +57,10 @@ export function PrivacyPlaces() {
   const places = useQuery({ queryKey, queryFn: () => api.get<PrivacyPlace[]>(endpoint) })
   const [editing, setEditing] = useState<PrivacyPlace | null | undefined>(undefined)
   const [deleting, setDeleting] = useState<PrivacyPlace | null>(null)
-  const deleteDialog = useRef<HTMLDialogElement>(null)
   const remove = useMutation({
     mutationFn: (id: string) => api.send('DELETE', `${endpoint}/${id}`),
     onSuccess: async () => {
       await queryClient.invalidateQueries({ queryKey })
-      deleteDialog.current?.close()
       setDeleting(null)
     },
   })
@@ -112,7 +111,6 @@ export function PrivacyPlaces() {
                   onClick={() => {
                     setDeleting(place)
                     remove.reset()
-                    deleteDialog.current?.showModal()
                   }}
                 >
                   {t('privacyPlaces.delete')}
@@ -125,39 +123,17 @@ export function PrivacyPlaces() {
       {editing !== undefined && (
         <PlaceEditor place={editing} onClose={() => setEditing(undefined)} />
       )}
-      <Modal
-        ref={deleteDialog}
-        aria-labelledby="privacy-delete-title"
-        onCancel={(event) => {
-          if (remove.isPending) event.preventDefault()
-        }}
-      >
-        <h3 id="privacy-delete-title" className="text-lg font-semibold">
-          {t('privacyPlaces.deleteNamed', { name: deleting?.name ?? '' })}
-        </h3>
-        <p className="mt-3 text-sm text-muted-foreground">{t('privacyPlaces.deleteHelp')}</p>
-        {remove.error && (
-          <p role="alert" className="mt-3 text-sm text-destructive">
-            <ErrorMessage error={remove.error} />
-          </p>
-        )}
-        <div className="mt-5 flex justify-end gap-2">
-          <Button
-            variant="secondary-outline"
-            disabled={remove.isPending}
-            onClick={() => deleteDialog.current?.close()}
-          >
-            {t('privacyPlaces.cancel')}
-          </Button>
-          <Button
-            variant="destructive-outline"
-            disabled={remove.isPending}
-            onClick={() => deleting && remove.mutate(deleting.id)}
-          >
-            {t(remove.isPending ? 'privacyPlaces.deleting' : 'privacyPlaces.delete')}
-          </Button>
-        </div>
-      </Modal>
+      <ConfirmationModal
+        open={deleting !== null}
+        title={t('privacyPlaces.deleteNamed', { name: deleting?.name ?? '' })}
+        description={t('privacyPlaces.deleteHelp')}
+        confirmLabel={t(remove.isPending ? 'privacyPlaces.deleting' : 'privacyPlaces.delete')}
+        cancelLabel={t('common.cancel')}
+        pending={remove.isPending}
+        error={remove.error}
+        onConfirm={() => deleting && remove.mutate(deleting.id)}
+        onClose={() => setDeleting(null)}
+      />
     </section>
   )
 }
