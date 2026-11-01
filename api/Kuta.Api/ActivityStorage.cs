@@ -46,7 +46,9 @@ public static class ActivityStorage
             returning id
             """, new
             {
-                userId, req.Sport, title, startedAt, req.DurationS, req.DistanceM, avgHr, tags, profile.DefaultActivityPrivacy,
+                userId, req.Sport, title, startedAt, req.DurationS, req.DistanceM, avgHr, tags,
+                // A choice in the form wins over the default
+                DefaultActivityPrivacy = req.Privacy ?? profile.DefaultActivityPrivacy,
                 description = ActivityInput.NormalizeDescription(req.Description),
                 avgSpeedMps = (float)(req.DistanceM!.Value / req.DurationS!.Value), req.ElevationGainM,
             }, tx, cancellationToken: ct));
@@ -59,7 +61,8 @@ public static class ActivityStorage
     // The same lock is used for consent withdrawal, so a long import cannot save heart rate afterwards.
     public static async Task<Guid?> SaveAsync(NpgsqlConnection conn, RawFileStore store, Guid userId,
         ParsedActivity parsed, string source, string? title, string? stravaId, byte[]? bytes, string extension,
-        CancellationToken ct, string[]? tags = null, Guid[]? equipmentIds = null, string? description = null, MultisportRequest? split = null)
+        CancellationToken ct, string[]? tags = null, Guid[]? equipmentIds = null, string? description = null, MultisportRequest? split = null,
+        string? privacy = null)
     {
         var hash = bytes is null ? null : SHA256.HashData(bytes);
         await using var tx = await conn.BeginTransactionAsync(ct);
@@ -84,7 +87,7 @@ public static class ActivityStorage
                 parsed.DistanceM, parsed.AvgHr, parsed.MaxHr, parsed.AvgSpeedMps, parsed.ElevationGainM,
                 route = (object?)parsed.Route ?? DBNull.Value, parsed.Device, key, hash, tags = ActivityInput.NormalizeTags(tags),
                 // Garmin activities are private until Garmin approves showing them to others (constraint in migration 025).
-                privacy = source == "garmin" ? "private" : profile.DefaultActivityPrivacy,
+                privacy = source == "garmin" ? "private" : privacy ?? profile.DefaultActivityPrivacy,
             }, tx);
         if (id is null) return null;
         await conn.ExecuteAsync(

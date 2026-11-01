@@ -40,6 +40,7 @@ public record ActivityUpdateRequest(string? Title, string? Description, string[]
 public static class ActivityEndpoints
 {
     private const int MaxFitFileBytes = 20 * 1024 * 1024;
+    static readonly ApiError InvalidPrivacy = new("Välj giltig synlighet.", "invalidPrivacy");
 
     public static void MapActivities(this RouteGroupBuilder api)
     {
@@ -168,6 +169,7 @@ public static class ActivityEndpoints
             CancellationToken cancellationToken) =>
         {
             if (ActivityInput.Validate(req, DateTimeOffset.UtcNow) is { } invalid) return Results.BadRequest(invalid);
+            if (req.Privacy is not null && !ActivityInput.IsValidPrivacy(req.Privacy)) return Results.BadRequest(InvalidPrivacy);
             await using var conn = await db.OpenConnectionAsync(cancellationToken);
             ActivitySummary? activity;
             try { activity = await ActivityStorage.SaveManualAsync(conn, user.GetUserId(), req, cancellationToken); }
@@ -185,6 +187,8 @@ public static class ActivityEndpoints
         {
             var tags = form["tags"].Select(tag => tag!).ToArray();
             string? description = form["description"];
+            string? privacy = form["privacy"];
+            if (privacy is not null && !ActivityInput.IsValidPrivacy(privacy)) return Results.BadRequest(InvalidPrivacy);
             var equipmentIds = new List<Guid>();
             foreach (var value in form["equipmentIds"])
             {
@@ -213,7 +217,7 @@ public static class ActivityEndpoints
             try
             {
                 id = await ActivityStorage.SaveAsync(conn, store, userId, parsed, "fit", title, null, bytes, ".fit",
-                    cancellationToken, tags, equipmentIds.ToArray(), description, split);
+                    cancellationToken, tags, equipmentIds.ToArray(), description, split, privacy);
             }
             catch (InvalidEquipmentException)
             {
@@ -237,7 +241,7 @@ public static class ActivityEndpoints
             NpgsqlDataSource db, ClaimsPrincipal user) =>
         {
             if (req.Privacy is not null && !ActivityInput.IsValidPrivacy(req.Privacy))
-                return Results.BadRequest(new ApiError("Välj giltig synlighet.", "invalidPrivacy"));
+                return Results.BadRequest(InvalidPrivacy);
             if (req.Tags is null) return Results.BadRequest(new ApiError("Välj giltiga taggar.", "invalidTags"));
             if ((ActivityInput.ValidateTitle(req.Title) ?? ActivityInput.ValidateDescription(req.Description) ?? ActivityInput.ValidateTags(req.Tags)) is { } invalid) return Results.BadRequest(invalid);
             if (req.EquipmentIds is null) return Results.BadRequest(EquipmentEndpoints.InvalidEquipment);

@@ -35,7 +35,7 @@ public class FitUploadTests(KutaFactory factory) : IClassFixture<KutaFactory>
             Assert.Empty((await client.GetFromJsonAsync<ActivityPage>("/api/activities", ct))!.Items);
 
             // Without consent: the activity is saved, but neither heart rate nor raw file (which contains heart rate). The title from the form is kept.
-            var upload = await Upload(client, morning, ct, title: " Morgonrunda ", description: " Lugnt pass\nMed vänner ");
+            var upload = await Upload(client, morning, ct, title: " Morgonrunda ", description: " Lugnt pass\nMed vänner ", privacy: "followers");
             Assert.Equal(HttpStatusCode.Created, upload.StatusCode);
             var created = await upload.Content.ReadFromJsonAsync<JsonElement>(ct);
             var id = created.GetProperty("id").GetGuid();
@@ -44,6 +44,8 @@ public class FitUploadTests(KutaFactory factory) : IClassFixture<KutaFactory>
                 "select sport, title, duration_s, distance_m, avg_hr, raw_file_key, route is not null from activities where id = @id", new { id });
             Assert.Equal(("running", (string?)"Morgonrunda", 600, 1800d, (short?)null, (string?)null, true), row);
             Assert.Equal("Lugnt pass\nMed vänner", (await client.GetFromJsonAsync<ActivityDetail>($"/api/activities/{id}", ct))!.Description);
+            // The visibility chosen in the form wins over the default (private)
+            Assert.Equal("followers", await conn.QuerySingleAsync<string>("select privacy from activities where id = @id", new { id }));
             Assert.Equal(0, await StoredFiles(conn, runner));
             var streams = await conn.QuerySingleAsync<(int Points, int? Hr, int? Lat, int LastT)>(
                 "select cardinality(t), cardinality(hr), cardinality(lat), t[cardinality(t)] from activity_streams where activity_id = @id", new { id });
@@ -166,7 +168,7 @@ public class FitUploadTests(KutaFactory factory) : IClassFixture<KutaFactory>
             var run = new ManualActivityRequest("running", "Löpband",
                 DateTimeOffset.Parse("2026-10-01T18:00:00+02:00"), 1800, 5000, 0, 150);
 
-            var created = await client.PostAsJsonAsync("/api/activities/manual", run with { Tags = ["workout"], Description = " Intervaller\n5 × 1000 m " }, ct);
+            var created = await client.PostAsJsonAsync("/api/activities/manual", run with { Tags = ["workout"], Description = " Intervaller\n5 × 1000 m ", Privacy = "public" }, ct);
             Assert.Equal(HttpStatusCode.Created, created.StatusCode);
             var id = (await created.Content.ReadFromJsonAsync<JsonElement>(ct)).GetProperty("id").GetGuid();
             var detail = await client.GetFromJsonAsync<JsonElement>($"/api/activities/{id}", ct);
@@ -176,7 +178,7 @@ public class FitUploadTests(KutaFactory factory) : IClassFixture<KutaFactory>
                  detail.GetProperty("streams").ValueKind));
             Assert.Equal("Intervaller\n5 × 1000 m", detail.GetProperty("description").GetString());
             Assert.Equal("workout", Assert.Single(detail.GetProperty("tags").EnumerateArray()).GetString());
-            Assert.Equal("manual", await conn.ExecuteScalarAsync<string>("select source from activities where id = @id", new { id }));
+            Assert.Equal(("manual", "public"), await conn.QuerySingleAsync<(string, string)>("select source, privacy from activities where id = @id", new { id }));
 
             await client.PutAsync("/api/me/hr-consent", null, ct);
             var withHr = await client.PostAsJsonAsync("/api/activities/manual", run, ct);
@@ -185,6 +187,8 @@ public class FitUploadTests(KutaFactory factory) : IClassFixture<KutaFactory>
             var invalid = await client.PostAsJsonAsync("/api/activities/manual", run with { DurationS = 0 }, ct);
             Assert.Equal(HttpStatusCode.BadRequest, invalid.StatusCode);
             Assert.Equal("invalidActivity", (await invalid.Content.ReadFromJsonAsync<JsonElement>(ct)).GetProperty("code").GetString());
+            invalid = await client.PostAsJsonAsync("/api/activities/manual", run with { Privacy = "everyone" }, ct);
+            Assert.Equal("invalidPrivacy", (await invalid.Content.ReadFromJsonAsync<JsonElement>(ct)).GetProperty("code").GetString());
         }
         finally
         {
@@ -228,7 +232,7 @@ public class FitUploadTests(KutaFactory factory) : IClassFixture<KutaFactory>
         """, new { email });
 
     static async Task<HttpResponseMessage> Upload(HttpClient client, byte[] fit, CancellationToken ct,
-        string path = "/api/activities", string? title = null, string? description = null)
+        string path = "/api/activities", string? title = null, string? description = null, string? privacy = null)
     {
         using var form = new MultipartFormDataContent();
         var file = new ByteArrayContent(fit);
@@ -236,6 +240,7 @@ public class FitUploadTests(KutaFactory factory) : IClassFixture<KutaFactory>
         form.Add(file, "file", "pass.fit");
         if (title is not null) form.Add(new StringContent(title), "title");
         if (description is not null) form.Add(new StringContent(description), "description");
+        if (privacy is not null) form.Add(new StringContent(privacy), "privacy");
         return await client.PostAsync(path, form, ct);
     }
 }

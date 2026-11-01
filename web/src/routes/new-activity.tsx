@@ -35,6 +35,7 @@ import { refreshActivityQueries } from '@/lib/activity-query'
 import { TagPicker } from '@/components/activity-tags'
 import { Select } from '@/components/ui/select'
 import { Heading } from '@/components/ui/heading'
+import { VisibilityField, type Visibility } from '@/components/activity-visibility'
 
 // What the API reads from a FIT file, without saving anything (POST /api/activities/preview)
 type ActivityPreview = {
@@ -101,6 +102,8 @@ export function NewActivityPage() {
   const [duration, setDuration] = useState('')
   const [elevation, setElevation] = useState('')
   const [avgHr, setAvgHr] = useState('')
+  const [privacy, setPrivacy] = useState<Visibility | null>(null)
+  const visibility = privacy ?? me?.defaultActivityPrivacy ?? 'private'
 
   // Re-read when consent changes, so the heart rate shown is the one saved
   const preview = useQuery({
@@ -133,6 +136,7 @@ export function NewActivityPage() {
         if (shoeId) form.append('equipmentIds', shoeId)
         tags.forEach((tag) => form.append('tags', tag))
         if (sport) form.append('sport', sport)
+        form.append('privacy', visibility)
         return api.upload<Activity>('/api/activities', form)
       }
       return api.send<Activity>('POST', '/api/activities/manual', {
@@ -146,6 +150,7 @@ export function NewActivityPage() {
         distanceM: Math.round(Number(distanceKm) * 1000),
         elevationGainM: elevation === '' ? null : Number(elevation),
         avgHr: avgHr === '' ? null : Number(avgHr),
+        privacy: visibility,
       })
     },
     onSuccess: async (activity) => {
@@ -399,6 +404,7 @@ export function NewActivityPage() {
           />
         )}
         <TagPicker value={tags} onChange={setTags} disabled={save.isPending} />
+        <VisibilityField value={visibility} onChange={setPrivacy} disabled={save.isPending} />
         {fromFile && (
           <p className="text-xs text-muted-foreground">
             {fromFile.device

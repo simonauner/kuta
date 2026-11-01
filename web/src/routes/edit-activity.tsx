@@ -13,9 +13,8 @@ import { Input } from '@/components/ui/input'
 import { meQuery } from '@/lib/auth'
 import { ApiError, api } from '@/lib/api'
 import { activityQuery, refreshActivityQueries } from '@/lib/activity-query'
-import { SharingHints } from '@/components/privacy-places'
+import { VisibilityField } from '@/components/activity-visibility'
 import { activityTitle, type ActivityDetail } from '@/lib/activity'
-import { Select } from '@/components/ui/select'
 import { Heading } from '@/components/ui/heading'
 
 export function EditActivityPage() {
@@ -108,26 +107,7 @@ function EditActivityForm({ activity }: { activity: ActivityDetail }) {
             />
           )}
         </FormField>
-        <FormField label={t('social.visibility')} className="text-sm font-medium">
-          {(id) => (
-            <>
-              <Select
-                id={id}
-                value={privacy}
-                disabled={save.isPending}
-                onChange={(event) => setPrivacy(event.target.value as ActivityDetail['privacy'])}
-              >
-                <option value="private">{t('social.private')}</option>
-                <option value="followers">{t('social.followersVisibility')}</option>
-                <option value="public">{t('social.public')}</option>
-              </Select>
-              <span className="mt-2 block text-xs font-normal text-muted-foreground">
-                {t('social.sharingHint')}
-              </span>
-              <SharingHints privacy={privacy} />
-            </>
-          )}
-        </FormField>
+        <VisibilityField value={privacy} onChange={setPrivacy} disabled={save.isPending} />
         {activity.streams && (
           <div className="space-y-2">
             <FormField label={t('activity.excludeFromRecords')} layout="choice">

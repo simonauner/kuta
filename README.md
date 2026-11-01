@@ -472,6 +472,7 @@ Alla anrop kräver inloggning; skrivningar kräver `X-CSRF-TOKEN`:
 Vid skapande av pass skickas `equipmentIds` som JSON-array (manuellt) eller
 upprepade formulärfält (FIT). Okänd eller annans utrustning avvisas utan att
 passet eller kopplingarna ändras. API:t använder SI-enheter; webben visar kilometer.
+Valfri `privacy` (`private`, `followers` eller `public`) i samma JSON eller formulär sätter passets synlighet direkt; utelämnad ger användarens standardsynlighet, och Garmin-pass blir alltid privata.
 
 Passsidan visar bara kopplad utrustning och valda taggar. Knappen Redigera aktivitet
 öppnar `/app/activities/$activityId/edit`, där titel, beskrivning, taggar och utrustning ändras med gemensamma Spara och
