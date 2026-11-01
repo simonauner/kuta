@@ -27,6 +27,17 @@ select {
   }
 }
 
+@theme {
+  --animate-fade-in-up: fade-in-up 0.3s ease-out both;
+
+  @keyframes fade-in-up {
+    from {
+      opacity: 0;
+      transform: translateY(8px);
+    }
+  }
+}
+
 @theme inline {
   --text-page: 1.5rem;
   --text-page--line-height: 2rem;

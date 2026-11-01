@@ -329,7 +329,8 @@
     "name": "What would you like to be called?",
     "continue": "Continue",
     "confirmSent": "Check your email and click the link to activate your account.",
-    "recoverySent": "If this address has an account, you will receive an email with a link to reset your password."
+    "recoverySent": "If this address has an account, you will receive an email with a link to reset your password.",
+    "acceptTerms": "I accept the <terms>terms of use</terms> and <privacy>privacy policy</privacy>."
   },
   "errors": {
     "invalidActivityYear": "Enter a year between 1 and 9998.",
@@ -375,7 +376,8 @@
     "invalidSportGroup": "Choose a valid sport.",
     "importInProgress": "An import is already running. Wait until it has finished.",
     "jobFailed": "The job failed. Please try again later.",
-    "jobCancelled": "The job was cancelled."
+    "jobCancelled": "The job was cancelled.",
+    "termsRequired": "Accept the terms of use and privacy policy to create an account."
   },
   "home": "Kuta – home",
   "footer": {
@@ -383,7 +385,8 @@
     "development": "development",
     "privacy": "Privacy policy",
     "openApp": "Open app",
-    "links": "Footer links"
+    "links": "Footer links",
+    "terms": "Terms of use"
   },
   "settings": {
     "title": "Settings",

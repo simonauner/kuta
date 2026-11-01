@@ -243,6 +243,7 @@ static async Task<int> RunAsync(string[] args)
     api.MapGoals();
 
     app.MapFallbackToFile("/privacy", "privacy.html", staticFiles);
+    app.MapFallbackToFile("/terms", "terms.html", staticFiles);
     app.MapFallbackToFile("/features", "features.html", staticFiles);
 
     // De publika sidorna är statiska; bara appens kända sökvägar får React-skalet.

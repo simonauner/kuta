@@ -97,6 +97,7 @@ export function Layout() {
         language={i18n.resolvedLanguage}
         labels={{
           privacy: t('footer.privacy'),
+          terms: t('footer.terms'),
           openApp: t('footer.openApp'),
           links: t('footer.links'),
         }}

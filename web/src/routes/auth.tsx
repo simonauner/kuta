@@ -1,6 +1,6 @@
 import { LanguageSelect } from '@/components/language-select'
 import { ErrorMessage } from '@/components/error-message'
-import { useTranslation } from 'react-i18next'
+import { Trans, useTranslation } from 'react-i18next'
 import { useMutation, useQueryClient } from '@tanstack/react-query'
 import { useState, type FormEvent, type ReactNode } from 'react'
 import { Button } from '@/components/ui/button'
@@ -13,7 +13,8 @@ type Mode = 'login' | 'signup' | 'recover'
 
 // Visas i stället för appen när ingen är inloggad.
 export function AuthPage() {
-  const { t } = useTranslation()
+  const { t, i18n } = useTranslation()
+  const english = i18n.resolvedLanguage === 'en'
   const resetFailed = new URLSearchParams(window.location.search).get('reset') === 'failed'
   const [mode, setMode] = useState<Mode>(() =>
     resetFailed ? 'recover' : window.location.hash === '#signup' ? 'signup' : 'login',
@@ -33,7 +34,10 @@ export function AuthPage() {
           email: credentials.email,
         })
       if (mode === 'login') return api.send('POST', '/api/auth/login', credentials)
-      return api.send<{ message: string } | undefined>('POST', '/api/auth/signup', credentials)
+      return api.send<{ message: string } | undefined>('POST', '/api/auth/signup', {
+        ...credentials,
+        acceptTerms: form.get('acceptTerms') === 'on',
+      })
     },
     onSuccess: async (result) => {
       // Registrering med e-postbekräftelse svarar 202 med ett meddelande; annars är vi inloggade
@@ -102,6 +106,32 @@ export function AuthPage() {
                 type="password"
                 autoComplete={mode === 'login' ? 'current-password' : 'new-password'}
                 minLength={mode === 'signup' ? 8 : undefined}
+                required
+              />
+            )}
+          </FormField>
+        )}
+        {mode === 'signup' && (
+          <FormField
+            layout="choice"
+            className="items-start"
+            labelClassName="leading-relaxed"
+            label={
+              <Trans
+                i18nKey="auth.acceptTerms"
+                components={{
+                  terms: <PolicyLink href={english ? '/terms#english' : '/terms'} />,
+                  privacy: <PolicyLink href={english ? '/privacy#english' : '/privacy'} />,
+                }}
+              />
+            }
+          >
+            {(id) => (
+              <input
+                id={id}
+                name="acceptTerms"
+                type="checkbox"
+                className="mt-1 size-4 accent-primary"
                 required
               />
             )}
@@ -245,8 +275,18 @@ export function ChooseNamePage() {
   )
 }
 
+// Opens in a new tab so the signup form keeps what has been typed.
+function PolicyLink({ href, children }: { href: string; children?: ReactNode }) {
+  return (
+    <a href={href} target="_blank" rel="noopener" className="underline underline-offset-4">
+      {children}
+    </a>
+  )
+}
+
 function AuthShell({ title, children }: { title: string; children: ReactNode }) {
   const { t, i18n } = useTranslation()
+  const english = i18n.resolvedLanguage === 'en'
   return (
     <div className="flex min-h-dvh flex-col">
       <header className="hidden px-6 pt-6 md:block">
@@ -264,12 +304,17 @@ function AuthShell({ title, children }: { title: string; children: ReactNode }) 
         </a>
         <h1 className="mb-6 mt-2 text-2xl font-semibold tracking-tight">{title}</h1>
         {children}
-        <a
-          href={i18n.resolvedLanguage === 'en' ? '/privacy#english' : '/privacy'}
-          className="mt-6 self-center text-sm text-muted-foreground underline underline-offset-4"
-        >
-          {t('footer.privacy')}
-        </a>
+        <div className="mt-6 flex justify-center gap-4 text-sm text-muted-foreground">
+          <a
+            href={english ? '/privacy#english' : '/privacy'}
+            className="underline underline-offset-4"
+          >
+            {t('footer.privacy')}
+          </a>
+          <a href={english ? '/terms#english' : '/terms'} className="underline underline-offset-4">
+            {t('footer.terms')}
+          </a>
+        </div>
       </main>
     </div>
   )

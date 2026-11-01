@@ -144,9 +144,11 @@ export function StatsPage() {
         )}
         {statistics.isSuccess &&
           (count === 0 ? (
-            <p className="mt-8 text-muted-foreground">{t('stats.empty')}</p>
+            <p className="mt-8 text-muted-foreground motion-safe:animate-fade-in-up">
+              {t('stats.empty')}
+            </p>
           ) : (
-            <>
+            <div className="motion-safe:animate-fade-in-up">
               <dl className="mt-6 grid grid-cols-3 gap-3">
                 {[
                   [t('stats.count'), number.format(count)],
@@ -267,7 +269,7 @@ export function StatsPage() {
               <p className="mt-4 text-metadata leading-relaxed text-muted-foreground">
                 {t('stats.method')}
               </p>
-            </>
+            </div>
           ))}
       </SlowLoading>
       <YearComparison year={year} sportGroup={sportGroup} />

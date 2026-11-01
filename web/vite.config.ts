@@ -35,6 +35,8 @@ function configureHtmlRoutes(server: ViteDevServer | PreviewServer) {
       req.url = `/app.html${url.search}`
     else if (url.pathname === '/privacy' || url.pathname === '/privacy/')
       req.url = `/privacy.html${url.search}`
+    else if (url.pathname === '/terms' || url.pathname === '/terms/')
+      req.url = `/terms.html${url.search}`
     else if (url.pathname === '/features' || url.pathname === '/features/')
       req.url = `/features.html${url.search}`
     next()
@@ -48,6 +50,7 @@ export default defineConfig({
       input: {
         landing: path.resolve(import.meta.dirname, 'index.html'),
         privacy: path.resolve(import.meta.dirname, 'privacy.html'),
+        terms: path.resolve(import.meta.dirname, 'terms.html'),
         features: path.resolve(import.meta.dirname, 'features.html'),
         app: path.resolve(import.meta.dirname, 'app.html'),
       },
