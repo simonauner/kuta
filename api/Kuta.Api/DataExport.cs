@@ -35,7 +35,7 @@ public static class DataExport
             // Same lock order as consent withdrawal; also protect the raw files against concurrent activity deletion.
             var profile = await conn.QuerySingleOrDefaultAsync<ExportProfile>(new CommandDefinition("""
                 select u.id, a.email, u.display_name, u.created_at, u.hr_consent_at, u.default_activity_privacy,
-                    u.threshold_speed_m_s, u.supporter_tier, u.supporter_until, u.supporter_badge_privacy,
+                    u.threshold_speed_m_s, u.supporter_tier, u.supporter_until, u.supporter_badge_privacy, u.public_profile,
                     u.terms_version, u.terms_accepted_at
                 from users u join auth.users a on a.id = u.id where u.id = @userId for share of u
                 """, new { userId }, tx, cancellationToken: ct));
@@ -99,7 +99,7 @@ public static class DataExport
     private record ExportGarmin(string GarminUserId, string Permissions, DateTime CreatedAt);
     private record ExportFollow(Guid FollowerId, Guid FollowingId, DateTime? AcceptedAt, DateTime CreatedAt);
     private record ExportProfile(Guid Id, string? Email, string DisplayName, DateTime CreatedAt, DateTime? HrConsentAt, string DefaultActivityPrivacy,
-        double? ThresholdSpeedMS, string? SupporterTier, DateTime? SupporterUntil, string SupporterBadgePrivacy,
+        double? ThresholdSpeedMS, string? SupporterTier, DateTime? SupporterUntil, string SupporterBadgePrivacy, bool PublicProfile,
         string? TermsVersion, DateTime? TermsAcceptedAt);
     private record ExportActivity(Guid Id, string Source, DateTime CreatedAt, string Privacy,
         string? StravaActivityId, string? RawFileKey);

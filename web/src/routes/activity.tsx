@@ -38,6 +38,7 @@ import {
   routeSegments,
 } from '@/lib/activity'
 import { card } from '@/components/ui/card-variants'
+import { VisitorNotice } from '@/components/visitor-notice'
 
 // Pace from speed, smoothed over ~15 s so GPS noise doesn't cause spikes; standing still becomes a gap.
 function paceSeries(speed: (number | null)[], minSpeed = 0.5) {
@@ -56,7 +57,8 @@ export function ActivityPage() {
   const { t, i18n } = useTranslation()
   const search = useSearch({ from: '/app/activities/$activityId' })
   const { data: me } = useQuery(meQuery)
-  const equipment = useQuery(equipmentQuery)
+  const visitor = me === null
+  const equipment = useQuery({ ...equipmentQuery, enabled: !visitor })
   const [openPanel, setOpenPanel] = useState<'laps' | 'splits' | 'efforts' | null>(null)
   const lapsOpen = openPanel === 'laps'
   const splitsOpen = openPanel === 'splits'
@@ -64,11 +66,11 @@ export function ActivityPage() {
   const lapsId = useId()
   const splitsId = useId()
   const effortsId = useId()
-  const activity = useQuery(activityQuery(activityId))
+  const activity = useQuery(activityQuery(activityId, visitor))
   const bestEfforts = useQuery({
     queryKey: ['records', 'activity', activityId],
     queryFn: () => api.get<ActivityBestEffort[]>(`/api/activities/${activityId}/best-efforts`),
-    enabled: activity.isSuccess,
+    enabled: activity.isSuccess && !visitor,
   })
   // Record badges only for own activities: /api/records covers the signed-in user's records.
   const recordYear = activity.data && new Date(activity.data.startedAt).getUTCFullYear()
@@ -140,6 +142,8 @@ export function ActivityPage() {
   }, [activity.data, selectedPart, selectedSport, mixed, t])
 
   if (activity.isPending) return null
+  if (visitor && activity.error instanceof ApiError && activity.error.status === 404)
+    return <VisitorNotice kind="activity" />
   if (activity.isError)
     return (
       <section>
@@ -270,6 +274,14 @@ export function ActivityPage() {
     <section>
       {original.userId === me?.id ? (
         <BackLink />
+      ) : visitor ? (
+        <Link
+          to="/app/runners/$runnerId"
+          params={{ runnerId: original.userId }}
+          className="text-sm text-muted-foreground underline underline-offset-2"
+        >
+          ← {original.displayName}
+        </Link>
       ) : (
         <Link to="/app" className="text-sm text-muted-foreground underline-offset-2 underline">
           ← {t('nav.feed')}

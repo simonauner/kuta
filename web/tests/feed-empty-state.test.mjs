@@ -33,7 +33,7 @@ test('only an empty home feed offers onboarding, with different copy when follow
       const client = new QueryClient({ defaultOptions: { queries: { staleTime: Infinity } } })
       client.setQueryData(['me'], { id: 'me' })
       client.setQueryData(['follows'], { following, followers: [] })
-      client.setQueryData(runnerId ? ['feed', runnerId] : ['feed'], {
+      client.setQueryData(runnerId ? ['feed', runnerId, false] : ['feed'], {
         pages: [{ items, nextCursor: null }],
         pageParams: [null],
       })

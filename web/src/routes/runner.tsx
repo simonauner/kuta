@@ -11,6 +11,8 @@ import { ApiError, api } from '@/lib/api'
 import { ProfilePage } from '@/routes/profile'
 import { meQuery, type SupporterTier } from '@/lib/auth'
 import { Heading } from '@/components/ui/heading'
+import { VisitorNotice } from '@/components/visitor-notice'
+import { useVisitor } from '@/lib/visitor'
 
 type Runner = {
   id: string
@@ -24,9 +26,11 @@ export function RunnerPage() {
   const { t } = useTranslation()
   const queryClient = useQueryClient()
   const { data: me } = useQuery(meQuery)
+  const visitor = me === null
+  const signIn = useVisitor()?.signIn
   const runner = useQuery({
-    queryKey: ['runner', runnerId],
-    queryFn: () => api.get<Runner>(`/api/runners/${runnerId}`),
+    queryKey: ['runner', runnerId, visitor],
+    queryFn: () => api.get<Runner>(`/api/${visitor ? 'public/' : ''}runners/${runnerId}`),
     retry: (count, error) => !(error instanceof ApiError && error.status === 404) && count < 1,
   })
   const follow = useMutation({
@@ -41,11 +45,15 @@ export function RunnerPage() {
     },
   })
   if (me?.id === runnerId) return <ProfilePage />
+  if (visitor && runner.error instanceof ApiError && runner.error.status === 404)
+    return <VisitorNotice kind="runner" />
   return (
     <section className="space-y-6">
-      <Link to="/app" className="text-sm text-muted-foreground underline-offset-2 underline">
-        ← {t('nav.feed')}
-      </Link>
+      {!visitor && (
+        <Link to="/app" className="text-sm text-muted-foreground underline-offset-2 underline">
+          ← {t('nav.feed')}
+        </Link>
+      )}
       <SlowLoading loading={runner.isPending}>
         {runner.error && (
           <div role="alert">
@@ -76,7 +84,8 @@ export function RunnerPage() {
                   <Button
                     variant="secondary-outline"
                     disabled={follow.isPending}
-                    onClick={() => follow.mutate()}
+                    // A visitor first needs an account; the profile link stays open meanwhile
+                    onClick={() => (visitor ? signIn?.('signup') : follow.mutate())}
                   >
                     {t(
                       runner.data.status === 'accepted'
@@ -94,9 +103,9 @@ export function RunnerPage() {
                 <ErrorMessage error={follow.error} />
               </p>
             )}
-            <GoalList key={`goals-${runnerId}`} runnerId={runnerId} />
+            {!visitor && <GoalList key={`goals-${runnerId}`} runnerId={runnerId} />}
             <Heading level={2}>{t('nav.activities')}</Heading>
-            <ActivityFeed key={runnerId} runnerId={runnerId} />
+            <ActivityFeed key={runnerId} runnerId={runnerId} visitor={visitor} />
           </>
         )}
       </SlowLoading>

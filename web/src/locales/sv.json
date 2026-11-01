@@ -596,7 +596,9 @@
     "confirm": "Ändra alla befintliga aktiviteter till ”{{visibility}}”? Detta ersätter de individuella synlighetsvalen för alla dina aktiviteter.",
     "applying": "Tillämpar…",
     "applied": "Alla dina aktiviteter har nu denna synlighet.",
-    "saved": "Standardsynligheten har sparats."
+    "saved": "Standardsynligheten har sparats.",
+    "publicProfile": "Visa min profil för besökare utan konto.",
+    "publicProfileHelp": "Den som har din profillänk ser då ditt namn och aktiviteter som är synliga för alla, utan att logga in. Puls, fullständig rutt, utrustning och mål visas aldrig."
   },
   "social": {
     "follow": "Be att få följa",
@@ -782,6 +784,13 @@
     "profile": {
       "title": "Din profil är tom än",
       "description": "Dina aktiviteter och synliga mål visas här. Du väljer själv vad andra får se."
+    }
+  },
+  "visitor": {
+    "closedTitle": "Logga in för att se mer",
+    "closed": {
+      "runner": "Den här profilen visas bara för inloggade. Skapa ett konto eller logga in för att se den och be att få följa.",
+      "activity": "Den här aktiviteten visas bara för inloggade. Skapa ett konto eller logga in för att se den."
     }
   }
 }

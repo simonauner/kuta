@@ -111,6 +111,10 @@ static async Task<int> RunAsync(string[] args)
             ctx.User.FindFirstValue(ClaimTypes.NameIdentifier) ?? "anonymous",
             _ => new FixedWindowRateLimiterOptions { PermitLimit = 30, Window = TimeSpan.FromMinutes(5) }));
         // Follow requests: 20 per hour and user, against mass requests to shared profile links.
+        // Public profiles are read without an account: 120 calls per minute and IP (IPv6 per /64 network).
+        o.AddPolicy("public", ctx => RateLimitPartition.GetFixedWindowLimiter(
+            AuthEndpoints.ClientPartition(ctx.Connection.RemoteIpAddress),
+            _ => new FixedWindowRateLimiterOptions { PermitLimit = 120, Window = TimeSpan.FromMinutes(1) }));
         o.AddPolicy("follows", ctx => RateLimitPartition.GetFixedWindowLimiter(
             ctx.User.FindFirstValue(ClaimTypes.NameIdentifier) ?? "anonymous",
             _ => new FixedWindowRateLimiterOptions { PermitLimit = 20, Window = TimeSpan.FromHours(1) }));
@@ -249,6 +253,7 @@ static async Task<int> RunAsync(string[] args)
 
     api.MapActivities();
     api.MapSocial();
+    api.MapPublic();
     api.MapEquipment();
     api.MapBestEfforts();
     api.MapJobs();

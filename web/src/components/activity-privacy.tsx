@@ -39,6 +39,11 @@ export function ActivityPrivacy() {
     },
   })
 
+  const publicProfile = useMutation({
+    mutationFn: (enabled: boolean) => api.send<Me>('PUT', '/api/me/public-profile', { enabled }),
+    onSuccess: (updated) => queryClient.setQueryData(meQuery.queryKey, updated),
+  })
+
   return (
     <section aria-labelledby="activity-privacy-heading" className="mt-8 border-t pt-6">
       <Heading level={2} id="activity-privacy-heading">
@@ -97,6 +102,33 @@ export function ActivityPrivacy() {
       {save.error && !save.variables?.applyToAll && (
         <p role="alert" className="mt-2 text-sm text-destructive">
           <ErrorMessage error={save.error} />
+        </p>
+      )}
+      <FormField
+        layout="choice"
+        className="mt-6 items-start"
+        labelClassName="font-normal leading-relaxed"
+        label={
+          <>
+            <span className="font-medium">{t('activityPrivacy.publicProfile')}</span>{' '}
+            <span className="text-muted-foreground">{t('activityPrivacy.publicProfileHelp')}</span>
+          </>
+        }
+      >
+        {(id) => (
+          <input
+            id={id}
+            type="checkbox"
+            className="mt-1 size-4 accent-primary"
+            checked={me?.publicProfile ?? false}
+            disabled={!me || publicProfile.isPending}
+            onChange={(event) => publicProfile.mutate(event.currentTarget.checked)}
+          />
+        )}
+      </FormField>
+      {publicProfile.error && (
+        <p role="alert" className="mt-2 text-sm text-destructive">
+          <ErrorMessage error={publicProfile.error} />
         </p>
       )}
       <Modal

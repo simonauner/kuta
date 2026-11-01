@@ -32,13 +32,16 @@ type FeedPage = { items: FeedItem[]; nextCursor: ActivityCursor | null }
 export function ActivityFeed({
   runnerId,
   emptyState,
+  visitor = false,
 }: {
   runnerId?: string
   emptyState?: ReactNode
+  // Without an account: the runner's public activities through the public API
+  visitor?: boolean
 }) {
   const { t, i18n } = useTranslation()
   const feed = useInfiniteQuery({
-    queryKey: runnerId ? ['feed', runnerId] : ['feed'],
+    queryKey: runnerId ? ['feed', runnerId, visitor] : ['feed'],
     initialPageParam: null as ActivityCursor | null,
     queryFn: ({ pageParam }) => {
       const params = new URLSearchParams()
@@ -47,7 +50,7 @@ export function ActivityFeed({
         params.set('beforeId', pageParam.id)
       }
       return api.get<FeedPage>(
-        `${runnerId ? `/api/runners/${runnerId}/activities` : '/api/feed'}?${params}`,
+        `${runnerId ? `/api/${visitor ? 'public/' : ''}runners/${runnerId}/activities` : '/api/feed'}?${params}`,
       )
     },
     getNextPageParam: (page) => page.nextCursor,

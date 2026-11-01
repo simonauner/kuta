@@ -9,12 +9,13 @@ using Npgsql;
 public record UpdateMeRequest(string? DisplayName);
 // HasGarminData controls Garmin attribution on statistics and other views derived from the activities.
 public record Me(Guid Id, string? Email, string? DisplayName, bool HrConsent, string DefaultActivityPrivacy, bool AllActivitiesMatchDefaultPrivacy,
-    Supporter Supporter, bool HasGarminData);
+    Supporter Supporter, bool HasGarminData, bool PublicProfile);
 // Tier is null when there is no supporter membership or it has expired.
 public record Supporter(string? Tier, DateTime? Until, string BadgePrivacy);
 public record Profile(string DisplayName, bool HrConsent, string DefaultActivityPrivacy);
 public record ActivityPrivacyRequest(string? Privacy, bool ApplyToAll = false);
 public record BadgePrivacyRequest(string? Privacy);
+public record PublicProfileRequest(bool Enabled);
 public record DeleteAccountRequest(string? Password);
 
 public static class MeEndpoints
@@ -111,6 +112,17 @@ public static class MeEndpoints
                 : Results.Ok(await LoadAsync(conn, user));
         });
 
+        // Lets visitors without an account open the profile link (SocialEndpoints.MapPublic).
+        me.MapPut("/public-profile", async (PublicProfileRequest req, NpgsqlDataSource db, ClaimsPrincipal user) =>
+        {
+            await using var conn = await db.OpenConnectionAsync();
+            var updated = await conn.ExecuteAsync(
+                "update users set public_profile = @Enabled where id = @id", new { id = user.GetUserId(), req.Enabled });
+            return updated == 0
+                ? Results.Conflict(new ApiError("Välj ett namn först.", "nameRequired"))
+                : Results.Ok(await LoadAsync(conn, user));
+        });
+
         // Explicit consent to storing heart rate (health data). The first timestamp is kept.
         me.MapPut("/hr-consent", async (NpgsqlDataSource db, ClaimsPrincipal user) =>
         {
@@ -175,9 +187,10 @@ public static class MeEndpoints
     {
         var profile = await LoadProfileAsync(conn, user.GetUserId());
         var privacy = profile?.DefaultActivityPrivacy ?? "private";
-        var (allMatch, hasGarminData) = await conn.QuerySingleAsync<(bool, bool)>("""
+        var (allMatch, hasGarminData, publicProfile) = await conn.QuerySingleAsync<(bool, bool, bool)>("""
             select not exists (select 1 from activities where user_id = @id and privacy <> @privacy and source <> 'garmin'),
-                exists (select 1 from activities where user_id = @id and source = 'garmin')
+                exists (select 1 from activities where user_id = @id and source = 'garmin'),
+                coalesce((select public_profile from users where id = @id), false)
             """, new { id = user.GetUserId(), privacy });
         var supporter = await conn.QuerySingleOrDefaultAsync<Supporter>("""
             select case when supporter_until > now() then supporter_tier end as tier, supporter_until as until,
@@ -185,6 +198,6 @@ public static class MeEndpoints
             from users where id = @id
             """, new { id = user.GetUserId() }) ?? new Supporter(null, null, "private");
         return new Me(user.GetUserId(), user.FindFirstValue(ClaimTypes.Email), profile?.DisplayName, profile?.HrConsent ?? false, privacy, allMatch,
-            supporter, hasGarminData);
+            supporter, hasGarminData, publicProfile);
     }
 }

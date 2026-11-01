@@ -596,7 +596,9 @@
     "confirm": "Change every existing activity to “{{visibility}}”? This replaces individual visibility choices for all your activities.",
     "applying": "Applying…",
     "applied": "All your activities now use this visibility.",
-    "saved": "Default visibility saved."
+    "saved": "Default visibility saved.",
+    "publicProfile": "Show my profile to visitors without an account.",
+    "publicProfileHelp": "Anyone with your profile link can then see your name and the activities visible to everyone, without signing in. Heart rate, the full route, equipment and goals are never shown."
   },
   "social": {
     "follow": "Request to follow",
@@ -782,6 +784,13 @@
     "profile": {
       "title": "Your profile is empty for now",
       "description": "Your activities and visible goals appear here. You choose what others can see."
+    }
+  },
+  "visitor": {
+    "closedTitle": "Sign in to see more",
+    "closed": {
+      "runner": "This profile is only shown to signed-in runners. Create an account or log in to see it and ask to follow.",
+      "activity": "This activity is only shown to signed-in runners. Create an account or log in to see it."
     }
   }
 }
