@@ -18,9 +18,16 @@ export function DangerZone() {
   const dialog = useRef<HTMLDialogElement>(null)
   const [word, setWord] = useState<string | null>(null)
   const [confirmation, setConfirmation] = useState('')
-  const confirmed = word !== null && confirmation.trim().toUpperCase() === word
+  // Account deletion is confirmed with the password (the API checks it against Supabase) instead of the runner word.
+  const [password, setPassword] = useState('')
+  const confirmed =
+    word !== null &&
+    (target === 'account' ? password !== '' : confirmation.trim().toUpperCase() === word)
   const remove = useMutation({
-    mutationFn: () => api.send('DELETE', target === 'account' ? '/api/me' : '/api/activities'),
+    mutationFn: () =>
+      target === 'account'
+        ? api.send('DELETE', '/api/me', { password })
+        : api.send('DELETE', '/api/activities'),
     onSuccess: async () => {
       if (target === 'account') {
         await sessionChanged()
@@ -41,6 +48,7 @@ export function DangerZone() {
     const words = t('dangerZone.words', { returnObjects: true })
     setWord(words[Math.floor(Math.random() * words.length)])
     setConfirmation('')
+    setPassword('')
     remove.reset()
   }
 
@@ -85,19 +93,35 @@ export function DangerZone() {
           {target === 'account' ? t('dangerZone.accountWarning') : t('dangerZone.warning')}
         </p>
         <form onSubmit={onSubmit} className="mt-5">
-          <FormField label={t('dangerZone.confirmLabel', { word })}>
-            {(id) => (
-              <Input
-                id={id}
-                value={confirmation}
-                onChange={(event) => setConfirmation(event.target.value)}
-                disabled={remove.isPending}
-                autoComplete="off"
-                autoCapitalize="characters"
-                spellCheck={false}
-              />
-            )}
-          </FormField>
+          {target === 'activities' && (
+            <FormField label={t('dangerZone.confirmLabel', { word })}>
+              {(id) => (
+                <Input
+                  id={id}
+                  value={confirmation}
+                  onChange={(event) => setConfirmation(event.target.value)}
+                  disabled={remove.isPending}
+                  autoComplete="off"
+                  autoCapitalize="characters"
+                  spellCheck={false}
+                />
+              )}
+            </FormField>
+          )}
+          {target === 'account' && (
+            <FormField label={t('dangerZone.passwordLabel')}>
+              {(id) => (
+                <Input
+                  id={id}
+                  type="password"
+                  value={password}
+                  onChange={(event) => setPassword(event.target.value)}
+                  disabled={remove.isPending}
+                  autoComplete="current-password"
+                />
+              )}
+            </FormField>
+          )}
           {remove.error && (
             <p role="alert" className="mt-3 text-sm text-destructive">
               <ErrorMessage error={remove.error} />

@@ -57,6 +57,17 @@ public static class TestSession
         await UseCsrfToken(client, ct);
     }
 
+    // Gives a synthetic account a password Supabase Auth accepts (GoTrue requires empty, not null, token columns).
+    public static Task SetPasswordAsync(NpgsqlConnection conn, string email, string password) => conn.ExecuteAsync("""
+        update auth.users set encrypted_password = crypt(@password, gen_salt('bf')), email_confirmed_at = now(),
+            instance_id = '00000000-0000-0000-0000-000000000000', aud = 'authenticated', role = 'authenticated',
+            raw_app_meta_data = '{"provider":"email","providers":["email"]}', raw_user_meta_data = '{}',
+            confirmation_token = '', recovery_token = '', email_change_token_new = '', email_change = '',
+            email_change_token_current = '', reauthentication_token = '', phone_change = '', phone_change_token = '',
+            created_at = now(), updated_at = now()
+        where email = @email
+        """, new { email, password });
+
     public static async Task<string> ConfirmationTokenHash(string email, CancellationToken ct)
     {
         using var mailpit = new HttpClient { BaseAddress = new Uri(KutaFactory.MailpitUrl) };

@@ -2,6 +2,7 @@ using System.Security.Claims;
 using Dapper;
 using Microsoft.AspNetCore.Authentication;
 using Microsoft.AspNetCore.Authentication.Cookies;
+using Microsoft.AspNetCore.Mvc;
 using Npgsql;
 
 public record UpdateMeRequest(string? DisplayName);
@@ -13,6 +14,7 @@ public record Supporter(string? Tier, DateTime? Until, string BadgePrivacy);
 public record Profile(string DisplayName, bool HrConsent, string DefaultActivityPrivacy);
 public record ActivityPrivacyRequest(string? Privacy, bool ApplyToAll = false);
 public record BadgePrivacyRequest(string? Privacy);
+public record DeleteAccountRequest(string? Password);
 
 public static class MeEndpoints
 {
@@ -24,9 +26,16 @@ public static class MeEndpoints
     {
         var me = api.MapGroup("/me").RequireAuthorization();
 
-        me.MapDelete("", async (NpgsqlDataSource db, RawFileStore store, ImportFiles files, HttpContext http,
-            CancellationToken cancellationToken) =>
+        // Requires the password: an unlocked phone or an injected script must not be able to delete everything.
+        // The Supabase session the check creates goes away with the account.
+        me.MapDelete("", async ([FromBody] DeleteAccountRequest req, NpgsqlDataSource db, RawFileStore store, ImportFiles files,
+            SupabaseAuthClient supabase, HttpContext http, CancellationToken cancellationToken) =>
         {
+            if (string.IsNullOrEmpty(req.Password))
+                return Results.BadRequest(new ApiError("Ange ditt lösenord.", "passwordRequired"));
+            var (result, _) = await supabase.SignInAsync(http.User.FindFirstValue(ClaimTypes.Email)!, req.Password, cancellationToken);
+            if (result != SignInResult.SignedIn)
+                return Results.Json(new ApiError("Fel lösenord.", "wrongPassword"), statusCode: StatusCodes.Status403Forbidden);
             await using var conn = await db.OpenConnectionAsync(cancellationToken);
             var userId = http.User.GetUserId();
             // Queued import archives are not cascade-deleted with the jobs; remove them after the account (the worker cleans up the rest).
@@ -36,7 +45,7 @@ public static class MeEndpoints
             foreach (var job in imports) files.Delete(job);
             await http.SignOutAsync(CookieAuthenticationDefaults.AuthenticationScheme);
             return Results.NoContent();
-        });
+        }).RequireRateLimiting("auth");
 
         // displayName is null until the web has created the profile with PUT after the first login
         me.MapGet("", async (NpgsqlDataSource db, ClaimsPrincipal user) =>

@@ -1,5 +1,21 @@
 public static class RoutePrivacy
 {
+    // Same distance as the hidden start/finish zones on map previews.
+    public const double HiddenEndpointM = 600;
+
+    // Height near the start and finish can be matched against an elevation model to find where a shared activity
+    // began. For other viewers, altitude within HiddenEndpointM of either end is removed; without distance, all of it.
+    public static ActivityStreams HideEndpointAltitude(ActivityStreams streams)
+    {
+        if (streams.Alt is null) return streams;
+        if (streams.Dist is null) return streams with { Alt = null };
+        var total = streams.Dist.Max() ?? 0;
+        var alt = streams.Alt.Select((value, i) =>
+            i < streams.Dist.Length && streams.Dist[i] is { } d && d > HiddenEndpointM && d < total - HiddenEndpointM
+                ? value : null).ToArray();
+        return streams with { Alt = alt.Any(v => v is not null) ? alt : null };
+    }
+
     // Projection only: callers must authorize the viewer separately before returning any activity data.
     public static ActivityStreams? ForViewer(ActivityStreams? streams, Guid ownerId, Guid viewerId, IReadOnlyList<PrivacyPlace> places)
     {

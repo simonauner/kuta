@@ -51,7 +51,8 @@ eller radera pass. Befintliga listor, årsstatistik, utrustning och personliga r
 
 Delade pass visar beskrivning, taggar, sportdelar, träningsdata och passets bästa insatser.
 Puls (även tidsserier och varv), fullständiga GPS-tidsserier, klockmodell och utrustning
-skickas bara till ägaren. Flödets och profilens passkort visar kartminiatyrer från den sparade
+skickas bara till ägaren. Höjd inom 600 m från start och mål utelämnas också för andra, så att
+höjdprofilen inte kan matchas mot en höjdmodell för att hitta startpunkten. Flödets och profilens passkort visar kartminiatyrer från den sparade
 förenklade rutten. För andra än ägaren klipper PostGIS bort minst 500 meter runt originalets
 start- och slutpunkt samt ägarens sparade dolda platser med respektive radie, även vid återbesök; förenkling sker före klippning och separata delar
 förblir separata. Helt dolda eller saknade rutter ger ingen karta. Ägaren ser hela rutten.
@@ -377,7 +378,7 @@ Kommer bekräftelsemejlet ändå på engelska med en länk till Supabase har aut
 
 ### Kontoradering
 
-Inställningar → Danger zone → **Radera konto** kräver att användaren skriver ett slumpat löparord. `DELETE /api/me` kräver inloggning och CSRF-token och använder endast den inloggade användarens id. Under samma profillås som importen raderas råfilerna via objektlagringen, därefter raderas `auth.users` direkt i databastransaktionen. Befintliga FK-kaskader tar bort profil, utrustning, pass, tidsserier, varv, sportdelar, rekord och Supabase-/Kuta-sessioner. Cookien och webbens sessionscache rensas; gamla cookies avvisas vid nästa anrop.
+Inställningar → Danger zone → **Radera konto** kräver att användaren skriver sitt lösenord. `DELETE /api/me` kräver inloggning, CSRF-token och `{ password }`, som API:t kontrollerar mot Supabase (fel lösenord ger `403 wrongPassword`; auth-gränsen per IP gäller), och använder endast den inloggade användarens id. Under samma profillås som importen raderas råfilerna via objektlagringen, därefter raderas `auth.users` direkt i databastransaktionen. Befintliga FK-kaskader tar bort profil, utrustning, pass, tidsserier, varv, sportdelar, rekord och Supabase-/Kuta-sessioner. Cookien och webbens sessionscache rensas; gamla cookies avvisas vid nästa anrop.
 
 Om filrensningen misslyckas behålls kontot och filreferenserna för ett nytt försök. Redan raderade filer kan inte återställas om ett senare steg misslyckas, men raderingen kan köras igen. Leverantörsloggar och säkerhetskopior omfattas inte av appens radering; se integritetsunderlaget nedan. Ingen ny migrering eller separat Auth-adminnyckel behövs.
 

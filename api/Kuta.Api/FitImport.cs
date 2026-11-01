@@ -148,6 +148,8 @@ public static class FitImport
         if (start is not { } startedAt) return null;
 
         records = records.Where(r => r.Time is not null).ToList();
+        // A position outside ±90° latitude cannot be stored as geography; treat it as missing.
+        records = records.Select(r => r.Lat is { } v && Math.Abs(v * DegreesPerSemicircle) > 90 ? r with { Lat = null, Lon = null } : r).ToList();
         var lat = Channel(records, r => r.Lat is { } v ? v * DegreesPerSemicircle : (double?)null);
         var lon = Channel(records, r => r.Lon is { } v ? v * DegreesPerSemicircle : (double?)null);
         var dist = Channel(records, r => r.Dist);

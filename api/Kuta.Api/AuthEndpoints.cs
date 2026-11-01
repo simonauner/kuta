@@ -17,6 +17,9 @@ public static class AuthEndpoints
     // The date on web/terms.html (tested in TermsVersionTests). Change with every new version of the terms.
     public const string TermsVersion = "2026-11-01";
 
+    // Longer than Supabase's password check (bcrypt) plus network, so unknown addresses do not respond faster.
+    static readonly TimeSpan FailedLoginDuration = TimeSpan.FromMilliseconds(600);
+
     // The client's partition in the per-IP auth limit. An IPv6 client normally controls a whole /64 network and can change
     // address freely within it, so the whole network counts as one client.
     public static string ClientPartition(IPAddress? address)
@@ -114,7 +117,13 @@ public static class AuthEndpoints
                 return Results.BadRequest(new ApiError("Ange e-post och lösenord.", "credentialsRequired"));
             if (LimitPerEmail(req.Email) is { } limited) return limited;
 
+            var started = System.Diagnostics.Stopwatch.GetTimestamp();
             var (result, session) = await supabase.SignInAsync(req.Email.Trim(), req.Password, cancellationToken);
+            // Supabase skips the password check for unknown addresses and then responds faster. Failed attempts
+            // therefore take at least as long, so the response time does not reveal which addresses have an account.
+            if (result != SignInResult.SignedIn
+                && FailedLoginDuration - System.Diagnostics.Stopwatch.GetElapsedTime(started) is { Ticks: > 0 } remaining)
+                await Task.Delay(remaining, cancellationToken);
             switch (result)
             {
                 case SignInResult.SignedIn:

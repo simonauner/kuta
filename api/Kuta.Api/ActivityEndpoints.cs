@@ -312,7 +312,7 @@ public static class ActivityEndpoints
         // Full GPS streams and heart rate remain owner-only; feed map previews have separate privacy clipping.
         if (ownerId != userId)
             detail = detail with { AvgHr = null, MaxHr = null, Device = null, EquipmentIds = [],
-                Streams = detail.Streams is { } streams ? streams with { Hr = null, Lat = null, Lon = null } : null,
+                Streams = detail.Streams is { } streams ? RoutePrivacy.HideEndpointAltitude(streams with { Hr = null, Lat = null, Lon = null }) : null,
                 Laps = detail.Laps.Select(l => l with { AvgHr = null, MaxHr = null }).ToArray() };
         return detail;
     }

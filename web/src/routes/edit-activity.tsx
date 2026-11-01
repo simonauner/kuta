@@ -13,6 +13,7 @@ import { Input } from '@/components/ui/input'
 import { meQuery } from '@/lib/auth'
 import { ApiError, api } from '@/lib/api'
 import { activityQuery, refreshActivityQueries } from '@/lib/activity-query'
+import { SharingHints } from '@/components/privacy-places'
 import { activityTitle, type ActivityDetail } from '@/lib/activity'
 
 export function EditActivityPage() {
@@ -122,6 +123,7 @@ function EditActivityForm({ activity }: { activity: ActivityDetail }) {
               <span className="mt-2 block text-xs font-normal text-muted-foreground">
                 {t('social.sharingHint')}
               </span>
+              <SharingHints privacy={privacy} />
             </>
           )}
         </FormField>
