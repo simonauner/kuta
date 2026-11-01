@@ -23,6 +23,24 @@ public static class BestEfforts
                 achievedAt = startedAt.AddSeconds(e.StartOffsetS) }), tx);
     }
 
+    // Räknar om ett eget pass från sparade tidsserier och sportdelar. False om passet inte finns eller är någon annans.
+    public static async Task<bool> RecalculateAsync(NpgsqlConnection conn, Guid id, Guid userId,
+        CancellationToken ct = default)
+    {
+        await using var tx = await conn.BeginTransactionAsync(ct);
+        var activity = await conn.QuerySingleOrDefaultAsync<EffortActivity>(new CommandDefinition(
+            "select sport, started_at from activities where id = @id and user_id = @userId for update",
+            new { id, userId }, tx, cancellationToken: ct));
+        if (activity is null) return false;
+        var (t, dist, alt) = await Multisport.ReadStreamAsync(conn, tx, id);
+        await ReplaceAsync(conn, tx, id, userId, activity.Sport, activity.StartedAt,
+            t, dist, alt, await Multisport.LoadAsync(conn, id, tx));
+        await tx.CommitAsync(ct);
+        return true;
+    }
+
+    private sealed record EffortActivity(string Sport, DateTime StartedAt);
+
     public static IReadOnlyList<BestEffort> Calculate(string sport, int[] t, float?[]? dist, ActivityPart[]? parts = null)
     {
         if (parts is not { Length: > 0 })

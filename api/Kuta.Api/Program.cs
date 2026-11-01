@@ -54,6 +54,8 @@ static async Task<int> RunAsync(string[] args)
     builder.Services.AddHttpClient<SupabaseAuthClient>();
     builder.Services.AddSingleton<SharedTokenRefresh>();
     builder.Services.AddSingleton<RawFileStore>();
+    builder.Services.AddSingleton<ImportFiles>();
+    builder.Services.AddHostedService<JobWorker>();
 
     // Nycklarna sparas i Postgres och krypteras med ett certifikat utanför Development (DataProtection__Certificate)
     builder.Services.AddSingleton<IConfigureOptions<KeyManagementOptions>, PostgresKeyManagementSetup>();
@@ -237,6 +239,7 @@ static async Task<int> RunAsync(string[] args)
     api.MapSocial();
     api.MapEquipment();
     api.MapBestEfforts();
+    api.MapJobs();
     api.MapGoals();
 
     app.MapFallbackToFile("/privacy", "privacy.html", staticFiles);

@@ -190,6 +190,33 @@ bara dagar med pass. Summeringen följer målens regler (`SportGroups.EffectiveC
 hör till startdagen, en grupp räknar matchande delar av multisportpass och utan grupp räknas
 varje pass en gång. Okänd grupp ger `invalidSportGroup` och ogiltig tidszon `invalidTimeZone`.
 
+## Jobbkö
+
+Långa jobb körs i en egen kö i Postgres (`JobQueue`, `JobWorker`, migrering 020), inte i webbanropet. Hangfire och
+Wolverine valdes bort: Hangfire sparar undantagstexter och stackspår i egna tabeller, vilket strider mot den privata
+loggningen, och Wolverine är ett helt meddelanderamverk. Kön är en tabell `jobs`:
+
+- **Rader:** `kind` (`strava_import` eller `recalculate`), `status` (`queued`, `running`, `succeeded`, `failed`),
+  `progress` och `result` som JSON, en stabil `error_code`, försök och tider. Aldrig filinnehåll eller undantagstexter.
+  Högst ett aktivt jobb av varje slag per användare (unikt delindex). Jobben kaskadraderas med kontot, och avslutade
+  jobb rensas efter 30 dagar.
+- **Arbetare:** en bakgrundstjänst i API-processen tar nästa jobb med `for update skip locked` och håller det med ett lås
+  på två minuter som förnyas vid varje förlopp. Dör maskinen går låset ut och jobbet tas upp igen. Vid nedstängning
+  lämnas jobbet tillbaka utan att försöket räknas. Oväntade fel ger högst tre försök med ökande väntetid och loggas som
+  den fasta händelsen `job_failed` med undantagsprojektionen; därefter `jobFailed`.
+- **Importarkiv:** ZIP-filen ligger på maskinens lokala disk (`Jobs:ImportDirectory`, förval en katalog i
+  temp-katalogen) medan jobbet väntar och körs, och raderas när jobbet avslutas, när kontot raderas och vid arbetarens
+  timvisa städning. Arkiv på upp till 500 MB passar inte objektlagringens storleksgräns, och filen innehåller puls.
+  Driften har en maskin; fler maskiner kräver att arkivet flyttas till objektlagring.
+- **Omberäkning:** `POST /api/activities/recalculate` (CSRF) köar omberäkning av rekord och löpintensitet för alla egna
+  pass med tidsserier, 50 åt gången. Ett aktivt jobb returneras i stället för ett nytt. Förloppet sparar senaste passet,
+  så ett avbrutet jobb fortsätter där det slutade. Migrering 020 köar en omberäkning för alla användare med tidsserier.
+  Knappen finns under Inställningar → Räkna om pass.
+- **Läsning:** `GET /api/jobs` ger användarens senaste jobb av varje slag och `GET /api/jobs/{id}` ett eget jobb
+  (annars 404). Webben frågar varje sekund medan ett jobb är aktivt.
+- **Tester:** `Jobs__Enabled=false` stänger av arbetaren i testappen, och testerna kör jobben med
+  `JobWorker.RunAllAsync` för en användare.
+
 ## Träningsbelastning
 
 Statistiksidan visar kondition, trötthet och form för löpning, och Pass visar en varning högst upp när
@@ -538,7 +565,7 @@ Exportens innehåll, åtkomst mellan två användare, råfilernas bytes och samo
 
 ## Importera en Strava-export
 
-Öppna **Profil → Inställningar** via kugghjulet. Under **Importera från Strava** väljer du Stravas kompletta ZIP-export (högst 500 MB) och trycker **Importera pass**. Ta ställning till pulssamtycket först. Under importen visas antal bearbetade pass och löpande räknare för importerade, dubbletter och misslyckade. Låt sidan vara öppen medan importen körs; stora arkiv kan ta flera minuter. Exporten måste innehålla `activities.csv` i roten och filerna på sökvägarna i kolumnen `Filename`.
+Öppna **Profil → Inställningar** via kugghjulet. Under **Importera från Strava** väljer du Stravas kompletta ZIP-export (högst 500 MB) och trycker **Importera pass**. Ta ställning till pulssamtycket först. Uppladdningen köar importen, som sedan körs på servern (se [Jobbkö](#jobbkö)). Under importen visas antal bearbetade pass och löpande räknare för importerade, dubbletter och misslyckade. Sidan kan lämnas; förloppet och det senaste resultatet visas igen när du kommer tillbaka. Exporten måste innehålla `activities.csv` i roten och filerna på sökvägarna i kolumnen `Filename`.
 
 Träningsformen bevaras även för exempelvis terränglöpning, elcykling och virtuella pass. Namn från Stravas CSV och kompakta sportnamn normaliseras vid importen; okända framtida namn sparas också. Äldre importer slog ihop Run/Trail Run/Virtual Run respektive Ride/Virtual Ride/E-Bike Ride. Dessa redan sparade pass får ikonen för sin sparade sport; återimport av dubbletter ändrar inte sporten. Rekord beräknas för löpning, terränglöpning och virtuell löpning.
 
@@ -550,7 +577,7 @@ Skor importeras före passen och kopplas med `Gear`-ID från `activities.csv`. N
 
 Efteråt visas antal importerade pass, skor, kompletterade skokopplingar och dubbletter samt Strava-ID för pass som misslyckats (till exempel en saknad, trasig eller ej stödd aktivitetsfil). Tidigare sparade pass behålls om ett senare pass misslyckas eller anslutningen bryts. Kör samma export igen för att fortsätta; Strava-ID och identiska aktivitetsfiler förhindrar dubbletter inom kontot. Passlistan visar 25 pass åt gången; resten nås med Visa fler.
 
-API: `POST /api/activities/import/strava`, multipart-fält `file`, med inloggning och CSRF-token. Svar: en NDJSON-ström (`application/x-ndjson`) i samma anrop med `{ processed, total, imported, duplicates, failed, result }`. Status skickas vid start och därefter högst fyra gånger per sekund mellan passen. Sista meddelandet har `result: { imported, duplicates, failedActivityIds, equipmentImported, equipmentLinked }`; tidigare meddelanden har `result: null`. En ström utan slutresultat räknas som avbruten import. Valideringsfel före importen returneras fortfarande som vanliga JSON-felsvar. Högst 20 000 pass, 100 000 ZIP-poster, 20 MB per uppackad fil och totalt 1 GiB uppackade aktivitetsfiler per anrop, inklusive lästa byte från filer som avvisas. Budgeten räknas under läsningen; när den tar slut hoppas resterande pass över och rapporteras som misslyckade. Enskilda fel hindrar inte andra pass; ett ogiltigt CSV-manifest avvisar hela arkivet före lagring.
+API: `POST /api/activities/import/strava`, multipart-fält `file`, med inloggning och CSRF-token. Anropet sparar arkivet, kontrollerar manifestet och svarar `202 Accepted` med jobbet (`Location: /api/jobs/{id}`). Valideringsfel returneras som vanliga JSON-felsvar före köandet, och en redan pågående import ger `409` med `importInProgress`. Jobbets `progress` är `{ processed, total, imported, duplicates, failed }` och `result` vid framgång `{ imported, duplicates, failedActivityIds, equipmentImported, equipmentLinked }`. Ett jobb vars arkiv försvunnit (omstart av maskinen) avslutas med `stravaImportInterrupted`; ladda upp samma fil igen, dubbletter hoppas över. Högst 20 000 pass, 100 000 ZIP-poster, 20 MB per uppackad fil och totalt 1 GiB uppackade aktivitetsfiler per anrop, inklusive lästa byte från filer som avvisas. Budgeten räknas under läsningen; när den tar slut hoppas resterande pass över och rapporteras som misslyckade. Enskilda fel hindrar inte andra pass; ett ogiltigt CSV-manifest avvisar hela arkivet före lagring.
 
 ## Driftsättning (Fly.io)
 
