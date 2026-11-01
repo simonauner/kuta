@@ -398,6 +398,7 @@
     "invalidSportGroup": "Choose a valid sport.",
     "importInProgress": "An import is already running. Wait until it has finished.",
     "importBusy": "Many imports are running right now. Try again in a while.",
+    "uploadTooSlow": "The upload was too slow or was interrupted. Try again.",
     "exportBusy": "Many exports are running right now. Try again in a while.",
     "jobFailed": "The job failed. Please try again later.",
     "jobCancelled": "The job was cancelled.",

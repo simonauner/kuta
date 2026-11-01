@@ -7,6 +7,8 @@ using System.Xml;
 using Dapper;
 using Dynastream.Fit;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.AspNetCore.Server.Kestrel.Core;
+using Microsoft.AspNetCore.Server.Kestrel.Core.Features;
 using Microsoft.AspNetCore.WebUtilities;
 using Microsoft.Net.Http.Headers;
 using Microsoft.VisualBasic.FileIO;
@@ -23,6 +25,8 @@ public static class StravaImportEndpoint
     // or running imports plus two concurrent uploads, i.e. a few GB.
     private const int MaxQueuedImports = 4;
     private static readonly SemaphoreSlim Uploads = new(2);
+    // A full archive must arrive within about 80 minutes.
+    private const double MinUploadBytesPerSecond = 100 * 1024;
 
     // The upload saves the archive, checks the manifest and queues the import. The import itself is run by JobWorker.
     // The body is read as a stream only after the checks: with IFormFile the framework buffers the whole archive to disk before
@@ -54,8 +58,26 @@ public static class StravaImportEndpoint
                     return Results.Json(new ApiError("Många importer pågår just nu. Försök igen om en stund.", "importBusy"),
                         statusCode: StatusCodes.Status503ServiceUnavailable);
 
+                // Only two uploads at a time: a client trickling the body at Kestrel's default 240 B/s would hold a slot for days.
+                if (request.HttpContext.Features.Get<IHttpMinRequestBodyDataRateFeature>() is { } rate)
+                    rate.MinDataRate = new MinDataRate(MinUploadBytesPerSecond, TimeSpan.FromSeconds(10));
                 var jobId = Guid.NewGuid();
-                if (!await SaveArchiveAsync(request.Body, boundary, files, jobId, cancellationToken))
+                bool saved;
+                try { saved = await SaveArchiveAsync(request.Body, boundary, files, jobId, cancellationToken); }
+                catch (Microsoft.AspNetCore.Http.BadHttpRequestException e)
+                {
+                    // Too slow (408) or a broken body: the client's fault, so no error log
+                    files.Delete(jobId);
+                    return Results.Json(new ApiError("Uppladdningen gick för långsamt eller avbröts. Försök igen.", "uploadTooSlow"),
+                        statusCode: e.StatusCode);
+                }
+                catch
+                {
+                    // An aborted upload leaves a partial file
+                    files.Delete(jobId);
+                    throw;
+                }
+                if (!saved)
                 {
                     files.Delete(jobId);
                     return archiveRequired;
