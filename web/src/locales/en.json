@@ -53,17 +53,7 @@
     "empty": "No activities for the selected sport and year.",
     "noHeartRate": "No saved heart rate data during this period.",
     "chartScale": "Scale: 0–{{max}}. All values are in the table below.",
-    "method": "Time includes pauses. Pace is total time per kilometre for activities with distance and time. Lower pace means faster speed. Heart rate is weighted by activity duration, using only activities with saved heart rate. Missing values appear as –. All sports also combines pace and heart rate across sports. Months follow your device’s time zone.",
-    "onboarding": {
-      "title": "Small steps. Big progress.",
-      "description": "Your first activity starts your training story. Add it manually or upload a file from your watch, and let the numbers tell your story.",
-      "volumeTitle": "See the work you put in",
-      "volumeDescription": "Track distance and training time, month by month.",
-      "compareTitle": "Find your perspective",
-      "compareDescription": "Compare your training years and see how far you have come.",
-      "recordsTitle": "Discover your records",
-      "recordsDescription": "Upload runs from your watch to find your fastest efforts."
-    }
+    "method": "Time includes pauses. Pace is total time per kilometre for activities with distance and time. Lower pace means faster speed. Heart rate is weighted by activity duration, using only activities with saved heart rate. Missing values appear as –. All sports also combines pace and heart rate across sports. Months follow your device’s time zone."
   },
   "yearComparison": {
     "title": "Year over year",
@@ -148,25 +138,13 @@
     "retry": "Try again",
     "loadOlder": "Show older activities",
     "week": "Week {{week}}",
-    "hrSaved": "Heart rate is saved. Change this in",
     "empty": "No activities yet.",
     "delete": "Delete",
     "deleteLabel": "Delete activity {{date}}",
     "confirmDelete": "Delete the activity?",
-    "hrNotSaved": "Heart rate is not saved. Change this before uploading in",
     "sport": "Sport",
     "allSports": "All sports",
     "noMatches": "No activities match the filters.",
-    "onboarding": {
-      "title": "Your next adventure starts here.",
-      "description": "A quick loop or a long adventure? Keep your activities, memories and progress together here. Add your first activity manually or upload a file from your watch.",
-      "historyTitle": "Keep your activities together",
-      "historyDescription": "Save routes, notes and tags in your training diary.",
-      "importTitle": "Bring your history",
-      "importDescription": "Import your Strava archive or upload FIT files from your watch.",
-      "equipmentTitle": "Track your shoes",
-      "equipmentDescription": "Link shoes to your activities and see how far they have taken you."
-    },
     "deleteWarning": "The activity, its streams, records and original file are deleted. This cannot be undone."
   },
   "newActivity": {
@@ -252,7 +230,8 @@
     "lockedFrom": "The measurements come from the file ({{device}}).",
     "save": "Save",
     "saving": "Saving …",
-    "description": "Description (optional)"
+    "description": "Description (optional)",
+    "hrSaved": "Heart rate from the file is saved. Change this in <settings>Settings</settings>."
   },
   "activity": {
     "excludeFromRecords": "Exclude from running records",
@@ -630,10 +609,10 @@
     "followersVisibility": "Approved followers",
     "public": "Anyone with a Kuta account",
     "publicHint": "Anyone can create an account, so in practice anyone with the link can see it.",
-    "noHiddenPlaces": "You have no hidden places. Map previews hide 500 m around the start and finish, but activities that start at home can still show roughly where you live.",
+    "noHiddenPlaces": "You have no hidden places, so activities that start at home can still show roughly where you live.",
     "addHiddenPlace": "Add Home as a hidden place",
     "sharingHint": "Shared activities show title, description and training data. Map previews hide at least 500 m around start and finish. Heart rate, the full GPS route and equipment remain visible only to you.",
-    "sharedDetail": "Shared by {{name}}. Heart rate, the full GPS route and equipment are visible only to the owner. The feed may show a map preview with start and finish hidden.",
+    "sharedDetail": "Shared by {{name}}. Heart rate, the full GPS route and equipment are visible only to the owner.",
     "noActivities": "No activities to show.",
     "runnerNotFound": "Runner not found.",
     "shareProfile": "Share profile",
@@ -728,20 +707,7 @@
     "paddling": "Paddling",
     "rowing": "Rowing"
   },
-  "profile": {
-    "onboarding": {
-      "title": "Your training story starts with one activity.",
-      "description": "From your first loop to your next milestone, your activities belong here. Add an activity and start building your training story. You choose which activities to share.",
-      "identityTitle": "Your place on Kuta",
-      "identityDescription": "Your activities and visible goals come together on your profile.",
-      "connectionsTitle": "Find each other",
-      "connectionsDescription": "Share your profile link or ask a friend for theirs to start following each other.",
-      "privacyTitle": "You choose what to share",
-      "privacyDescription": "Choose who can see each activity and goal: only you, your followers or everyone on Kuta."
-    }
-  },
   "onboarding": {
-    "eyebrow": "Your progress starts here",
     "addActivity": "Add an activity"
   },
   "supporter": {
@@ -787,5 +753,19 @@
   },
   "common": {
     "cancel": "Cancel"
+  },
+  "emptyState": {
+    "activities": {
+      "title": "No activities yet",
+      "description": "Your activities are collected here, with notes, tags and shoes."
+    },
+    "stats": {
+      "title": "No statistics yet",
+      "description": "Statistics, records and training load are calculated from your activities."
+    },
+    "profile": {
+      "title": "Your profile is empty for now",
+      "description": "Your activities and visible goals appear here. You choose what others can see."
+    }
   }
 }

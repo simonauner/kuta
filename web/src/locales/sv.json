@@ -53,17 +53,7 @@
     "empty": "Inga aktiviteter för vald sport och år.",
     "noHeartRate": "Inga sparade pulsdata under perioden.",
     "chartScale": "Skala: 0–{{max}}. Alla värden finns i tabellen nedan.",
-    "method": "Tid inkluderar pauser. Tempo beräknas som total tid per kilometer för aktiviteter med distans och tid. Lägre tempo betyder snabbare fart. Snittpuls vägs med aktiviteternas tid, endast för aktiviteter med sparad puls. Saknade värden visas som –. Alla sporter kombinerar även tempo och puls mellan sporter. Månader följer din enhets tidszon.",
-    "onboarding": {
-      "title": "Små steg. Stora framsteg.",
-      "description": "Din första aktivitet är starten på din träningshistoria. Lägg till den manuellt eller ladda upp en fil från din klocka – så börjar siffrorna berätta din historia.",
-      "volumeTitle": "Se vad du lägger in",
-      "volumeDescription": "Följ distans och träningstid, månad för månad.",
-      "compareTitle": "Hitta ditt perspektiv",
-      "compareDescription": "Jämför dina träningsår och se hur långt du har kommit.",
-      "recordsTitle": "Upptäck dina rekord",
-      "recordsDescription": "Ladda upp löprundor från klockan för att hitta dina snabbaste sträckor."
-    }
+    "method": "Tid inkluderar pauser. Tempo beräknas som total tid per kilometer för aktiviteter med distans och tid. Lägre tempo betyder snabbare fart. Snittpuls vägs med aktiviteternas tid, endast för aktiviteter med sparad puls. Saknade värden visas som –. Alla sporter kombinerar även tempo och puls mellan sporter. Månader följer din enhets tidszon."
   },
   "yearComparison": {
     "title": "År för år",
@@ -148,25 +138,13 @@
     "retry": "Försök igen",
     "loadOlder": "Visa äldre aktiviteter",
     "week": "v. {{week}}",
-    "hrSaved": "Pulsdata sparas. Ändra i",
     "empty": "Inga aktiviteter än.",
     "delete": "Radera",
     "deleteLabel": "Radera aktiviteten {{date}}",
     "confirmDelete": "Radera aktiviteten?",
-    "hrNotSaved": "Pulsdata sparas inte. Ändra före uppladdning i",
     "sport": "Sport",
     "allSports": "Alla sporter",
     "noMatches": "Inga aktiviteter matchar filtren.",
-    "onboarding": {
-      "title": "Ditt nästa äventyr börjar här.",
-      "description": "En kort runda eller ett långt äventyr? Här samlar du dina aktiviteter, minnen och framsteg. Lägg till din första aktivitet manuellt eller ladda upp en fil från din klocka.",
-      "historyTitle": "Samla dina aktiviteter",
-      "historyDescription": "Spara rundor, anteckningar och taggar i din träningsdagbok.",
-      "importTitle": "Ta med din historik",
-      "importDescription": "Importera ditt Strava-arkiv eller ladda upp FIT-filer från klockan.",
-      "equipmentTitle": "Följ dina skor",
-      "equipmentDescription": "Koppla skor till aktiviteterna och se hur långt de har hängt med."
-    },
     "deleteWarning": "Aktiviteten, dess mätserier, rekord och originalfil raderas. Det går inte att ångra."
   },
   "newActivity": {
@@ -252,7 +230,8 @@
     "lockedFrom": "Mätvärdena kommer från filen ({{device}}).",
     "save": "Spara",
     "saving": "Sparar …",
-    "description": "Beskrivning (valfritt)"
+    "description": "Beskrivning (valfritt)",
+    "hrSaved": "Puls sparas från filen. Ändra i <settings>Inställningar</settings>."
   },
   "activity": {
     "excludeFromRecords": "Undanta från löprekord",
@@ -630,10 +609,10 @@
     "followersVisibility": "Godkända följare",
     "public": "Alla med ett Kuta-konto",
     "publicHint": "Vem som helst kan skapa ett konto, så i praktiken kan alla som har länken se det.",
-    "noHiddenPlaces": "Du har inga dolda platser. Kartminiatyrerna döljer 500 m runt start och mål, men aktiviteter som börjar hemma kan ändå visa ungefär var du bor.",
+    "noHiddenPlaces": "Du har inga dolda platser, så aktiviteter som börjar hemma kan ändå visa ungefär var du bor.",
     "addHiddenPlace": "Lägg till Hem som dold plats",
     "sharingHint": "Delade aktiviteter visar titel, beskrivning och träningsdata. Kartminiatyrer döljer minst 500 m runt start och mål. Puls, fullständig GPS-rutt och utrustning visas bara för dig.",
-    "sharedDetail": "Delat av {{name}}. Puls, fullständig GPS-rutt och utrustning visas bara för ägaren. Flödet kan visa en kartminiatyr med dold start och mål.",
+    "sharedDetail": "Delat av {{name}}. Puls, fullständig GPS-rutt och utrustning visas bara för ägaren.",
     "noActivities": "Inga aktiviteter att visa.",
     "runnerNotFound": "Löparen hittades inte.",
     "shareProfile": "Dela profil",
@@ -728,20 +707,7 @@
     "paddling": "Paddling",
     "rowing": "Rodd"
   },
-  "profile": {
-    "onboarding": {
-      "title": "Din träningshistoria börjar med en aktivitet.",
-      "description": "Här får dina aktiviteter en plats, från första rundan till nästa milstolpe. Lägg till en aktivitet och börja bygga din egen träningshistoria. Du väljer själv vilka aktiviteter du delar.",
-      "identityTitle": "Din plats på Kuta",
-      "identityDescription": "Dina aktiviteter och synliga mål samlas här på din profil.",
-      "connectionsTitle": "Hitta varandra",
-      "connectionsDescription": "Dela din profillänk eller be en vän om deras för att börja följa varandra.",
-      "privacyTitle": "Du väljer vad du delar",
-      "privacyDescription": "Bestäm för varje aktivitet och mål om bara du, dina följare eller alla på Kuta får se det."
-    }
-  },
   "onboarding": {
-    "eyebrow": "Här börjar din utveckling",
     "addActivity": "Lägg till en aktivitet"
   },
   "supporter": {
@@ -787,5 +753,19 @@
   },
   "common": {
     "cancel": "Avbryt"
+  },
+  "emptyState": {
+    "activities": {
+      "title": "Inga aktiviteter än",
+      "description": "Dina aktiviteter samlas här, med anteckningar, taggar och skor."
+    },
+    "stats": {
+      "title": "Ingen statistik än",
+      "description": "Statistik, rekord och träningsbelastning räknas fram ur dina aktiviteter."
+    },
+    "profile": {
+      "title": "Din profil är tom än",
+      "description": "Dina aktiviteter och synliga mål visas här. Du väljer själv vad andra får se."
+    }
   }
 }

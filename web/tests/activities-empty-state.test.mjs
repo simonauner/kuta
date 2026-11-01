@@ -14,7 +14,7 @@ import { I18nextProvider } from 'react-i18next'
 import sv from '../src/locales/sv.json' with { type: 'json' }
 import en from '../src/locales/en.json' with { type: 'json' }
 
-test('each empty page explains its own features and keeps the same onboarding actions in both languages', async () => {
+test('each empty page says what will appear there and keeps the same first actions in both languages', async () => {
   const server = await createServer({
     configFile: false,
     root: new URL('..', import.meta.url).pathname,
@@ -28,14 +28,10 @@ test('each empty page explains its own features and keeps the same onboarding ac
     )
     const i18n = createInstance()
     await i18n.init({ lng: 'sv', resources: { sv: { translation: sv }, en: { translation: en } } })
-    const featureKeys = {
-      activities: ['history', 'import', 'equipment'],
-      stats: ['volume', 'compare', 'records'],
-      profile: ['identity', 'connections', 'privacy'],
-    }
+    const contexts = ['activities', 'stats', 'profile']
     for (const [language, translations] of Object.entries({ sv, en })) {
       await i18n.changeLanguage(language)
-      for (const context of Object.keys(featureKeys)) {
+      for (const context of contexts) {
         const route = createRootRoute({
           component: () => createElement(ActivitiesEmptyState, { context }),
         })
@@ -47,20 +43,12 @@ test('each empty page explains its own features and keeps the same onboarding ac
         const html = renderToString(
           createElement(I18nextProvider, { i18n }, createElement(RouterProvider, { router })),
         )
-        assert.ok(html.includes(translations[context].onboarding.title))
-        for (const [page, keys] of Object.entries(featureKeys)) {
-          for (const key of keys) {
-            assert.equal(
-              html.includes(translations[page].onboarding[`${key}Title`]),
-              page === context,
-            )
-          }
-        }
+        for (const other of contexts)
+          assert.equal(html.includes(translations.emptyState[other].title), other === context)
         assert.ok(html.includes(translations.onboarding.addActivity))
         assert.ok(html.includes(translations.settings.strava))
         assert.match(html, /href="\/app\/activities\/new"/)
         assert.match(html, /href="\/app\/settings#import-heading"/)
-        assert.equal((html.match(/<h3 /g) ?? []).length, 3)
       }
     }
   } finally {
@@ -103,7 +91,7 @@ test('statistics only offers onboarding after confirming the entire activity his
             createElement(I18nextProvider, { i18n }, createElement(RouterProvider, { router })),
           ),
         )
-        assert.equal(html.includes(sv.stats.onboarding.title), years?.length === 0)
+        assert.equal(html.includes(sv.emptyState.stats.title), years?.length === 0)
         assert.equal(html.includes(sv.stats.empty), years !== undefined && years.length > 0)
         assert.equal(html.includes('<select'), years !== undefined && years.length > 0)
       } finally {

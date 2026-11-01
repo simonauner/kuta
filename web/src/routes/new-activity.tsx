@@ -10,9 +10,9 @@ import {
 import { MultisportEditor } from '@/components/multisport-editor'
 import { Modal } from '@/components/ui/modal'
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
-import { useNavigate, useSearch } from '@tanstack/react-router'
+import { Link, useNavigate, useSearch } from '@tanstack/react-router'
 import { useRef, useState, type FormEvent } from 'react'
-import { useTranslation } from 'react-i18next'
+import { Trans, useTranslation } from 'react-i18next'
 import { BackLink } from '@/components/back-link'
 import { ErrorMessage } from '@/components/error-message'
 import { HeartRateConsent } from '@/components/heart-rate-consent'
@@ -499,7 +499,19 @@ export function NewActivityPage() {
             />
           )}
         </FormField>
-        <HeartRateConsent className="mt-4" />
+        {/* The full consent only while it is missing; once given, one line is enough */}
+        {me?.hrConsent ? (
+          <p className="mt-4 text-sm text-muted-foreground">
+            <Trans
+              i18nKey="newActivity.hrSaved"
+              components={{
+                settings: <Link to="/app/settings" className="underline underline-offset-4" />,
+              }}
+            />
+          </p>
+        ) : (
+          <HeartRateConsent className="mt-4" />
+        )}
         <div className="mt-6 flex flex-wrap justify-end gap-3">
           <Button
             type="button"
