@@ -12,6 +12,7 @@ import { FeedPage } from '@/routes/feed'
 import { NewActivityPage } from '@/routes/new-activity'
 import { EquipmentPage } from '@/routes/equipment'
 import { RunnerPage } from '@/routes/runner'
+import { SharedProfilePage } from '@/routes/shared-profile'
 import { ProfilePage } from '@/routes/profile'
 import { SettingsPage } from '@/routes/settings'
 import { AnalysisPage, StatsPage } from '@/routes/stats'
@@ -75,6 +76,12 @@ const runnerRoute = createRoute({
   component: RunnerPage,
 })
 
+const sharedProfileRoute = createRoute({
+  getParentRoute: () => rootRoute,
+  path: '/app/r/$code',
+  component: SharedProfilePage,
+})
+
 const settingsRoute = createRoute({
   getParentRoute: () => rootRoute,
   path: '/app/settings',
@@ -109,6 +116,7 @@ const routeTree = rootRoute.addChildren([
   analysisRoute,
   profileRoute,
   runnerRoute,
+  sharedProfileRoute,
   equipmentRoute,
   settingsRoute,
   followersRoute,
