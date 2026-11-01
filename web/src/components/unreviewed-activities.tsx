@@ -6,9 +6,13 @@ import { ErrorMessage } from '@/components/error-message'
 import { Reveal } from '@/components/reveal'
 import { Button } from '@/components/ui/button'
 import { refreshActivityQueries } from '@/lib/activity-query'
+import { activityTitle } from '@/lib/activity'
 import { api } from '@/lib/api'
 
-type Unreviewed = { count: number; latestId: string | null }
+type Unreviewed = {
+  count: number
+  latest: { id: string; title: string | null; sport: string; startedAt: string } | null
+}
 
 // Garmin imports arrive with Garmin's name and no description; suggest editing them without forcing it.
 export function UnreviewedActivities({ className }: { className?: string }) {
@@ -22,8 +26,9 @@ export function UnreviewedActivities({ className }: { className?: string }) {
     mutationFn: () => api.send('POST', '/api/activities/unreviewed/dismiss'),
     onSuccess: () => refreshActivityQueries(queryClient),
   })
-  const latestId = unreviewed.data?.latestId
-  if (!unreviewed.data?.count || !latestId) return null
+  const latest = unreviewed.data?.latest
+  if (!unreviewed.data?.count || !latest) return null
+  const single = unreviewed.data.count === 1
   return (
     <Reveal>
       {/* Spacing goes on a padded wrapper: a margin inside Reveal collapses out of its animated height. */}
@@ -31,12 +36,14 @@ export function UnreviewedActivities({ className }: { className?: string }) {
         <div role="status" className="flex gap-3 rounded-xl border bg-card p-4 text-sm">
           <Sparkles className="mt-0.5 size-5 shrink-0 text-primary" />
           <div>
-            <p className="font-medium">{t('unreviewed.title', { count: unreviewed.data.count })}</p>
+            {single
+              ? t('unreviewed.titleSingle', { title: activityTitle(latest, t) })
+              : t('unreviewed.title', { count: unreviewed.data.count })}
             <p className="mt-1 text-muted-foreground">{t('unreviewed.text')}</p>
             <div className="mt-3 flex flex-wrap gap-2">
               <Button asChild size="sm">
-                <Link to="/app/activities/$activityId/edit" params={{ activityId: latestId }}>
-                  {t('unreviewed.edit')}
+                <Link to="/app/activities/$activityId/edit" params={{ activityId: latest.id }}>
+                  {single ? t('unreviewed.editSingle') : t('unreviewed.edit')}
                 </Link>
               </Button>
               <Button
@@ -45,7 +52,7 @@ export function UnreviewedActivities({ className }: { className?: string }) {
                 disabled={dismiss.isPending}
                 onClick={() => dismiss.mutate()}
               >
-                {t('unreviewed.dismiss')}
+                {single ? t('unreviewed.dismissSingle') : t('unreviewed.dismiss')}
               </Button>
             </div>
             {dismiss.error && (

@@ -184,13 +184,13 @@ public class GarminTests(KutaFactory factory) : IClassFixture<KutaFactory>
                 update activities set started_at = started_at - interval '1 day' where id = @older
                 """, new { userId, other, older });
 
-            Assert.Equal(new UnreviewedActivities(2, latest),
-                await client.GetFromJsonAsync<UnreviewedActivities>("/api/activities/unreviewed", ct));
+            var before = await client.GetFromJsonAsync<UnreviewedActivities>("/api/activities/unreviewed", ct);
+            Assert.Equal((2, latest, "running"), (before!.Count, before.Latest!.Id, before.Latest.Sport));
             var update = await client.PutAsJsonAsync($"/api/activities/{latest}",
                 new { title = "Edited", tags = Array.Empty<string>(), equipmentIds = Array.Empty<Guid>() }, ct);
             Assert.Equal(HttpStatusCode.NoContent, update.StatusCode);
-            Assert.Equal(new UnreviewedActivities(1, older),
-                await client.GetFromJsonAsync<UnreviewedActivities>("/api/activities/unreviewed", ct));
+            var after = await client.GetFromJsonAsync<UnreviewedActivities>("/api/activities/unreviewed", ct);
+            Assert.Equal((1, older), (after!.Count, after.Latest!.Id));
 
             Assert.Equal(HttpStatusCode.NoContent, (await client.PostAsync("/api/activities/unreviewed/dismiss", null, ct)).StatusCode);
             Assert.Equal(new UnreviewedActivities(0, null),

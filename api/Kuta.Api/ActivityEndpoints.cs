@@ -31,7 +31,9 @@ public record ActivityLap(
     short LapIndex, int StartS, int DurationS, int? MovingS, double DistanceM, short? AvgHr, short? MaxHr,
     float? AscentM, float? DescentM, short? AvgCadence);
 
-public record UnreviewedActivities(int Count, Guid? LatestId);
+// Latest carries what the web needs for its title ("New activity from Garmin: Morning Run").
+public record UnreviewedActivities(int Count, UnreviewedActivity? Latest);
+public record UnreviewedActivity(Guid Id, string? Title, string Sport, System.DateTime StartedAt);
 
 public record ActivityUpdateRequest(string? Title, string? Description, string[] Tags, Guid[] EquipmentIds, MultisportRequest? Multisport = null, bool RestoreParts = false, string? Privacy = null, bool? ExcludeFromRecords = null);
 
@@ -70,11 +72,14 @@ public static class ActivityEndpoints
         activities.MapGet("/unreviewed", async (NpgsqlDataSource db, ClaimsPrincipal user) =>
         {
             await using var conn = await db.OpenConnectionAsync();
-            return Results.Ok(await conn.QuerySingleAsync<UnreviewedActivities>("""
-                select count(*)::int as count,
-                    (array_agg(id order by started_at desc, id desc))[1] as latest_id
-                from activities where user_id = @userId and reviewed_at is null
-                """, new { userId = user.GetUserId() }));
+            var userId = user.GetUserId();
+            var count = await conn.ExecuteScalarAsync<int>(
+                "select count(*)::int from activities where user_id = @userId and reviewed_at is null", new { userId });
+            var latest = await conn.QuerySingleOrDefaultAsync<UnreviewedActivity>("""
+                select id, title, sport, started_at from activities where user_id = @userId and reviewed_at is null
+                order by started_at desc, id desc limit 1
+                """, new { userId });
+            return Results.Ok(new UnreviewedActivities(count, latest));
         });
 
         activities.MapPost("/unreviewed/dismiss", async (NpgsqlDataSource db, ClaimsPrincipal user) =>
