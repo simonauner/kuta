@@ -27,7 +27,7 @@ public class PasswordRecoveryTests
         {
             await Csrf(client, ct);
             Assert.Equal(HttpStatusCode.Accepted,
-                (await client.PostAsJsonAsync("/api/auth/signup", new { email, password = Password }, ct)).StatusCode);
+                (await client.PostAsJsonAsync("/api/auth/signup", new { email, password = Password, acceptTerms = true }, ct)).StatusCode);
             var signupHash = await EmailToken(email, "confirm", ct);
             var confirm = await client.GetAsync($"/api/auth/confirm?token_hash={signupHash}", ct);
             Assert.Equal("/app", confirm.Headers.Location?.ToString());
@@ -91,7 +91,7 @@ public class PasswordRecoveryTests
         {
             await Csrf(client, ct);
             Assert.Equal(HttpStatusCode.Accepted,
-                (await client.PostAsJsonAsync("/api/auth/signup", new { email, password = Password }, ct)).StatusCode);
+                (await client.PostAsJsonAsync("/api/auth/signup", new { email, password = Password, acceptTerms = true }, ct)).StatusCode);
             var signupHash = await EmailToken(email, "confirm", ct);
             Assert.Equal("/app", (await client.GetAsync($"/api/auth/confirm?token_hash={signupHash}", ct)).Headers.Location?.ToString());
             await Csrf(client, ct);

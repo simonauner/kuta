@@ -21,7 +21,7 @@ public class AuthFailureTests
         client.DefaultRequestHeaders.Add("X-CSRF-TOKEN", csrf!.Token);
 
         var response = await client.PostAsJsonAsync($"/api/auth/{endpoint}",
-            new { email = "timeout@example.com", password = "synthetic-password" }, ct);
+            new { email = "timeout@example.com", password = "synthetic-password", acceptTerms = true }, ct);
 
         Assert.Equal(HttpStatusCode.ServiceUnavailable, response.StatusCode);
         Assert.Equal("application/json", response.Content.Headers.ContentType?.MediaType);

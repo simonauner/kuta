@@ -53,7 +53,9 @@ public static class MeEndpoints
             await using var conn = await db.OpenConnectionAsync();
             await conn.ExecuteAsync(
                 """
-                insert into users (id, display_name) values (@id, @displayName)
+                insert into users (id, display_name, terms_version, terms_accepted_at)
+                select @id, @displayName, raw_user_meta_data->>'terms_version', (raw_user_meta_data->>'terms_accepted_at')::timestamptz
+                from auth.users where id = @id
                 on conflict (id) do update set display_name = excluded.display_name
                 """,
                 new { id = user.GetUserId(), displayName });

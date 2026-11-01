@@ -8,7 +8,7 @@ Löparapp med Garmin-import, statistik, rekord och socialt flöde. Se `AGENTS.md
 
 Logotypen ”Spåret” finns som fristående SVG i `web/public/brand/` (mörk och ljus variant). Bokstäverna är vektorkonturer och kräver ingen font. Symbolen i `web/public/favicon.svg` används också av PWA-manifestet. PNG-ikoner för PWA finns i `web/public/icons/` (192/512 samt maskable 512 med extra marginal). `web/public/apple-touch-icon.png` (180×180, heltäckande bakgrund) används av iOS, och `favicon-32.png` är PNG-fallback för webbläsare. Båda HTML-dokumenten länkar till ikonerna; PWA:n startar på `/app`. SVG-underlagen för hemskärmsikonerna finns i `web/public/brand/app-icon.svg` och `app-icon-maskable.svg`.
 
-`/privacy` är en publik, statisk integritetspolicy (`web/privacy.html`, extra stilar i `web/src/privacy.css`) med svenska och engelska i samma dokument. Engelska kan länkas direkt med `/privacy#english`. Båda språken är läsbara utan JavaScript; React-appens länkar använder dess valda språk. Startsidan och inloggningssidan länkar till policyn.
+`/privacy` är en publik, statisk integritetspolicy (`web/privacy.html`, extra stilar i `web/src/privacy.css`) med svenska och engelska i samma dokument. Engelska kan länkas direkt med `/privacy#english`. Båda språken är läsbara utan JavaScript; React-appens länkar använder dess valda språk. Startsidan och inloggningssidan länkar till policyn. `/terms` (`web/terms.html`) är användarvillkoren i samma form, med anmälan om missbruk till privacy@kutaapp.com. Registreringen kräver att båda godkänns (`acceptTerms: true` i `POST /api/auth/signup`, annars 400 `termsRequired`); version (`AuthEndpoints.TermsVersion`, samma datum som på villkorssidan) och tidpunkt skickas som Supabase-metadata och kopieras till `users.terms_version`/`terms_accepted_at` (migrering 022) när profilen skapas. Ändras villkoren: uppdatera datumet på sidan och konstanten tillsammans. Nytt godkännande för befintliga användare är inte byggt än.
 
 Policyn är ett utkast inför Garminansökan. Verifierat underlag, beslut, förslag och kvarvarande kontroller finns under [Integritet: underlag och öppna frågor](#integritet-underlag-och-öppna-frågor). Uppdatera båda språkversionerna när uppgifterna ändras; Garminanslutningen beskrivs som planerad tills den är implementerad.
 
@@ -562,7 +562,7 @@ till fältet; redan importerade dubbletter hoppas fortfarande över vid Strava-i
 
 Öppna **Profil → Inställningar → Exportera data → Ladda ner ZIP**. Låt sidan vara öppen medan arkivet förbereds. `GET /api/me/export` kräver inloggning och hämtar bara det egna kontots data, oberoende av filter och sidindelning i passlistan. Svaret är en nedladdningsbar `kuta-export.zip` med `Cache-Control: no-store`.
 
-- `profile.json`: id, e-postadress, visningsnamn, profilens skapandetid och tidpunkt för pulssamtycke.
+- `profile.json`: id, e-postadress, visningsnamn, profilens skapandetid, tidpunkt för pulssamtycke och för godkända villkor.
 - `equipment.json`: all egen utrustning, även pensionerad, med startvärden och total användning.
 - `privacy-places.json`: egna dolda platser med namn, mittpunkt och radie. Listan ingår även utan pass.
 - `goals.json`: egna träningsmål med sportgrupp, typ, period, mål i SI-enheter, upprepning, startdatum och synlighet.

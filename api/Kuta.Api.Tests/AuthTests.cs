@@ -28,7 +28,11 @@ public class AuthTests(KutaFactory factory) : IClassFixture<KutaFactory>
             Assert.Equal(HttpStatusCode.BadRequest, withoutCsrf.StatusCode);
 
             await UseCsrfToken(client, ct);
-            var signup = await client.PostAsJsonAsync("/api/auth/signup", new { email, password = Password }, ct);
+            var withoutTerms = await client.PostAsJsonAsync("/api/auth/signup", new { email, password = Password }, ct);
+            Assert.Equal(HttpStatusCode.BadRequest, withoutTerms.StatusCode);
+            Assert.Equal("termsRequired", (await withoutTerms.Content.ReadFromJsonAsync<JsonElement>(ct)).GetProperty("code").GetString());
+
+            var signup = await client.PostAsJsonAsync("/api/auth/signup", new { email, password = Password, acceptTerms = true }, ct);
             Assert.Equal(HttpStatusCode.Accepted, signup.StatusCode);
 
             var beforeConfirm = await client.PostAsJsonAsync("/api/auth/login", new { email, password = Password }, ct);
@@ -48,6 +52,9 @@ public class AuthTests(KutaFactory factory) : IClassFixture<KutaFactory>
             await UseCsrfToken(client, ct);
             var put = await client.PutAsJsonAsync("/api/me", new { displayName = "Testlöpare" }, ct);
             Assert.Equal(HttpStatusCode.OK, put.StatusCode);
+            Assert.Equal(AuthEndpoints.TermsVersion, await conn.ExecuteScalarAsync<string>(
+                "select terms_version from users where id = @id and terms_accepted_at is not null",
+                new { id = me.GetProperty("id").GetGuid() }));
 
             await conn.ExecuteAsync(
                 "insert into activities (user_id, source, started_at, duration_s, distance_m) values (@id, 'manual', now(), 1800, 5000)",
