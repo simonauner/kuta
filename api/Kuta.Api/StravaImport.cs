@@ -12,6 +12,8 @@ public static class StravaImport
 {
     public const int MaxFileBytes = 20 * 1024 * 1024;
     public const int MaxActivities = 20000;
+    // Strava's activities.csv has about 100 columns; the cap keeps a crafted header from making every row expensive.
+    public const int MaxColumns = 500;
     private static readonly CultureInfo Invariant = CultureInfo.InvariantCulture;
 
     public static List<StravaActivity> ReadManifest(Stream csv)
@@ -19,7 +21,10 @@ public static class StravaImport
         using var parser = new TextFieldParser(csv) { HasFieldsEnclosedInQuotes = true };
         parser.SetDelimiters(",");
         var header = parser.ReadFields() ?? throw new InvalidDataException("Missing CSV header.");
-        int Index(string name) => Array.LastIndexOf(header, name); // The last distance/time columns use SI.
+        if (header.Length > MaxColumns) throw new InvalidDataException("Too many CSV columns.");
+        var columns = new Dictionary<string, int>();
+        for (var i = 0; i < header.Length; i++) columns[header[i]] = i; // The last distance/time columns use SI.
+        int Index(string name) => columns.GetValueOrDefault(name, -1);
         foreach (var required in new[] { "Activity ID", "Activity Date", "Activity Name", "Activity Type", "Filename", "Elapsed Time", "Distance" })
             if (Index(required) < 0) throw new InvalidDataException("Missing CSV column.");
         if (Index("Distance") == Array.IndexOf(header, "Distance"))

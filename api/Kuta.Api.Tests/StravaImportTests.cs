@@ -99,6 +99,16 @@ public class StravaParserTests
     }
 
     [Fact]
+    public void Csv_rejects_headers_with_too_many_columns()
+    {
+        var csv = StravaFixture.Csv(StravaFixture.Row("1", ""));
+        var newline = csv.IndexOf('\n');
+        using var stream = new MemoryStream(Encoding.UTF8.GetBytes(
+            csv[..newline] + new string(',', StravaImport.MaxColumns) + csv[newline..]));
+        Assert.Throws<InvalidDataException>(() => StravaImport.ReadManifest(stream));
+    }
+
+    [Fact]
     public void Csv_rejects_oversized_descriptions()
     {
         using var csv = new MemoryStream(Encoding.UTF8.GetBytes(
