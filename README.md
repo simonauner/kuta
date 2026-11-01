@@ -132,6 +132,15 @@ knappen; det gäller även utan pass. Migrering 015 lägger till `users.default_
 Samma profillås som importerna gör att en pågående import inte kan spara ett
 äldre standardval efter massändringen. Importdubbletter behåller sina val.
 
+## Supporterskap
+
+Frivilligt årligt supporterskap (brons 50 kr, silver 150 kr, guld 300 kr, valfritt belopp över 300 kr ger guld) ger bara en badge. Betalningen är inte byggd: knappen "Bli supporter" på Inställningar visar en modal om att betalningar inte är aktiverade än.
+
+- `users.supporter_tier` (`bronze|silver|gold`) och `users.supporter_until` ska sättas av betalningsintegrationen. Badgen visas bara medan `supporter_until` ligger i framtiden.
+- `users.supporter_badge_privacy` (`private|followers|public`, förval `private` eftersom nivån avslöjar beloppet) ändras med `PUT /api/me/supporter-badge-privacy` (`{ "privacy": "public" }`). `GET /api/me` returnerar `supporter: { tier, until, badgePrivacy }`.
+- `supporterTier` finns i `/api/runners/{id}`, flödet och `/api/follows`, beräknat med `Supporters.VisibleTier` (samma regel som passens synlighet). Ingår i export och raderas med kontot.
+- Lokalt: `update users set supporter_tier = 'gold', supporter_until = now() + interval '1 year' where id = '…'`.
+
 ## Dolda platser
 
 Passens läsåtkomst följer synligheten och godkända följrelationer enligt ovan.

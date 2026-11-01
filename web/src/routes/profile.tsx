@@ -7,6 +7,7 @@ import { ActivitiesEmptyState } from '@/components/activities-empty-state'
 import { ActivityFeed } from '@/components/activity-feed'
 import { GoalList } from '@/components/goals'
 import { ShareProfile } from '@/components/share-profile'
+import { SupporterBadge } from '@/components/supporter'
 import { meQuery } from '@/lib/auth'
 
 export function ProfilePage() {
@@ -16,8 +17,9 @@ export function ProfilePage() {
   return (
     <section className="space-y-6">
       <div className="flex flex-wrap items-start justify-between gap-4">
-        <h1 className="min-w-0 break-words text-2xl font-semibold tracking-tight">
+        <h1 className="flex min-w-0 items-center gap-2 break-words text-2xl font-semibold tracking-tight">
           {me?.displayName}
+          <SupporterBadge tier={me?.supporter.tier} />
         </h1>
         <div className="flex max-w-full items-start gap-2">
           <ShareProfile />

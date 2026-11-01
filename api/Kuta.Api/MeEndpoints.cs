@@ -5,9 +5,13 @@ using Microsoft.AspNetCore.Authentication.Cookies;
 using Npgsql;
 
 public record UpdateMeRequest(string? DisplayName);
-public record Me(Guid Id, string? Email, string? DisplayName, bool HrConsent, string DefaultActivityPrivacy, bool AllActivitiesMatchDefaultPrivacy);
+public record Me(Guid Id, string? Email, string? DisplayName, bool HrConsent, string DefaultActivityPrivacy, bool AllActivitiesMatchDefaultPrivacy,
+    Supporter Supporter);
+// Tier är null när supporterskapet saknas eller har gått ut.
+public record Supporter(string? Tier, DateTime? Until, string BadgePrivacy);
 public record Profile(string DisplayName, bool HrConsent, string DefaultActivityPrivacy);
 public record ActivityPrivacyRequest(string? Privacy, bool ApplyToAll = false);
+public record BadgePrivacyRequest(string? Privacy);
 
 public static class MeEndpoints
 {
@@ -79,6 +83,18 @@ public static class MeEndpoints
             return Results.Ok(await LoadAsync(conn, user));
         });
 
+        me.MapPut("/supporter-badge-privacy", async (BadgePrivacyRequest req, NpgsqlDataSource db, ClaimsPrincipal user) =>
+        {
+            if (!ActivityInput.IsValidPrivacy(req.Privacy))
+                return Results.BadRequest(new ApiError("Välj giltig synlighet.", "invalidPrivacy"));
+            await using var conn = await db.OpenConnectionAsync();
+            var updated = await conn.ExecuteAsync(
+                "update users set supporter_badge_privacy = @Privacy where id = @id", new { id = user.GetUserId(), req.Privacy });
+            return updated == 0
+                ? Results.Conflict(new ApiError("Välj ett namn först.", "nameRequired"))
+                : Results.Ok(await LoadAsync(conn, user));
+        });
+
         // Uttryckligt samtycke till att puls sparas (hälsodata). Första tidpunkten behålls.
         me.MapPut("/hr-consent", async (NpgsqlDataSource db, ClaimsPrincipal user) =>
         {
@@ -148,6 +164,12 @@ public static class MeEndpoints
                 select 1 from activities where user_id = @id and privacy <> @privacy
             )
             """, new { id = user.GetUserId(), privacy });
-        return new Me(user.GetUserId(), user.FindFirstValue(ClaimTypes.Email), profile?.DisplayName, profile?.HrConsent ?? false, privacy, allMatch);
+        var supporter = await conn.QuerySingleOrDefaultAsync<Supporter>("""
+            select case when supporter_until > now() then supporter_tier end as tier, supporter_until as until,
+                supporter_badge_privacy as badge_privacy
+            from users where id = @id
+            """, new { id = user.GetUserId() }) ?? new Supporter(null, null, "private");
+        return new Me(user.GetUserId(), user.FindFirstValue(ClaimTypes.Email), profile?.DisplayName, profile?.HrConsent ?? false, privacy, allMatch,
+            supporter);
     }
 }

@@ -5,6 +5,29 @@ import { useTranslation } from 'react-i18next'
 import type { ActivityBestEffort } from '@/lib/records'
 import './record-award.css'
 
+const metals = {
+  gold: ['#a86610', '#ffcc4d', '#fff6c9', '#e9aa23', '#ffd66b'],
+  silver: ['#718296', '#c6d2df', '#ffffff', '#a8b8cb', '#e2eaf2'],
+  bronze: ['#7a3f17', '#c98245', '#ffe2c4', '#a65e2a', '#dd9a5e'],
+}
+
+// Fyllning med glansrand för ikoner i rekordens och supporterbadgens metaller.
+export function MetalGradient({ id, metal }: { id: string; metal: keyof typeof metals }) {
+  const colors = metals[metal]
+  return (
+    <defs>
+      <linearGradient id={id} x1="0" y1="0" x2="0.8" y2="1">
+        <stop offset="0%" stopColor={colors[0]} />
+        <stop offset="30%" stopColor={colors[1]} />
+        <stop offset="46%" stopColor={colors[2]} />
+        <stop offset="58%" stopColor={colors[3]} />
+        <stop offset="80%" stopColor={colors[4]} />
+        <stop offset="100%" stopColor={colors[0]} />
+      </linearGradient>
+    </defs>
+  )
+}
+
 type RecordAwardProps =
   { status: NonNullable<ActivityBestEffort['recordStatus']> } | { status: 'year'; year: number }
 
@@ -18,10 +41,6 @@ export function RecordAward(props: RecordAwardProps) {
       ? t('records.yearBest', { year: props.year })
       : t(status === 'current' ? 'records.currentBest' : 'records.previousBest')
   const metal = status === 'current' ? 'gold' : 'silver'
-  const colors = {
-    gold: ['#a86610', '#ffcc4d', '#fff6c9', '#e9aa23', '#ffd66b'],
-    silver: ['#718296', '#c6d2df', '#ffffff', '#a8b8cb', '#e2eaf2'],
-  }[metal]
   const Icon = status === 'current' ? Trophy : status === 'year' ? Award : Medal
   return (
     <Tooltip.Root open={open} onOpenChange={setOpen}>
@@ -39,18 +58,7 @@ export function RecordAward(props: RecordAwardProps) {
           strokeWidth={1.6}
           aria-hidden="true"
         >
-          {status !== 'year' && (
-            <defs>
-              <linearGradient id={gradientId} x1="0" y1="0" x2="0.8" y2="1">
-                <stop offset="0%" stopColor={colors[0]} />
-                <stop offset="30%" stopColor={colors[1]} />
-                <stop offset="46%" stopColor={colors[2]} />
-                <stop offset="58%" stopColor={colors[3]} />
-                <stop offset="80%" stopColor={colors[4]} />
-                <stop offset="100%" stopColor={colors[0]} />
-              </linearGradient>
-            </defs>
-          )}
+          {status !== 'year' && <MetalGradient id={gradientId} metal={metal} />}
         </Icon>
       </Tooltip.Trigger>
       <Tooltip.Portal>

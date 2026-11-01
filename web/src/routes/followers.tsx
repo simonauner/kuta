@@ -5,6 +5,8 @@ import { useTranslation } from 'react-i18next'
 import { ErrorMessage } from '@/components/error-message'
 import { Button } from '@/components/ui/button'
 import { api } from '@/lib/api'
+import type { SupporterTier } from '@/lib/auth'
+import { SupporterBadge } from '@/components/supporter'
 
 import {
   Breadcrumb,
@@ -15,7 +17,12 @@ import {
   BreadcrumbSeparator,
 } from '@/components/ui/breadcrumb'
 
-type Runner = { id: string; displayName: string; status: 'pending' | 'accepted' }
+type Runner = {
+  id: string
+  displayName: string
+  status: 'pending' | 'accepted'
+  supporterTier: SupporterTier | null
+}
 
 export function FollowersPage() {
   const { t } = useTranslation()
@@ -37,13 +44,16 @@ export function FollowersPage() {
   })
   const action = (runner: Runner, incoming: boolean) => (
     <li key={runner.id} className="flex flex-wrap items-center justify-between gap-3 px-4 py-3">
-      <Link
-        to="/app/runners/$runnerId"
-        params={{ runnerId: runner.id }}
-        className="min-w-0 break-words font-medium underline-offset-4 hover:underline"
-      >
-        {runner.displayName}
-      </Link>
+      <span className="flex min-w-0 items-center gap-1.5">
+        <Link
+          to="/app/runners/$runnerId"
+          params={{ runnerId: runner.id }}
+          className="min-w-0 break-words font-medium underline-offset-4 hover:underline"
+        >
+          {runner.displayName}
+        </Link>
+        <SupporterBadge tier={runner.supporterTier} />
+      </span>
       <div className="flex flex-wrap gap-2">
         {runner.status === 'pending' && (
           <span className="self-center text-xs text-muted-foreground">{t('social.pending')}</span>

@@ -698,5 +698,36 @@
   "onboarding": {
     "eyebrow": "Här börjar din utveckling",
     "addActivity": "Lägg till ett pass"
+  },
+  "supporter": {
+    "title": "Supporter",
+    "intro": "Kuta är gratis och alla funktioner förblir gratis. Driften bärs av frivilliga supportrar med ett årligt bidrag. Som tack får du en badge på profilen och bredvid ditt namn – inga extra funktioner.",
+    "active": "Du är supporter på nivån {{tier}} till och med {{until}}. Tack!",
+    "choose": "Välj nivå (per år)",
+    "tiers": {
+      "bronze": "Brons",
+      "silver": "Silver",
+      "gold": "Guld"
+    },
+    "tierOption": "{{tier}} – {{amount}} kr/år",
+    "customOption": "Valfritt belopp över 300 kr/år",
+    "customAmount": "Belopp (kr/år)",
+    "customHelp": "Ger guldbadgen. Vi hör av oss för att tacka personligen.",
+    "become": "Bli supporter",
+    "badgePrivacy": "Vem ser din supporterbadge",
+    "badgeHelp": "Nivån visar ungefär hur mycket du bidrar, så du väljer själv vilka som ser badgen. Sparas automatiskt.",
+    "badge": {
+      "bronze": "Bronssupporter",
+      "silver": "Silversupporter",
+      "gold": "Guldsupporter"
+    },
+    "modalTitle": "Tack för att du vill bidra!",
+    "modalText": "Kul att du vill vara med och bidra! Än så länge är betalningar inte aktiverade, men vi arbetar såklart för att ro detta i hamn så att du kan vara med och supporta Kuta!",
+    "modalClose": "Stäng",
+    "manage": "Hantera ditt supporterskap",
+    "changeLevel": "Ändra nivå",
+    "end": "Avsluta supporterskap",
+    "endHelp": "Supporterskapet förnyas inte, men du behåller badgen till och med {{until}}.",
+    "manageNotice": "Betalningar är inte aktiverade än, så supporterskapet går inte att ändra eller avsluta här ännu. Det gäller till och med {{until}}."
   }
 }

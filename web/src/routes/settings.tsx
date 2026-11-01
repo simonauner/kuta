@@ -7,6 +7,7 @@ import { ErrorMessage } from '@/components/error-message'
 import { HeartRateConsent } from '@/components/heart-rate-consent'
 import { LanguageSelect } from '@/components/language-select'
 import { Recalculation, StravaImport } from '@/components/strava-import'
+import { SupporterSection } from '@/components/supporter'
 import {
   Breadcrumb,
   BreadcrumbItem,
@@ -48,6 +49,9 @@ export function SettingsPage() {
         </BreadcrumbList>
       </Breadcrumb>
       <h1 className="text-2xl font-semibold tracking-tight">{t('settings.title')}</h1>
+      <div className="mt-4 flex">
+        <LanguageSelect />
+      </div>
       <div className="mt-6 grid gap-3">
         <Link
           to="/app/settings/followers"
@@ -63,18 +67,16 @@ export function SettingsPage() {
           {t('equipment.title')}
           <span aria-hidden="true">→</span>
         </Link>
-      </div>
-      <div className="mt-6 flex">
-        <LanguageSelect />
+        <Link
+          to="/app/settings/privacy-places"
+          className="flex items-center justify-between rounded-lg border p-4 font-medium hover:bg-accent focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-ring"
+        >
+          {t('privacyPlaces.title')}
+          <span aria-hidden="true">→</span>
+        </Link>
       </div>
 
-      <Link
-        to="/app/settings/privacy-places"
-        className="mt-8 flex items-center justify-between rounded-lg border p-4 font-medium hover:bg-accent focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-ring"
-      >
-        {t('privacyPlaces.title')}
-        <span aria-hidden="true">→</span>
-      </Link>
+      <SupporterSection />
 
       <ActivityPrivacy />
 

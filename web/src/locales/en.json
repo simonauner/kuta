@@ -698,5 +698,36 @@
   "onboarding": {
     "eyebrow": "Your progress starts here",
     "addActivity": "Add an activity"
+  },
+  "supporter": {
+    "title": "Supporter",
+    "intro": "Kuta is free and every feature stays free. Running it is funded by voluntary supporters with a yearly contribution. As a thank-you you get a badge on your profile and next to your name – no extra features.",
+    "active": "You are a supporter at the {{tier}} level until {{until}}. Thank you!",
+    "choose": "Choose a level (per year)",
+    "tiers": {
+      "bronze": "Bronze",
+      "silver": "Silver",
+      "gold": "Gold"
+    },
+    "tierOption": "{{tier}} – SEK {{amount}}/year",
+    "customOption": "Any amount above SEK 300/year",
+    "customAmount": "Amount (SEK/year)",
+    "customHelp": "Gives the gold badge. We'll get in touch to thank you personally.",
+    "become": "Become a supporter",
+    "badgePrivacy": "Who sees your supporter badge",
+    "badgeHelp": "The level roughly shows how much you contribute, so you choose who sees the badge. Saved automatically.",
+    "badge": {
+      "bronze": "Bronze supporter",
+      "silver": "Silver supporter",
+      "gold": "Gold supporter"
+    },
+    "modalTitle": "Thanks for wanting to contribute!",
+    "modalText": "Great that you want to chip in! Payments aren't enabled yet, but we're working on getting them in place so you can support Kuta!",
+    "modalClose": "Close",
+    "manage": "Manage your support",
+    "changeLevel": "Change level",
+    "end": "End support",
+    "endHelp": "Your support won't renew, but you keep the badge until {{until}}.",
+    "manageNotice": "Payments aren't enabled yet, so your support can't be changed or ended here yet. It is valid until {{until}}."
   }
 }

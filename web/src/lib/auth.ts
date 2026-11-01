@@ -1,6 +1,8 @@
 import { queryOptions, useQueryClient } from '@tanstack/react-query'
 import { api, ApiError, resetCsrfToken } from '@/lib/api'
 
+export type SupporterTier = 'bronze' | 'silver' | 'gold'
+
 // hrConsent: uttryckligt samtycke till att puls (hälsodata) sparas
 export type Me = {
   id: string
@@ -9,6 +11,12 @@ export type Me = {
   hrConsent: boolean
   defaultActivityPrivacy: 'private' | 'followers' | 'public'
   allActivitiesMatchDefaultPrivacy: boolean
+  // tier är null när supporterskapet saknas eller har gått ut
+  supporter: {
+    tier: SupporterTier | null
+    until: string | null
+    badgePrivacy: 'private' | 'followers' | 'public'
+  }
 }
 
 // null = inte inloggad

@@ -4,13 +4,19 @@ import { Link, useParams } from '@tanstack/react-router'
 import { useTranslation } from 'react-i18next'
 import { ActivityFeed } from '@/components/activity-feed'
 import { GoalList } from '@/components/goals'
+import { SupporterBadge } from '@/components/supporter'
 import { ErrorMessage } from '@/components/error-message'
 import { Button } from '@/components/ui/button'
 import { ApiError, api } from '@/lib/api'
 import { ProfilePage } from '@/routes/profile'
-import { meQuery } from '@/lib/auth'
+import { meQuery, type SupporterTier } from '@/lib/auth'
 
-type Runner = { id: string; displayName: string; status: 'none' | 'pending' | 'accepted' }
+type Runner = {
+  id: string
+  displayName: string
+  status: 'none' | 'pending' | 'accepted'
+  supporterTier: SupporterTier | null
+}
 
 export function RunnerPage() {
   const { runnerId } = useParams({ from: '/app/runners/$runnerId' })
@@ -57,8 +63,9 @@ export function RunnerPage() {
         {runner.data && !runner.isError && (
           <>
             <div className="flex flex-wrap items-center justify-between gap-3">
-              <h1 className="min-w-0 break-words text-2xl font-semibold tracking-tight">
+              <h1 className="flex min-w-0 items-center gap-2 break-words text-2xl font-semibold tracking-tight">
                 {runner.data.displayName}
+                <SupporterBadge tier={runner.data.supporterTier} />
               </h1>
               {me?.id !== runnerId && (
                 <div className="flex flex-wrap items-center gap-3">
