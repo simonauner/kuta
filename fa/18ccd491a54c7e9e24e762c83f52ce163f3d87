@@ -1,0 +1,21 @@
+api/Kuta.Api.Tests/AuthFailureTests.cs
+  s_18157bd3682cdd::t_7b7a697b2b75ae 33-61
+api/Kuta.Api/AuthEndpoints.cs
+  s_18157bd3682cdd::t_fad190ca0d5b00 20-22,120,122-126
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.7.5",
+  "base_commit_sha": "fa18ccd491a54c7e9e24e762c83f52ce163f3d87",
+  "prompts": {},
+  "sessions": {
+    "s_18157bd3682cdd": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "c8e5873c-f510-4ac1-8363-b864b8cfaff4",
+        "model": "claude-opus-5-5"
+      },
+      "human_author": "Simon Aunér <simonauner@gmail.com>"
+    }
+  }
+}
