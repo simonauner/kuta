@@ -85,7 +85,7 @@ export function SupporterSection() {
       {supporter?.tier && supporter.until ? (
         <Button
           variant="link"
-          className="mt-2 h-auto p-0"
+          className="mt-2 h-auto p-0 text-muted-foreground underline hover:text-foreground"
           onClick={() => {
             setManageNotice(null)
             setManageKey((key) => key + 1)
