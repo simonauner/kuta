@@ -1,3 +1,4 @@
+import { SlowLoading } from '@/components/slow-loading'
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
 import { Link, useParams } from '@tanstack/react-router'
 import { useTranslation } from 'react-i18next'
@@ -38,58 +39,59 @@ export function RunnerPage() {
       <Link to="/app" className="text-sm text-muted-foreground underline-offset-2 hover:underline">
         ← {t('nav.feed')}
       </Link>
-      {runner.isPending && <p role="status">{t('social.loading')}</p>}
-      {runner.error && (
-        <div role="alert">
-          {runner.error instanceof ApiError && runner.error.status === 404 ? (
-            t('social.runnerNotFound')
-          ) : (
-            <>
-              <ErrorMessage error={runner.error} />
-              <Button variant="outline" onClick={() => void runner.refetch()}>
-                {t('activities.retry')}
-              </Button>
-            </>
-          )}
-        </div>
-      )}
-      {runner.data && !runner.isError && (
-        <>
-          <div className="flex flex-wrap items-center justify-between gap-3">
-            <h1 className="min-w-0 break-words text-2xl font-semibold tracking-tight">
-              {runner.data.displayName}
-            </h1>
-            {me?.id !== runnerId && (
-              <div className="flex flex-wrap items-center gap-3">
-                {runner.data.status === 'pending' && (
-                  <span className="text-sm text-muted-foreground">{t('social.pending')}</span>
-                )}
-                <Button
-                  variant="outline"
-                  disabled={follow.isPending}
-                  onClick={() => follow.mutate()}
-                >
-                  {t(
-                    runner.data.status === 'accepted'
-                      ? 'social.unfollow'
-                      : runner.data.status === 'pending'
-                        ? 'social.cancel'
-                        : 'social.follow',
-                  )}
+      <SlowLoading loading={runner.isPending}>
+        {runner.error && (
+          <div role="alert">
+            {runner.error instanceof ApiError && runner.error.status === 404 ? (
+              t('social.runnerNotFound')
+            ) : (
+              <>
+                <ErrorMessage error={runner.error} />
+                <Button variant="outline" onClick={() => void runner.refetch()}>
+                  {t('activities.retry')}
                 </Button>
-              </div>
+              </>
             )}
           </div>
-          {follow.error && (
-            <p role="alert" className="text-destructive">
-              <ErrorMessage error={follow.error} />
-            </p>
-          )}
-          <GoalList key={`goals-${runnerId}`} runnerId={runnerId} />
-          <h2 className="text-lg font-semibold">{t('nav.activities')}</h2>
-          <ActivityFeed key={runnerId} runnerId={runnerId} />
-        </>
-      )}
+        )}
+        {runner.data && !runner.isError && (
+          <>
+            <div className="flex flex-wrap items-center justify-between gap-3">
+              <h1 className="min-w-0 break-words text-2xl font-semibold tracking-tight">
+                {runner.data.displayName}
+              </h1>
+              {me?.id !== runnerId && (
+                <div className="flex flex-wrap items-center gap-3">
+                  {runner.data.status === 'pending' && (
+                    <span className="text-sm text-muted-foreground">{t('social.pending')}</span>
+                  )}
+                  <Button
+                    variant="outline"
+                    disabled={follow.isPending}
+                    onClick={() => follow.mutate()}
+                  >
+                    {t(
+                      runner.data.status === 'accepted'
+                        ? 'social.unfollow'
+                        : runner.data.status === 'pending'
+                          ? 'social.cancel'
+                          : 'social.follow',
+                    )}
+                  </Button>
+                </div>
+              )}
+            </div>
+            {follow.error && (
+              <p role="alert" className="text-destructive">
+                <ErrorMessage error={follow.error} />
+              </p>
+            )}
+            <GoalList key={`goals-${runnerId}`} runnerId={runnerId} />
+            <h2 className="text-lg font-semibold">{t('nav.activities')}</h2>
+            <ActivityFeed key={runnerId} runnerId={runnerId} />
+          </>
+        )}
+      </SlowLoading>
     </section>
   )
 }

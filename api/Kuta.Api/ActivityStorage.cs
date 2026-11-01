@@ -109,7 +109,7 @@ public static class ActivityStorage
             if (await Multisport.ApplyAsync(conn, tx, userId, id.Value, split) != 204)
                 throw new InvalidOperationException("Invalid activity parts.");
         }
-        else await BestEfforts.ReplaceAsync(conn, tx, id.Value, userId, parsed.Sport, parsed.StartedAt, parsed.T, parsed.Dist, parsed.Parts);
+        else await BestEfforts.ReplaceAsync(conn, tx, id.Value, userId, parsed.Sport, parsed.StartedAt, parsed.T, parsed.Dist, parsed.Alt, parsed.Parts);
         try
         {
             if (key is not null) await store.PutAsync(key, bytes!, ct);

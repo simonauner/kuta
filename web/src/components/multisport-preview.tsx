@@ -1,3 +1,4 @@
+import { isCyclingSport } from '@/lib/sports'
 import { useMemo } from 'react'
 import { useTranslation } from 'react-i18next'
 import { ActivityMap } from './activity-map'
@@ -29,19 +30,18 @@ export default function MultisportPreview({
     if (data.hr) series.push({ label: t('activity.chartHr'), values: data.hr, color: '#e03131' })
     if (part && data.speed)
       series.push({
-        label:
-          part.sport === 'cycling'
-            ? `${t('activity.speed')} (km/h)`
-            : `${t('activity.chartPace')} (${part.sport === 'swimming' ? '/100 m' : '/km'})`,
+        label: isCyclingSport(part.sport)
+          ? `${t('activity.speed')} (km/h)`
+          : `${t('activity.chartPace')} (${part.sport === 'swimming' ? '/100 m' : '/km'})`,
         values: data.speed.map((v) =>
           v == null || v <= 0
             ? null
-            : part.sport === 'cycling'
+            : isCyclingSport(part.sport)
               ? v * 3.6
               : (part.sport === 'swimming' ? 100 : 1000) / v,
         ),
         color: sportColors[part.sport] ?? '#ae3ec9',
-        pace: part.sport !== 'cycling',
+        pace: !isCyclingSport(part.sport),
       })
     return {
       coordinates: routeSegments(data).flat(),

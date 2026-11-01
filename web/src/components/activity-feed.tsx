@@ -1,3 +1,6 @@
+import { SlowLoading } from '@/components/slow-loading'
+import type { ReactNode } from 'react'
+import { FeedEmptyState } from '@/components/feed-empty-state'
 import { ActivityMapPreview } from '@/components/activity-map-preview'
 import { useInfiniteQuery } from '@tanstack/react-query'
 import { Link } from '@tanstack/react-router'
@@ -21,7 +24,13 @@ type FeedItem = {
 }
 type FeedPage = { items: FeedItem[]; nextCursor: ActivityCursor | null }
 
-export function ActivityFeed({ runnerId }: { runnerId?: string }) {
+export function ActivityFeed({
+  runnerId,
+  emptyState,
+}: {
+  runnerId?: string
+  emptyState?: ReactNode
+}) {
   const { t, i18n } = useTranslation()
   const feed = useInfiniteQuery({
     queryKey: runnerId ? ['feed', runnerId] : ['feed'],
@@ -44,8 +53,7 @@ export function ActivityFeed({ runnerId }: { runnerId?: string }) {
     timeStyle: 'short',
   })
   return (
-    <>
-      {feed.isPending && <p role="status">{t('social.loading')}</p>}
+    <SlowLoading loading={feed.isPending}>
       {feed.error && (
         <div role="alert">
           <ErrorMessage error={feed.error} />
@@ -54,11 +62,14 @@ export function ActivityFeed({ runnerId }: { runnerId?: string }) {
           </Button>
         </div>
       )}
-      {feed.data?.pages[0].items.length === 0 && (
-        <p className="text-muted-foreground">
-          {t(runnerId ? 'social.noActivities' : 'feed.description')}
-        </p>
-      )}
+      {feed.isSuccess &&
+        feed.data.pages[0].items.length === 0 &&
+        (emptyState ??
+          (runnerId ? (
+            <p className="text-muted-foreground">{t('social.noActivities')}</p>
+          ) : (
+            <FeedEmptyState />
+          )))}
       <ul className="space-y-4">
         {feed.data?.pages
           .flatMap((page) => page.items)
@@ -100,6 +111,6 @@ export function ActivityFeed({ runnerId }: { runnerId?: string }) {
           {t('activities.loadOlder')}
         </Button>
       )}
-    </>
+    </SlowLoading>
   )
 }

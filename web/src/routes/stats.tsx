@@ -1,13 +1,18 @@
+import { FormField } from '@/components/ui/form-field'
+import { Heading } from '@/components/ui/heading'
 import { useState } from 'react'
 import { useQuery } from '@tanstack/react-query'
 import { useTranslation } from 'react-i18next'
 import { ErrorMessage } from '@/components/error-message'
 import { RecordsSection } from '@/components/records'
+import { ActivitiesEmptyState } from '@/components/activities-empty-state'
 import { SlowLoading } from '@/components/slow-loading'
+import { TrainingLoadSection } from '@/components/training-load'
+import { YearComparison } from '@/components/year-comparison'
 import { Button } from '@/components/ui/button'
 import { api } from '@/lib/api'
 import { formatDuration } from '@/lib/activity'
-import { sportGroupsQuery } from '@/lib/activity-query'
+import { sportGroupsQuery, activityYearsQuery } from '@/lib/activity-query'
 import { sportGroupLabel } from '@/lib/sport-groups'
 
 type StatisticsMonth = {
@@ -31,11 +36,10 @@ export function StatsPage() {
   const sportGroups = useQuery(sportGroupsQuery)
   const [metric, setMetric] = useState<Metric>('distanceM')
   const timeZone = Intl.DateTimeFormat().resolvedOptions().timeZone
-  const years = useQuery({
-    queryKey: ['activities', 'years', timeZone],
-    queryFn: () => api.get<number[]>(`/api/activities/years?${new URLSearchParams({ timeZone })}`),
-  })
+  const years = useQuery(activityYearsQuery(timeZone))
+  const hasNoActivities = years.isSuccess && years.data.length === 0
   const statistics = useQuery({
+    enabled: !years.isPending && !hasNoActivities,
     queryKey: ['activities', 'statistics', timeZone, year, sportGroup],
     queryFn: () => {
       const params = new URLSearchParams({ timeZone, year: String(year) })
@@ -63,40 +67,56 @@ export function StatsPage() {
   }
   const selectClass = 'rounded-md border bg-background px-3 py-2 text-sm text-foreground'
 
+  if (years.isPending || hasNoActivities) {
+    return (
+      <section>
+        <Heading level={1}>{t('nav.stats')}</Heading>
+        <p className="mt-2 text-muted-foreground">{t('stats.description')}</p>
+        <SlowLoading loading={years.isPending}>
+          <ActivitiesEmptyState context="stats" />
+        </SlowLoading>
+      </section>
+    )
+  }
+
   return (
     <section>
-      <h1 className="text-2xl font-semibold tracking-tight">{t('nav.stats')}</h1>
+      <Heading level={1}>{t('nav.stats')}</Heading>
       <p className="mt-2 text-muted-foreground">{t('stats.description')}</p>
       <div className="mt-6 flex flex-wrap gap-4">
-        <label className="grid gap-1 text-sm font-medium">
-          {t('activities.year')}
-          <select
-            className={selectClass}
-            value={year}
-            onChange={(e) => setYear(Number(e.target.value))}
-          >
-            {availableYears.map((value) => (
-              <option key={value} value={value}>
-                {value}
-              </option>
-            ))}
-          </select>
-        </label>
-        <label className="grid gap-1 text-sm font-medium">
-          {t('newActivity.sport')}
-          <select
-            className={selectClass}
-            value={sportGroup}
-            onChange={(e) => setSportGroup(e.target.value)}
-          >
-            <option value="">{t('stats.allSports')}</option>
-            {(sportGroups.data ?? (sportGroup ? [{ key: sportGroup }] : [])).map(({ key }) => (
-              <option key={key} value={key}>
-                {sportGroupLabel(key, t)}
-              </option>
-            ))}
-          </select>
-        </label>
+        <FormField label={t('activities.year')} className="text-sm font-medium">
+          {(id) => (
+            <select
+              id={id}
+              className={selectClass}
+              value={year}
+              onChange={(e) => setYear(Number(e.target.value))}
+            >
+              {availableYears.map((value) => (
+                <option key={value} value={value}>
+                  {value}
+                </option>
+              ))}
+            </select>
+          )}
+        </FormField>
+        <FormField label={t('newActivity.sport')} className="text-sm font-medium">
+          {(id) => (
+            <select
+              id={id}
+              className={selectClass}
+              value={sportGroup}
+              onChange={(e) => setSportGroup(e.target.value)}
+            >
+              <option value="">{t('stats.allSports')}</option>
+              {(sportGroups.data ?? (sportGroup ? [{ key: sportGroup }] : [])).map(({ key }) => (
+                <option key={key} value={key}>
+                  {sportGroupLabel(key, t)}
+                </option>
+              ))}
+            </select>
+          )}
+        </FormField>
       </div>
       {sportGroups.error && (
         <p role="alert" className="mt-4 text-sm text-destructive">
@@ -139,21 +159,30 @@ export function StatsPage() {
                   </div>
                 ))}
               </dl>
-              <div className="mt-6 rounded-xl border bg-card p-4">
-                <label className="flex flex-wrap items-center justify-between gap-3 text-sm font-medium">
-                  {t('stats.monthly')}
-                  <select
-                    className={selectClass}
-                    value={metric}
-                    onChange={(e) => setMetric(e.target.value as Metric)}
-                  >
-                    {metrics.map((key) => (
-                      <option key={key} value={key}>
-                        {t(`stats.${key}`)}
-                      </option>
-                    ))}
-                  </select>
-                </label>
+              <Heading level={2} className="mt-8">
+                {t('stats.monthly')}
+              </Heading>
+              <div className="mt-4 rounded-xl border bg-card p-4">
+                <FormField
+                  layout="inline"
+                  label={t('yearComparison.metric')}
+                  className="justify-between text-sm font-medium"
+                >
+                  {(id) => (
+                    <select
+                      id={id}
+                      className={selectClass}
+                      value={metric}
+                      onChange={(e) => setMetric(e.target.value as Metric)}
+                    >
+                      {metrics.map((key) => (
+                        <option key={key} value={key}>
+                          {t(`stats.${key}`)}
+                        </option>
+                      ))}
+                    </select>
+                  )}
+                </FormField>
                 <p className="mt-3 text-xs text-muted-foreground">
                   {t('stats.chartScale', { max: format(maximum, metric) })}
                 </p>
@@ -233,12 +262,14 @@ export function StatsPage() {
                   </tbody>
                 </table>
               </div>
-              <p className="mt-4 text-xs leading-relaxed text-muted-foreground">
+              <p className="mt-4 text-metadata leading-relaxed text-muted-foreground">
                 {t('stats.method')}
               </p>
             </>
           ))}
       </SlowLoading>
+      <YearComparison year={year} sportGroup={sportGroup} />
+      <TrainingLoadSection />
       <RecordsSection year={year} />
     </section>
   )

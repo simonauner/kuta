@@ -1,3 +1,5 @@
+import { SlowLoading } from '@/components/slow-loading'
+import { FormField } from '@/components/ui/form-field'
 import { lazy, Suspense, useEffect, useRef, useState } from 'react'
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
 import { useTranslation } from 'react-i18next'
@@ -45,55 +47,52 @@ export function PrivacyPlaces() {
         </Button>
       </div>
       <p className="mt-2 text-sm text-muted-foreground">{t('privacyPlaces.help')}</p>
-      {places.isPending && (
-        <p role="status" className="mt-3 text-sm">
-          {t('privacyPlaces.loading')}
-        </p>
-      )}
-      {places.error && (
-        <p role="alert" className="mt-3 text-sm text-destructive">
-          <ErrorMessage error={places.error} />
-        </p>
-      )}
-      {places.data?.length === 0 && (
-        <p className="mt-4 text-sm text-muted-foreground">{t('privacyPlaces.empty')}</p>
-      )}
-      <ul className="mt-4 divide-y">
-        {places.data?.map((place) => (
-          <li key={place.id} className="flex flex-wrap items-center justify-between gap-3 py-3">
-            <div className="min-w-0">
-              <p className="break-words font-medium">{place.name}</p>
-              <p className="text-sm text-muted-foreground">
-                {t('privacyPlaces.radiusValue', {
-                  radius: new Intl.NumberFormat(i18n.resolvedLanguage).format(place.radiusM),
-                })}
-              </p>
-            </div>
-            <div className="flex gap-2">
-              <Button
-                size="sm"
-                variant="outline"
-                aria-label={t('privacyPlaces.editNamed', { name: place.name })}
-                onClick={() => setEditing(place)}
-              >
-                {t('privacyPlaces.edit')}
-              </Button>
-              <Button
-                size="sm"
-                variant="outline"
-                aria-label={t('privacyPlaces.deleteNamed', { name: place.name })}
-                onClick={() => {
-                  setDeleting(place)
-                  remove.reset()
-                  deleteDialog.current?.showModal()
-                }}
-              >
-                {t('privacyPlaces.delete')}
-              </Button>
-            </div>
-          </li>
-        ))}
-      </ul>
+      <SlowLoading loading={places.isPending}>
+        {places.error && (
+          <p role="alert" className="mt-3 text-sm text-destructive">
+            <ErrorMessage error={places.error} />
+          </p>
+        )}
+        {places.data?.length === 0 && (
+          <p className="mt-4 text-sm text-muted-foreground">{t('privacyPlaces.empty')}</p>
+        )}
+        <ul className="mt-4 divide-y">
+          {places.data?.map((place) => (
+            <li key={place.id} className="flex flex-wrap items-center justify-between gap-3 py-3">
+              <div className="min-w-0">
+                <p className="break-words font-medium">{place.name}</p>
+                <p className="text-sm text-muted-foreground">
+                  {t('privacyPlaces.radiusValue', {
+                    radius: new Intl.NumberFormat(i18n.resolvedLanguage).format(place.radiusM),
+                  })}
+                </p>
+              </div>
+              <div className="flex gap-2">
+                <Button
+                  size="sm"
+                  variant="outline"
+                  aria-label={t('privacyPlaces.editNamed', { name: place.name })}
+                  onClick={() => setEditing(place)}
+                >
+                  {t('privacyPlaces.edit')}
+                </Button>
+                <Button
+                  size="sm"
+                  variant="outline"
+                  aria-label={t('privacyPlaces.deleteNamed', { name: place.name })}
+                  onClick={() => {
+                    setDeleting(place)
+                    remove.reset()
+                    deleteDialog.current?.showModal()
+                  }}
+                >
+                  {t('privacyPlaces.delete')}
+                </Button>
+              </div>
+            </li>
+          ))}
+        </ul>
+      </SlowLoading>
       {editing !== undefined && (
         <PlaceEditor place={editing} onClose={() => setEditing(undefined)} />
       )}
@@ -206,18 +205,19 @@ function PlaceEditor({ place, onClose }: { place: PrivacyPlace | null; onClose: 
           {t(place ? 'privacyPlaces.edit' : 'privacyPlaces.add')}
         </h3>
         <fieldset disabled={save.isPending || location.isPending} className="mt-4 space-y-4">
-          <label className="block text-sm font-medium">
-            {t('privacyPlaces.name')}
-            <Input
-              autoFocus
-              required
-              maxLength={100}
-              value={name}
-              placeholder={t('privacyPlaces.namePlaceholder')}
-              onChange={(event) => setName(event.target.value)}
-              className="mt-1"
-            />
-          </label>
+          <FormField label={t('privacyPlaces.name')} className="text-sm font-medium">
+            {(id) => (
+              <Input
+                id={id}
+                autoFocus
+                required
+                maxLength={100}
+                value={name}
+                placeholder={t('privacyPlaces.namePlaceholder')}
+                onChange={(event) => setName(event.target.value)}
+              />
+            )}
+          </FormField>
           <Suspense fallback={<p role="status">{t('privacyPlaces.loadingMap')}</p>}>
             <PlaceMap
               key={mapRevision}
@@ -248,52 +248,55 @@ function PlaceEditor({ place, onClose }: { place: PrivacyPlace | null; onClose: 
             </p>
           )}
           <div className="grid grid-cols-2 gap-3">
-            <label className="text-sm font-medium">
-              {t('privacyPlaces.latitude')}
-              <Input
-                type="number"
-                step="any"
-                min={-90}
-                max={90}
-                required
-                value={latitude}
-                onChange={(event) => {
-                  location.reset()
-                  setLatitude(event.target.value)
-                }}
-                className="mt-1"
-              />
-            </label>
-            <label className="text-sm font-medium">
-              {t('privacyPlaces.longitude')}
-              <Input
-                type="number"
-                step="any"
-                min={-180}
-                max={180}
-                required
-                value={longitude}
-                onChange={(event) => {
-                  location.reset()
-                  setLongitude(event.target.value)
-                }}
-                className="mt-1"
-              />
-            </label>
+            <FormField label={t('privacyPlaces.latitude')} className="text-sm font-medium">
+              {(id) => (
+                <Input
+                  id={id}
+                  type="number"
+                  step="any"
+                  min={-90}
+                  max={90}
+                  required
+                  value={latitude}
+                  onChange={(event) => {
+                    location.reset()
+                    setLatitude(event.target.value)
+                  }}
+                />
+              )}
+            </FormField>
+            <FormField label={t('privacyPlaces.longitude')} className="text-sm font-medium">
+              {(id) => (
+                <Input
+                  id={id}
+                  type="number"
+                  step="any"
+                  min={-180}
+                  max={180}
+                  required
+                  value={longitude}
+                  onChange={(event) => {
+                    location.reset()
+                    setLongitude(event.target.value)
+                  }}
+                />
+              )}
+            </FormField>
           </div>
-          <label className="block text-sm font-medium">
-            {t('privacyPlaces.radius')}
-            <Input
-              type="number"
-              min={50}
-              max={5000}
-              step={1}
-              required
-              value={radius}
-              onChange={(event) => setRadius(event.target.value)}
-              className="mt-1"
-            />
-          </label>
+          <FormField label={t('privacyPlaces.radius')} className="text-sm font-medium">
+            {(id) => (
+              <Input
+                id={id}
+                type="number"
+                min={50}
+                max={5000}
+                step={1}
+                required
+                value={radius}
+                onChange={(event) => setRadius(event.target.value)}
+              />
+            )}
+          </FormField>
         </fieldset>
         <p className="mt-3 text-xs text-muted-foreground">{t('privacyPlaces.mapPrivacy')}</p>
         {save.error && (

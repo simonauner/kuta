@@ -1,10 +1,12 @@
+import { FormField } from '@/components/ui/form-field'
+import { Heading } from '@/components/ui/heading'
 import { useEffect, useRef, useState, type FormEvent } from 'react'
 import { motion, useReducedMotion } from 'motion/react'
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
 import { useTranslation } from 'react-i18next'
 import { api } from '@/lib/api'
 import { cn } from '@/lib/utils'
-import { sportGroupsQuery } from '@/lib/activity-query'
+import { sportGroupsQuery, refreshGoalQueries } from '@/lib/activity-query'
 import { sportGroupLabel, sportGroupMembers } from '@/lib/sport-groups'
 import {
   formatGoalAmount,
@@ -86,9 +88,9 @@ export function GoalList({
   if (!goals.data?.length) return null
   return (
     <section className={runnerId ? undefined : 'mt-6'} aria-labelledby="goals-heading">
-      <h2 id="goals-heading" className={runnerId ? 'mb-3 text-lg font-semibold' : 'sr-only'}>
+      <Heading level={2} id="goals-heading" className="mb-3">
         {t('goals.heading')}
-      </h2>
+      </Heading>
       <ul className="grid gap-3 sm:grid-cols-2">
         {goals.data.map((goal) => (
           <li key={goal.id}>
@@ -223,7 +225,7 @@ export function GoalDialog({ goal, onClose }: { goal: Goal | null; onClose: () =
 
   useEffect(() => dialog.current?.showModal(), [])
 
-  const refresh = () => queryClient.invalidateQueries({ queryKey: ['activities', 'goals'] })
+  const refresh = () => refreshGoalQueries(queryClient)
   const save = useMutation({
     mutationFn: () =>
       api.send(goal ? 'PUT' : 'POST', goal ? `/api/goals/${goal.id}` : '/api/goals', {
@@ -270,115 +272,135 @@ export function GoalDialog({ goal, onClose }: { goal: Goal | null; onClose: () =
       {goal && <p className="mt-1 break-words text-sm text-muted-foreground">{title(goal)}</p>}
       <form onSubmit={onSubmit}>
         <fieldset disabled={busy} className="mt-5 grid grid-cols-2 gap-4">
-          <label className="col-span-2 space-y-2 text-sm font-medium">
-            {t('activities.sport')}
-            <select
-              className={selectClass}
-              value={sportGroup}
-              aria-describedby={included && included.length > 1 ? 'goal-sport-included' : undefined}
-              onChange={(e) => setSportGroup(e.currentTarget.value)}
-            >
-              <option value="">{groupLabel(null)}</option>
-              {(groups.data ?? (sportGroup ? [{ key: sportGroup, sports: [] }] : [])).map(
-                ({ key }) => (
-                  <option key={key} value={key}>
-                    {groupLabel(key)}
-                  </option>
-                ),
-              )}
-            </select>
-            {included && included.length > 1 && (
-              <span
-                id="goal-sport-included"
-                className="block text-xs font-normal text-muted-foreground"
-              >
-                {t('goals.includes', {
-                  sports: new Intl.ListFormat(i18n.resolvedLanguage, {
-                    type: 'conjunction',
-                  }).format(included),
-                })}
-              </span>
+          <FormField label={t('activities.sport')} className="text-sm font-medium col-span-2">
+            {(id) => (
+              <>
+                <select
+                  id={id}
+                  className={selectClass}
+                  value={sportGroup}
+                  aria-describedby={
+                    included && included.length > 1 ? 'goal-sport-included' : undefined
+                  }
+                  onChange={(e) => setSportGroup(e.currentTarget.value)}
+                >
+                  <option value="">{groupLabel(null)}</option>
+                  {(groups.data ?? (sportGroup ? [{ key: sportGroup, sports: [] }] : [])).map(
+                    ({ key }) => (
+                      <option key={key} value={key}>
+                        {groupLabel(key)}
+                      </option>
+                    ),
+                  )}
+                </select>
+                {included && included.length > 1 && (
+                  <span
+                    id="goal-sport-included"
+                    className="mt-2 block text-xs font-normal text-muted-foreground"
+                  >
+                    {t('goals.includes', {
+                      sports: new Intl.ListFormat(i18n.resolvedLanguage, {
+                        type: 'conjunction',
+                      }).format(included),
+                    })}
+                  </span>
+                )}
+              </>
             )}
-          </label>
+          </FormField>
           {groups.error && (
             <p role="alert" className="col-span-2 text-sm text-destructive">
               <ErrorMessage error={groups.error} />
             </p>
           )}
-          <label className="space-y-2 text-sm font-medium">
-            {t('goals.metric')}
-            <select
-              className={selectClass}
-              value={metric}
-              onChange={(e) => setMetric(e.currentTarget.value as GoalMetric)}
-            >
-              {goalMetrics.map((value) => (
-                <option key={value} value={value}>
-                  {t(`goals.metrics.${value}`)}
+          <FormField label={t('goals.metric')} className="text-sm font-medium">
+            {(id) => (
+              <select
+                id={id}
+                className={selectClass}
+                value={metric}
+                onChange={(e) => setMetric(e.currentTarget.value as GoalMetric)}
+              >
+                {goalMetrics.map((value) => (
+                  <option key={value} value={value}>
+                    {t(`goals.metrics.${value}`)}
+                  </option>
+                ))}
+              </select>
+            )}
+          </FormField>
+          <FormField label={t(`goals.targetLabel.${metric}`)} className="text-sm font-medium">
+            {(id) => (
+              <Input
+                id={id}
+                autoFocus={!goal}
+                required
+                inputMode={metric === 'count' ? 'numeric' : 'decimal'}
+                pattern={metric === 'count' ? '\\d+' : '\\d+([.,]\\d+)?'}
+                aria-invalid={target !== '' && parsedTarget === null}
+                value={target}
+                onChange={(e) => setTarget(e.currentTarget.value)}
+              />
+            )}
+          </FormField>
+          <FormField label={t('goals.period')} className="text-sm font-medium">
+            {(id) => (
+              <select
+                id={id}
+                className={selectClass}
+                value={period}
+                onChange={(e) => setPeriod(e.currentTarget.value as GoalPeriod)}
+              >
+                {goalPeriods.map((value) => (
+                  <option key={value} value={value}>
+                    {t(`goals.periods.${value}`)}
+                  </option>
+                ))}
+              </select>
+            )}
+          </FormField>
+          <FormField label={t('goals.repeat')} className="text-sm font-medium">
+            {(id) => (
+              <select
+                id={id}
+                className={selectClass}
+                value={recurring ? 'recurring' : 'once'}
+                onChange={(e) => setRecurring(e.currentTarget.value === 'recurring')}
+              >
+                <option value="recurring">{t(`goals.recurring.${period}`)}</option>
+                <option value="once">
+                  {goal && !goal.recurring
+                    ? t('goals.onceSaved')
+                    : t(`goals.onceCurrent.${period}`)}
                 </option>
-              ))}
-            </select>
-          </label>
-          <label className="space-y-2 text-sm font-medium">
-            {t(`goals.targetLabel.${metric}`)}
-            <Input
-              autoFocus={!goal}
-              required
-              inputMode={metric === 'count' ? 'numeric' : 'decimal'}
-              pattern={metric === 'count' ? '\\d+' : '\\d+([.,]\\d+)?'}
-              aria-invalid={target !== '' && parsedTarget === null}
-              value={target}
-              onChange={(e) => setTarget(e.currentTarget.value)}
-            />
-          </label>
-          <label className="space-y-2 text-sm font-medium">
-            {t('goals.period')}
-            <select
-              className={selectClass}
-              value={period}
-              onChange={(e) => setPeriod(e.currentTarget.value as GoalPeriod)}
-            >
-              {goalPeriods.map((value) => (
-                <option key={value} value={value}>
-                  {t(`goals.periods.${value}`)}
-                </option>
-              ))}
-            </select>
-          </label>
-          <label className="space-y-2 text-sm font-medium">
-            {t('goals.repeat')}
-            <select
-              className={selectClass}
-              value={recurring ? 'recurring' : 'once'}
-              onChange={(e) => setRecurring(e.currentTarget.value === 'recurring')}
-            >
-              <option value="recurring">{t(`goals.recurring.${period}`)}</option>
-              <option value="once">
-                {goal && !goal.recurring ? t('goals.onceSaved') : t(`goals.onceCurrent.${period}`)}
-              </option>
-            </select>
-          </label>
-          <label className="col-span-2 space-y-2 text-sm font-medium">
-            {t('goals.visibility')}
-            <select
-              className={selectClass}
-              value={privacy}
-              aria-describedby="goal-visibility-help"
-              onChange={(e) => setPrivacy(e.currentTarget.value as GoalPrivacy)}
-            >
-              {goalPrivacies.map((value) => (
-                <option key={value} value={value}>
-                  {privacyLabel(value)}
-                </option>
-              ))}
-            </select>
-            <span
-              id="goal-visibility-help"
-              className="block text-xs font-normal text-muted-foreground"
-            >
-              {t('goals.visibilityHelp')}
-            </span>
-          </label>
+              </select>
+            )}
+          </FormField>
+          <FormField label={t('goals.visibility')} className="text-sm font-medium col-span-2">
+            {(id) => (
+              <>
+                <select
+                  id={id}
+                  className={selectClass}
+                  value={privacy}
+                  aria-describedby="goal-visibility-help"
+                  onChange={(e) => setPrivacy(e.currentTarget.value as GoalPrivacy)}
+                >
+                  {goalPrivacies.map((value) => (
+                    <option key={value} value={value}>
+                      {privacyLabel(value)}
+                    </option>
+                  ))}
+                </select>
+                <span
+                  id="goal-visibility-help"
+                  className="mt-2 block text-xs font-normal text-muted-foreground"
+                >
+                  {t('goals.visibilityHelp')}
+                </span>
+              </>
+            )}
+          </FormField>
           {(save.error || remove.error) && (
             <p role="alert" className="col-span-2 text-sm text-destructive">
               <ErrorMessage error={(save.error ?? remove.error)!} />

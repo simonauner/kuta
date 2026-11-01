@@ -6,6 +6,10 @@ export type StoredBestEffort = {
   achievedAt: string
 }
 
+export type ActivityBestEffort = StoredBestEffort & {
+  recordStatus: 'current' | 'previous' | null
+}
+
 export type RecordMonth = {
   year: number
   month: number
@@ -56,8 +60,10 @@ export function trendChart(
   const times = all.map((p) => Date.parse(p.achievedAt))
   const firstTime = Math.min(...times)
   const lastTime = Math.max(...times)
-  const fastest = Math.min(...all.map((p) => p.elapsedS))
-  const slowest = Math.max(...all.map((p) => p.elapsedS))
+  // Månadsresultat får inte trycka ihop rekordutvecklingen.
+  const scale = trend.progression.length > 0 ? trend.progression : trend.months
+  const fastest = Math.min(...scale.map((p) => p.elapsedS))
+  const slowest = Math.max(...scale.map((p) => p.elapsedS))
   const x = (time: number) =>
     lastTime === firstTime
       ? width / 2
@@ -82,7 +88,7 @@ export function trendChart(
     })
     .join(' ')
   return {
-    months: trend.months.map(point),
+    months: trend.months.filter((p) => p.elapsedS >= fastest && p.elapsedS <= slowest).map(point),
     records,
     steps,
     fastest,

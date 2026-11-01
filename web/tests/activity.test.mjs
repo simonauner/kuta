@@ -116,6 +116,9 @@ test('charts use elapsed time without usable distance and kilometres otherwise',
 test('durations and paces', () => {
   assert.equal(formatDuration(95), '1:35')
   assert.equal(formatDuration(3725), '1:02:05')
+  assert.equal(formatDuration(59.49), '0:59')
+  assert.equal(formatDuration(59.5), '1:00')
+  assert.equal(formatDuration(3599.6), '1:00:00')
   assert.equal(formatPace(1500, 5000), '5:00 /km')
   assert.equal(formatPace(10, 0), '–')
 })

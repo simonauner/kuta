@@ -37,6 +37,7 @@ public class ActivityAccessTests(KutaFactory factory) : IClassFixture<KutaFactor
             Assert.Equal(HttpStatusCode.Unauthorized, (await anonymous.GetAsync("/api/activities", ct)).StatusCode);
             Assert.Equal(HttpStatusCode.Unauthorized, (await anonymous.GetAsync("/api/activities/years", ct)).StatusCode);
             Assert.Equal(HttpStatusCode.Unauthorized, (await anonymous.GetAsync("/api/activities/statistics?year=2026", ct)).StatusCode);
+            Assert.Equal(HttpStatusCode.Unauthorized, (await anonymous.GetAsync("/api/activities/statistics/days", ct)).StatusCode);
             for (var i = 0; i < userIds.Length; i++)
             {
                 using var scope = factory.Services.CreateScope();
@@ -80,10 +81,15 @@ public class ActivityAccessTests(KutaFactory factory) : IClassFixture<KutaFactor
                 Assert.Equal(12, statistics!.Length);
                 Assert.Equal(1, statistics.Sum(m => m.Count));
                 Assert.Equal(5000, statistics.Sum(m => m.DistanceM));
+                var day = Assert.Single((await client.GetFromJsonAsync<DailyTotal[]>(
+                    "/api/activities/statistics/days?sportGroup=running&timeZone=UTC", ct))!);
+                Assert.Equal((DateOnly.FromDateTime(activity.StartedAt.ToUniversalTime()), 1, 5000d), (day.Day, day.Count, day.DistanceM));
                 if (i == 0)
                 {
                     foreach (var query in new[] { "year=0", "year=2026&sportGroup=trail%20run", "year=2026&timeZone=NotAZone" })
                         Assert.Equal(HttpStatusCode.BadRequest, (await client.GetAsync($"/api/activities/statistics?{query}", ct)).StatusCode);
+                    foreach (var query in new[] { "sportGroup=trail%20run", "timeZone=NotAZone" })
+                        Assert.Equal(HttpStatusCode.BadRequest, (await client.GetAsync($"/api/activities/statistics/days?{query}", ct)).StatusCode);
                 }
 
                 Assert.Null(activities.NextCursor);

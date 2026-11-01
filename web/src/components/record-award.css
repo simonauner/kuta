@@ -1,0 +1,39 @@
+.record-award {
+  display: inline-flex;
+  flex-shrink: 0;
+  align-items: center;
+  justify-content: center;
+  width: 2.25rem;
+  height: 2.25rem;
+  border-radius: 50%;
+  vertical-align: middle;
+  transition: transform 180ms ease;
+}
+
+.record-award--gold {
+  color: #be841d;
+}
+
+.record-award--silver {
+  color: #879aaf;
+}
+
+.record-award--outline {
+  color: var(--muted-foreground);
+}
+
+.record-award:hover,
+.record-award:focus-visible {
+  transform: translateY(-1px) scale(1.1);
+}
+
+.record-award:focus-visible {
+  outline: 2px solid var(--ring);
+  outline-offset: 2px;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .record-award {
+    transition: none;
+  }
+}

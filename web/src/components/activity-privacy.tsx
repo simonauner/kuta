@@ -1,6 +1,8 @@
+import { FormField } from '@/components/ui/form-field'
 import { useRef } from 'react'
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
 import { useTranslation } from 'react-i18next'
+import { Check } from 'lucide-react'
 import { ErrorMessage } from '@/components/error-message'
 import { Button } from '@/components/ui/button'
 import { Modal } from '@/components/ui/modal'
@@ -9,7 +11,7 @@ import { meQuery, type Me } from '@/lib/auth'
 
 export function ActivityPrivacy() {
   const { t } = useTranslation()
-  const { data: me } = useQuery(meQuery)
+  const { data: me, isFetching } = useQuery({ ...meQuery, staleTime: 0 })
   const queryClient = useQueryClient()
   const dialog = useRef<HTMLDialogElement>(null)
   const privacy = me?.defaultActivityPrivacy ?? 'private'
@@ -39,42 +41,51 @@ export function ActivityPrivacy() {
       <h2 id="activity-privacy-heading" className="text-lg font-semibold">
         {t('activityPrivacy.title')}
       </h2>
-      <label className="mt-4 block space-y-2 text-sm font-medium">
-        <span>{t('activityPrivacy.default')}</span>
-        <select
-          className="block w-full rounded-md border bg-background px-3 py-2"
-          value={privacy}
-          disabled={!me || save.isPending}
-          aria-describedby="activity-privacy-help"
-          onChange={(event) =>
-            save.mutate({
-              privacy: event.target.value as Me['defaultActivityPrivacy'],
-              applyToAll: false,
-            })
-          }
-        >
-          {Object.entries(labels).map(([value, label]) => (
-            <option key={value} value={value}>
-              {label}
-            </option>
-          ))}
-        </select>
-      </label>
+      <FormField label={t('activityPrivacy.default')} className="text-sm font-medium mt-4">
+        {(id) => (
+          <select
+            id={id}
+            className="block w-full rounded-md border bg-background px-3 py-2"
+            value={privacy}
+            disabled={!me || save.isPending}
+            aria-describedby="activity-privacy-help"
+            onChange={(event) =>
+              save.mutate({
+                privacy: event.target.value as Me['defaultActivityPrivacy'],
+                applyToAll: false,
+              })
+            }
+          >
+            {Object.entries(labels).map(([value, label]) => (
+              <option key={value} value={value}>
+                {label}
+              </option>
+            ))}
+          </select>
+        )}
+      </FormField>
       <p id="activity-privacy-help" className="mt-2 text-sm text-muted-foreground">
         {t('activityPrivacy.help')}
       </p>
       <p className="mt-2 text-sm text-muted-foreground">{t('social.sharingHint')}</p>
-      <Button
-        variant="outline"
-        className="mt-4"
-        disabled={!me || save.isPending}
-        onClick={() => {
-          save.reset()
-          dialog.current?.showModal()
-        }}
-      >
-        {t('activityPrivacy.applyAll')}
-      </Button>
+      <div className="mt-4 flex items-center gap-2">
+        <Button
+          variant="outline"
+          disabled={!me || isFetching || save.isPending || me.allActivitiesMatchDefaultPrivacy}
+          onClick={() => {
+            save.reset()
+            dialog.current?.showModal()
+          }}
+        >
+          {t('activityPrivacy.applyAll')}
+        </Button>
+        {me?.allActivitiesMatchDefaultPrivacy && !isFetching && (
+          <span role="status">
+            <Check className="size-5 text-primary" aria-hidden="true" />
+            <span className="sr-only">{t('activityPrivacy.allMatch')}</span>
+          </span>
+        )}
+      </div>
       {save.isSuccess && (
         <p role="status" className="mt-2 text-sm text-muted-foreground">
           {t(save.variables.applyToAll ? 'activityPrivacy.applied' : 'activityPrivacy.saved')}

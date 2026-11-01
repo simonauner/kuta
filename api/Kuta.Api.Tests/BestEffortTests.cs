@@ -38,15 +38,28 @@ public class BestEffortTests(KutaFactory factory) : IClassFixture<KutaFactory>
             Assert.Equal(HttpStatusCode.BadRequest, (await owner.GetAsync("/api/records/trend?distanceM=3000", ct)).StatusCode);
             Assert.Equal(HttpStatusCode.BadRequest,
                 (await owner.GetAsync("/api/records/trend?distanceM=5000&timeZone=Nowhere", ct)).StatusCode);
+            Assert.Equal(HttpStatusCode.BadRequest, (await owner.PutAsJsonAsync("/api/me/threshold-speed",
+                new { thresholdSpeedMS = 12 }, ct)).StatusCode);
+            Assert.Equal(HttpStatusCode.NoContent, (await owner.PutAsJsonAsync("/api/me/threshold-speed",
+                new { thresholdSpeedMS = 4 }, ct)).StatusCode);
+            var load = (await owner.GetFromJsonAsync<TrainingLoadSummary>("/api/training-load?timeZone=Europe/Stockholm", ct))!;
+            Assert.Equal(("manual", 4d), (load.ThresholdSource, load.ThresholdSpeedMS!.Value));
+            // Historiken börjar vid nyår, så svaret är kapat till de senaste dagarna och innehåller passets belastning.
+            Assert.Equal(TrainingLoads.ShownDays, load.Days.Count);
+            Assert.True(load.Days[^1].Fitness > 0);
+            Assert.Null((await other.GetFromJsonAsync<TrainingLoadSummary>("/api/training-load", ct))!.ThresholdSpeedMS);
+            Assert.Equal(HttpStatusCode.BadRequest, (await owner.GetAsync("/api/training-load?timeZone=Nowhere", ct)).StatusCode);
+            Assert.Equal(HttpStatusCode.Unauthorized, (await anonymous.GetAsync("/api/training-load", ct)).StatusCode);
             var predictions = (await owner.GetFromJsonAsync<RacePredictions>("/api/records/predictions", ct))!;
             Assert.Null(predictions.Basis); // passen ligger utanför fönstret
             Assert.Equal(HttpStatusCode.Unauthorized, (await anonymous.GetAsync("/api/records/trend?distanceM=5000", ct)).StatusCode);
             Assert.Equal(HttpStatusCode.Unauthorized, (await anonymous.GetAsync("/api/records/predictions", ct)).StatusCode);
 
 
-            var efforts = (await owner.GetFromJsonAsync<StoredBestEffort[]>($"/api/activities/{first.Id}/best-efforts", ct))!;
+            var efforts = (await owner.GetFromJsonAsync<ActivityBestEffort[]>($"/api/activities/{first.Id}/best-efforts", ct))!;
             Assert.Equal(new[] { 1000, 1609, 5000 }, efforts.Select(e => e.DistanceM));
             Assert.All(efforts, e => Assert.Equal(first.Id, e.ActivityId));
+            Assert.All(efforts, e => Assert.Equal("current", e.RecordStatus));
             Assert.Equal(1609.344 / 3, efforts[1].ElapsedS, precision: 8);
             Assert.Equal(start, efforts[0].AchievedAt);
             var records = await owner.GetFromJsonAsync<StoredBestEffort[]>("/api/records", ct);
@@ -80,6 +93,9 @@ public class BestEffortTests(KutaFactory factory) : IClassFixture<KutaFactory>
             Assert.Equal(100d * 200 / 700, recalculated.StartOffsetS, precision: 8);
             Assert.Equal(start.AddSeconds(recalculated.StartOffsetS).Ticks / 10, recalculated.AchievedAt.Ticks / 10);
             Assert.Empty((await owner.GetFromJsonAsync<StoredBestEffort[]>("/api/records?year=2025", ct))!);
+            // Samma omberäkning sparar löpintensiteten bakom träningsbelastningen: 700²/100 + 500²/50 + 300²/150.
+            Assert.Equal(10500, await conn.ExecuteScalarAsync<double>(
+                "select run_intensity from activities where id = @id", new { id = first.Id }), precision: 6);
 
             owner.DefaultRequestHeaders.Remove("X-CSRF-TOKEN");
             Assert.Equal(HttpStatusCode.BadRequest,
@@ -109,6 +125,8 @@ public class BestEffortTests(KutaFactory factory) : IClassFixture<KutaFactory>
             await conn.ExecuteAsync("update activity_streams set dist = null where activity_id = @id", new { id = second.Id });
             Assert.Equal(HttpStatusCode.NoContent,
                 (await owner.PostAsync($"/api/activities/{second.Id}/best-efforts/recalculate", null, ct)).StatusCode);
+            Assert.Null(await conn.ExecuteScalarAsync<double?>(
+                "select run_intensity from activities where id = @id", new { id = second.Id }));
             Assert.Empty((await owner.GetFromJsonAsync<StoredBestEffort[]>("/api/records", ct))!);
             await conn.ExecuteAsync("""
                 delete from activity_streams where activity_id = @id
@@ -116,6 +134,49 @@ public class BestEffortTests(KutaFactory factory) : IClassFixture<KutaFactory>
             Assert.Equal(HttpStatusCode.NoContent,
                 (await owner.PostAsync($"/api/activities/{second.Id}/best-efforts/recalculate", null, ct)).StatusCode);
             Assert.Empty((await owner.GetFromJsonAsync<StoredBestEffort[]>("/api/records", ct))!);
+        }
+        finally
+        {
+            await conn.ExecuteAsync("delete from auth.users where id in (@ownerId, @otherId)", new { ownerId, otherId });
+        }
+    }
+
+    [Fact]
+    public async Task Excluding_an_activity_is_owner_only_reversible_and_survives_recalculation()
+    {
+        var ct = TestContext.Current.CancellationToken;
+        var ownerId = Guid.NewGuid();
+        var otherId = Guid.NewGuid();
+        var id = Guid.NewGuid();
+        var fallbackId = Guid.NewGuid();
+        await using var conn = await factory.Services.GetRequiredService<NpgsqlDataSource>().OpenConnectionAsync(ct);
+        try
+        {
+            using var owner = await CreateRunner(conn, ownerId, ct);
+            using var other = await CreateRunner(conn, otherId, ct);
+            await conn.ExecuteAsync("""
+                insert into activities (id, user_id, source, sport, started_at, duration_s, distance_m)
+                values (@id, @ownerId, 'fit', 'running', now(), 600, 2000);
+                insert into activities (id, user_id, source, sport, started_at, duration_s, distance_m)
+                values (@fallbackId, @ownerId, 'fit', 'running', now(), 800, 2000);
+                insert into best_efforts (activity_id, user_id, distance_m, elapsed_s, start_offset_s, achieved_at)
+                values (@fallbackId, @ownerId, 1000, 400, 0, now());
+                insert into activity_streams (activity_id, t, dist) values (@id, array[0,300,600], array[0,1000,2000]::real[])
+                """, new { id, ownerId, fallbackId });
+            var request = new { title = "Synthetic GPS gap", description = "", tags = Array.Empty<string>(), equipmentIds = Array.Empty<Guid>(), excludeFromRecords = true };
+            Assert.Equal(HttpStatusCode.NotFound, (await other.PutAsJsonAsync($"/api/activities/{id}", request, ct)).StatusCode);
+            Assert.False((await owner.GetFromJsonAsync<ActivityDetail>($"/api/activities/{id}", ct))!.ExcludeFromRecords);
+            Assert.Equal(HttpStatusCode.NoContent, (await owner.PutAsJsonAsync($"/api/activities/{id}", request, ct)).StatusCode);
+            Assert.True((await owner.GetFromJsonAsync<ActivityDetail>($"/api/activities/{id}", ct))!.ExcludeFromRecords);
+            Assert.Equal(HttpStatusCode.NoContent, (await owner.PostAsync($"/api/activities/{id}/best-efforts/recalculate", null, ct)).StatusCode);
+            Assert.True(await conn.ExecuteScalarAsync<bool>("select exists(select 1 from best_efforts where activity_id = @id)", new { id }));
+            Assert.Equal(fallbackId, Assert.Single((await owner.GetFromJsonAsync<StoredBestEffort[]>("/api/records", ct))!).ActivityId);
+            Assert.Equal(fallbackId, Assert.Single((await owner.GetFromJsonAsync<StoredBestEffort[]>($"/api/records?year={DateTime.UtcNow.Year}", ct))!).ActivityId);
+            Assert.Equal(2000, (await owner.GetFromJsonAsync<ActivityDetail>($"/api/activities/{id}", ct))!.DistanceM);
+            Assert.Equal(HttpStatusCode.NoContent, (await owner.PutAsJsonAsync($"/api/activities/{id}", request with { excludeFromRecords = false }, ct)).StatusCode);
+            var restored = (await owner.GetFromJsonAsync<StoredBestEffort[]>("/api/records", ct))!;
+            Assert.Equal(2, restored.Length);
+            Assert.All(restored, effort => Assert.Equal(id, effort.ActivityId));
         }
         finally
         {

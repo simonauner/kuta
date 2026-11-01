@@ -1,3 +1,4 @@
+import { FormField } from '@/components/ui/form-field'
 import { MultisportEditor } from '@/components/multisport-editor'
 import { multisportView, partsFromForm, type MultisportDraft } from '@/lib/multisport'
 import { useState } from 'react'
@@ -11,9 +12,8 @@ import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { meQuery } from '@/lib/auth'
 import { ApiError, api } from '@/lib/api'
-import { activityQuery } from '@/lib/activity-query'
+import { activityQuery, refreshActivityQueries } from '@/lib/activity-query'
 import { activityTitle, type ActivityDetail } from '@/lib/activity'
-import { equipmentQuery, lastUsedShoeQuery } from '@/lib/equipment'
 
 export function EditActivityPage() {
   const { activityId } = useParams({ from: '/app/activities/$activityId/edit' })
@@ -37,24 +37,26 @@ export function EditActivityPage() {
 
 function EditActivityForm({ activity }: { activity: ActivityDetail }) {
   const { t } = useTranslation()
-  const { year, tag } = useSearch({ from: '/app/activities/$activityId/edit' })
+  const search = useSearch({ from: '/app/activities/$activityId/edit' })
   const navigate = useNavigate()
   const queryClient = useQueryClient()
   const [split, setSplit] = useState<MultisportDraft>(undefined)
   const [title, setTitle] = useState(activity.title ?? '')
   const [description, setDescription] = useState(activity.description ?? '')
   const [tags, setTags] = useState(activity.tags)
+  const [excludeFromRecords, setExcludeFromRecords] = useState(activity.excludeFromRecords)
   const [privacy, setPrivacy] = useState(activity.privacy)
   const [equipmentIds, setEquipmentIds] = useState(activity.equipmentIds)
   const destination = {
     to: '/app/activities/$activityId' as const,
     params: { activityId: activity.id },
-    search: { year, tag },
+    search,
   }
   const save = useMutation({
     mutationFn: (draft: MultisportDraft) =>
       api.send('PUT', `/api/activities/${activity.id}`, {
         privacy,
+        excludeFromRecords,
         title,
         description,
         tags,
@@ -63,14 +65,7 @@ function EditActivityForm({ activity }: { activity: ActivityDetail }) {
         restoreParts: draft === null,
       }),
     onSuccess: async () => {
-      await Promise.all([
-        queryClient.invalidateQueries({ queryKey: activityQuery(activity.id).queryKey }),
-        queryClient.invalidateQueries({ queryKey: ['activities'] }),
-        queryClient.invalidateQueries({ queryKey: ['feed'] }),
-        queryClient.invalidateQueries({ queryKey: ['records'] }),
-        queryClient.invalidateQueries({ queryKey: equipmentQuery.queryKey }),
-        queryClient.invalidateQueries({ queryKey: lastUsedShoeQuery.queryKey }),
-      ])
+      await refreshActivityQueries(queryClient)
       await navigate(destination)
     },
   })
@@ -85,43 +80,68 @@ function EditActivityForm({ activity }: { activity: ActivityDetail }) {
           if (!save.isPending) save.mutate(partsFromForm(split, event.currentTarget))
         }}
       >
-        <label className="block space-y-2 text-sm font-medium">
-          <span>{t('newActivity.name')}</span>
-          <Input
-            value={title}
-            maxLength={100}
-            placeholder={activityTitle({ ...activity, title: null }, t)}
-            onChange={(event) => setTitle(event.currentTarget.value)}
-            disabled={save.isPending}
-          />
-        </label>
-        <label className="block space-y-2 text-sm font-medium">
-          <span>{t('newActivity.description')}</span>
-          <textarea
-            value={description}
-            maxLength={10000}
-            rows={3}
-            onChange={(event) => setDescription(event.currentTarget.value)}
-            disabled={save.isPending}
-            className="w-full rounded-md border border-input bg-transparent px-3 py-2 text-base shadow-xs outline-none focus-visible:border-ring focus-visible:ring-[3px] focus-visible:ring-ring/50 md:text-sm dark:bg-input/30"
-          />
-        </label>
-        <label className="block space-y-2 text-sm font-medium">
-          <span>{t('social.visibility')}</span>
-          <select
-            className="block w-full rounded-md border bg-background px-3 py-2"
-            value={privacy}
-            disabled={save.isPending}
-            onChange={(event) => setPrivacy(event.target.value as ActivityDetail['privacy'])}
-          >
-            <option value="private">{t('social.private')}</option>
-            <option value="followers">{t('social.followersVisibility')}</option>
-            <option value="public">{t('social.public')}</option>
-          </select>
-          <span className="block text-xs font-normal text-muted-foreground">
-            {t('social.sharingHint')}
-          </span>
-        </label>
+        <FormField label={t('newActivity.name')} className="text-sm font-medium">
+          {(id) => (
+            <Input
+              id={id}
+              value={title}
+              maxLength={100}
+              placeholder={activityTitle({ ...activity, title: null }, t)}
+              onChange={(event) => setTitle(event.currentTarget.value)}
+              disabled={save.isPending}
+            />
+          )}
+        </FormField>
+        <FormField label={t('newActivity.description')} className="text-sm font-medium">
+          {(id) => (
+            <textarea
+              id={id}
+              value={description}
+              maxLength={10000}
+              rows={3}
+              onChange={(event) => setDescription(event.currentTarget.value)}
+              disabled={save.isPending}
+              className="w-full rounded-md border border-input bg-transparent px-3 py-2 text-base shadow-xs outline-none focus-visible:border-ring focus-visible:ring-[3px] focus-visible:ring-ring/50 md:text-sm dark:bg-input/30"
+            />
+          )}
+        </FormField>
+        <FormField label={t('social.visibility')} className="text-sm font-medium">
+          {(id) => (
+            <>
+              <select
+                id={id}
+                className="block w-full rounded-md border bg-background px-3 py-2"
+                value={privacy}
+                disabled={save.isPending}
+                onChange={(event) => setPrivacy(event.target.value as ActivityDetail['privacy'])}
+              >
+                <option value="private">{t('social.private')}</option>
+                <option value="followers">{t('social.followersVisibility')}</option>
+                <option value="public">{t('social.public')}</option>
+              </select>
+              <span className="mt-2 block text-xs font-normal text-muted-foreground">
+                {t('social.sharingHint')}
+              </span>
+            </>
+          )}
+        </FormField>
+        {activity.streams && (
+          <div className="space-y-2">
+            <FormField label={t('activity.excludeFromRecords')} layout="choice">
+              {(id) => (
+                <input
+                  id={id}
+                  type="checkbox"
+                  checked={excludeFromRecords}
+                  onChange={(event) => setExcludeFromRecords(event.currentTarget.checked)}
+                  disabled={save.isPending}
+                  className="size-4 accent-primary"
+                />
+              )}
+            </FormField>
+            <p className="text-xs text-muted-foreground">{t('activity.excludeFromRecordsHint')}</p>
+          </div>
+        )}
         <MultisportEditor
           activity={multisportView(activity, split)}
           onChange={setSplit}

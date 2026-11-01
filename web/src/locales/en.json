@@ -7,10 +7,19 @@
     "main": "Main navigation"
   },
   "language": "Language",
-  "slowLoading": "This is taking longer than expected",
+  "slowLoading": "This is taking unusually long...",
   "connectionError": "Could not reach Kuta. Check your connection and reload the page.",
   "feed": {
-    "description": "Activities from you and the people you follow will appear here."
+    "welcomeTitle": "Time for your first activity",
+    "welcomeDescription": "Add an activity or bring your training history. This is where activities from you and runners you follow will appear.",
+    "waitingTitle": "Your feed starts here",
+    "waitingDescription": "No one you follow has shared an activity yet. Add one of your own while you wait.",
+    "addActivityHelp": "Log it manually or upload a FIT file from your watch.",
+    "stravaTitle": "Moving from Strava?",
+    "stravaDescription": "Import your archive and keep your training history.",
+    "socialTitle": "Train together",
+    "socialDescription": "Ask a friend to share their profile link so you can follow them, or share your own.",
+    "copyProfileLink": "Copy my profile link"
   },
   "stats": {
     "description": "Track your training volume, distance, pace and heart rate over time.",
@@ -25,14 +34,69 @@
     "empty": "No activities for the selected sport and year.",
     "noHeartRate": "No saved heart rate data during this period.",
     "chartScale": "Scale: 0–{{max}}. All values are in the table below.",
-    "method": "Time includes pauses. Pace is total time per kilometre for activities with distance and time. Lower pace means faster speed. Heart rate is weighted by activity duration, using only activities with saved heart rate. Missing values appear as –. All sports also combines pace and heart rate across sports. Months follow your device’s time zone."
+    "method": "Time includes pauses. Pace is total time per kilometre for activities with distance and time. Lower pace means faster speed. Heart rate is weighted by activity duration, using only activities with saved heart rate. Missing values appear as –. All sports also combines pace and heart rate across sports. Months follow your device’s time zone.",
+    "onboarding": {
+      "title": "Small steps. Big progress.",
+      "description": "Your first activity starts your training story. Add it manually or upload a file from your watch, and let the numbers tell your story.",
+      "volumeTitle": "See the work you put in",
+      "volumeDescription": "Track distance and training time, month by month.",
+      "compareTitle": "Find your perspective",
+      "compareDescription": "Compare your training years and see how far you have come.",
+      "recordsTitle": "Discover your records",
+      "recordsDescription": "Upload runs from your watch to find your fastest efforts."
+    }
+  },
+  "yearComparison": {
+    "title": "Year over year",
+    "description": "Accumulated volume per year on the same calendar, for the selected sport.",
+    "metric": "Measure",
+    "metrics": {
+      "distanceM": "Distance",
+      "durationS": "Training time",
+      "count": "Activities"
+    },
+    "chart": "Accumulated {{metric}} per year. The selected year is highlighted.",
+    "table": "{{metric}} per year",
+    "toDate": "Up to {{date}}",
+    "change": "Vs previous year",
+    "fullYear": "Full year",
+    "empty": "No activities for the selected sport.",
+    "method": "The chart shows the selected year and up to {{years}} most recent years. The comparison uses the same month and day each year, and the change compares with the year before. Time includes pauses, and each activity counts on the day it starts in your device's time zone."
+  },
+  "trainingLoad": {
+    "title": "Training load",
+    "description": "Fitness, fatigue and form from your runs, calculated from pace against your threshold pace.",
+    "threshold": "Threshold pace",
+    "thresholdManual": "You have set your threshold pace yourself.",
+    "thresholdPredicted": "Automatically {{pace}} /km from your prediction. Set your own if you know better.",
+    "thresholdMissing": "No prediction yet. Set your threshold pace, or run 5 km or longer with distance data.",
+    "save": "Save",
+    "useAutomatic": "Use automatic",
+    "empty": "No runs to calculate load from yet.",
+    "fitness": "Fitness",
+    "fatigue": "Fatigue",
+    "form": "Form",
+    "ramp": "Change per week",
+    "dailyLoad": "Daily load",
+    "chartScale": "Scale: 0–{{max}}.",
+    "chart": "Fitness, fatigue and daily load {{from}}–{{to}}.",
+    "method": "One hour at threshold pace gives a load of 100; load grows with the square of speed. Speed is smoothed over 30 seconds and pauses do not count. Activities without a file are estimated from average pace. Fitness is the average daily load over about 42 days, fatigue over 7 days and form the difference. Threshold pace is the pace you can hold for an hour, derived from VDOT unless you set it yourself, and applies to your whole history. Hills are not adjusted for yet. Only running counts.",
+    "warningTitle": "Your load is increasing quickly",
+    "warningText": "Your fitness has increased by {{ramp}} in a week. A common rule of thumb is at most about 7 per week; an easier period lowers the risk of overload.",
+    "warningLink": "See training load"
   },
   "records": {
+    "helpLabel": "Help with running records",
+    "help": "Does something look wrong? You can exclude an activity with incorrect data from running records by editing the activity.",
+    "bestEfforts": "Best efforts",
     "title": "Running records",
     "description": "Best efforts from your runs with recorded data from a file. Time includes pauses.",
     "empty": "No records yet. Records come from runs uploaded from a file with distance data.",
     "distance": "Distance",
     "personalBest": "Personal best",
+    "activityRecords": "Records set on this activity",
+    "currentBest": "Current personal best",
+    "previousBest": "Previous personal best",
     "yearBest": "Best {{year}}",
     "distances": {
       "1000": "1 km",
@@ -46,6 +110,7 @@
     "trendEmpty": "No efforts over {{distance}} yet.",
     "trendChart": "Best time per month over {{distance}}. Faster times are higher.",
     "chartScale": "Fastest at the top: {{best}}, slowest at the bottom: {{worst}}.",
+    "chartScaleHint": "The scale follows personal bests. Monthly bests are shown within that range.",
     "legendMonth": "Best of the month",
     "legendRecord": "New personal best",
     "history": "Record history, {{distance}}",
@@ -72,7 +137,17 @@
     "hrNotSaved": "Heart rate is not saved. Change this before uploading in",
     "sport": "Sport",
     "allSports": "All sports",
-    "noMatches": "No activities match the filters."
+    "noMatches": "No activities match the filters.",
+    "onboarding": {
+      "title": "Your next adventure starts here.",
+      "description": "A quick loop or a long adventure? Keep your activities, memories and progress together here. Add your first activity manually or upload a file from your watch.",
+      "historyTitle": "Keep your activities together",
+      "historyDescription": "Save routes, notes and tags in your training diary.",
+      "importTitle": "Bring your history",
+      "importDescription": "Import your Strava archive or upload FIT files from your watch.",
+      "equipmentTitle": "Track your shoes",
+      "equipmentDescription": "Link shoes to your activities and see how far they have taken you."
+    }
   },
   "newActivity": {
     "title": "Create activity",
@@ -160,6 +235,9 @@
     "description": "Description (optional)"
   },
   "activity": {
+    "excludeFromRecords": "Exclude from running records",
+    "excludeFromRecordsHint": "The entire activity is excluded from personal bests, yearly records, record trends and predictions. It still counts towards training statistics and goals. You can undo this later.",
+    "excludedFromRecords": "This activity is excluded from running records and predictions.",
     "back": "All activities",
     "notFound": "The activity doesn't exist.",
     "distance": "Distance",
@@ -273,6 +351,7 @@
     "duplicateActivity": "This activity has already been uploaded.",
     "invalidRecordYear": "Enter a year between 1 and 9998.",
     "invalidRecordDistance": "Choose one of the record distances.",
+    "invalidThresholdSpeed": "Enter a threshold pace between 1:40 and 60:00 per km.",
     "invalidFit": "The file could not be read as an activity from a FIT file.",
     "invalidTitle": "The title can be at most 100 characters.",
     "invalidActivity": "Check the sport, date, time and distance.",
@@ -474,6 +553,7 @@
     "default": "Default visibility for new activities",
     "help": "Saved automatically. Applies to new manual activities, FIT uploads and Strava imports. Existing activities keep their visibility until you apply this choice to all.",
     "applyAll": "Apply to all activities",
+    "allMatch": "All your activities have the selected visibility.",
     "confirm": "Change every existing activity to “{{visibility}}”? This replaces individual visibility choices for all your activities.",
     "applying": "Applying…",
     "applied": "All your activities now use this visibility.",
@@ -590,5 +670,21 @@
     "cross-country skiing": "Cross-country skiing",
     "paddling": "Paddling",
     "rowing": "Rowing"
+  },
+  "profile": {
+    "onboarding": {
+      "title": "Your training story starts with one activity.",
+      "description": "From your first loop to your next milestone, your activities belong here. Add an activity and start building your training story. You choose which activities to share.",
+      "identityTitle": "Your place on Kuta",
+      "identityDescription": "Your activities and visible goals come together on your profile.",
+      "connectionsTitle": "Find each other",
+      "connectionsDescription": "Share your profile link or ask a friend for theirs to start following each other.",
+      "privacyTitle": "You choose what to share",
+      "privacyDescription": "Choose who can see each activity and goal: only you, your followers or everyone on Kuta."
+    }
+  },
+  "onboarding": {
+    "eyebrow": "Your progress starts here",
+    "addActivity": "Add an activity"
   }
 }

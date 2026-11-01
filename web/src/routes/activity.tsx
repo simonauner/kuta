@@ -1,4 +1,5 @@
-import { knownSport, sportIcons } from '@/lib/sports'
+import { SlowLoading } from '@/components/slow-loading'
+import { isCyclingSport } from '@/lib/sports'
 import { SportIcon } from '@/components/sport-icon'
 import { useQuery } from '@tanstack/react-query'
 import { Link, useParams, useSearch } from '@tanstack/react-router'
@@ -10,18 +11,28 @@ import { BackLink } from '@/components/back-link'
 import { MultisportEditor } from '@/components/multisport-editor'
 import { partStreams, sportNameKey, sportColors, type ActivityPart } from '@/lib/multisport'
 import { Button } from '@/components/ui/button'
+import { Heading } from '@/components/ui/heading'
 import { meQuery } from '@/lib/auth'
 import { equipmentQuery } from '@/lib/equipment'
 import { TagLabels } from '@/components/activity-tags'
 import { ActivityMap } from '@/components/activity-map'
 import { ErrorMessage } from '@/components/error-message'
+import { RecordAward } from '@/components/record-award'
 import { ApiError } from '@/lib/api'
 import { activityQuery } from '@/lib/activity-query'
+import { api } from '@/lib/api'
+import {
+  recordMeters,
+  type RecordDistance,
+  type StoredBestEffort,
+  type ActivityBestEffort,
+} from '@/lib/records'
 import {
   activityTitle,
   chartAxis,
   average,
   formatDuration,
+  formatPace,
   formatSportPace,
   splits,
   routeSegments,
@@ -42,15 +53,33 @@ function paceSeries(speed: (number | null)[], minSpeed = 0.5) {
 export function ActivityPage() {
   const { activityId } = useParams({ from: '/app/activities/$activityId' })
   const { t, i18n } = useTranslation()
-  const { year, tag } = useSearch({ from: '/app/activities/$activityId' })
+  const search = useSearch({ from: '/app/activities/$activityId' })
   const { data: me } = useQuery(meQuery)
   const equipment = useQuery(equipmentQuery)
-  const [openPanel, setOpenPanel] = useState<'laps' | 'splits' | null>(null)
+  const [openPanel, setOpenPanel] = useState<'laps' | 'splits' | 'efforts' | null>(null)
   const lapsOpen = openPanel === 'laps'
   const splitsOpen = openPanel === 'splits'
+  const effortsOpen = openPanel === 'efforts'
   const lapsId = useId()
   const splitsId = useId()
+  const effortsId = useId()
   const activity = useQuery(activityQuery(activityId))
+  const bestEfforts = useQuery({
+    queryKey: ['records', 'activity', activityId],
+    queryFn: () => api.get<ActivityBestEffort[]>(`/api/activities/${activityId}/best-efforts`),
+    enabled: activity.isSuccess,
+  })
+  // Rekordmärkning bara för egna pass: /api/records gäller inloggad användares rekord.
+  const recordYear = activity.data && new Date(activity.data.startedAt).getUTCFullYear()
+  const hasEfforts = !!bestEfforts.data?.length
+  const ownEfforts = hasEfforts && activity.data?.userId === me?.id
+  const yearBests = useQuery({
+    queryKey: ['records', 'year', recordYear],
+    queryFn: () => api.get<StoredBestEffort[]>(`/api/records?year=${recordYear}`),
+    enabled: ownEfforts,
+  })
+  const holds = (records: StoredBestEffort[] | undefined, e: StoredBestEffort) =>
+    !!records?.some((r) => r.activityId === e.activityId && r.distanceM === e.distanceM)
   const [selection, setSelection] = useState<{ id: string; part: ActivityPart | null } | null>(null)
   const selectedPart = selection?.id === activityId ? selection.part : null
   const selectedSport = selectedPart?.sport ?? activity.data?.sport
@@ -72,18 +101,16 @@ export function ActivityPage() {
       })
     if (streams.speed && !mixed)
       series.push({
-        label:
-          selectedSport === 'cycling'
-            ? `${t('activity.speed')} (km/h)`
-            : `${t('activity.chartPace')} (${selectedSport === 'swimming' ? '/100 m' : '/km'})`,
-        values:
-          selectedSport === 'cycling'
-            ? streams.speed.map((v) => (v === null ? null : v * 3.6))
-            : paceSeries(streams.speed, selectedSport === 'swimming' ? 0.05 : 0.5).map((v) =>
-                v === null ? null : v / (selectedSport === 'swimming' ? 10 : 1),
-              ),
+        label: isCyclingSport(selectedSport ?? '')
+          ? `${t('activity.speed')} (km/h)`
+          : `${t('activity.chartPace')} (${selectedSport === 'swimming' ? '/100 m' : '/km'})`,
+        values: isCyclingSport(selectedSport ?? '')
+          ? streams.speed.map((v) => (v === null ? null : v * 3.6))
+          : paceSeries(streams.speed, selectedSport === 'swimming' ? 0.05 : 0.5).map((v) =>
+              v === null ? null : v / (selectedSport === 'swimming' ? 10 : 1),
+            ),
         color: '#1c7ed6',
-        pace: selectedSport !== 'cycling',
+        pace: !isCyclingSport(selectedSport ?? ''),
       })
     if (streams.hr)
       series.push({ label: t('activity.chartHr'), values: streams.hr, color: '#e03131' })
@@ -152,14 +179,14 @@ export function ActivityPage() {
     timeStyle: 'short',
   })
   // Kadens i steg/min för löpning och gång, varv/min för cykling (så lagras den, se FitImport)
-  const cadenceUnit = sportIcons[knownSport(a.sport)] === 'bike' ? 'rpm' : 'spm'
+  const cadenceUnit = isCyclingSport(a.sport) ? 'rpm' : 'spm'
   const cadence = average(a.streams?.cadence ?? null)
   const temp = average(a.streams?.temp ?? null)
   const stats = [
     [t('activity.distance'), `${number.format(a.distanceM / 1000)} km`],
     [t('activity.time'), formatDuration(a.durationS)],
     !mixed && [
-      t(a.sport === 'cycling' ? 'activity.speed' : 'activity.pace'),
+      t(isCyclingSport(a.sport) ? 'activity.speed' : 'activity.pace'),
       formatSportPace(a.sport, a.movingS ?? a.durationS, a.distanceM, i18n.resolvedLanguage),
     ],
     a.elevationGainM !== null && [t('activity.elevation'), `${Math.round(a.elevationGainM)} m`],
@@ -199,6 +226,41 @@ export function ActivityPage() {
     </table>
   )
 
+  const effortTable = hasEfforts && (
+    <table className="w-full text-sm tabular-nums">
+      <thead className="text-left text-xs text-muted-foreground">
+        <tr>
+          <th className="py-1 font-normal">{t('records.distance')}</th>
+          <th className="py-1 font-normal">{t('records.time')}</th>
+          <th className="py-1 font-normal">{t('activity.pace')}</th>
+          <th className="py-1 font-normal">
+            <span className="sr-only">{t('records.title')}</span>
+          </th>
+        </tr>
+      </thead>
+      <tbody className="divide-y">
+        {bestEfforts.data!.map((e) => {
+          const yearBest = holds(yearBests.data, e)
+          return (
+            <tr key={e.distanceM}>
+              <td className="py-1.5">{t(`records.distances.${e.distanceM as RecordDistance}`)}</td>
+              <td className="py-1.5">{formatDuration(Math.round(e.elapsedS))}</td>
+              <td className="py-1.5">{formatPace(e.elapsedS, recordMeters(e.distanceM))}</td>
+              <td className="py-1.5 text-right">
+                {e.recordStatus ? (
+                  <RecordAward status={e.recordStatus} />
+                ) : (
+                  yearBest &&
+                  recordYear !== undefined && <RecordAward status="year" year={recordYear} />
+                )}
+              </td>
+            </tr>
+          )
+        })}
+      </tbody>
+    </table>
+  )
+
   return (
     <section>
       {original.userId === me?.id ? (
@@ -213,7 +275,7 @@ export function ActivityPage() {
       )}
       <p className="mt-4 text-sm text-muted-foreground">{when.format(new Date(a.startedAt))}</p>
       <div className="mt-1 flex flex-wrap items-center justify-between gap-3">
-        <h1 className="flex min-w-0 items-center gap-3 text-2xl font-semibold tracking-tight">
+        <Heading level={1} className="flex min-w-0 items-center gap-3">
           <span className="wrap-anywhere" style={{ viewTransitionName: `activity-title-${a.id}` }}>
             {activityTitle(original, t)}
           </span>
@@ -222,13 +284,13 @@ export function ActivityPage() {
             className="size-9 shrink-0"
             style={{ viewTransitionName: `activity-sport-${a.id}` }}
           />
-        </h1>
+        </Heading>
         {original.userId === me?.id && (
           <Button asChild size="sm" variant="outline" className="ml-auto">
             <Link
               to="/app/activities/$activityId/edit"
               params={{ activityId: a.id }}
-              search={{ year, tag }}
+              search={search}
             >
               {t('activity.edit')}
             </Link>
@@ -243,7 +305,10 @@ export function ActivityPage() {
       {a.device && <p className="mt-1 text-xs text-muted-foreground">{a.device}</p>}
 
       {a.description && (
-        <p className="mt-4 whitespace-pre-wrap text-sm wrap-anywhere">{a.description}</p>
+        <p className="mt-4 whitespace-pre-wrap text-body wrap-anywhere">{a.description}</p>
+      )}
+      {original.userId === me?.id && original.excludeFromRecords && (
+        <p className="mt-4 text-sm text-muted-foreground">{t('activity.excludedFromRecords')}</p>
       )}
       <MultisportEditor
         key={`${original.id}:${original.partsEdited}:${JSON.stringify(original.parts)}`}
@@ -284,31 +349,28 @@ export function ActivityPage() {
 
       {a.equipmentIds.length > 0 && (
         <div className="mt-5">
-          <h2 className="text-sm font-medium">{t('equipment.title')}</h2>
-          <ul className="mt-2 flex flex-wrap gap-2">
-            {equipment.data
-              ?.filter((item) => a.equipmentIds.includes(item.id))
-              .map((item) => (
-                <li key={item.id} className="rounded-full bg-muted px-2 py-0.5 text-xs">
-                  {item.name}
-                </li>
-              ))}
-          </ul>
-          {equipment.isPending && (
-            <p role="status" className="text-sm text-muted-foreground">
-              {t('equipment.loading')}
-            </p>
-          )}
-          {equipment.error && (
-            <p role="alert" className="text-sm text-destructive">
-              <ErrorMessage error={equipment.error} />
-            </p>
-          )}
+          <p className="text-metadata text-muted-foreground">{t('equipment.title')}</p>
+          <SlowLoading loading={equipment.isPending}>
+            <ul className="mt-2 flex flex-wrap gap-2">
+              {equipment.data
+                ?.filter((item) => a.equipmentIds.includes(item.id))
+                .map((item) => (
+                  <li key={item.id} className="rounded-full bg-muted px-2 py-0.5 text-xs">
+                    {item.name}
+                  </li>
+                ))}
+            </ul>
+            {equipment.error && (
+              <p role="alert" className="text-sm text-destructive">
+                <ErrorMessage error={equipment.error} />
+              </p>
+            )}
+          </SlowLoading>
         </div>
       )}
       {a.tags.length > 0 && (
         <div className="mt-5">
-          <h2 className="text-sm font-medium">{t('tags.label')}</h2>
+          <p className="text-metadata text-muted-foreground">{t('tags.label')}</p>
           <TagLabels tags={a.tags} />
         </div>
       )}
@@ -326,9 +388,44 @@ export function ActivityPage() {
         ))}
       </dl>
 
-      {((!mixed && a.laps.length > 0) || (view && view.splits.length > 0)) && (
+      {ownEfforts && bestEfforts.data?.some((e) => e.recordStatus) && (
+        <section
+          className="mt-6 rounded-xl border bg-card p-4"
+          aria-labelledby="activity-records-title"
+        >
+          <Heading level={2} id="activity-records-title">
+            {t('records.activityRecords')}
+          </Heading>
+          <ul className="mt-3 grid gap-3 sm:grid-cols-2">
+            {bestEfforts.data
+              .filter((e) => e.recordStatus)
+              .map((e) => (
+                <li
+                  key={e.distanceM}
+                  className="flex flex-wrap items-center justify-between gap-x-4 gap-y-1 rounded-lg bg-muted/50 px-3 py-2"
+                >
+                  <span className="text-sm font-medium">
+                    {t(`records.distances.${e.distanceM as RecordDistance}`)}
+                    <span className="ml-3 tabular-nums">{formatDuration(e.elapsedS)}</span>
+                  </span>
+                  <RecordAward status={e.recordStatus!} />
+                </li>
+              ))}
+          </ul>
+        </section>
+      )}
+      {bestEfforts.error && (
+        <p role="alert" className="mt-4 text-sm text-destructive">
+          <ErrorMessage error={bestEfforts.error} />{' '}
+          <Button size="sm" variant="outline" onClick={() => void bestEfforts.refetch()}>
+            {t('activities.retry')}
+          </Button>
+        </p>
+      )}
+
+      {((!mixed && a.laps.length > 0) || (view && view.splits.length > 0) || hasEfforts) && (
         <div className="mt-8">
-          <div className="flex gap-2">
+          <div className="flex flex-wrap gap-2">
             {!mixed && a.laps.length > 0 && (
               <Button
                 id={`${lapsId}-toggle`}
@@ -358,6 +455,22 @@ export function ActivityPage() {
                 <ChevronDown
                   aria-hidden="true"
                   className={`transition-transform duration-250 motion-reduce:transition-none ${splitsOpen ? 'rotate-180' : ''}`}
+                />
+              </Button>
+            )}
+            {hasEfforts && (
+              <Button
+                id={`${effortsId}-toggle`}
+                type="button"
+                variant="outline"
+                aria-expanded={effortsOpen}
+                aria-controls={effortsId}
+                onClick={() => setOpenPanel((open) => (open === 'efforts' ? null : 'efforts'))}
+              >
+                {t('records.bestEfforts')}
+                <ChevronDown
+                  aria-hidden="true"
+                  className={`transition-transform duration-250 motion-reduce:transition-none ${effortsOpen ? 'rotate-180' : ''}`}
                 />
               </Button>
             )}
@@ -445,6 +558,26 @@ export function ActivityPage() {
               </div>
             </div>
           )}
+
+          {hasEfforts && (
+            <div
+              id={effortsId}
+              aria-hidden={!effortsOpen}
+              inert={!effortsOpen}
+              className={`grid transition-[grid-template-rows] duration-250 ease-out motion-reduce:transition-none ${effortsOpen ? 'grid-rows-[1fr]' : 'grid-rows-[0fr]'}`}
+            >
+              <div className="min-h-0 overflow-hidden">
+                <div
+                  role="region"
+                  aria-labelledby={`${effortsId}-toggle`}
+                  tabIndex={effortsOpen ? 0 : -1}
+                  className="mt-3 max-h-[min(16rem,25svh)] overflow-auto overscroll-contain rounded-lg border px-3 focus-visible:outline-2 focus-visible:outline-ring [&_thead]:sticky [&_thead]:top-0 [&_thead]:bg-background"
+                >
+                  {effortTable}
+                </div>
+              </div>
+            </div>
+          )}
         </div>
       )}
 
@@ -462,15 +595,28 @@ export function ActivityPage() {
 
       {view && view.series.length > 0 && (
         <div className="mt-8">
-          <h2 className="mb-2 text-lg font-semibold">{t('activity.charts')}</h2>
+          <Heading level={2} className="mb-2">
+            {t('activity.charts')}
+          </Heading>
           <ActivityCharts axis={view.axis} series={view.series} />
         </div>
       )}
 
       {view && view.splits.length > 0 && (
         <div className="mt-8">
-          <h2 className="mb-2 text-lg font-semibold">{t('activity.splits')}</h2>
+          <Heading level={2} className="mb-2">
+            {t('activity.splits')}
+          </Heading>
           {splitTable}
+        </div>
+      )}
+
+      {hasEfforts && (
+        <div className="mt-8">
+          <Heading level={2} className="mb-2">
+            {t('records.bestEfforts')}
+          </Heading>
+          {effortTable}
         </div>
       )}
     </section>

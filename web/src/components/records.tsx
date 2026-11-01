@@ -1,8 +1,12 @@
+import { FormField } from '@/components/ui/form-field'
+import { Heading } from '@/components/ui/heading'
 import { useState } from 'react'
 import { useQuery } from '@tanstack/react-query'
 import { Link } from '@tanstack/react-router'
 import { useTranslation } from 'react-i18next'
+import { HelpPopover } from '@/components/help-popover'
 import { ErrorMessage } from '@/components/error-message'
+import { RecordAward } from '@/components/record-award'
 import { Button } from '@/components/ui/button'
 import { api } from '@/lib/api'
 import { formatDuration, formatPace } from '@/lib/activity'
@@ -73,10 +77,13 @@ export function RecordsSection({ year }: { year: number }) {
 
   return (
     <section className="mt-10" aria-labelledby="records-title">
-      <h2 id="records-title" className="text-xl font-semibold tracking-tight">
-        {t('records.title')}
-      </h2>
-      <p className="mt-2 text-sm text-muted-foreground">{t('records.description')}</p>
+      <div className="flex items-center justify-between gap-4">
+        <Heading level={2} id="records-title">
+          {t('records.title')}
+        </Heading>
+        <HelpPopover label={t('records.helpLabel')}>{t('records.help')}</HelpPopover>
+      </div>
+      <p className="mt-2 text-body text-muted-foreground">{t('records.description')}</p>
 
       {allTime.error && <QueryError error={allTime.error} retry={() => void allTime.refetch()} />}
       {yearly.error && <QueryError error={yearly.error} retry={() => void yearly.refetch()} />}
@@ -132,20 +139,29 @@ export function RecordsSection({ year }: { year: number }) {
         ))}
 
       <div className="mt-6 rounded-xl border bg-card p-4">
-        <label className="flex flex-wrap items-center justify-between gap-3 text-sm font-medium">
+        <Heading level={3} className="mb-3">
           {t('records.trend')}
-          <select
-            className={selectClass}
-            value={distance}
-            onChange={(e) => setDistance(Number(e.target.value) as RecordDistance)}
-          >
-            {recordDistances.map(([d]) => (
-              <option key={d} value={d}>
-                {distanceLabel(d)}
-              </option>
-            ))}
-          </select>
-        </label>
+        </Heading>
+        <FormField
+          layout="inline"
+          label={t('records.distance')}
+          className="justify-between text-sm font-medium"
+        >
+          {(id) => (
+            <select
+              id={id}
+              className={selectClass}
+              value={distance}
+              onChange={(e) => setDistance(Number(e.target.value) as RecordDistance)}
+            >
+              {recordDistances.map(([d]) => (
+                <option key={d} value={d}>
+                  {distanceLabel(d)}
+                </option>
+              ))}
+            </select>
+          )}
+        </FormField>
         {trend.error && <QueryError error={trend.error} retry={() => void trend.refetch()} />}
         {trend.isSuccess && (
           <RecordTrendView trend={trend.data} distanceLabel={distanceLabel(distance)} />
@@ -153,7 +169,7 @@ export function RecordsSection({ year }: { year: number }) {
       </div>
 
       <div className="mt-6 rounded-xl border bg-card p-4">
-        <h3 className="text-sm font-medium">{t('records.predictions')}</h3>
+        <Heading level={3}>{t('records.predictions')}</Heading>
         {predictions.error && (
           <QueryError error={predictions.error} retry={() => void predictions.refetch()} />
         )}
@@ -162,7 +178,7 @@ export function RecordsSection({ year }: { year: number }) {
             <p className="mt-3 text-sm text-muted-foreground">{t('records.predictionsEmpty')}</p>
           ) : (
             <>
-              <p className="mt-2 text-sm text-muted-foreground">
+              <p className="mt-2 text-body text-muted-foreground">
                 {t('records.predictionsBasis', {
                   distance: distanceLabel(predictions.data.basis.distanceM),
                   time: formatDuration(predictions.data.basis.elapsedS),
@@ -192,7 +208,7 @@ export function RecordsSection({ year }: { year: number }) {
                   </div>
                 ))}
               </dl>
-              <p className="mt-4 text-xs leading-relaxed text-muted-foreground">
+              <p className="mt-4 text-metadata leading-relaxed text-muted-foreground">
                 {t('records.predictionsMethod')}
               </p>
             </>
@@ -222,7 +238,8 @@ function RecordTrendView({ trend, distanceLabel }: { trend: RecordTrend; distanc
         {t('records.chartScale', {
           best: formatDuration(chart.fastest),
           worst: formatDuration(chart.slowest),
-        })}
+        })}{' '}
+        {t('records.chartScaleHint')}
       </p>
       <svg
         viewBox={`0 0 ${width} ${height}`}
@@ -304,7 +321,16 @@ function RecordTrendView({ trend, distanceLabel }: { trend: RecordTrend; distanc
               return (
                 <tr key={`${effort.activityId}-${effort.achievedAt}`}>
                   <th scope="row" className="py-2 pr-3 text-left font-normal">
-                    {date.format(new Date(effort.achievedAt))}
+                    <span className="inline-flex items-center gap-2">
+                      <RecordAward status={i === 0 ? 'current' : 'previous'} />
+                      <Link
+                        to="/app/activities/$activityId"
+                        params={{ activityId: effort.activityId }}
+                        className="underline-offset-2 hover:underline"
+                      >
+                        {date.format(new Date(effort.achievedAt))}
+                      </Link>
+                    </span>
                   </th>
                   <td className="px-2">
                     <EffortLink effort={effort} />

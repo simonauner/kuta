@@ -1,10 +1,11 @@
+import { FormField } from '@/components/ui/form-field'
 import { useMutation, useQueryClient } from '@tanstack/react-query'
 import { useState, type FormEvent } from 'react'
 import { useTranslation } from 'react-i18next'
 import { ErrorMessage } from '@/components/error-message'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
-import { Label } from '@/components/ui/label'
+import { refreshActivityQueries } from '@/lib/activity-query'
 import { api, ApiError } from '@/lib/api'
 
 type StravaImportResult = {
@@ -29,13 +30,7 @@ export function StravaImport() {
   const queryClient = useQueryClient()
   const [progress, setProgress] = useState<StravaImportProgress | null>(null)
   const [file, setFile] = useState<File | null>(null)
-  const refreshImportedData = () =>
-    queryClient.invalidateQueries({
-      predicate: ({ queryKey }) =>
-        ['activities', 'activity', 'equipment', 'equipmentLastUsedShoe'].includes(
-          String(queryKey[0]),
-        ),
-    })
+  const refreshImportedData = () => refreshActivityQueries(queryClient)
   const upload = useMutation({
     mutationFn: async (file: File): Promise<StravaImportResult> => {
       setProgress(null)
@@ -76,19 +71,20 @@ export function StravaImport() {
 
   return (
     <form onSubmit={onSubmit} className="mt-4">
-      <Label htmlFor="strava-file" className="mb-2">
-        {t('settings.stravaFile')}
-      </Label>
-      <Input
-        id="strava-file"
-        type="file"
-        accept=".zip"
-        disabled={upload.isPending}
-        onChange={(e) => {
-          setFile(e.currentTarget.files?.[0] ?? null)
-          upload.reset()
-        }}
-      />
+      <FormField label={t('settings.stravaFile')}>
+        {(id) => (
+          <Input
+            id={id}
+            type="file"
+            accept=".zip"
+            disabled={upload.isPending}
+            onChange={(e) => {
+              setFile(e.currentTarget.files?.[0] ?? null)
+              upload.reset()
+            }}
+          />
+        )}
+      </FormField>
       <p className="mt-2 text-xs text-muted-foreground">{t('settings.importHelp')}</p>
       <Button type="submit" className="mt-4" disabled={!file || upload.isPending}>
         {upload.isPending ? t('settings.importing') : t('settings.import')}

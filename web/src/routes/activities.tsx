@@ -1,11 +1,13 @@
+import { FormField } from '@/components/ui/form-field'
 import { SportIcon } from '@/components/sport-icon'
 import { sports } from '@/lib/sports'
 import { TagLabels } from '@/components/activity-tags'
-import { equipmentQuery, lastUsedShoeQuery } from '@/lib/equipment'
-import { activityTagsQuery } from '@/lib/activity-query'
+import { activityTagsQuery, activityYearsQuery, refreshActivityQueries } from '@/lib/activity-query'
 import { ErrorMessage } from '@/components/error-message'
+import { ActivitiesEmptyState } from '@/components/activities-empty-state'
 import { SlowLoading } from '@/components/slow-loading'
 import { GoalDialog, GoalList } from '@/components/goals'
+import { TrainingLoadWarning } from '@/components/training-load'
 import type { Goal } from '@/lib/goals'
 import { useState } from 'react'
 import { useTranslation } from 'react-i18next'
@@ -41,11 +43,7 @@ export function ActivitiesPage() {
   const queryClient = useQueryClient()
   const tagOptions = useQuery(activityTagsQuery)
   const timeZone = Intl.DateTimeFormat().resolvedOptions().timeZone
-  const years = useQuery({
-    queryKey: ['activities', 'years', timeZone],
-    queryFn: () => api.get<number[]>(`/api/activities/years?${new URLSearchParams({ timeZone })}`),
-    staleTime: 60_000,
-  })
+  const years = useQuery(activityYearsQuery(timeZone))
   const availableYears = years.data ?? []
   const activities = useInfiniteQuery({
     queryKey: ['activities', 'list', timeZone, year, tag, sport],
@@ -64,17 +62,20 @@ export function ActivitiesPage() {
     getNextPageParam: (page) => page.nextCursor,
   })
   const items = activities.data?.pages.flatMap((page) => page.items) ?? []
+  const showOnboarding =
+    years.isSuccess &&
+    availableYears.length === 0 &&
+    activities.isSuccess &&
+    items.length === 0 &&
+    year === undefined &&
+    !tag &&
+    !sport
   // null = stängd, 'new' = nytt mål, annars målet som redigeras
   const [goalForm, setGoalForm] = useState<Goal | 'new' | null>(null)
 
   const remove = useMutation({
     mutationFn: (id: string) => api.send('DELETE', `/api/activities/${id}`),
-    onSuccess: () =>
-      Promise.all([
-        queryClient.invalidateQueries({ queryKey: ['activities'] }),
-        queryClient.invalidateQueries({ queryKey: equipmentQuery.queryKey }),
-        queryClient.invalidateQueries({ queryKey: lastUsedShoeQuery.queryKey }),
-      ]),
+    onSuccess: () => refreshActivityQueries(queryClient),
   })
 
   return (
@@ -85,13 +86,16 @@ export function ActivitiesPage() {
           <Button size="sm" variant="outline" onClick={() => setGoalForm('new')}>
             {t('goals.new')}
           </Button>
-          <Button asChild size="sm">
-            <Link to="/app/activities/new" search={{ year, tag, sport }}>
-              {t('newActivity.title')}
-            </Link>
-          </Button>
+          {!showOnboarding && (
+            <Button asChild size="sm">
+              <Link to="/app/activities/new" search={{ year, tag, sport }}>
+                {t('newActivity.title')}
+              </Link>
+            </Button>
+          )}
         </div>
       </div>
+      <TrainingLoadWarning />
       <GoalList onSelect={setGoalForm} />
       {goalForm && (
         <GoalDialog
@@ -100,32 +104,31 @@ export function ActivitiesPage() {
           onClose={() => setGoalForm(null)}
         />
       )}
-      {(availableYears.length > 1 || year !== undefined) && (
-        <div className="mt-6 flex items-center gap-3">
-          <label htmlFor="activity-year" className="text-sm font-medium">
-            {t('activities.year')}
-          </label>
-          <select
-            id="activity-year"
-            className="w-32 rounded-md border bg-background px-3 py-2 text-sm text-foreground"
-            value={year ?? ''}
-            onChange={(e) =>
-              void navigate({
-                search: { year: e.target.value ? Number(e.target.value) : undefined, tag, sport },
-              })
-            }
-          >
-            <option value="">{t('activities.allYears')}</option>
-            {year !== undefined && !availableYears.includes(year) && (
-              <option value={year}>{year}</option>
-            )}
-            {availableYears.map((value) => (
-              <option key={value} value={value}>
-                {value}
-              </option>
-            ))}
-          </select>
-        </div>
+      {!showOnboarding && (availableYears.length > 1 || year !== undefined) && (
+        <FormField layout="inline" label={t('activities.year')} className="mt-6">
+          {(id) => (
+            <select
+              id={id}
+              className="w-32 rounded-md border bg-background px-3 py-2 text-sm text-foreground"
+              value={year ?? ''}
+              onChange={(e) =>
+                void navigate({
+                  search: { year: e.target.value ? Number(e.target.value) : undefined, tag, sport },
+                })
+              }
+            >
+              <option value="">{t('activities.allYears')}</option>
+              {year !== undefined && !availableYears.includes(year) && (
+                <option value={year}>{year}</option>
+              )}
+              {availableYears.map((value) => (
+                <option key={value} value={value}>
+                  {value}
+                </option>
+              ))}
+            </select>
+          )}
+        </FormField>
       )}
       {years.error && (
         <div role="alert" className="mt-4 text-sm text-destructive">
@@ -140,41 +143,52 @@ export function ActivitiesPage() {
           </Button>
         </div>
       )}
-      <label className="mt-5 flex items-center gap-3 text-sm">
-        {t('tags.label')}
-        <select
-          className="w-44 rounded-md border bg-background px-3 py-2"
-          value={tag ?? ''}
-          onChange={(e) =>
-            void navigate({ search: activitySearch({ year, tag: e.currentTarget.value, sport }) })
-          }
-        >
-          <option value="">{t('tags.all')}</option>
-          {tagOptions.data?.map((value) => (
-            <option key={value} value={value}>
-              {t(`tagNames.${value}`)}
-            </option>
-          ))}
-        </select>
-      </label>
-      <div className="mt-5 flex items-center gap-3 text-sm">
-        <label htmlFor="activity-sport">{t('activities.sport')}</label>
-        <select
-          id="activity-sport"
-          className="w-52 rounded-md border bg-background px-3 py-2"
-          value={sport ?? ''}
-          onChange={(e) =>
-            void navigate({ search: activitySearch({ year, tag, sport: e.currentTarget.value }) })
-          }
-        >
-          <option value="">{t('activities.allSports')}</option>
-          {sports.map((value) => (
-            <option key={value} value={value}>
-              {t(`newActivity.sports.${value}`)}
-            </option>
-          ))}
-        </select>
-      </div>
+      {!showOnboarding && (
+        <>
+          <FormField layout="inline" label={t('tags.label')} className="mt-5 text-sm">
+            {(id) => (
+              <select
+                id={id}
+                className="w-44 rounded-md border bg-background px-3 py-2"
+                value={tag ?? ''}
+                onChange={(e) =>
+                  void navigate({
+                    search: activitySearch({ year, tag: e.currentTarget.value, sport }),
+                  })
+                }
+              >
+                <option value="">{t('tags.all')}</option>
+                {tagOptions.data?.map((value) => (
+                  <option key={value} value={value}>
+                    {t(`tagNames.${value}`)}
+                  </option>
+                ))}
+              </select>
+            )}
+          </FormField>
+          <FormField layout="inline" label={t('activities.sport')} className="mt-5 text-sm">
+            {(id) => (
+              <select
+                id={id}
+                className="w-52 rounded-md border bg-background px-3 py-2"
+                value={sport ?? ''}
+                onChange={(e) =>
+                  void navigate({
+                    search: activitySearch({ year, tag, sport: e.currentTarget.value }),
+                  })
+                }
+              >
+                <option value="">{t('activities.allSports')}</option>
+                {sports.map((value) => (
+                  <option key={value} value={value}>
+                    {t(`newActivity.sports.${value}`)}
+                  </option>
+                ))}
+              </select>
+            )}
+          </FormField>
+        </>
+      )}
       {remove.error && (
         <p role="alert" className="mt-4 text-sm text-destructive">
           <ErrorMessage error={remove.error} />
@@ -182,11 +196,15 @@ export function ActivitiesPage() {
       )}
 
       <SlowLoading loading={activities.isPending}>
-        {activities.isSuccess && items.length === 0 && (
-          <p className="mt-8 text-muted-foreground">
-            {t(tag || sport ? 'activities.noMatches' : 'activities.empty')}
-          </p>
-        )}
+        {activities.isSuccess &&
+          items.length === 0 &&
+          (showOnboarding ? (
+            <ActivitiesEmptyState context="activities" />
+          ) : (
+            <p className="mt-8 text-muted-foreground">
+              {t(year !== undefined || tag || sport ? 'activities.noMatches' : 'activities.empty')}
+            </p>
+          ))}
         {activities.error && (
           <p role="alert" className="mt-4 text-sm text-destructive">
             <ErrorMessage error={activities.error} />

@@ -1,3 +1,5 @@
+import { EquipmentNameFields } from '@/components/equipment-name-fields'
+import { FormField } from '@/components/ui/form-field'
 import {
   multisportKinds,
   multisportView,
@@ -9,14 +11,13 @@ import { MultisportEditor } from '@/components/multisport-editor'
 import { Modal } from '@/components/ui/modal'
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
 import { useNavigate, useSearch } from '@tanstack/react-router'
-import { useId, useRef, useState, type FormEvent, type ReactNode } from 'react'
+import { useRef, useState, type FormEvent } from 'react'
 import { useTranslation } from 'react-i18next'
 import { BackLink } from '@/components/back-link'
 import { ErrorMessage } from '@/components/error-message'
 import { HeartRateConsent } from '@/components/heart-rate-consent'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
-import { Label } from '@/components/ui/label'
 import { api } from '@/lib/api'
 import {
   activityTitle,
@@ -30,6 +31,7 @@ import {
 import { sports as sportOptions, knownSport } from '@/lib/sports'
 import { meQuery } from '@/lib/auth'
 import { equipmentQuery, lastUsedShoeQuery, type Equipment } from '@/lib/equipment'
+import { refreshActivityQueries } from '@/lib/activity-query'
 import { TagPicker } from '@/components/activity-tags'
 
 // Det API:t läser ur en FIT-fil, utan att spara något (POST /api/activities/preview)
@@ -145,11 +147,7 @@ export function NewActivityPage() {
       })
     },
     onSuccess: async (activity) => {
-      await Promise.all([
-        queryClient.invalidateQueries({ queryKey: ['activities'] }),
-        queryClient.invalidateQueries({ queryKey: lastUsedShoeQuery.queryKey }),
-        queryClient.invalidateQueries({ queryKey: equipmentQuery.queryKey }),
-      ])
+      await refreshActivityQueries(queryClient)
       await navigate({
         to: '/app/activities/$activityId',
         params: { activityId: activity.id },
@@ -229,7 +227,7 @@ export function NewActivityPage() {
         )}
 
         <div className="grid grid-cols-2 gap-4">
-          <Field label={t('newActivity.name')} className="col-span-2">
+          <FormField label={t('newActivity.name')} className="col-span-2">
             {(id) => (
               <Input
                 id={id}
@@ -239,8 +237,8 @@ export function NewActivityPage() {
                 onChange={(e) => setTitle(e.currentTarget.value)}
               />
             )}
-          </Field>
-          <Field label={t('newActivity.description')} className="col-span-2">
+          </FormField>
+          <FormField label={t('newActivity.description')} className="col-span-2">
             {(id) => (
               <textarea
                 id={id}
@@ -251,8 +249,8 @@ export function NewActivityPage() {
                 className="w-full rounded-md border border-input bg-transparent px-3 py-2 text-base shadow-xs outline-none focus-visible:border-ring focus-visible:ring-[3px] focus-visible:ring-ring/50 md:text-sm dark:bg-input/30"
               />
             )}
-          </Field>
-          <Field label={t('newActivity.sport')}>
+          </FormField>
+          <FormField label={t('newActivity.sport')}>
             {(id) => (
               <select
                 id={id}
@@ -268,8 +266,8 @@ export function NewActivityPage() {
                 ))}
               </select>
             )}
-          </Field>
-          <Field
+          </FormField>
+          <FormField
             label={t('shoes.title')}
             action={
               <Button
@@ -306,13 +304,13 @@ export function NewActivityPage() {
                 ))}
               </select>
             )}
-          </Field>
+          </FormField>
           {(shoes.error || lastUsedShoe.error) && (
             <p role="alert" className="col-span-2 text-sm text-destructive">
               <ErrorMessage error={(shoes.error || lastUsedShoe.error)!} />
             </p>
           )}
-          <Field label={t('newActivity.startedAt')}>
+          <FormField label={t('newActivity.startedAt')}>
             {(id) => (
               <Input
                 id={id}
@@ -323,8 +321,8 @@ export function NewActivityPage() {
                 onChange={(e) => setStartedAt(e.currentTarget.value)}
               />
             )}
-          </Field>
-          <Field label={t('newActivity.distance')}>
+          </FormField>
+          <FormField label={t('newActivity.distance')}>
             {(id) => (
               <Input
                 id={id}
@@ -339,8 +337,8 @@ export function NewActivityPage() {
                 onChange={(e) => setDistanceKm(e.currentTarget.value)}
               />
             )}
-          </Field>
-          <Field label={t('newActivity.duration')}>
+          </FormField>
+          <FormField label={t('newActivity.duration')}>
             {(id) => (
               <Input
                 id={id}
@@ -353,8 +351,8 @@ export function NewActivityPage() {
                 onChange={(e) => setDuration(e.currentTarget.value)}
               />
             )}
-          </Field>
-          <Field label={t('newActivity.elevation')}>
+          </FormField>
+          <FormField label={t('newActivity.elevation')}>
             {(id) => (
               <Input
                 id={id}
@@ -367,9 +365,9 @@ export function NewActivityPage() {
                 onChange={(e) => setElevation(e.currentTarget.value)}
               />
             )}
-          </Field>
+          </FormField>
           {me?.hrConsent && (
-            <Field label={t('newActivity.avgHr')}>
+            <FormField label={t('newActivity.avgHr')}>
               {(id) => (
                 <Input
                   id={id}
@@ -382,7 +380,7 @@ export function NewActivityPage() {
                   onChange={(e) => setAvgHr(e.currentTarget.value)}
                 />
               )}
-            </Field>
+            </FormField>
           )}
         </div>
         {fromFile && (
@@ -448,32 +446,14 @@ export function NewActivityPage() {
           }}
           className="mt-5 space-y-4"
         >
-          <div>
-            <Label htmlFor="add-shoe-name" className="mb-2">
-              {t('shoes.name')}
-            </Label>
-            <Input
-              id="add-shoe-name"
-              autoFocus
-              required
-              maxLength={100}
-              disabled={addShoe.isPending}
-              value={shoeName}
-              onChange={(event) => setShoeName(event.currentTarget.value)}
-            />
-          </div>
-          <div>
-            <Label htmlFor="add-shoe-brand" className="mb-2">
-              {t('shoes.brand')}
-            </Label>
-            <Input
-              id="add-shoe-brand"
-              maxLength={100}
-              disabled={addShoe.isPending}
-              value={shoeBrand}
-              onChange={(event) => setShoeBrand(event.currentTarget.value)}
-            />
-          </div>
+          <EquipmentNameFields
+            name={shoeName}
+            brand={shoeBrand}
+            onNameChange={setShoeName}
+            onBrandChange={setShoeBrand}
+            nameLabel={t('shoes.name')}
+            disabled={addShoe.isPending}
+          />
           {addShoe.error && (
             <p role="alert" className="text-sm text-destructive">
               <ErrorMessage error={addShoe.error} />
@@ -509,16 +489,17 @@ export function NewActivityPage() {
             })}
           </p>
         )}
-        <Label htmlFor="fit-file" className="mt-5 mb-2">
-          {t('newActivity.file')}
-        </Label>
-        <Input
-          key={dialogKey}
-          id="fit-file"
-          type="file"
-          accept=".fit"
-          onChange={(e) => setPendingFile(e.currentTarget.files?.[0] ?? null)}
-        />
+        <FormField label={t('newActivity.file')} className="mt-5">
+          {(id) => (
+            <Input
+              key={dialogKey}
+              id={id}
+              type="file"
+              accept=".fit"
+              onChange={(e) => setPendingFile(e.currentTarget.files?.[0] ?? null)}
+            />
+          )}
+        </FormField>
         <HeartRateConsent className="mt-4" />
         <div className="mt-6 flex flex-wrap justify-end gap-3">
           <Button type="button" variant="outline" onClick={() => uploadDialog.current?.close()}>
@@ -540,28 +521,5 @@ export function NewActivityPage() {
         </div>
       </Modal>
     </section>
-  )
-}
-
-function Field({
-  label,
-  action,
-  className,
-  children,
-}: {
-  label: string
-  action?: ReactNode
-  className?: string
-  children: (id: string) => ReactNode
-}) {
-  const id = useId()
-  return (
-    <div className={className}>
-      <div className="mb-2 flex min-h-4 items-center justify-between gap-2">
-        <Label htmlFor={id}>{label}</Label>
-        {action}
-      </div>
-      {children(id)}
-    </div>
   )
 }

@@ -31,3 +31,32 @@ export const sportGroupsQuery = {
   queryFn: () => api.get<SportGroup[]>('/api/activities/sport-groups'),
   staleTime: Infinity,
 }
+
+export const activityYearsQuery = (timeZone: string) =>
+  queryOptions({
+    queryKey: ['activities', 'years', timeZone],
+    queryFn: () => api.get<number[]>(`/api/activities/years?${new URLSearchParams({ timeZone })}`),
+    staleTime: 60_000,
+  })
+
+const isGoalQuery = (key: readonly unknown[]) =>
+  (key[0] === 'activities' && key[1] === 'goals') || (key[0] === 'runner' && key[2] === 'goals')
+
+export function refreshGoalQueries(queryClient: QueryClient) {
+  return queryClient.invalidateQueries({ predicate: ({ queryKey }) => isGoalQuery(queryKey) })
+}
+
+export function refreshActivityQueries(queryClient: QueryClient) {
+  return queryClient.invalidateQueries({
+    predicate: ({ queryKey }) =>
+      [
+        'me',
+        'activities',
+        'activity',
+        'records',
+        'feed',
+        'equipment',
+        'equipmentLastUsedShoe',
+      ].includes(String(queryKey[0])) || isGoalQuery(queryKey),
+  })
+}

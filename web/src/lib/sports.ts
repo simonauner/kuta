@@ -67,3 +67,7 @@ export const sports = Object.keys(sportIcons) as Sport[]
 export function knownSport(sport: string): Sport {
   return (sports as readonly string[]).includes(sport) ? (sport as Sport) : 'other'
 }
+
+export function isCyclingSport(sport: string) {
+  return sportIcons[knownSport(sport)] === 'bike'
+}

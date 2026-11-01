@@ -1,7 +1,7 @@
 import type { ActivityPart } from './multisport.ts'
 import type { TFunction } from 'i18next'
 import sv from '../locales/sv.json' with { type: 'json' }
-import { knownSport, sports, type Sport } from './sports.ts'
+import { knownSport, isCyclingSport, sports, type Sport } from './sports.ts'
 
 export type ActivityTag = keyof typeof import('@/locales/sv.json').tagNames
 
@@ -142,6 +142,7 @@ export type ActivityDetail = Activity & {
   userId: string
   displayName: string
   privacy: 'private' | 'followers' | 'public'
+  excludeFromRecords: boolean
   description: string | null
   movingS: number | null
   maxHr: number | null
@@ -164,9 +165,10 @@ export function average(values: (number | null)[] | null) {
 }
 
 export function formatDuration(seconds: number) {
+  seconds = Math.round(seconds)
   const h = Math.floor(seconds / 3600)
   const m = Math.floor((seconds % 3600) / 60)
-  const s = Math.round(seconds % 60)
+  const s = seconds % 60
   const mmss = `${String(m).padStart(h ? 2 : 1, '0')}:${String(s).padStart(2, '0')}`
   return h ? `${h}:${mmss}` : mmss
 }
@@ -204,7 +206,7 @@ export function formatSportPace(
     durationS <= 0
   )
     return '–'
-  if (sport === 'cycling')
+  if (isCyclingSport(sport))
     return `${((distanceM / durationS) * 3.6).toLocaleString(locale, { maximumFractionDigits: 1 })} km/h`
   if (sport === 'swimming')
     return `${formatDuration(Math.round(durationS / (distanceM / 100)))} /100 m`

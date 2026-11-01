@@ -50,3 +50,43 @@ test('a single effort is centred instead of dividing by zero', () => {
   assert.deepEqual([chart.records[0].x, chart.records[0].y], [50, 25])
   assert.equal(chart.steps, '50,25 50,25')
 })
+
+test('monthly outliers do not change the record scale but retain the full date range', () => {
+  const first = effort('2026-01-01T00:00:00Z', 1500)
+  const best = effort('2026-02-01T00:00:00Z', 1334)
+  const inRange = effort('2026-03-01T00:00:00Z', 1400)
+  const outlier = effort('2026-04-01T00:00:00Z', 4800)
+  const chart = trendChart(
+    { months: [first, best, inRange, outlier], progression: [first, best] },
+    size,
+  )
+  assert.deepEqual([chart.fastest, chart.slowest], [1334, 1500])
+  assert.deepEqual(
+    chart.records.map((p) => p.y),
+    [40, 10],
+  )
+  assert.deepEqual(
+    chart.months.map((p) => p.activityId),
+    [first, best, inRange].map((p) => p.activityId),
+  )
+  assert.equal(chart.last.toISOString(), '2026-04-01T00:00:00.000Z')
+  assert.ok(chart.steps.endsWith('90,10'))
+})
+
+test('one record keeps a flat scale and hides slower months', () => {
+  const first = effort('2026-01-01T00:00:00Z', 1500)
+  const slower = effort('2026-02-01T00:00:00Z', 4800)
+  const chart = trendChart({ months: [first, slower], progression: [first] }, size)
+  assert.deepEqual([chart.fastest, chart.slowest], [1500, 1500])
+  assert.equal(chart.records[0].y, 25)
+  assert.equal(chart.months.length, 1)
+  assert.equal(chart.steps, '10,25 90,25')
+})
+
+test('monthly results provide a scale when there is no record history', () => {
+  const chart = trendChart(
+    { months: [effort('2026-01-01T00:00:00Z', 1500)], progression: [] },
+    size,
+  )
+  assert.deepEqual([chart.fastest, chart.slowest, chart.months[0].y], [1500, 1500, 25])
+})

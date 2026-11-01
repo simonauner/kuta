@@ -4,7 +4,7 @@ Löparapp med Garmin-import, statistik, rekord och socialt flöde. Se `AGENTS.md
 
 ## Publik startsida och app
 
-`/` är en statisk, svenskspråkig startsida (`web/index.html`, stilar i `web/src/landing.css`). Fotot i `web/public/images/forest-trail.webp` tillhör Simon Auner och serveras lokalt som WebP, utan beroende av Stravas bildserver; produktillustrationerna är designskisser med syntetiska exempeldata. `/features` är en statisk svensk funktionssida (`web/features.html`, `web/src/features.css`), länkad från startsidans funktionssektion. Bilderna i `web/public/images/features/` är lokala skärmdumpar med syntetiska data i mörkt tema. De publika sidorna och appen delar systemtypsnitt och färgvariabler i `web/src/theme.css`; publika knappar följer appens storlek och hörnradie, och sidfotslänkarna staplas till höger. `Footer` i `web/src/components/footer.tsx` och dess CSS delas av alla sidor: Vite renderar varianten `public` till statisk HTML, medan appens `Layout` använder varianten `app` med valt språk och version. Sidorna följer systemets ljusa eller mörka tema med neutrala ytor och orange accent. Innehåll och SEO-metadata finns i HTML utan JavaScript. `robots.txt` och `sitemap.xml` finns i `web/public/`; canonical och sitemap använder `https://kutaapp.com/`.
+`/` är en statisk, svenskspråkig startsida (`web/index.html`, stilar i `web/src/landing.css`). Fotot i `web/public/images/forest-trail.webp` tillhör Simon Auner och serveras lokalt som WebP, utan beroende av Stravas bildserver; produktbilderna är riktiga appskärmdumpar med syntetiska exempeldata. Startsidan visar ett pass i mobilram, FIT-uppladdning samt träningsmål och löprekord i mobilen. `/features` är en statisk svensk funktionssida (`web/features.html`, `web/src/features.css`), länkad från startsidans funktionssektion. Bilderna i `web/public/images/features/` är lokala skärmdumpar med syntetiska data i mörkt tema. Statistiksektionen visar löprekord, utveckling, prognos, årsöversikt och passdetaljer med utfällda splits ovanför kartan i ett bildspel (`web/src/features.ts`); mobilbilderna är tagna vid mobilbredd i 3× upplösning (1170 × 2280 px) och visas i en CSS-telefonram med appens riktiga bottennavigering. Bildspelet kan pausas och styras manuellt, växlar bara när det syns och startar utan automatisk växling vid minskad rörelse. Utan JavaScript visas löprekorden. Träningsmål har en egen sektion med två mobilbilder i samma telefonram: skapa mål-modalen och Pass-sidan med ett pågående mål, ett uppnått mål och två veckors streak. Båda visar syntetiska data. Startsidan och funktionssidan delar bildstilar och telefonramar i `web/src/product-shots.css`, som importeras av `landing.css`. FIT-uppladdningen (1347 × 1080 px) och multisportvyn (2016 × 1584 px) är desktopbilder i 3× upplösning; utrustning visas i samma mobilformat som de andra telefonbilderna. De publika sidorna och appen delar systemtypsnitt och färgvariabler i `web/src/theme.css`; publika knappar följer appens storlek och hörnradie, och sidfotslänkarna staplas till höger. `Footer` i `web/src/components/footer.tsx` och dess CSS delas av alla sidor: Vite renderar varianten `public` till statisk HTML, medan appens `Layout` använder varianten `app` med valt språk och version. Sidorna följer systemets ljusa eller mörka tema med neutrala ytor och orange accent. Innehåll och SEO-metadata finns i HTML utan JavaScript. `robots.txt` och `sitemap.xml` finns i `web/public/`; canonical och sitemap använder `https://kutaapp.com/`.
 
 Logotypen ”Spåret” finns som fristående SVG i `web/public/brand/` (mörk och ljus variant). Bokstäverna är vektorkonturer och kräver ingen font. Symbolen i `web/public/favicon.svg` används också av PWA-manifestet. PNG-ikoner för PWA finns i `web/public/icons/` (192/512 samt maskable 512 med extra marginal). `web/public/apple-touch-icon.png` (180×180, heltäckande bakgrund) används av iOS, och `favicon-32.png` är PNG-fallback för webbläsare. Båda HTML-dokumenten länkar till ikonerna; PWA:n startar på `/app`. SVG-underlagen för hemskärmsikonerna finns i `web/public/brand/app-icon.svg` och `app-icon-maskable.svg`.
 
@@ -25,6 +25,8 @@ Appens URL:er är `/app` (flöde), `/app/activities`, `/app/stats`, `/app/profil
 Översättningar finns i `web/src/locales/sv.json` och `en.json`; lägg till samma nycklar i båda. API-felkoder översätts i webben, med ett generellt fel för okända koder. Mejlmallar och PWA-manifest är tills vidare svenska. Språkval och katalogernas täckning kontrolleras med `cd web && npm test` (Node enligt `.nvmrc`).
 
 ## Följare och flöde
+
+När flödet är tomt visas genvägar till ett första pass, Strava-importen i Inställningar och kopiering av den egna profillänken. Den som redan följer någon får en text om att inga pass har delats ännu. Välkomstvyn försvinner när flödet får innehåll. Pass, Statistik och den egna profilen har ett gemensamt tomläge med sidans egna tips när användaren saknar pass. Flödet behåller sin välkomstvy; båda använder samma knappar till nytt pass och Strava-import. Tomma filterresultat och andra löpares profiler visar fortsatt sina vanliga tomlägen.
 
 Flödet på `/app` visar egna pass och pass från löpare du följer efter deras godkännande,
 nyaste först, 25 åt gången. **Inställningar → Följare** innehåller inkommande förfrågningar
@@ -124,7 +126,9 @@ synlighetsval med standardvalet. Andras pass påverkas inte. Standardvalet och
 massändringen sparas atomiskt via `PUT /api/me/activity-privacy`
 (`{ privacy: "private" | "followers" | "public", applyToAll?: boolean }`, CSRF krävs).
 `GET /api/me` returnerar `defaultActivityPrivacy`, som även ingår i exportens
-`profile.json`. Migrering 015 lägger till `users.default_activity_privacy`.
+`profile.json`, och `allActivitiesMatchDefaultPrivacy`, som kontrolleras mot alla egna
+pass. När alla redan har standardvalet är knappen inaktiv och visar en bock efter
+knappen; det gäller även utan pass. Migrering 015 lägger till `users.default_activity_privacy`.
 Samma profillås som importerna gör att en pågående import inte kan spara ett
 äldre standardval efter massändringen. Importdubbletter behåller sina val.
 
@@ -175,6 +179,45 @@ positiv tid och sparad puls. Alla sporter kombinerar även tempo och puls mellan
 Månader och årsgränser följer webbläsarens tidszon, och hela passet tillhör startmånaden.
 Statistikcachen uppdateras vid skapande, import och radering av pass och rensas när
 pulssamtycke återkallas.
+
+**År för år** på samma sida visar ackumulerad distans, tid eller antal pass per år på samma
+kalender för vald sportgrupp. Diagrammet visar valt år framhävt och upp till fem senaste år.
+Tabellen jämför alla år till och med dagens månad och dag (så att skottdagen inte förskjuter
+jämförelsen), med förändring mot året före och helårssumma.
+`GET /api/activities/statistics/days?sportGroup=running&timeZone=Europe%2FStockholm` ger
+summor per lokal dag (`day`, `count`, `distanceM`, `durationS`) över hela den egna historiken,
+bara dagar med pass. Summeringen följer målens regler (`SportGroups.EffectiveCte`): hela passet
+hör till startdagen, en grupp räknar matchande delar av multisportpass och utan grupp räknas
+varje pass en gång. Okänd grupp ger `invalidSportGroup` och ogiltig tidszon `invalidTimeZone`.
+
+## Träningsbelastning
+
+Statistiksidan visar kondition, trötthet och form för löpning, och Pass visar en varning högst upp när
+konditionen ökar snabbt. Modellen är TrainingPeaks förenkling av Banisters impuls–respons-modell:
+
+- **Belastning per pass (rTSS):** `∫ v² dt / vT² / 36`, där `vT` är tröskelfarten. En timme i tröskelfart ger 100.
+  `activities.run_intensity` (migrering 019) lagrar `∫ v² dt` (m²/s) för passets löpning, eller bara löpdelarna i
+  ett multisportpass. Den räknas av `BestEfforts.ReplaceAsync`, alltså vid FIT- och Strava-import, uppdelning och
+  omberäkning av rekord. Farten jämnas ut över minst 30 s, ett uppehåll över 10 s (autopaus) bildar ett eget
+  avsnitt, och trasiga värden bryter strömmen. Pass utan distansström (manuella och äldre pass) uppskattas ur
+  snittfarten, `distans² / tid`, utan backjustering.
+- **Backar:** varje avsnitts fart multipliceras med `C(i) / 3,6`, där `C(i)` är Minettis energikostnad för löpning
+  (J/kg/m) vid lutningen `i = Δhöjd / Δdistans` ur höjdströmmen, begränsad till ±45 %. Uppför ger högre belastning
+  och svag nedförslutning lägre. Saknad höjd räknas som plan mark. Äldre pass får justeringen vid omberäkning av rekord.
+- **Tröskelfart:** `users.threshold_speed_m_s` om användaren angett den, annars farten som VDOT-prognosen räcker
+  till i en timme (`RacePredictor.ThresholdSpeed`). Utan någon av dem finns ingen belastning. Samma tröskel gäller
+  hela historiken.
+- **Kondition (CTL) och trötthet (ATL):** exponentiella medelvärden av daglig belastning med 42 respektive 7 dagar
+  (`x += (belastning − x) / N`), från första dagen med löpning till idag i webbläsarens tidszon. Form (TSB) är
+  kondition minus trötthet samma dag.
+- **Varning:** när konditionen har ökat mer än 7 på en vecka, och först efter mer än 42 dagars historik så att en ny
+  användare inte varnas medan konditionen byggs upp från noll. Texten är information, inte ett medicinskt råd.
+
+`GET /api/training-load?timeZone=Europe%2FStockholm` ger `thresholdSpeedMS`, `thresholdSource`
+(`manual`/`prediction`/`null`), `predictedThresholdSpeedMS`, `days` (de senaste 182 dagarna med `load`, `fitness`,
+`fatigue` och `form`), `rampPerWeek` och `warning`. `PUT /api/me/threshold-speed` med `{ "thresholdSpeedMS": 4 }`
+sparar en egen tröskelfart (1:40–60:00 per km, annars `invalidThresholdSpeed`), och `null` går tillbaka till
+prognosen. Tröskelfarten ingår i dataexportens `profile.json`. Bara egna pass räknas.
 
 ## Träningsmål
 
@@ -321,8 +364,11 @@ GitHub Actions kör frontendkontrollerna i `.github/workflows/frontend.yml` vid
 ändringar i `web/`, `.nvmrc` eller workflowfilen. API-jobbet i
 `.github/workflows/api.yml` bygger och kör hela `api/Kuta.Api.Tests` i Release vid
 ändringar i `api/`, `supabase/`, `global.json` eller workflowfilen. Båda körs på
-pull requests och push till `main`; `Dockerfile` och `.dockerignore` startar båda.
-Ändringar i enbart `.md`-filer startar inget av dessa workflows.
+pull requests med dessa sökvägsfilter; `Dockerfile`, `.dockerignore` och
+`.github/workflows/deploy.yml` startar båda.
+Ändringar i enbart `.md`-filer startar inga PR-kontroller. Vid varje push till
+`main` anropar `.github/workflows/deploy.yml` båda jobben utan sökvägsfilter och
+deployar bara om båda lyckas; se [Driftsättning](#driftsättning-flyio).
 
 API-jobbet installerar .NET enligt `global.json` och Supabase CLI 2.72.7, startar
 en tillfällig lokal Supabase med Auth, Mailpit och Storage, läser dess lokala
@@ -430,16 +476,19 @@ eller 42195. Motorn använder exakt 1609,344 m för milen och 21097,5 m för hal
 `elapsedS` och `startOffsetS` är sekunder med decimaler. `achievedAt` är insatsens
 starttid i UTC (passets starttid plus `startOffsetS`).
 
-Alla anrop kräver inloggning och ger bara den egna användarens data:
+Alla anrop kräver inloggning. Rekord och historik gäller den egna användaren;
+passets bästa insatser följer passets läsregel:
 
 | Anrop | Resultat |
 |---|---|
-| `GET /api/activities/{id}/best-efforts` | Passets bästa insatser, sorterade på distans; 404 för okänt eller annans pass. |
+| `GET /api/activities/{id}/best-efforts` | Passets bästa insatser, sorterade på distans; 404 för okänt eller oläsbart pass. `recordStatus` är `current` (nuvarande personbästa), `previous` (tidigare personbästa) eller `null`. För andra än ägaren är status alltid `null`, så privata pass inte kan påverka synlig rekordstatus. |
 | `GET /api/records` | Snabbaste insatsen per distans; vid lika tid väljs den tidigaste. |
 | `GET /api/records?year=2026` | Samma urval inom UTC-kalenderåret då insatsen började. |
 | `GET /api/records/trend?distanceM=5000&timeZone=Europe/Stockholm` | `months`: bästa insatsen per lokal kalendermånad (bara månader med insatser). `progression`: rekordhistoriken, varje insats som var strikt snabbare än alla tidigare; lika tid behåller det äldre rekordet. 400 för annan distans än etiketterna ovan eller ogiltig tidszon. |
 | `GET /api/records/predictions` | Loppprognos: `basis` (underlagets insats), `vdot` och `predictions` med `distanceM`/`elapsedS` för alla rekorddistanser. Tomt underlag ger `null` och en tom lista. |
 | `POST /api/activities/{id}/best-efforts/recalculate` | Ersätter passets insatser från sparade tidsserier; 204 vid framgång, annars 404 för okänt eller annans pass. Kräver `X-CSRF-TOKEN`. |
+
+På passets redigeringssida kan ägaren välja **Undanta från löprekord** vid exempelvis GPS-glapp. `PUT /api/activities/{id}` sparar `excludeFromRecords` (boolesk, förval false; utelämnat fält behåller valet). Passdetaljer och export innehåller markeringen. Hela passet filtreras bort från personbästa, årsrekord, taggfiltrerade rekord, rekordutveckling och prognoser. Träningsstatistik och mål påverkas inte. Passets beräknade insatser behålls och visas fortfarande på passsidan; undantaget överlever omberäkning och redigering av sportdelar och kan ångras utan ny import.
 
 Omberäkningen kan upprepas efter ändrad beräkningslogik och fungerar även utan
 sparad råfil eller pulssamtycke. Kör den för befintliga pass som importerats innan
@@ -454,7 +503,13 @@ högst VDOT bland 5 km och längre de senaste 90 dagarna (lika VDOT: den senaste
 kortare insatser ur intervallpass överskattar uthålligheten. VDOT över 90, över
 världsrekordnivå, behandlas som mätfel. Statistiksidan visar personbästa och årsbästa
 per distans, ett diagram med månadsbästa och rekordtrappa, rekordhistoriken som tabell
-och prognosen.
+och prognosen. Passidan visar en separat lista över personbästa som sattes på passet,
+med en trofé i guld och medaljer i silver med metallisk glans för nuvarande respektive tidigare
+rekord. Status visas i tooltips som öppnas med mus, tangentbord eller tryck. Samma märkning visas
+vid bästa insatser; en ljusgrå rosett i kontur markerar årsbästa när insatsen inte är ett personbästa.
+Personbästamärkningen visas också
+vid passlänkarna i rekordhistoriken. Status följer insatsernas tidpunkt, oberoende av
+importordning, och räknas från nu sparade insatser även efter radering eller omberäkning.
 
 Beräkningstesterna jämför också med en uttömmande referensberäkning på oregelbundna
 strömmar. Integrationstesterna använder syntetiska FIT-filer skapade med Garmins SDK
@@ -510,7 +565,7 @@ En egen Fly-app (`kuta`, region `arn`). `Dockerfile` bygger webben och API:t til
 - Authentication → Email Templates → Reset password: innehållet i `supabase/templates/recovery.html`. Krävs före användning av lösenordsåterställning i drift; standardmallen skickar sessionstokens till webbläsaren i stället för vårt API.
 - Egen SMTP (Authentication → Emails → SMTP Settings): Scaleway TEM, host `smtp.tem.scaleway.com`, port 587, användare = Scaleway-projektets id, lösenord = secret key för en API-nyckel med bara TEM-behörighet (sparad i 1Password), avsändare på kutaapp.com. Domänen verifieras i Scaleway med SPF, DKIM och DMARC hos Cloudflare. Höj mejlgränsen under Authentication → Rate Limits. Supabases inbyggda mejl skickar bara till projektets egna medlemmar.
 
-**Hemligheter** ligger i 1Password, aldrig i filer eller kommandon. [fly.secrets.tpl](fly.secrets.tpl) listar dem som `op://`-referenser; databas-, Auth- och S3-värdena finns i objektet `fly-kuta-new` i valvet `Development`. Certifikatet ligger kvar i `fly-kuta`. Fälten har hemligheternas namn:
+**Hemligheter** ligger i 1Password, aldrig i filer eller kommandon. [fly.secrets.tpl](fly.secrets.tpl) listar dem som `op://`-referenser; värdena finns i objektet `fly-kuta-new` i valvet `Development`, ett fält per hemlighet med hemlighetens namn:
 
 | Fält | Värde |
 |---|---|
@@ -539,7 +594,34 @@ Förlorat certifikat förlorar ingen data, men alla måste logga in igen. Data P
 scripts/fly-secrets.sh fly.toml --stage
 ```
 
-**Deploy:** kör en maskin tills migreringar och token-förnyelse klarar flera maskiner, enligt `AGENTS.md`.
+**Automatisk deploy:** `.github/workflows/deploy.yml` kör frontendkontroller och
+API-tester på exakt den commit som pushats till `main` (inklusive merge av en PR).
+När båda lyckas bygger Fly samma commits `Dockerfile` och deployar till `kuta`
+med `--remote-only --ha=false`. Flys hälsokontroll på `/api/health` kontrollerar
+att appen kommer upp; migreringarna körs vid start. Bara en deploy körs åt gången,
+en pågående deploy avbryts inte och commits som inte längre är toppen av `main`
+hoppas över. Även en push med enbart dokumentation kör kontroller och deploy.
+
+Engångsuppsättning för CI:
+
+1. Skapa en appbegränsad Fly-deploytoken för `kuta`, med namn `github-actions-kuta`
+   och exempelvis ett års giltighet (`fly tokens create deploy --app kuta
+   --name github-actions-kuta --expiry 8760h`). För över värdet direkt till
+   GitHub Actions utan att skriva det i filer, kommandon eller chatt.
+2. Spara hela token som GitHub Actions-secret `FLY_API_TOKEN` för
+   `simonauner/kuta`, antingen som repository-secret eller som environment-secret
+   i `production`. CI behöver bara denna token; appens databas-, lagrings- och
+   certifikathemligheter ligger kvar hos Fly och hanteras via 1Password som tidigare.
+3. Begränsa environment `production` till grenen `main`. Lämna required reviewers
+   avstängt för automatisk deploy utan manuellt godkännande. Skydda `main` mot
+   direktpush om alla produktionsändringar ska gå via PR.
+
+Rotera Fly-token före utgången genom att uppdatera GitHub-secreten. Den ges bara
+till deploysteget; frontend- och API-jobben får inga produktionshemligheter.
+Saknad eller utgången token stoppar deployen. Upplägget följer
+[Flys CI-guide](https://fly.io/docs/launch/continuous-deployment-with-github-actions/).
+
+**Manuell deploy:** kör en maskin tills migreringar och token-förnyelse klarar flera maskiner, enligt `AGENTS.md`.
 
 ```bash
 fly deploy --ha=false
@@ -555,15 +637,15 @@ Arbetsunderlag för `web/privacy.html`, kontrollerat 2026-10-31. Skilj uppgifter
 - **Nya projektets inställningar bekräftade av Simon:** Stockholm (`eu-north-1`), Data API av, databaslagring av Auth-auditloggar av, Site URL `https://kutaapp.com`, Custom SMTP via befintliga Scaleway TEM, Kutas bekräftelse- och återställningsmallar från `supabase/templates/` med ämnesrader enligt `supabase/config.toml`, Email provider och Confirm Email på, minsta lösenordslängd 8 samt privat bucket `fit-files`.
 - **Verifierat efter bytet:** Fly-konfigurationen är validerad; en maskin körs i `arn` med samma image som före bytet (`registry.fly.io/kuta:deployment-01M69SNDKJZ4957VVBXMYV14AN`). Endast anslutningskonfiguration och hemligheter byttes; lokala policyändringar publicerades inte. Maskinens konfiguration pekar på nya Auth- och Storage-adresser. `/api/health` ger HTTP 200 med PostGIS 3.3 och `/api/me` ger 401 utan inloggning. Inloggningssidan laddas i riktig webbläsare.
 - **Databas och filåtkomst:** skrivskyddad fråga via Npgsql visar 0 Auth-användare, 0 Auth-auditposter, 0 pass och 20 journalförda migreringar, inklusive 017. En syntetisk fil skrevs och lästes via Kutas befintliga `RawFileStore`, raderades sedan och gav därefter 404. Efter auth-testerna visar en skrivskyddad aggregatfråga att den enda Data Protection-nyckeln har `encryptedSecret` och `EncryptedData`; nyckelinnehåll visades inte. Kontrollprogrammet byggdes med .NET SDK 10.0.402 och appens pinnade Npgsql/AWSSDK-versioner. Fyra nya 1Password-fält är läsbara; Auth-servernyckeln och den publika nyckeln accepteras av nya projektet. Simon bekräftar genomfört användarflöde för registrering, svenskt bekräftelsemejl och inloggning via länken mot nya projektet. Simon bekräftar även att återställningsmejl, lösenordsbyte och inloggning med det nya lösenordet fungerar mot nya projektet. Ingen ny applikationskod byggdes/deployades; den befintliga imagen återanvändes.
-- **Hemligheter i drift:** `fly.secrets.tpl` läser databasanslutning, Auth-servernyckel och S3-nyckelpar från `Development/fly-kuta-new`; Data Protection-certifikatet ligger kvar i `Development/fly-kuta`. Hemligheterna importerades via `scripts/fly-secrets.sh` utan att skriva värden i filer eller argument. Simon bekräftar Free-planen även för den nya organisationen. Dashboardens Project access visar enligt Simons återgivning en enda organisationsmedlem: `accounts@kutaapp.com`, med rollen Owner. Simon bekräftar även att tvåfaktorsautentisering är aktiverad för Supabase-kontot. Simon bekräftar att det nya Supabase-kontot skapades och tjänstevillkoren accepterades för Hack ska du ha AB:s räkning, av honom som bolagets företrädare. Övriga leverantörsuppgifter bedöms separat.
+- **Hemligheter i drift:** `fly.secrets.tpl` läser databasanslutning, Auth-servernyckel och S3-nyckelpar från `Development/fly-kuta-new`; nuvarande certifikatreferens följer `fly.secrets.tpl` i huvudgrenen (`Development/fly-kuta-new`). Hemligheterna importerades via `scripts/fly-secrets.sh` utan att skriva värden i filer eller argument. Simon bekräftar Free-planen även för den nya organisationen. Dashboardens Project access visar enligt Simons återgivning en enda organisationsmedlem: `accounts@kutaapp.com`, med rollen Owner. Simon bekräftar även att tvåfaktorsautentisering är aktiverad för Supabase-kontot. Simon bekräftar att det nya Supabase-kontot skapades och tjänstevillkoren accepterades för Hack ska du ha AB:s räkning, av honom som bolagets företrädare. Övriga leverantörsuppgifter bedöms separat.
 - Personuppgiftsansvarig: **Hack ska du ha AB, 559369-2287**. Simon Aunér är kontaktperson.
 - `privacy@kutaapp.com` använder **Proton Mail for Business** direkt via domänens MX-poster. Simon bekräftar att Protons DPA är sparad, att tvåfaktorsautentisering är aktiverad och att abonnemangets bolagsuppgifter är kontrollerade för Hack ska du ha AB. Simon bekräftar att bara han har åtkomst till kontaktinkorgen, inklusive via administratörskonton eller delad inloggning. Simon visar aktiverad återställning via e-post och SMS, samt Recovery phrase, Signed-in reset och QR code sign-in. Privata kontaktvärden sparas inte här. Simon bekräftar att återställningsfrasen är sparad i bolagets 1Password-valv. Dessa kontofunktioner verifierar inte återställning av permanent raderade mejl eller leverantörens interna kopior. Publika DNS-svar verifierar Proton-MX och en gemensam SPF-post för Proton och Scaleway samt tre Proton-DKIM-poster. Simons test av mottagning och svar är genomfört; Gmail-headern visar SPF, DKIM och DMARC PASS för svaret från `privacy@kutaapp.com`. Övriga skapade adresser är `incidents`, `hello`, `accounts` och `simon` på samma domän; deras leverans är inte separat testad. Scaleway skickar fortfarande kontomejl; den leveransvägen är inte omtestad efter DNS-bytet.
 - Tidigare gick kontaktmejl via Cloudflare Email Routing till privat Gmail. Simon bekräftar att bara egna testmejl fanns där, inga verkliga ärenden att flytta. Inkommande domänmejl går nu direkt till Proton; Simon bekräftar att Proton saknar vidarebefordringsregler. Simon bekräftar att Cloudflare Email Routing är avstängd.
 - För det tidigare projektet bekräftade Simon **Free-planen** och att **Write audit logs to the database** var avstängt under Authentication → Audit Logs. Simon har även kört `select count(*) as audit_rows from auth.audit_log_entries;` i Kuta-projektets SQL Editor och rapporterar **0 rader**. Det verifierar tabellens aktuella innehåll, inte leverantörens externa loggar eller kopior. Uppgifterna kommer från Simon; projektmetadata kunde inte läsas via anslutningen på grund av saknad behörighet.
 - Simon uppger att Kuta ännu inte har någon egen backup. Det fastställer inte vilka kopior leverantörerna behåller.
-- Simon vill kunna genomföra **export och kontoradering inom sju dagar från begäran**. Det är målet för rutinen, inte en implementerad eller verifierad funktion. Kontoradering av autentisering, appdata och råfiler finns i Inställningar och är verifierad lokalt med syntetiska uppgifter. Export via Inställningar finns och Simon har genomfört nedladdning i drift. Den tillhandahållna ZIP-filen kontrollerades 2026-11-01: CRC utan fel, 1 518 pass, 1 203 originalfiler, alla 1 523 JSON-dokument läsbara, alla förväntade kontodokument med, inga saknade eller överflödiga råfilsreferenser och samma ägare på samtliga pass. Inga dubblettsökvägar eller osäkra sökvägar hittades. Denna kontroll jämför inte varje råfils byte mot lagringen och verifierar inte leverantörernas loggar/kopior. Simon har även skapat ett separat testkonto med ett manuellt pass (1 km, 10 minuter), genomfört kontoraderingsflödet och rapporterar att ett nytt inloggningsförsök ger ”Fel e-post eller lösenord.” Detta verifierar nekad inloggning efter flödet; testkontots underliggande databasrader, råfiler och leverantörsposter har inte inspekterats genom detta användartest. Simon bekräftar att han därefter loggat in på sitt vanliga konto och att dess träningspass finns kvar. Skrivskyddad databaskontroll efter testet visar 1 Auth-konto, 1 profil, oförändrat 1 518 pass, 0 pass med testtiteln och 0 sessionsrader utan Auth-användare. Detta användartest omfattade ett manuellt pass; radering av råfiler verifierades inte genom det. Den sammanhållna rutinen för relevanta leverantörsposter återstår. Policyn får inte lova att alla leverantörsloggar och kopior försvinner inom samma tid.
+- Simon vill kunna genomföra **export och kontoradering inom sju dagar från begäran**. Det är målet för rutinen, inte en implementerad eller verifierad funktion. Kontoradering av autentisering, appdata och råfiler finns i Inställningar och är verifierad lokalt med syntetiska uppgifter. Export via Inställningar finns och Simon har genomfört nedladdning i drift. Den tillhandahållna ZIP-filen kontrollerades 2026-11-01: CRC utan fel, samtliga pass- och konto-JSON läsbara, alla förväntade kontodokument med, inga saknade eller överflödiga råfilsreferenser och samma ägare på samtliga pass. Inga dubblettsökvägar eller osäkra sökvägar hittades. Denna kontroll jämför inte varje råfils byte mot lagringen och verifierar inte leverantörernas loggar/kopior. Simon har även skapat ett separat testkonto med ett manuellt pass (1 km, 10 minuter), genomfört kontoraderingsflödet och rapporterar att ett nytt inloggningsförsök ger ”Fel e-post eller lösenord.” Detta verifierar nekad inloggning efter flödet; testkontots underliggande databasrader, råfiler och leverantörsposter har inte inspekterats genom detta användartest. Simon bekräftar att han därefter loggat in på sitt vanliga konto och att dess träningspass finns kvar. Skrivskyddad databaskontroll efter testet visar bara det kvarvarande kontot/profilen, oförändrat antal vanliga pass, inget pass med testtiteln och inga sessionsrader utan Auth-användare. Detta användartest omfattade ett manuellt pass; radering av råfiler verifierades inte genom det. Den sammanhållna rutinen för relevanta leverantörsposter återstår. Policyn får inte lova att alla leverantörsloggar och kopior försvinner inom samma tid.
 - **Beslutad rutin för supportmejl:** avslutade ärenden raderas senast 12 månader efter avslut. Simon går igenom inkorgen varje månad och tömmer papperskorgen för raderade ärenden. Onödiga känsliga uppgifter och bilagor raderas tidigare. Uppgifter som behöver bevaras för en konkret rättslig skyldighet eller tvist hanteras separat. Rutinen är beslutad av Simon. Simon bekräftar genomfört raderingstest med syntetiskt mejl: radering från inkorg, permanent radering av testmejlet i papperskorgen och kontroll genom sökning. Den löpande månatliga genomgången är en manuell rutin. Protons eventuella återställningskopior omfattas inte av detta raderingslöfte.
-- **Beslutad sessionslagring:** 30 dagar från det första av registrerat avslut (`ended_at`) och absolut utgång (`expires_at`). Migrering 019 skapar ett timvis Postgres-jobb och index för denna gräns. Lokal verifiering är genomförd: gränsfall för avslut/utgång, aktiva sessioner och utloggning i webbläsaren. API-sviten gav 209 av 210 godkända; det återstående testet fick slut på databasanslutningar och klarade separat omkörning. Webbbygget klarade Node 24.22.1; API-testerna kördes med .NET 10.0.402 mot egen lokal Supabase på portserie 58500. Migrering 019 är aktiverad i nya driftprojektet. En återläsning verifierade aktivt schema `0 * * * *`; jobbets raderingskommando kördes även direkt utan fel och tog bort 0 rader. En schemalagd timkörning har ännu inte observerats. Ingen ny appimage publicerades. Cookiens 30 dagars inaktivitet sätter inte i sig `ended_at`; utan tidigare registrerat avslut är den yttersta gränsen 180 + 30 dagar från inloggning, följt av nästa städning. Jobbet körs när databasen är i drift; driftavbrott eller ett pausat Supabase-projekt kan fördröja rensningen ([Supabase om pausning av Free-projekt](https://supabase.com/docs/guides/deployment/going-into-prod#availability)).
+- **Beslutad sessionslagring:** 30 dagar från det första av registrerat avslut (`ended_at`) och absolut utgång (`expires_at`). Migrering 019 skapar ett timvis Postgres-jobb och index för denna gräns. Lokal verifiering är genomförd: gränsfall för avslut/utgång, aktiva sessioner och utloggning i webbläsaren. Efter förening med aktuell huvudgren klarade samtliga 219 API-tester körningen (`KUTA_PORTS=58500 dotnet test --project api/Kuta.Api.Tests -- --parallel none`). Webbbygget klarade Node 24.22.1; API-testerna kördes med .NET 10.0.402 mot egen lokal Supabase på portserie 58500. Migrering 019 är aktiverad i nya driftprojektet. En återläsning verifierade aktivt schema `0 * * * *`; jobbets raderingskommando kördes även direkt utan fel och tog bort 0 rader. En schemalagd timkörning har ännu inte observerats. Ingen ny appimage publicerades. Cookiens 30 dagars inaktivitet sätter inte i sig `ended_at`; utan tidigare registrerat avslut är den yttersta gränsen 180 + 30 dagar från inloggning, följt av nästa städning. Jobbet körs när databasen är i drift; driftavbrott eller ett pausat Supabase-projekt kan fördröja rensningen ([Supabase om pausning av Free-projekt](https://supabase.com/docs/guides/deployment/going-into-prod#availability)).
 
 ### Vad koden visar om loggar och sessioner
 
