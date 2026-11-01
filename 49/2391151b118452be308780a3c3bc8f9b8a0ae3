@@ -1,0 +1,29 @@
+web/src/routes/stats.tsx
+  s_73318d03f237a8::t_133f819dfde373 149,270
+  s_73318d03f237a8::t_13718cc5358ac0 145-147
+web/src/components/records.tsx
+  s_73318d03f237a8::t_13718cc5358ac0 92-94,96,169-171,180-223
+  s_73318d03f237a8::t_4bfe8798710076 224
+web/src/index.css
+  s_73318d03f237a8::t_133f819dfde373 30-40
+web/src/components/training-load.tsx
+  s_73318d03f237a8::t_13718cc5358ac0 87,180
+web/src/components/year-comparison.tsx
+  s_73318d03f237a8::t_13718cc5358ac0 111-140,142-144,146,148,150-155,157-175,177-178,181-229
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.7.5",
+  "base_commit_sha": "492391151b118452be308780a3c3bc8f9b8a0ae3",
+  "prompts": {},
+  "sessions": {
+    "s_73318d03f237a8": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "36b67b64-f23f-485e-a8ad-eef21ef1b38b",
+        "model": "claude-opus-5-5"
+      },
+      "human_author": "Simon Aunér <simonauner@gmail.com>"
+    }
+  }
+}
