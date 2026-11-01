@@ -43,6 +43,34 @@ public class RunnerProfileTests(KutaFactory factory) : IClassFixture<KutaFactory
     }
 
     [Fact]
+    public async Task Records_come_from_readable_activities_that_count_for_records()
+    {
+        var ct = TestContext.Current.CancellationToken;
+        await using var conn = await factory.Services.GetRequiredService<NpgsqlDataSource>().OpenConnectionAsync(ct);
+        await using var tx = await conn.BeginTransactionAsync(ct);
+        var owner = Guid.NewGuid();
+        var stranger = Guid.NewGuid();
+        await conn.ExecuteAsync("""
+            insert into auth.users (id) values (@owner), (@stranger);
+            insert into users (id, display_name) values (@owner, 'Owner'), (@stranger, 'Stranger');
+            with a as (
+                insert into activities (user_id, source, started_at, duration_s, distance_m, privacy, exclude_from_records)
+                values (@owner, 'manual', now() - interval '3 days', 1500, 5000, 'public', false),
+                       (@owner, 'manual', now() - interval '2 days', 1200, 5000, 'private', false),
+                       (@owner, 'manual', now() - interval '1 day', 1000, 5000, 'public', true)
+                returning id, user_id, duration_s, started_at)
+            insert into best_efforts (activity_id, user_id, distance_m, elapsed_s, start_offset_s, achieved_at)
+            select id, user_id, 5000, duration_s, 0, started_at from a
+            """, new { owner, stranger }, tx);
+        async Task<double> Best(Guid viewer) =>
+            Assert.Single((await RunnerProfile.ReadAsync(conn, viewer, owner, "UTC", ct)).Records).ElapsedS;
+        // The private best stays hidden from others; an activity excluded from records never counts.
+        Assert.Equal(1200, await Best(owner));
+        Assert.Equal(1500, await Best(stranger));
+        await tx.RollbackAsync(ct);
+    }
+
+    [Fact]
     public async Task This_year_starts_at_new_year_in_the_viewers_time_zone_and_sports_are_ranked()
     {
         var ct = TestContext.Current.CancellationToken;

@@ -7,7 +7,7 @@ public sealed record SummaryTotals(int Count, double DistanceM, double DurationS
 public sealed record SportCount(string Sport, int Count);
 // JoinedAt is rounded to the month: enough to show how long someone has run with Kuta.
 public sealed record RunnerSummary(DateTime JoinedAt, SummaryTotals ThisYear, SummaryTotals AllTime,
-    IReadOnlyList<SportCount> TopSports, IReadOnlyList<CalendarDay> Days);
+    IReadOnlyList<SportCount> TopSports, IReadOnlyList<CalendarDay> Days, IReadOnlyList<StoredBestEffort> Records);
 
 // What a profile shows beyond the activity list, computed only from activities the viewer may read.
 public static class RunnerProfile
@@ -53,6 +53,13 @@ public static class RunnerProfile
             where a.user_id = @runnerId and {SocialEndpoints.CanRead}
             group by 1 order by 2 desc, 1 limit 3
             """, args, cancellationToken: ct))).ToList();
-        return new RunnerSummary(joinedAt, await Totals(true), await Totals(false), topSports, days);
+        // Personal bests among readable activities, with the same tie-breaking as /api/records.
+        var records = (await conn.QueryAsync<StoredBestEffort>(new CommandDefinition($"""
+            select distinct on (b.distance_m) b.activity_id, b.distance_m, b.elapsed_s, b.start_offset_s, b.achieved_at
+            from best_efforts b join activities a on a.id = b.activity_id
+            where a.user_id = @runnerId and not a.exclude_from_records and {SocialEndpoints.CanRead}
+            order by b.distance_m, b.elapsed_s, b.achieved_at, b.activity_id
+            """, args, cancellationToken: ct))).ToList();
+        return new RunnerSummary(joinedAt, await Totals(true), await Totals(false), topSports, days, records);
     }
 }

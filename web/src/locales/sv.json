@@ -756,6 +756,9 @@
       "sessions_one": "{{count}} pass",
       "sessions_other": "{{count}} pass",
       "topSports": "Vanligaste sporter"
+    },
+    "records": {
+      "title": "Personbästa"
     }
   },
   "onboarding": {

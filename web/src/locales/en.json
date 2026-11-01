@@ -756,6 +756,9 @@
       "sessions_one": "{{count}} activity",
       "sessions_other": "{{count}} activities",
       "topSports": "Most common sports"
+    },
+    "records": {
+      "title": "Personal bests"
     }
   },
   "onboarding": {

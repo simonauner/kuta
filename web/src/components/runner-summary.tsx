@@ -1,9 +1,13 @@
 import { useQuery } from '@tanstack/react-query'
+import { Link } from '@tanstack/react-router'
+import { Trophy } from 'lucide-react'
 import { useTranslation } from 'react-i18next'
 import { ErrorMessage } from '@/components/error-message'
 import { SportIcon } from '@/components/sport-icon'
 import { Heading } from '@/components/ui/heading'
 import { api } from '@/lib/api'
+import { formatDuration, formatPace } from '@/lib/activity'
+import { recordMeters, type RecordDistance, type StoredBestEffort } from '@/lib/records'
 import { calendarWeeks, weekStreaks, type CalendarDay } from '@/lib/activity-calendar'
 
 type Totals = { count: number; distanceM: number; durationS: number }
@@ -13,6 +17,7 @@ type RunnerSummary = {
   allTime: Totals
   topSports: { sport: string; count: number }[]
   days: CalendarDay[]
+  records: StoredBestEffort[]
 }
 
 const levelClass = ['bg-muted', 'bg-primary/25', 'bg-primary/50', 'bg-primary/75', 'bg-primary']
@@ -83,6 +88,44 @@ export function ProfileStats({ runnerId }: { runnerId: string }) {
         </ul>
       )}
     </div>
+  )
+}
+
+// Personal bests as a row of cards, each linking to the activity it was set in.
+export function RecordShelf({ runnerId }: { runnerId: string }) {
+  const { t, i18n } = useTranslation()
+  const { data } = useQuery(runnerSummaryQuery(runnerId))
+  if (!data?.records.length) return null
+  const date = new Intl.DateTimeFormat(i18n.resolvedLanguage, { dateStyle: 'medium' })
+  return (
+    <section aria-labelledby="record-shelf-title" className="space-y-3">
+      <Heading level={2} id="record-shelf-title">
+        {t('profile.records.title')}
+      </Heading>
+      <ul className="grid grid-cols-2 gap-3 sm:grid-cols-3">
+        {data.records.map((record) => (
+          <li key={record.distanceM}>
+            <Link
+              to="/app/activities/$activityId"
+              params={{ activityId: record.activityId }}
+              className="block h-full rounded-xl border p-4 transition-colors hover:bg-muted"
+            >
+              <p className="flex items-center gap-1.5 text-metadata text-muted-foreground">
+                <Trophy aria-hidden="true" className="size-3.5 text-primary" />
+                {t(`records.distances.${record.distanceM as RecordDistance}`)}
+              </p>
+              <p className="text-2xl font-semibold tabular-nums">
+                {formatDuration(record.elapsedS)}
+              </p>
+              <p className="text-metadata text-muted-foreground">
+                {formatPace(record.elapsedS, recordMeters(record.distanceM))} ·{' '}
+                {date.format(new Date(record.achievedAt))}
+              </p>
+            </Link>
+          </li>
+        ))}
+      </ul>
+    </section>
   )
 }
 
