@@ -2,6 +2,7 @@ using Microsoft.AspNetCore.Antiforgery;
 using Microsoft.AspNetCore.Mvc;
 
 public record Credentials(string? Email, string? Password);
+public record SignUpRequest(string? Email, string? Password, bool AcceptTerms);
 public record ApiError(string Error, string? Code = null);
 public record ApiMessage(string Message);
 public record AntiforgeryToken(string Token);
@@ -49,11 +50,13 @@ public static class AuthEndpoints
             }
         });
 
-        auth.MapPost("/signup", async (Credentials req, SupabaseAuthClient supabase, HttpContext http,
+        auth.MapPost("/signup", async (SignUpRequest req, SupabaseAuthClient supabase, HttpContext http,
             CancellationToken cancellationToken) =>
         {
             if (string.IsNullOrWhiteSpace(req.Email) || string.IsNullOrEmpty(req.Password))
                 return Results.BadRequest(new ApiError("Ange e-post och lösenord.", "credentialsRequired"));
+            if (!req.AcceptTerms)
+                return Results.BadRequest(new ApiError("Godkänn användarvillkoren och integritetspolicyn för att skapa ett konto.", "termsRequired"));
 
             var (result, session) = await supabase.SignUpAsync(req.Email.Trim(), req.Password, cancellationToken);
             switch (result)

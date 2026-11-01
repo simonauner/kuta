@@ -29,7 +29,8 @@ public sealed class SupabaseAuthClient(HttpClient http, IConfiguration configura
         CancellationToken cancellationToken)
     {
         using var request = ClientRequest(HttpMethod.Post, "/auth/v1/signup");
-        request.Content = JsonContent.Create(new { email, password });
+        // Registreringen kräver godkända villkor; tidpunkten följer med till users när profilen skapas.
+        request.Content = JsonContent.Create(new { email, password, data = new { terms_accepted_at = DateTime.UtcNow } });
         using var response = await http.SendAsync(request, cancellationToken);
         ThrowIfUnavailable(response);
         if (!response.IsSuccessStatusCode)

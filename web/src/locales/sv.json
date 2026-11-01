@@ -326,7 +326,8 @@
     "name": "Vad vill du kallas?",
     "continue": "Fortsätt",
     "confirmSent": "Kolla din e-post och klicka på länken för att aktivera kontot.",
-    "recoverySent": "Om adressen har ett konto får du ett mejl med en länk för att återställa lösenordet."
+    "recoverySent": "Om adressen har ett konto får du ett mejl med en länk för att återställa lösenordet.",
+    "acceptTerms": "Jag godkänner <terms>användarvillkoren</terms> och <privacy>integritetspolicyn</privacy>."
   },
   "errors": {
     "invalidActivityYear": "Ange ett år mellan 1 och 9998.",
@@ -372,7 +373,8 @@
     "invalidSportGroup": "Välj en giltig träningsform.",
     "importInProgress": "En import pågår redan. Vänta tills den är klar.",
     "jobFailed": "Jobbet misslyckades. Försök igen senare.",
-    "jobCancelled": "Jobbet avbröts."
+    "jobCancelled": "Jobbet avbröts.",
+    "termsRequired": "Godkänn användarvillkoren och integritetspolicyn för att skapa ett konto."
   },
   "home": "Kuta – startsida",
   "footer": {
