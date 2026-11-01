@@ -1,0 +1,19 @@
+api/Kuta.Api/MeEndpoints.cs
+  s_1d8c41d0c04d95::t_ef146e555785ab 6,18,30-34,36-40,52
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.7.5",
+  "base_commit_sha": "689a352babd5965449ddef533b79039c6140a400",
+  "prompts": {},
+  "sessions": {
+    "s_1d8c41d0c04d95": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "bdd1f4bc-6213-49a7-8e73-7e9172c83f8c",
+        "model": "claude-opus-5-5"
+      },
+      "human_author": "Simon Aunér <simonauner@gmail.com>"
+    }
+  }
+}
