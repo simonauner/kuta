@@ -7,7 +7,7 @@ import { ActivitiesEmptyState } from '@/components/activities-empty-state'
 import { ActivityFeed } from '@/components/activity-feed'
 import { GarminDerivedNote } from '@/components/garmin'
 import { GoalList } from '@/components/goals'
-import { ActivityCalendar } from '@/components/runner-summary'
+import { ActivityCalendar, ProfileStats } from '@/components/runner-summary'
 import { ShareProfile } from '@/components/share-profile'
 import { SupporterBadge } from '@/components/supporter'
 import { meQuery } from '@/lib/auth'
@@ -32,6 +32,7 @@ export function ProfilePage() {
           </Button>
         </div>
       </div>
+      {me && <ProfileStats runnerId={me.id} />}
       {me && <ActivityCalendar runnerId={me.id} />}
       <GarminDerivedNote />
       {me && <GoalList runnerId={me.id} />}

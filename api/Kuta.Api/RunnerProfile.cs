@@ -3,7 +3,11 @@ using Dapper;
 using Npgsql;
 
 public sealed record CalendarDay(DateOnly Day, int Count, double DistanceM);
-public sealed record RunnerSummary(IReadOnlyList<CalendarDay> Days);
+public sealed record SummaryTotals(int Count, double DistanceM, double DurationS);
+public sealed record SportCount(string Sport, int Count);
+// JoinedAt is rounded to the month: enough to show how long someone has run with Kuta.
+public sealed record RunnerSummary(DateTime JoinedAt, SummaryTotals ThisYear, SummaryTotals AllTime,
+    IReadOnlyList<SportCount> TopSports, IReadOnlyList<CalendarDay> Days);
 
 // What a profile shows beyond the activity list, computed only from activities the viewer may read.
 public static class RunnerProfile
@@ -27,13 +31,28 @@ public static class RunnerProfile
     public static async Task<RunnerSummary> ReadAsync(NpgsqlConnection conn, Guid userId, Guid runnerId, string timeZone,
         CancellationToken ct)
     {
+        var args = new { userId, runnerId, timeZone };
         // 53 full weeks plus the current one, in the viewer's time zone.
         var days = (await conn.QueryAsync<CalendarDay>(new CommandDefinition($"""
             select (a.started_at at time zone @timeZone)::date as day, count(*)::int as count, sum(a.distance_m) as distance_m
             from activities a
             where a.user_id = @runnerId and {SocialEndpoints.CanRead} and a.started_at >= now() - interval '378 days'
             group by 1 order by 1
-            """, new { userId, runnerId, timeZone }, cancellationToken: ct))).ToList();
-        return new RunnerSummary(days);
+            """, args, cancellationToken: ct))).ToList();
+        var joinedAt = await conn.ExecuteScalarAsync<DateTime>(new CommandDefinition(
+            "select date_trunc('month', created_at) from users where id = @runnerId", args, cancellationToken: ct));
+        async Task<SummaryTotals> Totals(bool thisYear) => await conn.QuerySingleAsync<SummaryTotals>(new CommandDefinition($"""
+            select count(*)::int as count, coalesce(sum(a.distance_m), 0) as distance_m, coalesce(sum(a.duration_s), 0)::float8 as duration_s
+            from activities a
+            where a.user_id = @runnerId and {SocialEndpoints.CanRead}
+              and (not @thisYear or a.started_at >= date_trunc('year', now() at time zone @timeZone) at time zone @timeZone)
+            """, new { userId, runnerId, timeZone, thisYear }, cancellationToken: ct));
+        var topSports = (await conn.QueryAsync<SportCount>(new CommandDefinition($"""
+            select a.sport, count(*)::int as count
+            from activities a
+            where a.user_id = @runnerId and {SocialEndpoints.CanRead}
+            group by 1 order by 2 desc, 1 limit 3
+            """, args, cancellationToken: ct))).ToList();
+        return new RunnerSummary(joinedAt, await Totals(true), await Totals(false), topSports, days);
     }
 }

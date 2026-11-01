@@ -748,6 +748,14 @@
       "summary_other": "Activity calendar: {{count}} days with activities in the last year",
       "day_one": "{{count}} activity, {{distance}} km",
       "day_other": "{{count}} activities, {{distance}} km"
+    },
+    "stats": {
+      "memberSince": "On Kuta since {{date}}",
+      "thisYear": "This year",
+      "allTime": "All time",
+      "sessions_one": "{{count}} activity",
+      "sessions_other": "{{count}} activities",
+      "topSports": "Most common sports"
     }
   },
   "onboarding": {

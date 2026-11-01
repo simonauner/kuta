@@ -1,11 +1,19 @@
 import { useQuery } from '@tanstack/react-query'
 import { useTranslation } from 'react-i18next'
 import { ErrorMessage } from '@/components/error-message'
+import { SportIcon } from '@/components/sport-icon'
 import { Heading } from '@/components/ui/heading'
 import { api } from '@/lib/api'
 import { calendarWeeks, weekStreaks, type CalendarDay } from '@/lib/activity-calendar'
 
-type RunnerSummary = { days: CalendarDay[] }
+type Totals = { count: number; distanceM: number; durationS: number }
+type RunnerSummary = {
+  joinedAt: string
+  thisYear: Totals
+  allTime: Totals
+  topSports: { sport: string; count: number }[]
+  days: CalendarDay[]
+}
 
 const levelClass = ['bg-muted', 'bg-primary/25', 'bg-primary/50', 'bg-primary/75', 'bg-primary']
 
@@ -18,6 +26,64 @@ export function runnerSummaryQuery(runnerId: string) {
         `/api/runners/${runnerId}/summary?${new URLSearchParams({ timeZone })}`,
       ),
   }
+}
+
+// Member since, distance, sessions and time this year and in total, and the most common sports.
+export function ProfileStats({ runnerId }: { runnerId: string }) {
+  const { t, i18n } = useTranslation()
+  const { data } = useQuery(runnerSummaryQuery(runnerId))
+  if (!data) return null
+  const language = i18n.resolvedLanguage
+  const km = new Intl.NumberFormat(language, {
+    style: 'unit',
+    unit: 'kilometer',
+    maximumFractionDigits: 0,
+  })
+  const hours = new Intl.NumberFormat(language, {
+    style: 'unit',
+    unit: 'hour',
+    maximumFractionDigits: 0,
+  })
+  const since = new Intl.DateTimeFormat(language, {
+    month: 'long',
+    year: 'numeric',
+    timeZone: 'UTC',
+  })
+  const tile = (label: string, totals: Totals) => (
+    <div className="rounded-xl border p-4">
+      <p className="text-metadata text-muted-foreground">{label}</p>
+      <p className="text-2xl font-semibold tabular-nums">{km.format(totals.distanceM / 1000)}</p>
+      <p className="text-metadata text-muted-foreground">
+        {t('profile.stats.sessions', { count: totals.count })} ·{' '}
+        {hours.format(totals.durationS / 3600)}
+      </p>
+    </div>
+  )
+  return (
+    <div className="space-y-3">
+      <p className="text-metadata text-muted-foreground">
+        {t('profile.stats.memberSince', { date: since.format(new Date(data.joinedAt)) })}
+      </p>
+      <div className="grid grid-cols-2 gap-3">
+        {tile(t('profile.stats.thisYear'), data.thisYear)}
+        {tile(t('profile.stats.allTime'), data.allTime)}
+      </div>
+      {data.topSports.length > 0 && (
+        <ul aria-label={t('profile.stats.topSports')} className="flex flex-wrap gap-2">
+          {data.topSports.map(({ sport, count }) => (
+            <li
+              key={sport}
+              className="flex items-center gap-1.5 rounded-full border px-3 py-1 text-sm"
+            >
+              <SportIcon sport={sport} className="size-4" />
+              {t(`newActivity.sports.${sport}`, { defaultValue: sport })}
+              <span className="text-muted-foreground tabular-nums">{count}</span>
+            </li>
+          ))}
+        </ul>
+      )}
+    </div>
+  )
 }
 
 // A year of activity, one square per day, coloured by distance.

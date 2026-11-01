@@ -748,6 +748,14 @@
       "summary_other": "Aktivitetskalender: {{count}} dagar med pass det senaste året",
       "day_one": "{{count}} pass, {{distance}} km",
       "day_other": "{{count}} pass, {{distance}} km"
+    },
+    "stats": {
+      "memberSince": "På Kuta sedan {{date}}",
+      "thisYear": "I år",
+      "allTime": "Totalt",
+      "sessions_one": "{{count}} pass",
+      "sessions_other": "{{count}} pass",
+      "topSports": "Vanligaste sporter"
     }
   },
   "onboarding": {

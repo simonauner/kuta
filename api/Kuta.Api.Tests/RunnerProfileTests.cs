@@ -35,6 +35,35 @@ public class RunnerProfileTests(KutaFactory factory) : IClassFixture<KutaFactory
         Assert.Equal([new(day.AddDays(-1), 1, 7000), new(day, 1, 6000), new(day.AddDays(1), 1, 5000)], await Days(owner));
         Assert.Equal([new(day.AddDays(-1), 1, 7000), new(day, 1, 6000)], await Days(follower));
         Assert.Equal([new CalendarDay(day.AddDays(-1), 1, 7000)], await Days(stranger));
+        var summary = await RunnerProfile.ReadAsync(conn, stranger, owner, "Europe/Stockholm", ct);
+        Assert.Equal(new SummaryTotals(2, 15000, 3600), summary.AllTime);
+        Assert.Equal([new SportCount("running", 2)], summary.TopSports);
+        Assert.Equal(4, (await RunnerProfile.ReadAsync(conn, owner, owner, "Europe/Stockholm", ct)).AllTime.Count);
+        await tx.RollbackAsync(ct);
+    }
+
+    [Fact]
+    public async Task This_year_starts_at_new_year_in_the_viewers_time_zone_and_sports_are_ranked()
+    {
+        var ct = TestContext.Current.CancellationToken;
+        await using var conn = await factory.Services.GetRequiredService<NpgsqlDataSource>().OpenConnectionAsync(ct);
+        await using var tx = await conn.BeginTransactionAsync(ct);
+        var owner = Guid.NewGuid();
+        await conn.ExecuteAsync("""
+            insert into auth.users (id) values (@owner);
+            insert into users (id, display_name, created_at) values (@owner, 'Owner', '2025-03-17 10:00Z');
+            insert into activities (user_id, source, sport, started_at, duration_s, distance_m)
+            select @owner, 'manual', sport, date_trunc('year', now() at time zone 'Europe/Stockholm') at time zone 'Europe/Stockholm' + shift,
+                600, distance
+            from (values ('cycling', interval '0', 1000), ('cycling', interval '-1 second', 2000), ('walking', interval '1 hour', 500),
+                         ('running', interval '2 hours', 300), ('swimming', interval '3 hours', 100)) v(sport, shift, distance)
+            """, new { owner }, tx);
+        var summary = await RunnerProfile.ReadAsync(conn, owner, owner, "Europe/Stockholm", ct);
+        Assert.Equal(new SummaryTotals(4, 1900, 2400), summary.ThisYear);
+        Assert.Equal(5, summary.AllTime.Count);
+        // Ties are ordered by name so the list is stable; only the three largest are shown.
+        Assert.Equal([new SportCount("cycling", 2), new SportCount("running", 1), new SportCount("swimming", 1)], summary.TopSports);
+        Assert.Equal(new DateTime(2025, 3, 1, 0, 0, 0, DateTimeKind.Utc), summary.JoinedAt);
         await tx.RollbackAsync(ct);
     }
 
