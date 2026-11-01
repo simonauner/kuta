@@ -129,7 +129,7 @@ export default function PrivacyPlaceMap({
       <div className="mt-2 flex flex-wrap gap-2">
         <Button
           type="button"
-          variant="outline"
+          variant="secondary-outline"
           size="sm"
           onClick={() => {
             const center = map.current?.getCenter().wrap()
@@ -138,7 +138,13 @@ export default function PrivacyPlaceMap({
         >
           {t('privacyPlaces.useCenter')}
         </Button>
-        <Button type="button" variant="outline" size="sm" disabled={locating} onClick={onLocate}>
+        <Button
+          type="button"
+          variant="secondary-outline"
+          size="sm"
+          disabled={locating}
+          onClick={onLocate}
+        >
           {t(locating ? 'privacyPlaces.locating' : 'privacyPlaces.useLocation')}
         </Button>
       </div>

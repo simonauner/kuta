@@ -61,7 +61,7 @@ export function ActivityFeed({
       {feed.error && (
         <div role="alert">
           <ErrorMessage error={feed.error} />
-          <Button variant="outline" onClick={() => void feed.refetch()}>
+          <Button variant="secondary-outline" onClick={() => void feed.refetch()}>
             {t('activities.retry')}
           </Button>
         </div>
@@ -112,7 +112,7 @@ export function ActivityFeed({
       </ul>
       {feed.hasNextPage && (
         <Button
-          variant="outline"
+          variant="secondary-outline"
           disabled={feed.isFetchingNextPage}
           onClick={() => void feed.fetchNextPage()}
         >

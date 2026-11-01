@@ -85,7 +85,7 @@ export function SupporterSection() {
       {supporter?.tier && supporter.until ? (
         <Button
           variant="link"
-          className="mt-2 h-auto p-0 text-muted-foreground underline hover:text-foreground"
+          className="mt-2"
           onClick={() => {
             setManageNotice(null)
             setManageKey((key) => key + 1)
@@ -167,7 +167,7 @@ export function SupporterSection() {
                 onSubmit={() => setManageNotice('change')}
               />
               <div className="mt-6 border-t pt-4">
-                <Button variant="outline" onClick={() => setManageNotice('end')}>
+                <Button variant="secondary-outline" onClick={() => setManageNotice('end')}>
                   {t('supporter.end')}
                 </Button>
                 <p className="mt-2 text-sm text-muted-foreground">

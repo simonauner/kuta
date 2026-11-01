@@ -94,7 +94,7 @@ export function MultisportEditor({
       <div className="flex flex-wrap items-center justify-between gap-2">
         <h2 className="font-semibold">{t('multisport.title')}</h2>
         {onChange && !editing && a.canSplit && (
-          <Button type="button" size="sm" variant="outline" onClick={begin}>
+          <Button type="button" size="sm" variant="secondary-outline" onClick={begin}>
             {t(a.parts.length ? 'multisport.edit' : 'multisport.split')}
           </Button>
         )}
@@ -127,7 +127,7 @@ export function MultisportEditor({
         <Button
           type="button"
           size="sm"
-          variant={selected === null ? 'secondary' : 'ghost'}
+          variant={selected === null ? 'secondary-filled' : 'ghost'}
           onClick={() => preview(null)}
         >
           {t('multisport.whole')}
@@ -147,12 +147,11 @@ export function MultisportEditor({
                 className={`relative cursor-pointer space-y-2 rounded-md border p-3 ${selected === i ? 'bg-secondary' : 'hover:bg-accent/50'}`}
               >
                 <div className="flex flex-wrap items-center justify-between gap-2">
-                  <Button
+                  {/* The whole card selects the part, so this is a plain button stretched over the card */}
+                  <button
                     type="button"
-                    size="sm"
-                    variant={selected === i ? 'secondary' : 'ghost'}
                     aria-pressed={selected === i}
-                    className="h-auto justify-start whitespace-normal text-left after:absolute after:inset-0 after:rounded-md after:content-[''] focus-visible:after:ring-2 focus-visible:after:ring-ring"
+                    className="text-left text-sm font-medium outline-none after:absolute after:inset-0 after:rounded-md after:content-[''] focus-visible:after:ring-2 focus-visible:after:ring-ring"
                     onClick={() => preview(p)}
                   >
                     <span aria-hidden="true" style={{ color: sportColors[p.sport] ?? '#ae3ec9' }}>
@@ -160,7 +159,7 @@ export function MultisportEditor({
                     </span>
                     {i + 1}. {t(sportNameKey(p.sport))} · {number.format(p.distanceM / 1000)} km ·{' '}
                     {formatDuration(p.endS - p.startS)}
-                  </Button>
+                  </button>
                   {editing && (
                     <FormField
                       label={t('multisport.partSport', { number: i + 1 })}
@@ -335,7 +334,7 @@ export function MultisportEditor({
       {onChange && a.partsEdited && !editing && (
         <Button
           type="button"
-          variant="outline"
+          variant="secondary-outline"
           size="sm"
           disabled={disabled}
           onClick={() => {
@@ -362,7 +361,7 @@ export function MultisportEditor({
         <div className="mt-6 flex justify-end gap-3">
           <Button
             type="button"
-            variant="outline"
+            variant="secondary-outline"
             autoFocus
             disabled={disabled}
             onClick={() => restoreDialog.current?.close()}

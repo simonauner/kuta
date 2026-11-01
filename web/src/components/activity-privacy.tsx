@@ -72,7 +72,7 @@ export function ActivityPrivacy() {
       <SharingHints privacy={privacy} />
       <div className="mt-4 flex items-center gap-2">
         <Button
-          variant="outline"
+          variant="secondary-outline"
           disabled={!me || isFetching || save.isPending || me.allActivitiesMatchDefaultPrivacy}
           onClick={() => {
             save.reset()
@@ -119,7 +119,7 @@ export function ActivityPrivacy() {
         )}
         <div className="mt-5 flex justify-end gap-2">
           <Button
-            variant="outline"
+            variant="secondary-outline"
             disabled={save.isPending}
             onClick={() => dialog.current?.close()}
           >

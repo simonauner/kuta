@@ -20,7 +20,7 @@ export function FeedEmptyState() {
       {follows.isError ? (
         <div role="alert" className="space-y-3">
           <ErrorMessage error={follows.error} />
-          <Button variant="outline" onClick={() => void follows.refetch()}>
+          <Button variant="secondary-outline" onClick={() => void follows.refetch()}>
             {t('activities.retry')}
           </Button>
         </div>
@@ -55,7 +55,7 @@ export function FeedEmptyState() {
               <p className="mb-4 mt-2 text-sm text-muted-foreground">
                 {t('feed.stravaDescription')}
               </p>
-              <StravaImportLink className="p-0 text-left" />
+              <StravaImportLink />
             </section>
             <section aria-labelledby="social-start-heading" className="rounded-xl border p-5">
               <Users aria-hidden="true" className="mb-4 size-5 text-muted-foreground" />

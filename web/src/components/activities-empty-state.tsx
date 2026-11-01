@@ -71,7 +71,7 @@ export function ActivitiesEmptyState({ context }: { context: 'stats' | 'activiti
         </p>
         <div className="mt-6 flex flex-col items-center gap-3">
           <AddActivityButton />
-          <StravaImportLink className="text-muted-foreground" />
+          <StravaImportLink />
         </div>
       </div>
       <div className="grid gap-6 border-t bg-muted/20 p-6 sm:grid-cols-3 sm:gap-5 sm:p-8">

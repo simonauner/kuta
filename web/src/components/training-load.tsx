@@ -81,7 +81,7 @@ export function TrainingLoadSection() {
       {load.error && (
         <p role="alert" className="mt-4 text-sm text-destructive">
           <ErrorMessage error={load.error} />{' '}
-          <Button variant="outline" size="sm" onClick={() => void load.refetch()}>
+          <Button variant="secondary-outline" size="sm" onClick={() => void load.refetch()}>
             {t('activities.retry')}
           </Button>
         </p>
@@ -237,7 +237,7 @@ function ThresholdForm({ summary }: { summary: TrainingLoadSummary }) {
                 <Button
                   type="button"
                   size="sm"
-                  variant="outline"
+                  variant="secondary-outline"
                   disabled={save.isPending}
                   onClick={() => {
                     setText('')

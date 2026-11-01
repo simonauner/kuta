@@ -19,7 +19,7 @@ export function ShareProfile({ label }: { label?: string }) {
   return (
     <div className="min-w-0 space-y-2">
       <Button
-        variant="outline"
+        variant="secondary-outline"
         size="sm"
         disabled={!me || share.isPending}
         onClick={() => share.mutate()}

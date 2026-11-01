@@ -90,7 +90,7 @@ export function EquipmentSection() {
         </h2>
         <Button
           size="sm"
-          variant="outline"
+          variant="secondary-outline"
           onClick={() => {
             setEditing(null)
             setName('')
@@ -291,7 +291,11 @@ export function EquipmentSection() {
               </p>
             )}
             <div className="col-span-2 flex flex-wrap justify-end gap-3 pt-2">
-              <Button type="button" variant="outline" onClick={() => formDialog.current?.close()}>
+              <Button
+                type="button"
+                variant="secondary-outline"
+                onClick={() => formDialog.current?.close()}
+              >
                 {t('equipment.cancel')}
               </Button>
               <Button type="submit" disabled={!kinds.data?.length}>
@@ -323,14 +327,14 @@ export function EquipmentSection() {
         )}
         <div className="mt-6 flex flex-wrap justify-end gap-3">
           <Button
-            variant="outline"
+            variant="secondary-outline"
             disabled={remove.isPending}
             onClick={() => deleteDialog.current?.close()}
           >
             {t('shoes.cancel')}
           </Button>
           <Button
-            variant="destructive"
+            variant="destructive-outline"
             disabled={remove.isPending || !deleting}
             onClick={() => {
               if (deleting) remove.mutate(deleting.id)

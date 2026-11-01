@@ -103,7 +103,7 @@ export function YearComparison({ year, sportGroup }: { year: number; sportGroup:
       {days.error && (
         <p role="alert" className="mt-4 text-sm text-destructive">
           <ErrorMessage error={days.error} />{' '}
-          <Button variant="outline" size="sm" onClick={() => void days.refetch()}>
+          <Button variant="secondary-outline" size="sm" onClick={() => void days.refetch()}>
             {t('activities.retry')}
           </Button>
         </p>

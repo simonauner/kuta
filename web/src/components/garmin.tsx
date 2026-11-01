@@ -106,7 +106,7 @@ export function GarminConnect() {
           {!activityExport && <p className="text-destructive">{t('garmin.noActivityExport')}</p>}
           <p className="text-muted-foreground">{t('garmin.privateForNow')}</p>
           <Button
-            variant="outline"
+            variant="secondary-outline"
             onClick={() => {
               disconnect.reset()
               setConfirming(true)
@@ -153,14 +153,14 @@ export function GarminConnect() {
         )}
         <div className="mt-6 flex flex-wrap justify-end gap-3">
           <Button
-            variant="outline"
+            variant="secondary-outline"
             disabled={disconnect.isPending}
             onClick={() => setConfirming(false)}
           >
             {t('dangerZone.cancel')}
           </Button>
           <Button
-            variant="destructive"
+            variant="destructive-outline"
             disabled={disconnect.isPending}
             onClick={() => disconnect.mutate()}
           >

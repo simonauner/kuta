@@ -71,7 +71,7 @@ export function PrivacyPlaces() {
         <h1 id="privacy-places-heading" className="text-2xl font-semibold tracking-tight">
           {t('privacyPlaces.title')}
         </h1>
-        <Button variant="outline" size="sm" onClick={() => setEditing(null)}>
+        <Button variant="secondary-outline" size="sm" onClick={() => setEditing(null)}>
           {t('privacyPlaces.add')}
         </Button>
       </div>
@@ -99,7 +99,7 @@ export function PrivacyPlaces() {
               <div className="flex gap-2">
                 <Button
                   size="sm"
-                  variant="outline"
+                  variant="secondary-outline"
                   aria-label={t('privacyPlaces.editNamed', { name: place.name })}
                   onClick={() => setEditing(place)}
                 >
@@ -107,7 +107,7 @@ export function PrivacyPlaces() {
                 </Button>
                 <Button
                   size="sm"
-                  variant="outline"
+                  variant="secondary-outline"
                   aria-label={t('privacyPlaces.deleteNamed', { name: place.name })}
                   onClick={() => {
                     setDeleting(place)
@@ -143,14 +143,14 @@ export function PrivacyPlaces() {
         )}
         <div className="mt-5 flex justify-end gap-2">
           <Button
-            variant="outline"
+            variant="secondary-outline"
             disabled={remove.isPending}
             onClick={() => deleteDialog.current?.close()}
           >
             {t('privacyPlaces.cancel')}
           </Button>
           <Button
-            variant="destructive"
+            variant="destructive-outline"
             disabled={remove.isPending}
             onClick={() => deleting && remove.mutate(deleting.id)}
           >
@@ -334,7 +334,12 @@ function PlaceEditor({ place, onClose }: { place: PrivacyPlace | null; onClose: 
           </p>
         )}
         <div className="mt-5 flex justify-end gap-2">
-          <Button type="button" variant="outline" disabled={save.isPending} onClick={onClose}>
+          <Button
+            type="button"
+            variant="secondary-outline"
+            disabled={save.isPending}
+            onClick={onClose}
+          >
             {t('privacyPlaces.cancel')}
           </Button>
           <Button type="submit" disabled={!valid || save.isPending || location.isPending}>

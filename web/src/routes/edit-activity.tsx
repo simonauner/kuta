@@ -166,11 +166,11 @@ function EditActivityForm({ activity }: { activity: ActivityDetail }) {
             {save.isPending ? t('newActivity.saving') : t('activity.save')}
           </Button>
           {save.isPending ? (
-            <Button type="button" variant="outline" disabled>
+            <Button type="button" variant="secondary-outline" disabled>
               {t('activity.cancel')}
             </Button>
           ) : (
-            <Button asChild variant="outline">
+            <Button asChild variant="secondary-outline">
               <Link {...destination}>{t('activity.cancel')}</Link>
             </Button>
           )}

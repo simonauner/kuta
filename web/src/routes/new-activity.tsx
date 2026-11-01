@@ -184,7 +184,7 @@ export function NewActivityPage() {
       <div className="mt-4 flex items-center justify-between gap-4">
         <h1 className="text-2xl font-semibold tracking-tight">{t('newActivity.title')}</h1>
         <Button
-          variant="outline"
+          variant="secondary-outline"
           size="sm"
           disabled={save.isPending}
           onClick={() => {
@@ -202,9 +202,9 @@ export function NewActivityPage() {
           <div className="text-sm">
             <p className="flex flex-wrap items-center gap-x-3">
               <span className="font-medium">{file.name}</span>
-              <button
+              <Button
                 type="button"
-                className="text-muted-foreground underline underline-offset-2"
+                variant="link"
                 onClick={() => {
                   setFile(null)
                   setSplit(undefined)
@@ -213,7 +213,7 @@ export function NewActivityPage() {
                 }}
               >
                 {t('newActivity.removeFile')}
-              </button>
+              </Button>
             </p>
             {preview.isFetching && (
               <p className="mt-1 text-xs text-muted-foreground">{t('newActivity.reading')}</p>
@@ -273,7 +273,6 @@ export function NewActivityPage() {
               <Button
                 type="button"
                 variant="link"
-                className="h-auto p-0 text-xs"
                 disabled={save.isPending || addShoe.isPending}
                 onClick={() => {
                   setShoeName('')
@@ -462,7 +461,7 @@ export function NewActivityPage() {
           <div className="flex flex-wrap justify-end gap-3 pt-2">
             <Button
               type="button"
-              variant="outline"
+              variant="secondary-outline"
               disabled={addShoe.isPending}
               onClick={() => shoeDialog.current?.close()}
             >
@@ -502,7 +501,11 @@ export function NewActivityPage() {
         </FormField>
         <HeartRateConsent className="mt-4" />
         <div className="mt-6 flex flex-wrap justify-end gap-3">
-          <Button type="button" variant="outline" onClick={() => uploadDialog.current?.close()}>
+          <Button
+            type="button"
+            variant="secondary-outline"
+            onClick={() => uploadDialog.current?.close()}
+          >
             {t('newActivity.cancel')}
           </Button>
           <Button

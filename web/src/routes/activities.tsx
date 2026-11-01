@@ -87,7 +87,7 @@ export function ActivitiesPage() {
       <div className="flex items-center justify-between gap-4">
         <h1 className="text-2xl font-semibold tracking-tight">{t('nav.activities')}</h1>
         <div className="flex flex-wrap justify-end gap-2">
-          <Button size="sm" variant="outline" onClick={() => setGoalForm('new')}>
+          <Button size="sm" variant="secondary-outline" onClick={() => setGoalForm('new')}>
             {t('goals.new')}
           </Button>
           {!showOnboarding && (
@@ -145,7 +145,7 @@ export function ActivitiesPage() {
         <div role="alert" className="mt-4 text-sm text-destructive">
           <ErrorMessage error={years.error} />{' '}
           <Button
-            variant="outline"
+            variant="secondary-outline"
             size="sm"
             disabled={years.isFetching}
             onClick={() => void years.refetch()}
@@ -283,7 +283,6 @@ export function ActivitiesPage() {
                     <Button
                       variant="ghost"
                       size="sm"
-                      className="text-muted-foreground"
                       disabled={remove.isPending}
                       aria-label={t('activities.deleteLabel', {
                         date: dateFormat.format(new Date(a.startedAt)),
@@ -303,7 +302,7 @@ export function ActivitiesPage() {
         <SlowLoading loading={activities.isFetchingNextPage}>
           {(activities.hasNextPage || (activities.isError && !activities.data)) && (
             <Button
-              variant="outline"
+              variant="secondary-outline"
               className="mt-6"
               disabled={activities.isFetching}
               onClick={() => {

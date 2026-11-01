@@ -116,7 +116,7 @@ export function SettingsPage() {
         </h2>
         <p className="mt-2 text-sm text-muted-foreground">{t('settings.exportHelp')}</p>
         <Button
-          variant="outline"
+          variant="secondary-outline"
           className="mt-4"
           disabled={dataExport.isPending}
           onClick={() => dataExport.mutate()}
@@ -141,7 +141,7 @@ export function SettingsPage() {
         </h2>
         <p className="mt-2 break-words text-sm text-muted-foreground">{me?.email}</p>
         <Button
-          variant="outline"
+          variant="secondary-outline"
           className="mt-4"
           disabled={logout.isPending}
           onClick={() => logout.mutate()}

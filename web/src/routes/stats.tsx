@@ -128,7 +128,7 @@ export function StatsPage() {
       {years.error && (
         <p role="alert" className="mt-4 text-sm text-destructive">
           <ErrorMessage error={years.error} />{' '}
-          <Button variant="outline" size="sm" onClick={() => void years.refetch()}>
+          <Button variant="secondary-outline" size="sm" onClick={() => void years.refetch()}>
             {t('activities.retry')}
           </Button>
         </p>
@@ -137,7 +137,7 @@ export function StatsPage() {
         {statistics.error && (
           <p role="alert" className="mt-4 text-sm text-destructive">
             <ErrorMessage error={statistics.error} />{' '}
-            <Button variant="outline" size="sm" onClick={() => void statistics.refetch()}>
+            <Button variant="secondary-outline" size="sm" onClick={() => void statistics.refetch()}>
               {t('activities.retry')}
             </Button>
           </p>

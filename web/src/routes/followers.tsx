@@ -83,7 +83,7 @@ export function FollowersPage() {
         )}
         <Button
           size="sm"
-          variant="outline"
+          variant="secondary-outline"
           disabled={change.isPending}
           onClick={() =>
             change.mutate({
@@ -99,7 +99,7 @@ export function FollowersPage() {
         {incoming && (
           <Button
             size="sm"
-            variant="outline"
+            variant="secondary-outline"
             disabled={change.isPending}
             onClick={() => change.mutate({ method: 'PUT', path: `/api/blocks/${runner.id}` })}
           >
@@ -136,7 +136,7 @@ export function FollowersPage() {
         {follows.error && (
           <p role="alert">
             <ErrorMessage error={follows.error} />
-            <Button variant="outline" onClick={() => void follows.refetch()}>
+            <Button variant="secondary-outline" onClick={() => void follows.refetch()}>
               {t('activities.retry')}
             </Button>
           </p>
@@ -187,7 +187,7 @@ export function FollowersPage() {
                       <span className="min-w-0 break-words font-medium">{runner.displayName}</span>
                       <Button
                         size="sm"
-                        variant="outline"
+                        variant="secondary-outline"
                         disabled={change.isPending}
                         onClick={() =>
                           change.mutate({ method: 'DELETE', path: `/api/blocks/${runner.id}` })

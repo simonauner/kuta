@@ -68,7 +68,7 @@ export function AuthPage() {
       <AuthShell title={t('auth.checkEmail')}>
         <p className="text-muted-foreground">{t(checkEmail)}</p>
         <Button
-          variant="outline"
+          variant="secondary-outline"
           className="mt-6 w-full"
           onClick={() => {
             if (resetFailed) {

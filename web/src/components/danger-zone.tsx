@@ -66,12 +66,20 @@ export function DangerZone() {
         {t('dangerZone.title')}
       </h2>
       <p className="mt-2 text-sm text-muted-foreground">{t('dangerZone.description')}</p>
-      <Button variant="destructive" className="mt-4" onClick={() => openDialog('activities')}>
+      <Button
+        variant="destructive-outline"
+        className="mt-4"
+        onClick={() => openDialog('activities')}
+      >
         {t('dangerZone.delete')}
       </Button>
       <div className="mt-6 border-t border-destructive/20 pt-4">
         <p className="text-sm text-muted-foreground">{t('dangerZone.accountDescription')}</p>
-        <Button variant="destructive" className="mt-4" onClick={() => openDialog('account')}>
+        <Button
+          variant="destructive-outline"
+          className="mt-4"
+          onClick={() => openDialog('account')}
+        >
           {t('dangerZone.deleteAccount')}
         </Button>
       </div>
@@ -130,14 +138,18 @@ export function DangerZone() {
           <div className="mt-6 flex flex-wrap justify-end gap-3">
             <Button
               type="button"
-              variant="outline"
+              variant="secondary-outline"
               disabled={remove.isPending}
               onClick={() => setWord(null)}
             >
               {t('dangerZone.cancel')}
             </Button>
 
-            <Button type="submit" variant="destructive" disabled={!confirmed || remove.isPending}>
+            <Button
+              type="submit"
+              variant="destructive-outline"
+              disabled={!confirmed || remove.isPending}
+            >
               {remove.isPending
                 ? t('dangerZone.deleting')
                 : target === 'account'

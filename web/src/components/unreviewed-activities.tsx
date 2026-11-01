@@ -48,7 +48,7 @@ export function UnreviewedActivities({ className }: { className?: string }) {
               </Button>
               <Button
                 size="sm"
-                variant="outline"
+                variant="secondary-outline"
                 disabled={dismiss.isPending}
                 onClick={() => dismiss.mutate()}
               >

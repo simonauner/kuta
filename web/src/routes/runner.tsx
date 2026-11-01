@@ -53,7 +53,7 @@ export function RunnerPage() {
             ) : (
               <>
                 <ErrorMessage error={runner.error} />
-                <Button variant="outline" onClick={() => void runner.refetch()}>
+                <Button variant="secondary-outline" onClick={() => void runner.refetch()}>
                   {t('activities.retry')}
                 </Button>
               </>
@@ -73,7 +73,7 @@ export function RunnerPage() {
                     <span className="text-sm text-muted-foreground">{t('social.pending')}</span>
                   )}
                   <Button
-                    variant="outline"
+                    variant="secondary-outline"
                     disabled={follow.isPending}
                     onClick={() => follow.mutate()}
                   >

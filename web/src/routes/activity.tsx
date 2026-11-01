@@ -290,7 +290,7 @@ export function ActivityPage() {
           />
         </Heading>
         {original.userId === me?.id && (
-          <Button asChild size="sm" variant="outline" className="ml-auto">
+          <Button asChild size="sm" variant="secondary-outline" className="ml-auto">
             <Link
               to="/app/activities/$activityId/edit"
               params={{ activityId: a.id }}
@@ -424,7 +424,7 @@ export function ActivityPage() {
       {bestEfforts.error && (
         <p role="alert" className="mt-4 text-sm text-destructive">
           <ErrorMessage error={bestEfforts.error} />{' '}
-          <Button size="sm" variant="outline" onClick={() => void bestEfforts.refetch()}>
+          <Button size="sm" variant="secondary-outline" onClick={() => void bestEfforts.refetch()}>
             {t('activities.retry')}
           </Button>
         </p>
@@ -437,7 +437,7 @@ export function ActivityPage() {
               <Button
                 id={`${lapsId}-toggle`}
                 type="button"
-                variant="outline"
+                variant="secondary-outline"
                 aria-expanded={lapsOpen}
                 aria-controls={lapsId}
                 onClick={() => setOpenPanel((open) => (open === 'laps' ? null : 'laps'))}
@@ -453,7 +453,7 @@ export function ActivityPage() {
               <Button
                 id={`${splitsId}-toggle`}
                 type="button"
-                variant="outline"
+                variant="secondary-outline"
                 aria-expanded={splitsOpen}
                 aria-controls={splitsId}
                 onClick={() => setOpenPanel((open) => (open === 'splits' ? null : 'splits'))}
@@ -469,7 +469,7 @@ export function ActivityPage() {
               <Button
                 id={`${effortsId}-toggle`}
                 type="button"
-                variant="outline"
+                variant="secondary-outline"
                 aria-expanded={effortsOpen}
                 aria-controls={effortsId}
                 onClick={() => setOpenPanel((open) => (open === 'efforts' ? null : 'efforts'))}

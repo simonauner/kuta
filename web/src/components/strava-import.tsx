@@ -195,7 +195,7 @@ export function Recalculation() {
       <p className="text-sm text-muted-foreground">{t('settings.recalculateHelp')}</p>
       <Button
         className="mt-4"
-        variant="outline"
+        variant="secondary-outline"
         disabled={start.isPending || running}
         onClick={() => start.mutate()}
       >

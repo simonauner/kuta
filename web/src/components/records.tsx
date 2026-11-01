@@ -27,7 +27,7 @@ function QueryError({ error, retry }: { error: Error; retry: () => void }) {
   return (
     <p role="alert" className="mt-4 text-sm text-destructive">
       <ErrorMessage error={error} />{' '}
-      <Button variant="outline" size="sm" onClick={retry}>
+      <Button variant="secondary-outline" size="sm" onClick={retry}>
         {t('activities.retry')}
       </Button>
     </p>

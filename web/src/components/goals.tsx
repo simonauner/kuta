@@ -432,10 +432,14 @@ export function GoalDialog({ goal, onClose }: { goal: Goal | null; onClose: () =
                 {t('goals.confirmDelete')}
               </p>
               <div className="mt-3 flex flex-wrap justify-end gap-3">
-                <Button type="button" variant="outline" onClick={() => setConfirmingDelete(false)}>
+                <Button
+                  type="button"
+                  variant="secondary-outline"
+                  onClick={() => setConfirmingDelete(false)}
+                >
                   {t('goals.cancel')}
                 </Button>
-                <Button type="button" variant="destructive" onClick={() => remove.mutate()}>
+                <Button type="button" variant="destructive-outline" onClick={() => remove.mutate()}>
                   {remove.isPending ? t('goals.deleting') : t('goals.deleteConfirmed')}
                 </Button>
               </div>
@@ -445,15 +449,18 @@ export function GoalDialog({ goal, onClose }: { goal: Goal | null; onClose: () =
               {goal && (
                 <Button
                   type="button"
-                  variant="ghost"
-                  className="text-destructive"
+                  variant="destructive-outline"
                   onClick={() => setConfirmingDelete(true)}
                 >
                   {t('goals.delete')}
                 </Button>
               )}
               <div className="ml-auto flex gap-3">
-                <Button type="button" variant="outline" onClick={() => dialog.current?.close()}>
+                <Button
+                  type="button"
+                  variant="secondary-outline"
+                  onClick={() => dialog.current?.close()}
+                >
                   {t('goals.cancel')}
                 </Button>
                 <Button type="submit" disabled={parsedTarget === null}>
