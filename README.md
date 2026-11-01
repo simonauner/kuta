@@ -67,8 +67,9 @@ API (alla kräver inloggning; skrivningar kräver CSRF):
 - `GET /api/runners/{id}/activities` ger `{ items, nextCursor }` för den löparens läsbara
   pass med samma sidmarkör och skyddade kartminiatyrer som flödet. Inga privata pass från
   andra, puls eller GPS-tidsserier ingår.
-- `GET /api/follows` ger `{ following, followers }`, inklusive väntande förfrågningar.
-- `POST /api/following/{id}` skickar en förfrågan, idempotent även efter godkännande.
+- `GET /api/follows` ger `{ following, followers, blocked }`, inklusive väntande förfrågningar. Väntande förfrågningar har `joinedAt` (när kontot skapades), eftersom namn är fria och kan imitera någon.
+- `POST /api/following/{id}` skickar en förfrågan, idempotent även efter godkännande. Högst 20 per timme och användare. En förfrågan till någon som blockerat avsändaren sparas inte, men svaret är detsamma.
+- `PUT`/`DELETE /api/blocks/{id}` blockerar respektive häver blockering (`follow_blocks`, migrering 024). Blockering tar bort personens följning eller förfrågan.
 - `PUT /api/followers/{id}` godkänner en inkommande förfrågan.
 - `DELETE /api/following/{id}` avbryter en förfrågan eller slutar följa.
 - `DELETE /api/followers/{id}` avböjer eller tar bort en följare. Borttagning återkallar

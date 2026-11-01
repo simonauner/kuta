@@ -20,16 +20,19 @@ import {
 type Runner = {
   id: string
   displayName: string
-  status: 'pending' | 'accepted'
+  status: 'pending' | 'accepted' | 'blocked'
   supporterTier: SupporterTier | null
+  // Bara för inkommande förfrågningar: namn är fria, så kontots ålder hjälper att känna igen imitation.
+  joinedAt: string | null
 }
 
 export function FollowersPage() {
-  const { t } = useTranslation()
+  const { t, i18n } = useTranslation()
   const queryClient = useQueryClient()
   const follows = useQuery({
     queryKey: ['follows'],
-    queryFn: () => api.get<{ following: Runner[]; followers: Runner[] }>('/api/follows'),
+    queryFn: () =>
+      api.get<{ following: Runner[]; followers: Runner[]; blocked: Runner[] }>('/api/follows'),
   })
   const change = useMutation({
     mutationFn: ({ method, path }: { method: 'POST' | 'PUT' | 'DELETE'; path: string }) =>
@@ -53,6 +56,17 @@ export function FollowersPage() {
           {runner.displayName}
         </Link>
         <SupporterBadge tier={runner.supporterTier} />
+        {runner.joinedAt && (
+          <span className="text-metadata text-muted-foreground">
+            {t('social.joined', {
+              date: new Intl.DateTimeFormat(i18n.language, {
+                year: 'numeric',
+                month: 'long',
+                day: 'numeric',
+              }).format(new Date(runner.joinedAt)),
+            })}
+          </span>
+        )}
       </span>
       <div className="flex flex-wrap gap-2">
         {runner.status === 'pending' && (
@@ -82,6 +96,16 @@ export function FollowersPage() {
             ? t(runner.status === 'pending' ? 'social.decline' : 'social.remove')
             : t(runner.status === 'pending' ? 'social.cancel' : 'social.unfollow')}
         </Button>
+        {incoming && (
+          <Button
+            size="sm"
+            variant="outline"
+            disabled={change.isPending}
+            onClick={() => change.mutate({ method: 'PUT', path: `/api/blocks/${runner.id}` })}
+          >
+            {t('social.block')}
+          </Button>
+        )}
       </div>
     </li>
   )
@@ -126,6 +150,9 @@ export function FollowersPage() {
               {follows.data.followers.length === 0 && (
                 <p className="mt-2 text-sm text-muted-foreground">{t('social.noFollowers')}</p>
               )}
+              {follows.data.followers.some((runner) => runner.status === 'pending') && (
+                <p className="mt-2 text-sm text-muted-foreground">{t('social.requestHint')}</p>
+              )}
               {follows.data.followers.length > 0 && (
                 <ul className="mt-3 divide-y rounded-lg border">
                   {follows.data.followers.map((runner) => action(runner, true))}
@@ -145,6 +172,34 @@ export function FollowersPage() {
                 </ul>
               )}
             </section>
+            {follows.data.blocked.length > 0 && (
+              <section aria-labelledby="blocked-heading" className="border-t pt-6">
+                <h2 id="blocked-heading" className="text-lg font-semibold tracking-tight">
+                  {t('social.blocked')}
+                </h2>
+                <p className="mt-2 text-sm text-muted-foreground">{t('social.blockedHint')}</p>
+                <ul className="mt-3 divide-y rounded-lg border">
+                  {follows.data.blocked.map((runner) => (
+                    <li
+                      key={runner.id}
+                      className="flex flex-wrap items-center justify-between gap-3 px-4 py-3"
+                    >
+                      <span className="min-w-0 break-words font-medium">{runner.displayName}</span>
+                      <Button
+                        size="sm"
+                        variant="outline"
+                        disabled={change.isPending}
+                        onClick={() =>
+                          change.mutate({ method: 'DELETE', path: `/api/blocks/${runner.id}` })
+                        }
+                      >
+                        {t('social.unblock')}
+                      </Button>
+                    </li>
+                  ))}
+                </ul>
+              </section>
+            )}
           </>
         )}
       </SlowLoading>

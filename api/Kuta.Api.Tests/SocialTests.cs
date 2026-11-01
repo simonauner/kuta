@@ -205,6 +205,20 @@ public class SocialTests(KutaFactory factory) : IClassFixture<KutaFactory>
             await viewer.PostAsync($"/api/following/{ownerId}", null, ct);
             await viewer.DeleteAsync($"/api/following/{ownerId}", ct);
             Assert.Empty((await owner.GetFromJsonAsync<FollowLists>("/api/follows", ct))!.Followers);
+            // A pending request shows when the requester joined, since names are free text.
+            await viewer.PostAsync($"/api/following/{ownerId}", null, ct);
+            Assert.NotNull(Assert.Single((await owner.GetFromJsonAsync<FollowLists>("/api/follows", ct))!.Followers).JoinedAt);
+            // Blocking removes the request and silently drops new ones until the block is lifted.
+            Assert.Equal(HttpStatusCode.NotFound, (await owner.PutAsync($"/api/blocks/{Guid.NewGuid()}", null, ct)).StatusCode);
+            Assert.Equal(HttpStatusCode.NoContent, (await owner.PutAsync($"/api/blocks/{viewerId}", null, ct)).StatusCode);
+            Assert.Equal(HttpStatusCode.NoContent, (await viewer.PostAsync($"/api/following/{ownerId}", null, ct)).StatusCode);
+            var blocking = (await owner.GetFromJsonAsync<FollowLists>("/api/follows", ct))!;
+            Assert.Empty(blocking.Followers);
+            Assert.Equal(viewerId, Assert.Single(blocking.Blocked).Id);
+            Assert.Empty((await viewer.GetFromJsonAsync<FollowLists>("/api/follows", ct))!.Blocked);
+            Assert.Equal(HttpStatusCode.NoContent, (await owner.DeleteAsync($"/api/blocks/{viewerId}", ct)).StatusCode);
+            await viewer.PostAsync($"/api/following/{ownerId}", null, ct);
+            Assert.Single((await owner.GetFromJsonAsync<FollowLists>("/api/follows", ct))!.Followers);
         }
         finally
         {
@@ -239,5 +253,25 @@ public class SocialTests(KutaFactory factory) : IClassFixture<KutaFactory>
             Assert.DoesNotContain(second.Items[0].Id, first.Items.Select(a => a.Id));
         }
         finally { await conn.ExecuteAsync("delete from auth.users where email = @email", new { email }); }
+    }
+
+    [Fact]
+    public async Task Follow_requests_are_rate_limited_per_user()
+    {
+        var ct = TestContext.Current.CancellationToken;
+        await using var conn = await factory.Services.GetRequiredService<NpgsqlDataSource>().OpenConnectionAsync(ct);
+        using var requester = factory.CreateClient();
+        var email = $"follow-limit-{Guid.NewGuid():N}@example.com";
+        try
+        {
+            await TestSession.CreateRunnerAsync(factory, requester, conn, email, "Requester", ct);
+            for (var i = 0; i < 20; i++)
+                Assert.Equal(HttpStatusCode.NotFound, (await requester.PostAsync($"/api/following/{Guid.NewGuid()}", null, ct)).StatusCode);
+            Assert.Equal(HttpStatusCode.TooManyRequests, (await requester.PostAsync($"/api/following/{Guid.NewGuid()}", null, ct)).StatusCode);
+        }
+        finally
+        {
+            await conn.ExecuteAsync("delete from auth.users where email = @email", new { email });
+        }
     }
 }
