@@ -1,0 +1,68 @@
+.agents/skills/run-dev/SKILL.md
+  h_731bed5a37ac34 37,40,43-47
+AGENTS.md
+  h_731bed5a37ac34 35
+README.md
+  h_731bed5a37ac34 11,565
+api/Kuta.Api.Tests/AuthFailureTests.cs
+  h_731bed5a37ac34 24
+api/Kuta.Api.Tests/AuthTests.cs
+  h_731bed5a37ac34 31-35,55-57
+api/Kuta.Api.Tests/PasswordRecoveryTests.cs
+  h_731bed5a37ac34 30,94
+api/Kuta.Api.Tests/TermsVersionTests.cs
+  h_731bed5a37ac34 1-14
+api/Kuta.Api.Tests/WebRoutingTests.cs
+  h_731bed5a37ac34 17,31-36
+api/Kuta.Api/AuthEndpoints.cs
+  h_731bed5a37ac34 5,14-16,56,61-62
+api/Kuta.Api/DataExport.cs
+  h_731bed5a37ac34 38-39,97-98
+api/Kuta.Api/MeEndpoints.cs
+  h_731bed5a37ac34 57-59
+api/Kuta.Api/Migrations/022_terms_acceptance.sql
+  h_731bed5a37ac34 1-5
+api/Kuta.Api/Program.cs
+  h_731bed5a37ac34 246
+api/Kuta.Api/SupabaseAuthClient.cs
+  h_731bed5a37ac34 32-36
+web/privacy.html
+  h_731bed5a37ac34 59-61,137-141,143-170,364-366,443-447,449-475
+web/src/components/footer.tsx
+  h_731bed5a37ac34 2,27
+web/src/components/layout.tsx
+  h_731bed5a37ac34 100
+web/src/components/records.tsx
+  h_731bed5a37ac34 92-94,96,169-171,180-224
+web/src/components/training-load.tsx
+  h_731bed5a37ac34 87,180
+web/src/components/year-comparison.tsx
+  h_731bed5a37ac34 111-140,142-144,146,148,150-155,157-175,177-178,181-229
+web/src/index.css
+  h_731bed5a37ac34 30-40
+web/src/locales/en.json
+  h_731bed5a37ac34 332-333,379-380,388-389
+web/src/locales/sv.json
+  h_731bed5a37ac34 332-333,379-380,388-389
+web/src/routes/auth.tsx
+  h_731bed5a37ac34 3,16-17,37-40,114-139,278-286,289,307-317
+web/src/routes/stats.tsx
+  h_731bed5a37ac34 147-149,151,272
+web/terms.html
+  h_731bed5a37ac34 1-297
+web/tests/footer.test.mjs
+  h_731bed5a37ac34 27,39
+web/vite.config.ts
+  h_731bed5a37ac34 38-39,53
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.7.5",
+  "base_commit_sha": "7e447087cfed706f6c36eb64f0f4e52a6bbbd234",
+  "prompts": {},
+  "humans": {
+    "h_731bed5a37ac34": {
+      "author": "Simon Aunér <simonauner@gmail.com>"
+    }
+  }
+}
