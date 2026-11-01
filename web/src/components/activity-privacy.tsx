@@ -10,6 +10,7 @@ import { api } from '@/lib/api'
 import { SharingHints } from '@/components/privacy-places'
 import { meQuery, type Me } from '@/lib/auth'
 import { Select } from '@/components/ui/select'
+import { Heading } from '@/components/ui/heading'
 
 export function ActivityPrivacy() {
   const { t } = useTranslation()
@@ -40,9 +41,9 @@ export function ActivityPrivacy() {
 
   return (
     <section aria-labelledby="activity-privacy-heading" className="mt-8 border-t pt-6">
-      <h2 id="activity-privacy-heading" className="text-lg font-semibold">
+      <Heading level={2} id="activity-privacy-heading">
         {t('activityPrivacy.title')}
-      </h2>
+      </Heading>
       <FormField label={t('activityPrivacy.default')} className="text-sm font-medium mt-4">
         {(id) => (
           <Select
@@ -106,9 +107,9 @@ export function ActivityPrivacy() {
           if (save.isPending) event.preventDefault()
         }}
       >
-        <h3 id="apply-privacy-title" className="text-lg font-semibold">
+        <Heading level={3} id="apply-privacy-title">
           {t('activityPrivacy.applyAll')}
-        </h3>
+        </Heading>
         <p id="apply-privacy-help" className="mt-3 text-sm text-muted-foreground">
           {t('activityPrivacy.confirm', { visibility: labels[privacy] })}
         </p>

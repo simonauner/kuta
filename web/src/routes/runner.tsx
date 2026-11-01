@@ -10,6 +10,7 @@ import { Button } from '@/components/ui/button'
 import { ApiError, api } from '@/lib/api'
 import { ProfilePage } from '@/routes/profile'
 import { meQuery, type SupporterTier } from '@/lib/auth'
+import { Heading } from '@/components/ui/heading'
 
 type Runner = {
   id: string
@@ -63,10 +64,10 @@ export function RunnerPage() {
         {runner.data && !runner.isError && (
           <>
             <div className="flex flex-wrap items-center justify-between gap-3">
-              <h1 className="flex min-w-0 items-center gap-2 break-words text-2xl font-semibold tracking-tight">
+              <Heading level={1} className="flex min-w-0 items-center gap-2 break-words">
                 {runner.data.displayName}
                 <SupporterBadge tier={runner.data.supporterTier} />
-              </h1>
+              </Heading>
               {me?.id !== runnerId && (
                 <div className="flex flex-wrap items-center gap-3">
                   {runner.data.status === 'pending' && (
@@ -94,7 +95,7 @@ export function RunnerPage() {
               </p>
             )}
             <GoalList key={`goals-${runnerId}`} runnerId={runnerId} />
-            <h2 className="text-lg font-semibold">{t('nav.activities')}</h2>
+            <Heading level={2}>{t('nav.activities')}</Heading>
             <ActivityFeed key={runnerId} runnerId={runnerId} />
           </>
         )}

@@ -17,6 +17,7 @@ import {
 } from '@/lib/multisport'
 import { card } from '@/components/ui/card-variants'
 import { Select } from '@/components/ui/select'
+import { Heading } from '@/components/ui/heading'
 
 const MultisportPreview = lazy(() => import('./multisport-preview'))
 
@@ -92,7 +93,7 @@ export function MultisportEditor({
   return (
     <section className={card({ className: 'mt-6 space-y-3' })} aria-label={t('multisport.title')}>
       <div className="flex flex-wrap items-center justify-between gap-2">
-        <h2 className="font-semibold">{t('multisport.title')}</h2>
+        <Heading level={2}>{t('multisport.title')}</Heading>
         {onChange && !editing && a.canSplit && (
           <Button type="button" size="sm" variant="secondary-outline" onClick={begin}>
             {t(a.parts.length ? 'multisport.edit' : 'multisport.split')}

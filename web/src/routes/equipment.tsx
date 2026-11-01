@@ -10,6 +10,7 @@ import {
   BreadcrumbPage,
   BreadcrumbSeparator,
 } from '@/components/ui/breadcrumb'
+import { Heading } from '@/components/ui/heading'
 
 export function EquipmentPage() {
   const { t } = useTranslation()
@@ -34,7 +35,7 @@ export function EquipmentPage() {
           </BreadcrumbItem>
         </BreadcrumbList>
       </Breadcrumb>
-      <h1 className="text-2xl font-semibold tracking-tight">{t('equipment.title')}</h1>
+      <Heading level={1}>{t('equipment.title')}</Heading>
       <GarminDerivedNote className="mt-1" />
       <EquipmentSection />
     </section>

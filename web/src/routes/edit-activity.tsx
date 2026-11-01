@@ -16,6 +16,7 @@ import { activityQuery, refreshActivityQueries } from '@/lib/activity-query'
 import { SharingHints } from '@/components/privacy-places'
 import { activityTitle, type ActivityDetail } from '@/lib/activity'
 import { Select } from '@/components/ui/select'
+import { Heading } from '@/components/ui/heading'
 
 export function EditActivityPage() {
   const { activityId } = useParams({ from: '/app/activities/$activityId/edit' })
@@ -73,7 +74,7 @@ function EditActivityForm({ activity }: { activity: ActivityDetail }) {
   })
   return (
     <section>
-      <h1 className="text-2xl font-semibold tracking-tight">{t('activity.edit')}</h1>
+      <Heading level={1}>{t('activity.edit')}</Heading>
       <p className="mt-2 text-sm text-muted-foreground">{activityTitle(activity, t)}</p>
       <form
         className="mt-6 space-y-6"

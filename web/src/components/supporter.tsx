@@ -11,6 +11,7 @@ import { Modal } from '@/components/ui/modal'
 import { api } from '@/lib/api'
 import { meQuery, type Me, type SupporterTier } from '@/lib/auth'
 import { Select } from '@/components/ui/select'
+import { Heading } from '@/components/ui/heading'
 
 // Outline in the same tone as the records' metals; the fill gets the sheen stripe.
 const tierColors: Record<SupporterTier, string> = {
@@ -70,9 +71,9 @@ export function SupporterSection() {
 
   return (
     <section aria-labelledby="supporter-heading" className="mt-8 border-t pt-6">
-      <h2 id="supporter-heading" className="text-lg font-semibold">
+      <Heading level={2} id="supporter-heading">
         {t('supporter.title')}
-      </h2>
+      </Heading>
       <p className="mt-2 text-sm text-muted-foreground">{t('supporter.intro')}</p>
       {supporter?.tier && supporter.until && (
         <p className="mt-4 flex items-center gap-2 text-sm font-medium">
@@ -132,9 +133,9 @@ export function SupporterSection() {
         aria-labelledby="supporter-modal-title"
         aria-describedby="supporter-modal-text"
       >
-        <h3 id="supporter-modal-title" className="text-lg font-semibold">
+        <Heading level={3} id="supporter-modal-title">
           {t('supporter.modalTitle')}
-        </h3>
+        </Heading>
         <p id="supporter-modal-text" className="mt-3 text-sm text-muted-foreground">
           {t('supporter.modalText')}
         </p>
@@ -144,9 +145,9 @@ export function SupporterSection() {
       </Modal>
       {supporter?.tier && supporter.until && (
         <Modal ref={manageDialog} aria-labelledby="supporter-manage-title">
-          <h3 id="supporter-manage-title" className="text-lg font-semibold">
+          <Heading level={3} id="supporter-manage-title">
             {t('supporter.manage')}
-          </h3>
+          </Heading>
           {manageNotice ? (
             <>
               <p role="status" className="mt-3 text-sm text-muted-foreground">

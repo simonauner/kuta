@@ -276,9 +276,9 @@ export function GoalDialog({ goal, onClose }: { goal: Goal | null; onClose: () =
         if (busy) event.preventDefault()
       }}
     >
-      <h2 id="goal-form-title" className="text-xl font-semibold">
+      <Heading level={2} id="goal-form-title">
         {goal ? t('goals.editTitle') : t('goals.new')}
-      </h2>
+      </Heading>
       {goal && <p className="mt-1 break-words text-sm text-muted-foreground">{title(goal)}</p>}
       <form onSubmit={onSubmit}>
         <fieldset disabled={busy} className="mt-5 grid grid-cols-2 gap-4">

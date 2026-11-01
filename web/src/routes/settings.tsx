@@ -21,6 +21,7 @@ import { Button } from '@/components/ui/button'
 import { api } from '@/lib/api'
 import { meQuery, useSessionChanged } from '@/lib/auth'
 import { card } from '@/components/ui/card-variants'
+import { Heading } from '@/components/ui/heading'
 
 export function SettingsPage() {
   const { t } = useTranslation()
@@ -51,7 +52,7 @@ export function SettingsPage() {
         </BreadcrumbList>
       </Breadcrumb>
       <GarminConnectedAlert className="mb-4" />
-      <h1 className="text-2xl font-semibold tracking-tight">{t('settings.title')}</h1>
+      <Heading level={1}>{t('settings.title')}</Heading>
       <div className="mt-4 flex">
         <LanguageSelect />
       </div>
@@ -93,37 +94,37 @@ export function SettingsPage() {
       <ActivityPrivacy />
 
       <section aria-labelledby="health-heading" className="mt-8 border-t pt-6">
-        <h2 id="health-heading" className="text-lg font-semibold">
+        <Heading level={2} id="health-heading">
           {t('settings.health')}
-        </h2>
+        </Heading>
         <HeartRateConsent className="mt-4" />
       </section>
 
       <section aria-labelledby="garmin-heading" className="mt-8 border-t pt-6">
-        <h2 id="garmin-heading" className="scroll-mt-24 text-lg font-semibold">
+        <Heading level={2} id="garmin-heading" className="scroll-mt-24">
           {t('settings.garmin')}
-        </h2>
+        </Heading>
         <GarminConnect />
       </section>
 
       <section aria-labelledby="import-heading" className="mt-8 border-t pt-6">
-        <h2 id="import-heading" className="scroll-mt-24 text-lg font-semibold">
+        <Heading level={2} id="import-heading" className="scroll-mt-24">
           {t('settings.strava')}
-        </h2>
+        </Heading>
         <StravaImport />
       </section>
 
       <section aria-labelledby="recalculate-heading" className="mt-8 border-t pt-6">
-        <h2 id="recalculate-heading" className="text-lg font-semibold">
+        <Heading level={2} id="recalculate-heading">
           {t('settings.recalculateTitle')}
-        </h2>
+        </Heading>
         <Recalculation />
       </section>
 
       <section aria-labelledby="export-heading" className="mt-8 border-t pt-6">
-        <h2 id="export-heading" className="text-lg font-semibold">
+        <Heading level={2} id="export-heading">
           {t('settings.exportTitle')}
-        </h2>
+        </Heading>
         <p className="mt-2 text-sm text-muted-foreground">{t('settings.exportHelp')}</p>
         <Button
           variant="secondary-outline"
@@ -146,9 +147,9 @@ export function SettingsPage() {
       </section>
 
       <section aria-labelledby="account-heading" className="mt-8 border-t pt-6">
-        <h2 id="account-heading" className="text-lg font-semibold">
+        <Heading level={2} id="account-heading">
           {t('settings.account')}
-        </h2>
+        </Heading>
         <p className="mt-2 break-words text-sm text-muted-foreground">{me?.email}</p>
         <Button
           variant="secondary-outline"

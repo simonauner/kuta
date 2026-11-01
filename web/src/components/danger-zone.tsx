@@ -10,6 +10,7 @@ import { refreshActivityQueries } from '@/lib/activity-query'
 import { api } from '@/lib/api'
 import { useSessionChanged } from '@/lib/auth'
 import { card } from '@/components/ui/card-variants'
+import { Heading } from '@/components/ui/heading'
 
 export function DangerZone() {
   const { t } = useTranslation()
@@ -63,9 +64,9 @@ export function DangerZone() {
       className={card({ tone: 'destructive', className: 'mt-10' })}
       aria-labelledby="danger-zone-title"
     >
-      <h2 id="danger-zone-title" className="font-semibold text-destructive">
+      <Heading level={2} id="danger-zone-title" className="text-destructive">
         {t('dangerZone.title')}
-      </h2>
+      </Heading>
       <p className="mt-2 text-sm text-muted-foreground">{t('dangerZone.description')}</p>
       <Button
         variant="destructive-outline"
@@ -93,11 +94,11 @@ export function DangerZone() {
           if (!remove.isPending) setWord(null)
         }}
       >
-        <h2 id="delete-all-title" className="text-xl font-semibold">
+        <Heading level={2} id="delete-all-title">
           {target === 'account'
             ? t('dangerZone.accountConfirmTitle')
             : t('dangerZone.confirmTitle')}
-        </h2>
+        </Heading>
         <p id="delete-all-warning" className="mt-3 text-sm leading-relaxed text-muted-foreground">
           {target === 'account' ? t('dangerZone.accountWarning') : t('dangerZone.warning')}
         </p>

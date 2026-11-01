@@ -17,6 +17,7 @@ import {
   BreadcrumbSeparator,
 } from '@/components/ui/breadcrumb'
 import { card } from '@/components/ui/card-variants'
+import { Heading } from '@/components/ui/heading'
 
 type Runner = {
   id: string
@@ -131,7 +132,7 @@ export function FollowersPage() {
           </BreadcrumbItem>
         </BreadcrumbList>
       </Breadcrumb>
-      <h1 className="text-2xl font-semibold tracking-tight">{t('settings.followers')}</h1>
+      <Heading level={1}>{t('settings.followers')}</Heading>
       <p className="text-sm text-muted-foreground">{t('social.profileLinksHint')}</p>
       <SlowLoading loading={follows.isPending}>
         {follows.error && (
@@ -145,9 +146,9 @@ export function FollowersPage() {
         {follows.data && (
           <>
             <section aria-labelledby="followers-heading" className="border-t pt-6">
-              <h2 id="followers-heading" className="text-lg font-semibold tracking-tight">
+              <Heading level={2} id="followers-heading">
                 {t('social.followers')}
-              </h2>
+              </Heading>
               {follows.data.followers.length === 0 && (
                 <p className="mt-2 text-sm text-muted-foreground">{t('social.noFollowers')}</p>
               )}
@@ -161,9 +162,9 @@ export function FollowersPage() {
               )}
             </section>
             <section aria-labelledby="following-heading" className="border-t pt-6">
-              <h2 id="following-heading" className="text-lg font-semibold tracking-tight">
+              <Heading level={2} id="following-heading">
                 {t('social.following')}
-              </h2>
+              </Heading>
               {follows.data.following.length === 0 && (
                 <p className="mt-2 text-sm text-muted-foreground">{t('social.noFollowing')}</p>
               )}
@@ -175,9 +176,9 @@ export function FollowersPage() {
             </section>
             {follows.data.blocked.length > 0 && (
               <section aria-labelledby="blocked-heading" className="border-t pt-6">
-                <h2 id="blocked-heading" className="text-lg font-semibold tracking-tight">
+                <Heading level={2} id="blocked-heading">
                   {t('social.blocked')}
-                </h2>
+                </Heading>
                 <p className="mt-2 text-sm text-muted-foreground">{t('social.blockedHint')}</p>
                 <ul className={card({ padding: 'none', className: 'mt-3 divide-y' })}>
                   {follows.data.blocked.map((runner) => (

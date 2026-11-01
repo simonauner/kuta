@@ -11,6 +11,7 @@ import { ConfirmationModal } from '@/components/ui/confirmation-modal'
 import { Input } from '@/components/ui/input'
 import { ErrorMessage } from '@/components/error-message'
 import { Link } from '@tanstack/react-router'
+import { Heading } from '@/components/ui/heading'
 
 const PlaceMap = lazy(() => import('./privacy-place-map'))
 type PrivacyPlace = {
@@ -67,9 +68,9 @@ export function PrivacyPlaces() {
   return (
     <section aria-labelledby="privacy-places-heading">
       <div className="flex items-center justify-between gap-3">
-        <h1 id="privacy-places-heading" className="text-2xl font-semibold tracking-tight">
+        <Heading level={1} id="privacy-places-heading">
           {t('privacyPlaces.title')}
-        </h1>
+        </Heading>
         <Button variant="secondary-outline" size="sm" onClick={() => setEditing(null)}>
           {t('privacyPlaces.add')}
         </Button>
@@ -206,9 +207,9 @@ function PlaceEditor({ place, onClose }: { place: PrivacyPlace | null; onClose: 
           if (valid && !save.isPending && !location.isPending) save.mutate()
         }}
       >
-        <h3 id="privacy-place-title" className="text-lg font-semibold">
+        <Heading level={3} id="privacy-place-title">
           {t(place ? 'privacyPlaces.edit' : 'privacyPlaces.add')}
-        </h3>
+        </Heading>
         <fieldset disabled={save.isPending || location.isPending} className="mt-4 space-y-4">
           <FormField label={t('privacyPlaces.name')} className="text-sm font-medium">
             {(id) => (

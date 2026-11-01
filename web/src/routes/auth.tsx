@@ -9,6 +9,7 @@ import { Input } from '@/components/ui/input'
 import { FormField } from '@/components/ui/form-field'
 import { api } from '@/lib/api'
 import { turnstileQuery, useSessionChanged, type Me } from '@/lib/auth'
+import { Heading } from '@/components/ui/heading'
 
 type Mode = 'login' | 'signup' | 'recover'
 
@@ -336,7 +337,9 @@ function AuthShell({ title, children }: { title: string; children: ReactNode }) 
             <img src="/brand/logo.svg" alt="" width="144" height="48" className="h-12 w-auto" />
           </picture>
         </a>
-        <h1 className="mb-6 mt-2 text-2xl font-semibold tracking-tight">{title}</h1>
+        <Heading level={1} className="mb-6 mt-2">
+          {title}
+        </Heading>
         {children}
         <div className="mt-6 flex justify-center gap-4 text-sm text-muted-foreground">
           <a

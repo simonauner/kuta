@@ -9,6 +9,7 @@ import { GoalList } from '@/components/goals'
 import { ShareProfile } from '@/components/share-profile'
 import { SupporterBadge } from '@/components/supporter'
 import { meQuery } from '@/lib/auth'
+import { Heading } from '@/components/ui/heading'
 
 export function ProfilePage() {
   const { t } = useTranslation()
@@ -17,10 +18,10 @@ export function ProfilePage() {
   return (
     <section className="space-y-6">
       <div className="flex flex-wrap items-start justify-between gap-4">
-        <h1 className="flex min-w-0 items-center gap-2 break-words text-2xl font-semibold tracking-tight">
+        <Heading level={1} className="flex min-w-0 items-center gap-2 break-words">
           {me?.displayName}
           <SupporterBadge tier={me?.supporter.tier} />
-        </h1>
+        </Heading>
         <div className="flex max-w-full items-start gap-2">
           <ShareProfile />
           <Button asChild variant="ghost" size="icon">
@@ -31,7 +32,7 @@ export function ProfilePage() {
         </div>
       </div>
       {me && <GoalList runnerId={me.id} />}
-      <h2 className="text-lg font-semibold">{t('nav.activities')}</h2>
+      <Heading level={2}>{t('nav.activities')}</Heading>
       {me && (
         <ActivityFeed runnerId={me.id} emptyState={<ActivitiesEmptyState context="profile" />} />
       )}

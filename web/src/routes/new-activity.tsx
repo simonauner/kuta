@@ -34,6 +34,7 @@ import { equipmentQuery, lastUsedShoeQuery, type Equipment } from '@/lib/equipme
 import { refreshActivityQueries } from '@/lib/activity-query'
 import { TagPicker } from '@/components/activity-tags'
 import { Select } from '@/components/ui/select'
+import { Heading } from '@/components/ui/heading'
 
 // What the API reads from a FIT file, without saving anything (POST /api/activities/preview)
 type ActivityPreview = {
@@ -183,7 +184,7 @@ export function NewActivityPage() {
     <section>
       <BackLink />
       <div className="mt-4 flex items-center justify-between gap-4">
-        <h1 className="text-2xl font-semibold tracking-tight">{t('newActivity.title')}</h1>
+        <Heading level={1}>{t('newActivity.title')}</Heading>
         <Button
           variant="secondary-outline"
           size="sm"
@@ -434,9 +435,9 @@ export function NewActivityPage() {
           if (addShoe.isPending) event.preventDefault()
         }}
       >
-        <h2 id="add-shoe-title" className="text-xl font-semibold">
+        <Heading level={2} id="add-shoe-title">
           {t('shoes.add')}
-        </h2>
+        </Heading>
         <form
           onSubmit={(event) => {
             event.preventDefault()
@@ -474,9 +475,9 @@ export function NewActivityPage() {
       </Modal>
 
       <Modal ref={uploadDialog} aria-labelledby="upload-title">
-        <h2 id="upload-title" className="text-xl font-semibold">
+        <Heading level={2} id="upload-title">
           {t('newActivity.upload')}
-        </h2>
+        </Heading>
         {overwritten.length > 0 && (
           <p
             role="alert"

@@ -19,6 +19,7 @@ import {
 } from '@/lib/training-load'
 import { Card } from '@/components/ui/card'
 import { card } from '@/components/ui/card-variants'
+import { Heading } from '@/components/ui/heading'
 
 // "2026-05-03" is a local day; new Date() would parse it as UTC and could show the day before.
 const localDay = (day: string) => new Date(`${day}T00:00`)
@@ -73,9 +74,9 @@ export function TrainingLoadSection() {
 
   return (
     <section id="training-load" className="mt-10 scroll-mt-4" aria-labelledby="training-load-title">
-      <h2 id="training-load-title" className="text-xl font-semibold tracking-tight">
+      <Heading level={2} id="training-load-title">
         {t('trainingLoad.title')}
-      </h2>
+      </Heading>
       <p className="mt-2 text-sm text-muted-foreground">{t('trainingLoad.description')}</p>
       {load.error && (
         <p role="alert" className="mt-4 text-sm text-destructive">

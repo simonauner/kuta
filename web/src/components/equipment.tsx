@@ -17,6 +17,7 @@ import { ConfirmationModal } from '@/components/ui/confirmation-modal'
 import { Input } from '@/components/ui/input'
 import { ErrorMessage } from '@/components/error-message'
 import { Select as NativeSelect } from '@/components/ui/select'
+import { Heading } from '@/components/ui/heading'
 
 export function EquipmentSection() {
   const { t, i18n } = useTranslation()
@@ -86,9 +87,9 @@ export function EquipmentSection() {
   return (
     <section className="mt-8 border-t pt-6" aria-labelledby="equipment-heading">
       <div className="flex items-center justify-between gap-3">
-        <h2 id="equipment-heading" className="text-lg font-semibold">
+        <Heading level={2} id="equipment-heading">
           {t('shoes.title')}
-        </h2>
+        </Heading>
         <Button
           size="sm"
           variant="secondary-outline"
@@ -129,12 +130,12 @@ export function EquipmentSection() {
             className="mt-6"
             aria-labelledby={retired ? 'retired-equipment-heading' : 'active-equipment-heading'}
           >
-            <h3
+            <Heading
+              level={3}
               id={retired ? 'retired-equipment-heading' : 'active-equipment-heading'}
-              className="text-base font-semibold"
             >
               {t(retired ? 'equipment.retiredHeading' : 'equipment.activeHeading')}
-            </h3>
+            </Heading>
             <ul className="mt-2 divide-y">
               {items.map((item) => (
                 <li key={item.id} className="py-3">
@@ -223,9 +224,9 @@ export function EquipmentSection() {
           if (save.isPending) event.preventDefault()
         }}
       >
-        <h2 id="equipment-form-title" className="text-xl font-semibold">
+        <Heading level={2} id="equipment-form-title">
           {t(editing ? 'equipment.edit' : 'equipment.add')}
-        </h2>
+        </Heading>
         <form onSubmit={onSubmit}>
           <fieldset disabled={save.isPending} className="mt-5 grid grid-cols-2 gap-4">
             <EquipmentNameFields

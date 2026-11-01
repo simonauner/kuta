@@ -8,6 +8,7 @@ import { AddActivityButton, StravaImportLink } from '@/components/onboarding-act
 import { Button } from '@/components/ui/button'
 import { api } from '@/lib/api'
 import { card } from '@/components/ui/card-variants'
+import { Heading } from '@/components/ui/heading'
 
 export function FeedEmptyState() {
   const { t } = useTranslation()
@@ -34,9 +35,9 @@ export function FeedEmptyState() {
             <div className="mb-5 flex size-12 items-center justify-center rounded-full bg-primary/10 text-primary">
               <Plus aria-hidden="true" className="size-6" />
             </div>
-            <h2 id="first-activity-heading" className="text-xl font-semibold tracking-tight">
+            <Heading level={2} id="first-activity-heading">
               {t(follows.data.following.length > 0 ? 'feed.waitingTitle' : 'feed.welcomeTitle')}
-            </h2>
+            </Heading>
             <p className="mt-3 max-w-prose text-muted-foreground">
               {t(
                 follows.data.following.length > 0
@@ -50,9 +51,9 @@ export function FeedEmptyState() {
           <div className="grid gap-4 sm:grid-cols-2">
             <section aria-labelledby="strava-start-heading" className={card()}>
               <FileArchive aria-hidden="true" className="mb-4 size-5 text-muted-foreground" />
-              <h2 id="strava-start-heading" className="font-semibold">
+              <Heading level={3} id="strava-start-heading">
                 {t('feed.stravaTitle')}
-              </h2>
+              </Heading>
               <p className="mb-4 mt-2 text-sm text-muted-foreground">
                 {t('feed.stravaDescription')}
               </p>
@@ -60,9 +61,9 @@ export function FeedEmptyState() {
             </section>
             <section aria-labelledby="social-start-heading" className={card()}>
               <Users aria-hidden="true" className="mb-4 size-5 text-muted-foreground" />
-              <h2 id="social-start-heading" className="font-semibold">
+              <Heading level={3} id="social-start-heading">
                 {t('feed.socialTitle')}
-              </h2>
+              </Heading>
               <p className="mb-4 mt-2 text-sm text-muted-foreground">
                 {t('feed.socialDescription')}
               </p>

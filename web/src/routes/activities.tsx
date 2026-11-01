@@ -29,6 +29,7 @@ import {
   type ActivityPage,
 } from '@/lib/activity'
 import { Select } from '@/components/ui/select'
+import { Heading } from '@/components/ui/heading'
 
 const route = getRouteApi('/app/activities')
 
@@ -91,7 +92,7 @@ export function ActivitiesPage() {
   return (
     <section>
       <div className="flex items-center justify-between gap-4">
-        <h1 className="text-2xl font-semibold tracking-tight">{t('nav.activities')}</h1>
+        <Heading level={1}>{t('nav.activities')}</Heading>
         <div className="flex flex-wrap justify-end gap-2">
           <Button size="sm" variant="secondary-outline" onClick={() => setGoalForm('new')}>
             {t('goals.new')}
@@ -237,15 +238,19 @@ export function ActivitiesPage() {
           {groupActivities(items).map((period) => (
             <div key={period.activities[0].id}>
               {period.year !== null && (
-                <h2 className="mb-4 text-xl font-semibold tracking-tight">{period.year}</h2>
+                <Heading level={2} className="mb-4">
+                  {period.year}
+                </Heading>
               )}
               {period.month !== null && (
-                <h3 className="mb-3 text-lg font-medium">{monthFormat.format(period.month)}</h3>
+                <Heading level={3} className="mb-3">
+                  {monthFormat.format(period.month)}
+                </Heading>
               )}
               {period.week !== null && (
-                <h4 className="text-sm font-medium text-muted-foreground">
+                <Heading level={4} className="text-muted-foreground">
                   {t('activities.week', { week: period.week })}
-                </h4>
+                </Heading>
               )}
               <ul className="divide-y">
                 {period.activities.map((a) => (

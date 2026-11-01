@@ -12,6 +12,7 @@ import {
 import { useTranslation } from 'react-i18next'
 import { AddActivityButton, StravaImportLink } from '@/components/onboarding-actions'
 import { Card } from '@/components/ui/card'
+import { Heading } from '@/components/ui/heading'
 
 const features = {
   stats: [
@@ -64,9 +65,9 @@ export function ActivitiesEmptyState({ context }: { context: 'stats' | 'activiti
         <p className="text-xs font-medium tracking-widest text-primary uppercase">
           {t('onboarding.eyebrow')}
         </p>
-        <h2 className="mt-3 text-2xl font-semibold tracking-tight sm:text-3xl">
+        <Heading level={2} className="mt-3">
           {t(`${context}.onboarding.title`)}
-        </h2>
+        </Heading>
         <p className="mx-auto mt-3 max-w-md text-sm leading-relaxed text-muted-foreground">
           {t(`${context}.onboarding.description`)}
         </p>
@@ -79,7 +80,7 @@ export function ActivitiesEmptyState({ context }: { context: 'stats' | 'activiti
         {features[context].map(([Icon, key]) => (
           <div key={key}>
             <Icon className="mb-3 size-5 text-primary" aria-hidden="true" />
-            <h3 className="text-sm font-medium">{t(`${key}Title`)}</h3>
+            <Heading level={3}>{t(`${key}Title`)}</Heading>
             <p className="mt-1 text-sm leading-relaxed text-muted-foreground">
               {t(`${key}Description`)}
             </p>
