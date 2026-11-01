@@ -39,10 +39,16 @@ public class AuthTests(KutaFactory factory) : IClassFixture<KutaFactory>
             Assert.Equal(HttpStatusCode.Forbidden, beforeConfirm.StatusCode);
 
             var tokenHash = await ConfirmationTokenHash(email, ct);
+            // Länken bekräftar bara adressen: den som klickar loggas inte in på kontot (login-CSRF)
             var confirm = await client.GetAsync($"/api/auth/confirm?token_hash={tokenHash}", ct);
             Assert.Equal(HttpStatusCode.Redirect, confirm.StatusCode);
-            Assert.Equal("/app", confirm.Headers.Location?.ToString());
-            var sessionCookies = confirm.Headers.GetValues("Set-Cookie").Select(c => c.Split(';')[0]).ToList();
+            Assert.Equal("/app?confirm=ok", confirm.Headers.Location?.ToString());
+            Assert.False(confirm.Headers.Contains("Set-Cookie"));
+            Assert.Equal(HttpStatusCode.Unauthorized, (await client.GetAsync("/api/me", ct)).StatusCode);
+
+            var firstLogin = await client.PostAsJsonAsync("/api/auth/login", new { email, password = Password }, ct);
+            Assert.Equal(HttpStatusCode.NoContent, firstLogin.StatusCode);
+            var sessionCookies = firstLogin.Headers.GetValues("Set-Cookie").Select(c => c.Split(';')[0]).ToList();
 
             var me = await client.GetFromJsonAsync<JsonElement>("/api/me", ct);
             Assert.Equal(email, me.GetProperty("email").GetString());

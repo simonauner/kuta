@@ -307,6 +307,7 @@
     "recover": "Reset password",
     "resetFailed": "The reset link is invalid or has already been used. Request a new link.",
     "confirmFailed": "The confirmation link is invalid or has already been used. Log in or sign up again.",
+    "confirmed": "Your email address is confirmed. Log in with your password.",
     "email": "Email",
     "password": "Password",
     "wait": "Please wait…",

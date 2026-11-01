@@ -124,14 +124,16 @@ public static class AuthEndpoints
         auth.MapPost("/reset-password", (ResetPasswordRequest req, HttpContext http, SupabaseAuthClient supabase,
             Npgsql.NpgsqlDataSource db, CancellationToken ct) => PasswordRecovery.ResetAsync(req.Password, http, supabase, db, ct));
 
-        // Länken i bekräftelsemejlet (supabase/templates/confirmation.html) landar här.
+        // Länken i bekräftelsemejlet (supabase/templates/confirmation.html) landar här. Den bekräftar bara adressen och
+        // loggar inte in: annars kan någon skicka länken till sitt eget konto till en annan person, som då laddar upp
+        // sina pass till angriparens konto utan att märka det (login-CSRF). Supabases session återkallas direkt.
         auth.MapGet("/confirm", async ([FromQuery(Name = "token_hash")] string? tokenHash, SupabaseAuthClient supabase,
-            HttpContext http, CancellationToken cancellationToken) =>
+            CancellationToken cancellationToken) =>
         {
             var session = string.IsNullOrWhiteSpace(tokenHash) ? null : await supabase.VerifyEmailAsync(tokenHash, cancellationToken);
             if (session is null) return Results.Redirect("/app?confirm=failed");
-            await SupabaseCookieSession.SignInAsync(http, session, cancellationToken);
-            return Results.Redirect("/app");
+            await supabase.SignOutAsync(session.AccessToken, cancellationToken);
+            return Results.Redirect("/app?confirm=ok");
         });
     }
 }
