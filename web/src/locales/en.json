@@ -28,6 +28,7 @@
     "followRequests_other": ", {{count}} new follow requests"
   },
   "language": "Language",
+  "loading": "Loading …",
   "slowLoading": "This is taking unusually long...",
   "connectionError": "Could not reach Kuta. Check your connection and reload the page.",
   "feed": {

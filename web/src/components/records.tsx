@@ -1,7 +1,7 @@
 import { FormField } from '@/components/ui/form-field'
 import { Heading } from '@/components/ui/heading'
 import { useState } from 'react'
-import { useQuery } from '@tanstack/react-query'
+import { keepPreviousData, useQuery } from '@tanstack/react-query'
 import { Link, useRouterState } from '@tanstack/react-router'
 import { useTranslation } from 'react-i18next'
 import { HelpPopover } from '@/components/help-popover'
@@ -20,6 +20,7 @@ import {
   type StoredBestEffort,
 } from '@/lib/records'
 import { Card } from '@/components/ui/card'
+import { Loader } from '@/components/loader'
 import { Select } from '@/components/ui/select'
 
 function QueryError({ error, retry }: { error: Error; retry: () => void }) {
@@ -65,6 +66,8 @@ export function RecordsSection({ year }: { year: number }) {
   })
   const trend = useQuery({
     queryKey: ['records', 'trend', distance, timeZone],
+    // Keeps the panel's height while another distance loads, so the page doesn't jump.
+    placeholderData: keepPreviousData,
     queryFn: () =>
       api.get<RecordTrend>(
         `/api/records/trend?${new URLSearchParams({ distanceM: String(distance), timeZone })}`,
@@ -138,37 +141,39 @@ export function RecordsSection({ year }: { year: number }) {
           </div>
         ))}
 
-      <Card className="mt-6">
-        <Heading level={3} className="mb-3">
-          {t('records.trend')}
-        </Heading>
-        <FormField
-          layout="inline"
-          label={t('records.distance')}
-          className="justify-between text-sm font-medium"
-        >
-          {(id) => (
-            <Select
-              id={id}
-              className="w-fit"
-              value={distance}
-              onChange={(e) => setDistance(Number(e.target.value) as RecordDistance)}
-            >
-              {recordDistances.map(([d]) => (
-                <option key={d} value={d}>
-                  {distanceLabel(d)}
-                </option>
-              ))}
-            </Select>
+      <Loader loading={trend.isPending || trend.isPlaceholderData} className="mt-6 rounded-xl">
+        <Card>
+          <Heading level={3} className="mb-3">
+            {t('records.trend')}
+          </Heading>
+          <FormField
+            layout="inline"
+            label={t('records.distance')}
+            className="justify-between text-sm font-medium"
+          >
+            {(id) => (
+              <Select
+                id={id}
+                className="w-fit"
+                value={distance}
+                onChange={(e) => setDistance(Number(e.target.value) as RecordDistance)}
+              >
+                {recordDistances.map(([d]) => (
+                  <option key={d} value={d}>
+                    {distanceLabel(d)}
+                  </option>
+                ))}
+              </Select>
+            )}
+          </FormField>
+          {trend.error && <QueryError error={trend.error} retry={() => void trend.refetch()} />}
+          {trend.isSuccess && (
+            <div className="motion-safe:animate-fade-in-up">
+              <RecordTrendView trend={trend.data} distanceLabel={distanceLabel(distance)} />
+            </div>
           )}
-        </FormField>
-        {trend.error && <QueryError error={trend.error} retry={() => void trend.refetch()} />}
-        {trend.isSuccess && (
-          <div className="motion-safe:animate-fade-in-up">
-            <RecordTrendView trend={trend.data} distanceLabel={distanceLabel(distance)} />
-          </div>
-        )}
-      </Card>
+        </Card>
+      </Loader>
     </section>
   )
 }
