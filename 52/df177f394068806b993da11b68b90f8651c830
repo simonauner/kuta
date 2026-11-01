@@ -1,0 +1,90 @@
+web/src/components/multisport-editor.tsx
+  s_bee2e5fcf7ec11::t_345812d0d16c55 97,337,364
+  s_bee2e5fcf7ec11::t_c60335b5888c81 130,150-151,154,162
+web/src/components/garmin.tsx
+  s_bee2e5fcf7ec11::t_345812d0d16c55 109,156,163
+web/src/components/equipment.tsx
+  s_bee2e5fcf7ec11::t_345812d0d16c55 93,330,337
+  s_bee2e5fcf7ec11::t_7111833b0a5ad2 294-298
+web/src/components/privacy-place-map.tsx
+  s_bee2e5fcf7ec11::t_345812d0d16c55 132
+  s_bee2e5fcf7ec11::t_7111833b0a5ad2 141-147
+web/src/routes/activity.tsx
+  s_bee2e5fcf7ec11::t_345812d0d16c55 293,427,440,456,472
+web/src/routes/edit-activity.tsx
+  s_bee2e5fcf7ec11::t_345812d0d16c55 169,173
+web/src/components/share-profile.tsx
+  s_bee2e5fcf7ec11::t_345812d0d16c55 22
+web/src/components/year-comparison.tsx
+  s_bee2e5fcf7ec11::t_345812d0d16c55 106
+web/src/components/goals.tsx
+  s_bee2e5fcf7ec11::t_7111833b0a5ad2 435-439,459-463
+  s_bee2e5fcf7ec11::t_345812d0d16c55 442
+  s_bee2e5fcf7ec11::t_552989836f4eb4 452
+web/src/routes/new-activity.tsx
+  s_bee2e5fcf7ec11::t_a0f0bc9f7f8538 205,207,216
+  s_bee2e5fcf7ec11::t_7111833b0a5ad2 504-508
+  s_bee2e5fcf7ec11::t_345812d0d16c55 187,464
+web/tests/button.test.mjs
+  s_bee2e5fcf7ec11::t_f87b04f61e62be 1-30
+web/src/components/training-load.tsx
+  s_bee2e5fcf7ec11::t_345812d0d16c55 84,240
+web/src/components/unreviewed-activities.tsx
+  s_bee2e5fcf7ec11::t_345812d0d16c55 51
+web/src/components/supporter.tsx
+  s_bee2e5fcf7ec11::t_552989836f4eb4 88
+  s_bee2e5fcf7ec11::t_345812d0d16c55 170
+web/src/components/feed-empty-state.tsx
+  s_bee2e5fcf7ec11::t_345812d0d16c55 23
+  s_bee2e5fcf7ec11::t_6dbebb5a732148 58
+web/src/components/ui/button.tsx
+  s_bee2e5fcf7ec11::t_345812d0d16c55 11-13,16-19,33,39,42,57
+web/src/components/onboarding-actions.tsx
+  s_bee2e5fcf7ec11::t_552989836f4eb4 21
+web/src/routes/settings.tsx
+  s_bee2e5fcf7ec11::t_345812d0d16c55 119,144
+web/src/routes/activities.tsx
+  s_bee2e5fcf7ec11::t_345812d0d16c55 90,148,305
+web/src/components/records.tsx
+  s_bee2e5fcf7ec11::t_345812d0d16c55 30
+web/src/routes/stats.tsx
+  s_bee2e5fcf7ec11::t_345812d0d16c55 131,140
+web/src/components/danger-zone.tsx
+  s_bee2e5fcf7ec11::t_7111833b0a5ad2 69-73,78-82,148-152
+  s_bee2e5fcf7ec11::t_345812d0d16c55 141
+web/src/routes/runner.tsx
+  s_bee2e5fcf7ec11::t_345812d0d16c55 56,76
+web/src/routes/followers.tsx
+  s_bee2e5fcf7ec11::t_345812d0d16c55 86,102,139,190
+web/src/components/activities-empty-state.tsx
+  s_bee2e5fcf7ec11::t_6dbebb5a732148 74
+web/src/components/activity-privacy.tsx
+  s_bee2e5fcf7ec11::t_345812d0d16c55 75,122
+web/src/components/activity-feed.tsx
+  s_bee2e5fcf7ec11::t_345812d0d16c55 64,115
+web/src/components/strava-import.tsx
+  s_bee2e5fcf7ec11::t_345812d0d16c55 198
+web/src/routes/auth.tsx
+  s_bee2e5fcf7ec11::t_345812d0d16c55 71
+web/src/components/privacy-places.tsx
+  s_bee2e5fcf7ec11::t_7111833b0a5ad2 337-342
+  s_bee2e5fcf7ec11::t_345812d0d16c55 74,102,110,146,153
+AGENTS.md
+  s_bee2e5fcf7ec11::t_16d9d3e49439b8 136
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.7.5",
+  "base_commit_sha": "52df177f394068806b993da11b68b90f8651c830",
+  "prompts": {},
+  "sessions": {
+    "s_bee2e5fcf7ec11": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "cd696b42-7e9f-47b1-8f97-a4d814189962",
+        "model": "claude-opus-5-5"
+      },
+      "human_author": "Simon Aunér <simonauner@gmail.com>"
+    }
+  }
+}
