@@ -75,6 +75,14 @@ public static class ActivityEndpoints
         });
 
         activities.MapGet("/sport-groups", () => Results.Ok(SportGroups.All));
+        // Synligheterna bland egna pass: målformuläret varnar när ett synligt mål räknar pass som tittaren inte får se.
+        activities.MapGet("/privacies", async (NpgsqlDataSource db, ClaimsPrincipal user, CancellationToken cancellationToken) =>
+        {
+            await using var conn = await db.OpenConnectionAsync(cancellationToken);
+            return Results.Ok(await conn.QueryAsync<string>(new CommandDefinition(
+                "select distinct privacy from activities where user_id = @userId order by privacy",
+                new { userId = user.GetUserId() }, cancellationToken: cancellationToken)));
+        });
         activities.MapGet("/statistics", async (NpgsqlDataSource db, ClaimsPrincipal user, int year,
             string? timeZone, string? sportGroup, CancellationToken cancellationToken) =>
         {

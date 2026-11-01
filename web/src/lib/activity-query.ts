@@ -2,6 +2,7 @@ import { queryOptions, type QueryClient } from '@tanstack/react-query'
 import { ApiError, api } from './api.ts'
 import type { ActivityDetail, ActivityTag } from './activity.ts'
 import type { SportGroup } from './sport-groups.ts'
+import type { GoalPrivacy } from './goals.ts'
 
 export async function clearHeartRateQueries(queryClient: QueryClient) {
   const filter = {
@@ -41,6 +42,12 @@ export const activityYearsQuery = (timeZone: string) =>
 
 const isGoalQuery = (key: readonly unknown[]) =>
   (key[0] === 'activities' && key[1] === 'goals') || (key[0] === 'runner' && key[2] === 'goals')
+
+// Synligheterna bland egna pass; nyckeln under 'activities' så att den uppdateras med passen.
+export const activityPrivaciesQuery = {
+  queryKey: ['activities', 'privacies'],
+  queryFn: () => api.get<GoalPrivacy[]>('/api/activities/privacies'),
+}
 
 export function refreshGoalQueries(queryClient: QueryClient) {
   return queryClient.invalidateQueries({ predicate: ({ queryKey }) => isGoalQuery(queryKey) })

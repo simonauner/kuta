@@ -6,7 +6,7 @@ import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
 import { useTranslation } from 'react-i18next'
 import { api } from '@/lib/api'
 import { cn } from '@/lib/utils'
-import { sportGroupsQuery, refreshGoalQueries } from '@/lib/activity-query'
+import { activityPrivaciesQuery, sportGroupsQuery, refreshGoalQueries } from '@/lib/activity-query'
 import { sportGroupLabel, sportGroupMembers } from '@/lib/sport-groups'
 import {
   formatGoalAmount,
@@ -220,6 +220,11 @@ export function GoalDialog({ goal, onClose }: { goal: Goal | null; onClose: () =
   const [period, setPeriod] = useState<GoalPeriod>(goal?.period ?? 'week')
   const [recurring, setRecurring] = useState(goal?.recurring ?? true)
   const [privacy, setPrivacy] = useState<GoalPrivacy>(goal?.privacy ?? 'private')
+  // Förloppet räknar alla egna pass, så ett synligt mål avslöjar när pass som tittaren inte får se görs.
+  const activityPrivacies = useQuery(activityPrivaciesQuery)
+  const revealsHiddenActivities = activityPrivacies.data?.some(
+    (value) => goalPrivacies.indexOf(value) < goalPrivacies.indexOf(privacy),
+  )
   const [confirmingDelete, setConfirmingDelete] = useState(false)
   const parsedTarget = parseGoalInput(metric, target)
 
@@ -398,6 +403,11 @@ export function GoalDialog({ goal, onClose }: { goal: Goal | null; onClose: () =
                 >
                   {t('goals.visibilityHelp')}
                 </span>
+                {revealsHiddenActivities && (
+                  <span role="status" className="mt-2 block text-xs font-normal text-destructive">
+                    {t('goals.visibilityRevealsActivities')}
+                  </span>
+                )}
               </>
             )}
           </FormField>

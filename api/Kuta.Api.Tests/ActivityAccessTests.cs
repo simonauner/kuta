@@ -123,4 +123,35 @@ public class ActivityAccessTests(KutaFactory factory) : IClassFixture<KutaFactor
             await conn.ExecuteAsync("delete from auth.users where id = any(@userIds)", new { userIds });
         }
     }
+
+    // Målformuläret varnar när ett synligt mål räknar pass som tittaren inte får se; listan gäller bara egna pass.
+    [Fact]
+    public async Task Activity_privacies_lists_only_own_visibilities()
+    {
+        var ct = TestContext.Current.CancellationToken;
+        var runner = $"privacies-a-{Guid.NewGuid():N}@example.com";
+        var other = $"privacies-b-{Guid.NewGuid():N}@example.com";
+        using var client = factory.CreateClient();
+        using var otherClient = factory.CreateClient();
+        await using var conn = await factory.Services.GetRequiredService<NpgsqlDataSource>().OpenConnectionAsync(ct);
+        try
+        {
+            await TestSession.CreateRunnerAsync(factory, client, conn, runner, "Löparen", ct);
+            await TestSession.CreateRunnerAsync(factory, otherClient, conn, other, "Grannen", ct);
+            Assert.Empty((await client.GetFromJsonAsync<string[]>("/api/activities/privacies", ct))!);
+            await conn.ExecuteAsync("""
+                insert into activities (user_id, source, started_at, duration_s, distance_m, privacy)
+                select id, 'manual', now(), 1800, 5000, p
+                from auth.users, unnest(array['private', 'public', 'public']) p where email = @runner
+                union all
+                select id, 'manual', now(), 1800, 5000, 'followers' from auth.users where email = @other
+                """, new { runner, other });
+            Assert.Equal(["private", "public"], (await client.GetFromJsonAsync<string[]>("/api/activities/privacies", ct))!);
+            Assert.Equal(["followers"], (await otherClient.GetFromJsonAsync<string[]>("/api/activities/privacies", ct))!);
+        }
+        finally
+        {
+            await conn.ExecuteAsync("delete from auth.users where email in (@runner, @other)", new { runner, other });
+        }
+    }
 }
