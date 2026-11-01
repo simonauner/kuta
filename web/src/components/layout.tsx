@@ -69,7 +69,9 @@ export function Layout() {
                 const active =
                   to === '/app'
                     ? pathname === '/app' || pathname === '/app/'
-                    : pathname.startsWith(to)
+                    : pathname.startsWith(to) ||
+                      // Settings is shown as a breadcrumb under Profile.
+                      (to === '/app/profile' && pathname.startsWith('/app/settings'))
                 return (
                   <li key={to}>
                     <Link
