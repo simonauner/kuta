@@ -265,7 +265,7 @@ public static class StravaImportJob
                 try
                 {
                     var id = await ActivityStorage.SaveAsync(conn, store, userId, parsed, "strava", row.Title, row.Id,
-                        bytes, extension, cancellationToken, equipmentIds: equipmentId is { } shoeId ? [shoeId] : [], description: row.Description);
+                        bytes, extension, cancellationToken, equipmentIds: equipmentId is { } shoeId ? [shoeId] : [], description: row.Description, tags: row.Tags);
                     if (id is null)
                     {
                         duplicates++;
