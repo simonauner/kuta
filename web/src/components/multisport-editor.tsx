@@ -1,11 +1,11 @@
 import { FormField } from '@/components/ui/form-field'
-import { lazy, Suspense, useRef, useState } from 'react'
+import { lazy, Suspense, useId, useRef, useState } from 'react'
 import { useTranslation } from 'react-i18next'
 import { AnimatePresence, motion, useReducedMotion } from 'motion/react'
 import { Button } from '@/components/ui/button'
 import { ConfirmationModal } from '@/components/ui/confirmation-modal'
 import { Input } from '@/components/ui/input'
-import { formatDuration, type ActivityDetail } from '@/lib/activity'
+import { formatDuration, parseDuration, type ActivityDetail } from '@/lib/activity'
 import {
   multisportKinds,
   partSports,
@@ -37,6 +37,7 @@ export function MultisportEditor({
 }) {
   const { t, i18n } = useTranslation()
   const [confirmingRestore, setConfirmingRestore] = useState(false)
+  const distanceId = useId()
   const [editing, setEditing] = useState(false)
   const kind = multisportKinds.find((k) => k === a.sport) ?? 'swimrun'
   const [parts, setParts] = useState<ActivityPart[]>(a.parts)
@@ -204,22 +205,18 @@ export function MultisportEditor({
                             <Input
                               id={id}
                               className="w-28"
-                              type="number"
-                              min={p.startS + 1}
-                              max={parts[i + 1].endS - 1}
-                              step="1"
+                              inputMode="numeric"
+                              pattern="\d+(:[0-5]\d){0,2}"
+                              placeholder="0:45:00"
                               required
                               key={p.endS}
                               name={`endS-${i}`}
-                              defaultValue={p.endS}
+                              defaultValue={formatDuration(p.endS)}
+                              aria-describedby={`${distanceId}-${i}`}
                               onBlur={(e) => {
                                 if (!e.currentTarget.checkValidity()) return
-                                const end = Number(e.target.value)
-                                if (
-                                  !Number.isInteger(end) ||
-                                  end <= p.startS ||
-                                  end >= parts[i + 1].endS
-                                )
+                                const end = parseDuration(e.target.value)
+                                if (end === null || end <= p.startS || end >= parts[i + 1].endS)
                                   return
                                 update(
                                   parts.map((v, j) =>
@@ -234,6 +231,14 @@ export function MultisportEditor({
                             />
                           )}
                         </FormField>
+                        <p id={`${distanceId}-${i}`} className="text-xs text-muted-foreground">
+                          {t('multisport.atDistance', {
+                            km: number.format(
+                              shown.slice(0, i + 1).reduce((sum, part) => sum + part.distanceM, 0) /
+                                1000,
+                            ),
+                          })}
+                        </p>
                         <FormField label={t('multisport.boundary', { number: i + 1 })} hideLabel>
                           {(id) => (
                             <input

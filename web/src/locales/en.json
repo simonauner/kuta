@@ -563,10 +563,10 @@
     "split": "Split into sports",
     "edit": "Edit legs",
     "kind": "Activity type",
-    "instructions": "Set sport changes in seconds from the activity start. Select a leg to review its map and charts below. Original samples are preserved, and the split can be restored.",
+    "instructions": "Drag the slider or type the time from the start (h:mm:ss) where the sport changes. The distance at the change is shown below, and the map and charts underneath show the selected part. The original data points are kept, and the split can be restored.",
     "whole": "Whole activity",
     "partSport": "Sport for leg {{number}}",
-    "boundary": "End of leg {{number}} (seconds)",
+    "boundary": "Change after part {{number}} (time from start)",
     "useEquipment": "Count usage for the activity’s selected equipment",
     "addBoundary": "Split leg",
     "removeBoundary": "Merge with previous",
@@ -576,7 +576,8 @@
     "selected": "Showing leg {{number}}: {{sport}}",
     "distanceBySport": "Distance by sport",
     "confirmRestore": "The split is removed and the activity gets back the parts from the import.",
-    "restoreConfirm": "Restore"
+    "restoreConfirm": "Restore",
+    "atDistance": "At {{km}} km from the start"
   },
   "privacyPlaces": {
     "title": "Hidden places",

@@ -1,4 +1,4 @@
-import type { ActivityDetail, ActivityStreams } from './activity'
+import { parseDuration, type ActivityDetail, type ActivityStreams } from './activity.ts'
 
 export type ActivityPart = {
   partIndex: number
@@ -28,7 +28,10 @@ export function multisportView<
 export function partsFromForm(draft: MultisportDraft, form: HTMLFormElement): MultisportDraft {
   if (!draft) return draft
   const values = new FormData(form)
-  const ends = draft.parts.map((p, i) => Number(values.get(`endS-${i}`) ?? p.endS))
+  // The boundaries are typed as time from the start (h:mm:ss)
+  const ends = draft.parts.map(
+    (p, i) => parseDuration(String(values.get(`endS-${i}`) ?? '')) ?? p.endS,
+  )
   return {
     ...draft,
     parts: draft.parts.map((p, i) => ({ ...p, startS: i ? ends[i - 1] : p.startS, endS: ends[i] })),

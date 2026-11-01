@@ -563,10 +563,10 @@
     "split": "Dela upp i sporter",
     "edit": "Ändra uppdelning",
     "kind": "Typ av aktivitet",
-    "instructions": "Ange sportbyten i sekunder från aktivitetens start. Klicka på en del för att granska karta och diagram nedanför. Originalets mätpunkter sparas, och uppdelningen går att återställa.",
+    "instructions": "Dra i reglaget eller skriv tiden från start (h:mm:ss) där sporten byts. Avståndet vid bytet visas under, och kartan och diagrammen nedanför visar vald del. Originalets mätpunkter sparas, och uppdelningen går att återställa.",
     "whole": "Hela aktiviteten",
     "partSport": "Sport för del {{number}}",
-    "boundary": "Slut på del {{number}} (sekunder)",
+    "boundary": "Byte efter del {{number}} (tid från start)",
     "useEquipment": "Räkna användning för aktivitetens valda utrustning",
     "addBoundary": "Dela här",
     "removeBoundary": "Slå ihop med föregående",
@@ -576,7 +576,8 @@
     "selected": "Visar del {{number}}: {{sport}}",
     "distanceBySport": "Distans per sport",
     "confirmRestore": "Uppdelningen tas bort och aktiviteten får tillbaka delarna från importen.",
-    "restoreConfirm": "Återställ"
+    "restoreConfirm": "Återställ",
+    "atDistance": "Vid {{km}} km från start"
   },
   "privacyPlaces": {
     "title": "Dolda platser",
