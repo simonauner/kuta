@@ -28,6 +28,7 @@
     "followRequests_other": ", {{count}} nya följförfrågningar"
   },
   "language": "Språk",
+  "loading": "Laddar …",
   "slowLoading": "Detta tar ovanligt lång tid...",
   "connectionError": "Kunde inte nå Kuta. Kontrollera anslutningen och ladda om sidan.",
   "feed": {
