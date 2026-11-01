@@ -192,6 +192,34 @@ public class FitUploadTests(KutaFactory factory) : IClassFixture<KutaFactory>
         }
     }
 
+    // Filtolkning kostar minne: uppladdning och förhandsvisning delar en gräns per användare, inte per IP.
+    [Fact]
+    public async Task Uploads_are_rate_limited_per_user()
+    {
+        var ct = TestContext.Current.CancellationToken;
+        var runner = $"limit-a-{Guid.NewGuid():N}@example.com";
+        var other = $"limit-b-{Guid.NewGuid():N}@example.com";
+        var client = factory.CreateClient();
+        var otherClient = factory.CreateClient();
+        await using var conn = await factory.Services.GetRequiredService<NpgsqlDataSource>().OpenConnectionAsync(ct);
+        try
+        {
+            await CreateRunnerAsync(factory, client, conn, runner, "Löparen", ct);
+            await CreateRunnerAsync(factory, otherClient, conn, other, "Grannen", ct);
+            for (var i = 0; i < 15; i++)
+            {
+                Assert.Equal(HttpStatusCode.BadRequest, (await Upload(client, [], ct, "/api/activities/preview")).StatusCode);
+                Assert.Equal(HttpStatusCode.BadRequest, (await Upload(client, [], ct)).StatusCode);
+            }
+            Assert.Equal(HttpStatusCode.TooManyRequests, (await Upload(client, [], ct, "/api/activities/preview")).StatusCode);
+            Assert.Equal(HttpStatusCode.BadRequest, (await Upload(otherClient, [], ct, "/api/activities/preview")).StatusCode);
+        }
+        finally
+        {
+            await conn.ExecuteAsync("delete from auth.users where email in (@runner, @other)", new { runner, other });
+        }
+    }
+
     // Råfiler i den lokala Supabase Storage (fit/<användar-id>/…)
     static Task<int> StoredFiles(NpgsqlConnection conn, string email) => conn.ExecuteScalarAsync<int>(
         """
