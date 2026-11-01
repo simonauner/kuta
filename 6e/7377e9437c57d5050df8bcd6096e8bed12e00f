@@ -1,0 +1,48 @@
+AGENTS.md
+  s_1d8c41d0c04d95::t_7d50aef5f07b39 93
+  s_1d8c41d0c04d95::t_1206e85faaae92 47
+README.md
+  s_18157bd3682cdd::t_4caf8b6e3083db 162-166
+api/Kuta.Api.Tests/FitImportTests.cs
+  s_18157bd3682cdd::t_1cab57cdbbb5d4 1-13
+api/Kuta.Api.Tests/FitUploadTests.cs
+  s_18157bd3682cdd::t_9b454ab5ba5789 195-222
+api/Kuta.Api.Tests/SocialTests.cs
+  s_18157bd3682cdd::t_f420c1c21390ee 94-95,117-123
+api/Kuta.Api/ActivityEndpoints.cs
+  s_18157bd3682cdd::t_239e38891cff64 129-130,199-200
+api/Kuta.Api/FitImport.cs
+  s_18157bd3682cdd::t_af1783b0c57f82 31-44,55,61-69,72-73,83,144,147,150-153,156,172,174-176,179-180,182,218
+api/Kuta.Api/Migrations/023_route_privacy_seed.sql
+  s_18157bd3682cdd::t_d99bc8382fa5ac 1-4
+api/Kuta.Api/Program.cs
+  s_18157bd3682cdd::t_2b36c2a8e6069c 105-109
+api/Kuta.Api/SocialEndpoints.cs
+  s_1d8c41d0c04d95::t_49b69e1818ad7a 110-118,122-124,130,141,146,148,150-151
+api/Kuta.Api/StravaImportEndpoint.cs
+  s_18157bd3682cdd::t_b1d8f338047960 57
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.7.5",
+  "base_commit_sha": "6e7377e9437c57d5050df8bcd6096e8bed12e00f",
+  "prompts": {},
+  "sessions": {
+    "s_18157bd3682cdd": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "c8e5873c-f510-4ac1-8363-b864b8cfaff4",
+        "model": "unknown"
+      },
+      "human_author": "Simon Aunér <simonauner@gmail.com>"
+    },
+    "s_1d8c41d0c04d95": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "bdd1f4bc-6213-49a7-8e73-7e9172c83f8c",
+        "model": "claude-opus-5-5"
+      },
+      "human_author": "Simon Aunér <simonauner@gmail.com>"
+    }
+  }
+}
