@@ -44,15 +44,17 @@ export function activitySearch(search: Record<string, unknown>): {
   year?: number
   tag?: ActivityTag
   sport?: Sport
+  view?: 'calendar'
 } {
   const value = search.year
   const year = typeof value === 'number' || typeof value === 'string' ? Number(value) : NaN
-  const filters: { year?: number; tag?: ActivityTag; sport?: Sport } = {}
+  const filters: ReturnType<typeof activitySearch> = {}
   if (Number.isInteger(year) && year >= 1 && year <= 9998) filters.year = year
   if (typeof search.tag === 'string' && Object.hasOwn(sv.tagNames, search.tag))
     filters.tag = search.tag as ActivityTag
   if (typeof search.sport === 'string' && (sports as readonly string[]).includes(search.sport))
     filters.sport = search.sport as Sport
+  if (search.view === 'calendar') filters.view = 'calendar'
   return filters
 }
 

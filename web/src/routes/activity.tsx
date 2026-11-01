@@ -652,14 +652,14 @@ function DeleteActivity({ activityId }: { activityId: string }) {
   const { t } = useTranslation()
   const queryClient = useQueryClient()
   const navigate = useNavigate()
-  const { returnTo, year, tag, sport } = useSearch({ from: '/app/activities/$activityId' })
+  const { returnTo, ...filters } = useSearch({ from: '/app/activities/$activityId' })
   const [confirming, setConfirming] = useState(false)
   const remove = useMutation({
     mutationFn: () => api.send('DELETE', `/api/activities/${activityId}`),
     onSuccess: async () => {
       setConfirming(false)
       if (returnTo) await navigate({ href: returnTo })
-      else await navigate({ to: '/app/activities', search: { year, tag, sport } })
+      else await navigate({ to: '/app/activities', search: filters })
       // After leaving: refetching the deleted activity on this page would only show "not found"
       await refreshActivityQueries(queryClient)
     },

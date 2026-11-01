@@ -7,7 +7,7 @@ const linkClass = 'text-sm text-muted-foreground underline underline-offset-2'
 export function BackLink({ fallback = 'activities' }: { fallback?: 'activities' | 'feed' }) {
   const { t } = useTranslation()
   const router = useRouter()
-  const { year, tag, sport, returnTo } = useSearch({ strict: false })
+  const { year, tag, sport, view, returnTo } = useSearch({ strict: false })
   if (returnTo)
     return (
       <a
@@ -29,7 +29,7 @@ export function BackLink({ fallback = 'activities' }: { fallback?: 'activities' 
       </Link>
     )
   return (
-    <Link to="/app/activities" search={{ year, tag, sport }} className={linkClass}>
+    <Link to="/app/activities" search={{ year, tag, sport, view }} className={linkClass}>
       ← {t('activity.back')}
     </Link>
   )

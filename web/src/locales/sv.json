@@ -156,7 +156,15 @@
     "sport": "Sport",
     "allSports": "Alla sporter",
     "noMatches": "Inga aktiviteter matchar filtren.",
-    "deleteWarning": "Aktiviteten, dess mätserier, rekord och originalfil raderas. Det går inte att ångra."
+    "deleteWarning": "Aktiviteten, dess mätserier, rekord och originalfil raderas. Det går inte att ångra.",
+    "views": "Visning av aktiviteter",
+    "list": "Lista",
+    "calendar": "Kalender",
+    "close": "Stäng",
+    "calendarCount_one": "{{count}} aktivitet {{year}}",
+    "calendarCount_other": "{{count}} aktiviteter {{year}}",
+    "calendarDay_one": "{{date}}, {{count}} aktivitet",
+    "calendarDay_other": "{{date}}, {{count}} aktiviteter"
   },
   "newActivity": {
     "title": "Ny aktivitet",
