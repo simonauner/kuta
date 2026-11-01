@@ -65,6 +65,8 @@ public class ActivityAccessTests(KutaFactory factory) : IClassFixture<KutaFactor
                 Assert.Equal(activity.Id, Assert.Single((await client.GetFromJsonAsync<ActivityPage>(
                     $"/api/activities?tag=race&year={activity.StartedAt.Year}", ct))!.Items).Id);
                 Assert.Empty((await client.GetFromJsonAsync<ActivityPage>("/api/activities?tag=easy", ct))!.Items);
+                Assert.Equal(activity.Id, Assert.Single((await client.GetFromJsonAsync<ActivityCalendarItem[]>(
+                    $"/api/activities/calendar?year={activity.StartedAt.Year}&tag=race&timeZone=UTC", ct))!).Id);
                 Assert.Equal(HttpStatusCode.NotFound, (await client.GetAsync(
                     $"/api/activities/{activityIds[1 - i]}", ct)).StatusCode);
                 Assert.Equal(HttpStatusCode.NotFound, (await client.PutAsJsonAsync(

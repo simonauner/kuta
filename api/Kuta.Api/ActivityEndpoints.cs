@@ -91,6 +91,22 @@ public static class ActivityEndpoints
             return Results.NoContent();
         });
 
+        activities.MapGet("/calendar", async (NpgsqlDataSource db, ClaimsPrincipal user, int year, string? timeZone,
+            string? tag, string? sport, CancellationToken cancellationToken) =>
+        {
+            if (year is < 1 or > 9998)
+                return Results.BadRequest(new ApiError("Ange ett år mellan 1 och 9998.", "invalidActivityYear"));
+            if (ActivityInput.ValidateTags(tag is null ? null : [tag]) is { } invalid)
+                return Results.BadRequest(invalid);
+            if (sport is { Length: 0 or > 100 })
+                return Results.BadRequest(new ApiError("Kontrollera sport, datum, tid och distans.", "invalidActivity"));
+            timeZone ??= "UTC";
+            await using var conn = await db.OpenConnectionAsync(cancellationToken);
+            if (!await ActivityList.IsValidTimeZoneAsync(conn, timeZone, cancellationToken))
+                return Results.BadRequest(new ApiError("Tidszonen är ogiltig. Kontrollera enhetens inställningar.", "invalidTimeZone"));
+            return Results.Ok(await ActivityList.ReadCalendarAsync(conn, user.GetUserId(), timeZone, year, tag, sport, cancellationToken));
+        });
+
         activities.MapGet("/years", async (NpgsqlDataSource db, ClaimsPrincipal user, string? timeZone,
             CancellationToken cancellationToken) =>
         {

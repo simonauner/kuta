@@ -206,6 +206,34 @@ public class ActivityListTests(WebApplicationFactory<Program> factory) : IClassF
         finally { await conn.ExecuteAsync("delete from auth.users where id = any(@ids)", new { ids = new[] { userId, otherId } }); }
     }
 
+    [Fact]
+    public async Task Calendar_lists_own_filtered_activities_by_local_day_within_the_local_year()
+    {
+        var ct = TestContext.Current.CancellationToken;
+        await using var conn = await factory.Services.GetRequiredService<NpgsqlDataSource>().OpenConnectionAsync(ct);
+        var userId = await Runner(conn);
+        var otherId = await Runner(conn);
+        try
+        {
+            await conn.ExecuteAsync("""
+                insert into activities (user_id, source, sport, started_at, duration_s, distance_m, tags)
+                values (@userId, 'manual', 'running', '2025-12-31T23:30:00Z', 1800, 5000, array['race']),
+                       (@userId, 'manual', 'running', '2026-12-31T23:30:00Z', 1800, 5000, array['race']),
+                       (@userId, 'manual', 'cycling', '2026-06-01T12:00:00Z', 3600, 20000, array['race']),
+                       (@userId, 'manual', 'running', '2026-06-01T08:00:00Z', 1800, 5000, array['easy']),
+                       (@otherId, 'manual', 'running', '2026-06-01T12:00:00Z', 1800, 5000, array['race']);
+                """, new { userId, otherId });
+            // The first activity is 2026 in Stockholm and the second one 2027.
+            var all = await ActivityList.ReadCalendarAsync(conn, userId, "Europe/Stockholm", 2026, null, null, ct);
+            Assert.Equal(new[] { "2026-01-01", "2026-06-01", "2026-06-01" }, all.Select(a => a.Day));
+            var races = await ActivityList.ReadCalendarAsync(conn, userId, "Europe/Stockholm", 2026, "race", "running", ct);
+            Assert.Equal("2026-01-01", Assert.Single(races).Day);
+            Assert.Equal(new[] { "2026-06-01", "2026-06-01", "2026-12-31" },
+                (await ActivityList.ReadCalendarAsync(conn, userId, "UTC", 2026, null, null, ct)).Select(a => a.Day));
+        }
+        finally { await conn.ExecuteAsync("delete from auth.users where id = any(@ids)", new { ids = new[] { userId, otherId } }); }
+    }
+
     private static async Task<Guid> Runner(NpgsqlConnection conn)
     {
         var id = Guid.NewGuid();

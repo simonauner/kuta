@@ -7,6 +7,10 @@ public record ActivityListItem(
     Guid Id, string Sport, string? Title, DateTime StartedAt,
     int DurationS, double DistanceM, short? AvgHr, string[] Tags, Guid[] EquipmentIds, bool ShowMonth, bool ShowWeek, string? Attribution, bool Unreviewed);
 
+// Day is the local date (yyyy-MM-dd) in the requested time zone.
+public record ActivityCalendarItem(
+    Guid Id, string Sport, string? Title, DateTime StartedAt, string Day, int DurationS, double DistanceM, string? Attribution);
+
 public static class ActivityList
 {
     public static Task<bool> IsValidTimeZoneAsync(NpgsqlConnection conn, string timeZone, CancellationToken ct) =>
@@ -84,4 +88,20 @@ public static class ActivityList
         var cursor = rows.Count > 25 ? new ActivityCursor(items[^1].StartedAt, items[^1].Id) : null;
         return new ActivityPage(items, cursor);
     }
+
+    // One local year at a time for the calendar view; a year of activities is small enough to send at once.
+    public static async Task<ActivityCalendarItem[]> ReadCalendarAsync(NpgsqlConnection conn, Guid userId, string timeZone,
+        int year, string? tag, string? sport, CancellationToken ct) =>
+        (await conn.QueryAsync<ActivityCalendarItem>(new CommandDefinition($"""
+            select a.id, a.sport, a.title, a.started_at,
+                to_char(a.started_at at time zone @timeZone, 'YYYY-MM-DD') as day, a.duration_s,
+                coalesce((select sum(p.distance_m) from activity_parts p where p.activity_id = a.id and p.original = not a.parts_edited), a.distance_m) as distance_m,
+                {GarminAttribution.Sql("a")} as attribution
+            from activities a
+            where a.user_id = @userId and a.tags @> @tags::text[] and (@sport::text is null or a.sport = @sport)
+              and a.started_at >= (make_date(@year, 1, 1)::timestamp at time zone @timeZone)
+              and a.started_at < (make_date(@year + 1, 1, 1)::timestamp at time zone @timeZone)
+            order by a.started_at, a.id
+            """, new { userId, timeZone, year, sport, tags = tag is null ? Array.Empty<string>() : new[] { tag } },
+            cancellationToken: ct))).ToArray();
 }
