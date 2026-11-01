@@ -1,3 +1,4 @@
+using System.Buffers.Binary;
 using System.Diagnostics;
 using System.IO.Compression;
 using System.Security.Claims;
@@ -138,12 +139,15 @@ public static class StravaImportJob
         public void Dispose() => Zip.Dispose();
     }
 
+    const int MaxEntries = 100000;
+    const long MaxCentralDirectoryBytes = 16 * 1024 * 1024;
+
     public static Archive Open(Stream stream, CancellationToken cancellationToken)
     {
+        CheckCentralDirectory(stream);
         var zip = new ZipArchive(stream, ZipArchiveMode.Read);
         try
         {
-            if (zip.Entries.Count > 100000) throw new InvalidDataException("Too many entries.");
             var entries = zip.Entries.ToDictionary(e => e.FullName, StringComparer.Ordinal);
             if (!entries.TryGetValue("activities.csv", out var manifest)) throw new InvalidDataException("Missing activities.csv.");
             using var csv = new MemoryStream(StravaImport.ReadFile(manifest, new StravaImport.ExpansionBudget(StravaImport.MaxFileBytes), cancellationToken));
@@ -254,6 +258,36 @@ public static class StravaImportJob
             await ReportAsync(new(rows.Count, rows.Count, imported, duplicates, failed.Count));
             return new StravaImportResult(imported, duplicates, failed.ToArray(), equipmentImported, equipmentLinked);
         }
+    }
+
+    // zip.Entries builds an object per central directory record before anything can be counted, so a 500 MB archive of
+    // tiny records exhausts memory. The record count and directory size are read from the end record (ZIP64 too) first.
+    public static void CheckCentralDirectory(Stream stream)
+    {
+        var tail = new byte[(int)Math.Min(stream.Length, 20 + 22 + ushort.MaxValue)];
+        stream.Seek(-tail.Length, SeekOrigin.End);
+        stream.ReadExactly(tail);
+        // Searched backwards like ZipArchive, which then parses the same record.
+        for (var i = tail.Length - 22; i >= 0; i--)
+        {
+            if (BinaryPrimitives.ReadUInt32LittleEndian(tail.AsSpan(i)) != 0x06054b50) continue;
+            ulong entries = BinaryPrimitives.ReadUInt16LittleEndian(tail.AsSpan(i + 10));
+            ulong size = BinaryPrimitives.ReadUInt32LittleEndian(tail.AsSpan(i + 12));
+            if ((entries == ushort.MaxValue || size == uint.MaxValue)
+                && i >= 20 && BinaryPrimitives.ReadUInt32LittleEndian(tail.AsSpan(i - 20)) == 0x07064b50)
+            {
+                var zip64 = new byte[56];
+                stream.Seek((long)Math.Min(BinaryPrimitives.ReadUInt64LittleEndian(tail.AsSpan(i - 12)), (ulong)stream.Length), SeekOrigin.Begin);
+                stream.ReadExactly(zip64);
+                if (BinaryPrimitives.ReadUInt32LittleEndian(zip64) != 0x06064b50) throw new InvalidDataException("Invalid ZIP64 end record.");
+                entries = BinaryPrimitives.ReadUInt64LittleEndian(zip64.AsSpan(32));
+                size = BinaryPrimitives.ReadUInt64LittleEndian(zip64.AsSpan(40));
+            }
+            if (entries > MaxEntries || size > MaxCentralDirectoryBytes) throw new InvalidDataException("Too many entries.");
+            break;
+        }
+        // Without an end record ZipArchive rejects the file itself.
+        stream.Seek(0, SeekOrigin.Begin);
     }
 
     public static bool IsInvalidFile(Exception e) => e is InvalidDataException or FormatException or OverflowException
