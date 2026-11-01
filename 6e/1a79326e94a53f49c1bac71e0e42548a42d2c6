@@ -1,0 +1,29 @@
+web/src/components/activity-privacy.tsx
+  s_18157bd3682cdd::t_165eca426e4820 10
+  s_18157bd3682cdd::t_d6f5c87cda6959 72
+web/src/components/privacy-places.tsx
+  s_18157bd3682cdd::t_165eca426e4820 12,25-51
+  s_18157bd3682cdd::t_77c1a382c1916d 52
+web/src/locales/en.json
+  s_18157bd3682cdd::t_165eca426e4820 596-599
+web/src/locales/sv.json
+  s_18157bd3682cdd::t_165eca426e4820 596-599
+web/src/routes/edit-activity.tsx
+  s_18157bd3682cdd::t_165eca426e4820 16,126
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.7.5",
+  "base_commit_sha": "6e1a79326e94a53f49c1bac71e0e42548a42d2c6",
+  "prompts": {},
+  "sessions": {
+    "s_18157bd3682cdd": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "c8e5873c-f510-4ac1-8363-b864b8cfaff4",
+        "model": "claude-opus-5-5"
+      },
+      "human_author": "Simon Aunér <simonauner@gmail.com>"
+    }
+  }
+}
