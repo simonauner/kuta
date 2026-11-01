@@ -77,9 +77,9 @@ export function SettingsPage() {
         <span aria-hidden="true">→</span>
       </Link>
 
-      <ActivityPrivacy />
-
       <SupporterSection />
+
+      <ActivityPrivacy />
 
       <section aria-labelledby="health-heading" className="mt-8 border-t pt-6">
         <h2 id="health-heading" className="text-lg font-semibold">
