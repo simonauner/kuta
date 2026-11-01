@@ -330,6 +330,17 @@ public static class ActivityEndpoints
         if (file.Length > MaxFitFileBytes)
             return (null, Results.BadRequest(new ApiError("Filen är för stor (högst 20 MB).", "fileTooLarge")));
 
+        // A 20 MB file takes over 100 MB to buffer and parse, so parallel uploads must not run all at once on a small machine.
+        await FitParsing.WaitAsync(cancellationToken);
+        try { return await ParseFitAsync(file, conn, userId, cancellationToken); }
+        finally { FitParsing.Release(); }
+    }
+
+    private static readonly SemaphoreSlim FitParsing = new(2);
+
+    private static async Task<(FitUpload? Fit, IResult? Error)> ParseFitAsync(IFormFile file, NpgsqlConnection conn,
+        Guid userId, CancellationToken cancellationToken)
+    {
         using var buffer = new MemoryStream();
         await file.CopyToAsync(buffer, cancellationToken);
         var bytes = buffer.ToArray();
