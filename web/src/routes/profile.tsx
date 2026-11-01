@@ -86,7 +86,7 @@ export function ProfilePage() {
             {!viewAs && (
               <Link
                 to="/app/activities"
-                className="text-sm text-muted-foreground underline-offset-2 hover:underline"
+                className="text-sm text-muted-foreground underline underline-offset-2"
               >
                 {t('profile.allActivities')} →
               </Link>
