@@ -1,3 +1,4 @@
+import { Reveal } from '@/components/reveal'
 import { GarminDerivedNote } from '@/components/garmin'
 import { FormField } from '@/components/ui/form-field'
 import { Heading } from '@/components/ui/heading'
@@ -88,26 +89,29 @@ export function GoalList({
     )
   if (!goals.data?.length) return null
   return (
-    <section className={runnerId ? undefined : 'mt-6'} aria-labelledby="goals-heading">
-      <Heading level={2} id="goals-heading" className="mb-3">
-        {t('goals.heading')}
-      </Heading>
-      {!runnerId && <GarminDerivedNote className="-mt-2 mb-3" />}
-      <ul className="grid gap-3 sm:grid-cols-2">
-        {goals.data.map((goal) => (
-          <li key={goal.id}>
-            <GoalCard
-              goal={goal}
-              iconSport={
-                goal.sportGroup &&
-                (groups.data?.find((g) => g.key === goal.sportGroup)?.sports[0] ?? goal.sportGroup)
-              }
-              onSelect={onSelect && (() => onSelect(goal))}
-            />
-          </li>
-        ))}
-      </ul>
-    </section>
+    <Reveal>
+      <section className={runnerId ? undefined : 'mt-6'} aria-labelledby="goals-heading">
+        <Heading level={2} id="goals-heading" className="mb-3">
+          {t('goals.heading')}
+        </Heading>
+        {!runnerId && <GarminDerivedNote className="-mt-2 mb-3" />}
+        <ul className="grid gap-3 sm:grid-cols-2">
+          {goals.data.map((goal) => (
+            <li key={goal.id}>
+              <GoalCard
+                goal={goal}
+                iconSport={
+                  goal.sportGroup &&
+                  (groups.data?.find((g) => g.key === goal.sportGroup)?.sports[0] ??
+                    goal.sportGroup)
+                }
+                onSelect={onSelect && (() => onSelect(goal))}
+              />
+            </li>
+          ))}
+        </ul>
+      </section>
+    </Reveal>
   )
 }
 

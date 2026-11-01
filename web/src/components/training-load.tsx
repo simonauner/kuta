@@ -1,3 +1,4 @@
+import { Reveal } from '@/components/reveal'
 import { useState, type FormEvent } from 'react'
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
 import { Link } from '@tanstack/react-router'
@@ -36,21 +37,23 @@ export function TrainingLoadWarning() {
   if (!load.data?.warning || load.data.rampPerWeek === null) return null
   const number = new Intl.NumberFormat(i18n.resolvedLanguage, { maximumFractionDigits: 0 })
   return (
-    <div
-      role="status"
-      className="mt-4 flex gap-3 rounded-xl border border-amber-500/50 bg-amber-500/10 p-4 text-sm"
-    >
-      <TriangleAlert className="mt-0.5 size-5 shrink-0 text-amber-600 dark:text-amber-400" />
-      <div>
-        <p className="font-medium">{t('trainingLoad.warningTitle')}</p>
-        <p className="mt-1 text-muted-foreground">
-          {t('trainingLoad.warningText', { ramp: number.format(load.data.rampPerWeek) })}{' '}
-          <Link to="/app/stats" hash="training-load" className="underline underline-offset-2">
-            {t('trainingLoad.warningLink')}
-          </Link>
-        </p>
+    <Reveal>
+      <div
+        role="status"
+        className="mt-4 flex gap-3 rounded-xl border border-amber-500/50 bg-amber-500/10 p-4 text-sm"
+      >
+        <TriangleAlert className="mt-0.5 size-5 shrink-0 text-amber-600 dark:text-amber-400" />
+        <div>
+          <p className="font-medium">{t('trainingLoad.warningTitle')}</p>
+          <p className="mt-1 text-muted-foreground">
+            {t('trainingLoad.warningText', { ramp: number.format(load.data.rampPerWeek) })}{' '}
+            <Link to="/app/stats" hash="training-load" className="underline underline-offset-2">
+              {t('trainingLoad.warningLink')}
+            </Link>
+          </p>
+        </div>
       </div>
-    </div>
+    </Reveal>
   )
 }
 
