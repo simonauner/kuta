@@ -69,8 +69,8 @@ API (alla kräver inloggning; skrivningar kräver CSRF):
   pass med samma sidmarkör och skyddade kartminiatyrer som flödet. Inga privata pass från
   andra, puls eller GPS-tidsserier ingår.
 - `GET /api/follows` ger `{ following, followers, blocked }`, inklusive väntande förfrågningar. Väntande förfrågningar har `joinedAt` (när kontot skapades), eftersom namn är fria och kan imitera någon.
-- `POST /api/following/{id}` skickar en förfrågan, idempotent även efter godkännande. Högst 20 per timme och användare. En förfrågan till någon som blockerat avsändaren sparas inte, men svaret är detsamma.
-- `PUT`/`DELETE /api/blocks/{id}` blockerar respektive häver blockering (`follow_blocks`, migrering 024). Blockering tar bort personens följning eller förfrågan.
+- `POST /api/following/{id}` skickar en förfrågan, idempotent även efter godkännande. Högst 20 per timme och användare. En förfrågan till någon som blockerat avsändaren sparas men visas inte för mottagaren och kan inte godkännas; avsändaren ser den som väntande, så blockeringen avslöjas inte. Förfrågningar under blockeringen tas bort när den hävs.
+- `PUT`/`DELETE /api/blocks/{id}` blockerar respektive häver blockering (`follow_blocks`, migrering 024). Blockering tar bort personens följning eller förfrågan, och den blockerade kan inte läsa något delat av den som blockerat: inga pass (inte heller publika), mål eller supporterbadge (`SocialEndpoints.NotBlocked` i läsregeln).
 - `PUT /api/followers/{id}` godkänner en inkommande förfrågan.
 - `DELETE /api/following/{id}` avbryter en förfrågan eller slutar följa.
 - `DELETE /api/followers/{id}` avböjer eller tar bort en följare. Borttagning återkallar

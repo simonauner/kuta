@@ -13,11 +13,15 @@ public record FeedPage(IReadOnlyList<FeedItem> Items, ActivityCursor? NextCursor
 public static class SocialEndpoints
 {
     // The same predicate protects detail, best efforts and the feed. Writes remain owner-only.
-    public const string CanRead = """
-        (a.user_id = @userId or a.privacy = 'public' or
+    public static readonly string CanRead = $"""
+        (a.user_id = @userId or {NotBlocked("a.user_id", "@userId")} and (a.privacy = 'public' or
          (a.privacy = 'followers' and exists (select 1 from follows f
-          where f.follower_id = @userId and f.following_id = a.user_id and f.accepted_at is not null)))
+          where f.follower_id = @userId and f.following_id = a.user_id and f.accepted_at is not null))))
         """;
+
+    // A blocked person sees nothing of the blocker's that is shared, not even public activities, goals or badge.
+    public static string NotBlocked(string owner, string viewer) =>
+        $"not exists (select 1 from follow_blocks b where b.blocker_id = {owner} and b.blocked_id = {viewer})";
 
     public static void MapSocial(this RouteGroupBuilder api)
     {
@@ -58,7 +62,8 @@ public static class SocialEndpoints
                 select u.id, u.display_name, case when f.accepted_at is null then 'pending' else 'accepted' end as status,
                     {Supporters.VisibleTier} as supporter_tier,
                     case when f.accepted_at is null then u.created_at end as joined_at
-                from follows f join users u on u.id = f.follower_id where f.following_id = @userId
+                from follows f join users u on u.id = f.follower_id
+                where f.following_id = @userId and {NotBlocked("@userId", "f.follower_id")}
                 order by f.accepted_at nulls first, u.display_name, u.id
                 """, new { userId });
             var blocked = await conn.QueryAsync<Runner>("""
@@ -75,11 +80,10 @@ public static class SocialEndpoints
             if (id == userId || !await conn.ExecuteScalarAsync<bool>(
                     "select exists(select 1 from users where id = @id) and exists(select 1 from users where id = @userId)", new { id, userId }))
                 return Results.NotFound();
-            // A blocked request is not stored, but the response is the same so the block is not revealed.
+            // A blocked request is stored but hidden from the blocker and cannot be accepted, so the requester keeps
+            // seeing it as pending and the block is not revealed.
             await conn.ExecuteAsync("""
-                insert into follows (follower_id, following_id)
-                select @userId, @id
-                where not exists (select 1 from follow_blocks where blocker_id = @id and blocked_id = @userId)
+                insert into follows (follower_id, following_id) values (@userId, @id)
                 on conflict (follower_id, following_id) do nothing
                 """, new { id, userId });
             return Results.NoContent();
@@ -101,16 +105,20 @@ public static class SocialEndpoints
         social.MapDelete("/blocks/{id:guid}", async (Guid id, NpgsqlDataSource db, ClaimsPrincipal user) =>
         {
             await using var conn = await db.OpenConnectionAsync();
-            await conn.ExecuteAsync("delete from follow_blocks where blocker_id = @userId and blocked_id = @id",
-                new { id, userId = user.GetUserId() });
+            // Requests sent during the block were never shown; lifting it does not bring them back.
+            await conn.ExecuteAsync("""
+                delete from follows where following_id = @userId and follower_id = @id and accepted_at is null
+                    and exists (select 1 from follow_blocks where blocker_id = @userId and blocked_id = @id);
+                delete from follow_blocks where blocker_id = @userId and blocked_id = @id
+                """, new { id, userId = user.GetUserId() });
             return Results.NoContent();
         });
         social.MapPut("/followers/{id:guid}", async (Guid id, NpgsqlDataSource db, ClaimsPrincipal user) =>
         {
             await using var conn = await db.OpenConnectionAsync();
-            var count = await conn.ExecuteAsync("""
+            var count = await conn.ExecuteAsync($"""
                 update follows set accepted_at = coalesce(accepted_at, now())
-                where following_id = @userId and follower_id = @id
+                where following_id = @userId and follower_id = @id and {NotBlocked("@userId", "@id")}
                 """, new { id, userId = user.GetUserId() });
             return count == 0 ? Results.NotFound() : Results.NoContent();
         });

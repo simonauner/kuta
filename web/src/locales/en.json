@@ -616,7 +616,7 @@
     "block": "Block",
     "unblock": "Unblock",
     "blocked": "Blocked",
-    "blockedHint": "Blocked people can't ask to follow you. They aren't told that they are blocked.",
+    "blockedHint": "Blocked people can't ask to follow you or see anything you share, not even public activities. They aren't told that they are blocked.",
     "joined": "Joined {{date}}",
     "requestHint": "Only approve people you recognise. Names can be chosen freely, so someone can pretend to be someone else – a newly created account is a warning sign.",
     "followers": "Followers and requests",

@@ -268,15 +268,25 @@ public class SocialTests(KutaFactory factory) : IClassFixture<KutaFactory>
             // A pending request shows when the requester joined, since names are free text.
             await viewer.PostAsync($"/api/following/{ownerId}", null, ct);
             Assert.NotNull(Assert.Single((await owner.GetFromJsonAsync<FollowLists>("/api/follows", ct))!.Followers).JoinedAt);
-            // Blocking removes the request and silently drops new ones until the block is lifted.
+            // Blocking removes the request and hides new ones until the block is lifted; the requester still sees them as
+            // pending, so the block is not revealed. Shared activities are closed to the blocked person, public ones too.
             Assert.Equal(HttpStatusCode.NotFound, (await owner.PutAsync($"/api/blocks/{Guid.NewGuid()}", null, ct)).StatusCode);
+            Assert.Equal(HttpStatusCode.NoContent, (await owner.PutAsJsonAsync($"/api/activities/{activityId}", update, ct)).StatusCode);
             Assert.Equal(HttpStatusCode.NoContent, (await owner.PutAsync($"/api/blocks/{viewerId}", null, ct)).StatusCode);
             Assert.Equal(HttpStatusCode.NoContent, (await viewer.PostAsync($"/api/following/{ownerId}", null, ct)).StatusCode);
             var blocking = (await owner.GetFromJsonAsync<FollowLists>("/api/follows", ct))!;
             Assert.Empty(blocking.Followers);
             Assert.Equal(viewerId, Assert.Single(blocking.Blocked).Id);
-            Assert.Empty((await viewer.GetFromJsonAsync<FollowLists>("/api/follows", ct))!.Blocked);
+            Assert.Equal(HttpStatusCode.NotFound, (await owner.PutAsync($"/api/followers/{viewerId}", null, ct)).StatusCode);
+            var blocked = (await viewer.GetFromJsonAsync<FollowLists>("/api/follows", ct))!;
+            Assert.Empty(blocked.Blocked);
+            Assert.Equal("pending", Assert.Single(blocked.Following).Status);
+            Assert.Equal("pending", (await viewer.GetFromJsonAsync<Runner>($"/api/runners/{ownerId}", ct))!.Status);
+            Assert.Equal(HttpStatusCode.NotFound, (await viewer.GetAsync($"/api/activities/{activityId}", ct)).StatusCode);
+            Assert.Empty((await viewer.GetFromJsonAsync<FeedPage>($"/api/runners/{ownerId}/activities", ct))!.Items);
             Assert.Equal(HttpStatusCode.NoContent, (await owner.DeleteAsync($"/api/blocks/{viewerId}", ct)).StatusCode);
+            Assert.Empty((await owner.GetFromJsonAsync<FollowLists>("/api/follows", ct))!.Followers);
+            Assert.Equal(HttpStatusCode.OK, (await viewer.GetAsync($"/api/activities/{activityId}", ct)).StatusCode);
             await viewer.PostAsync($"/api/following/{ownerId}", null, ct);
             Assert.Single((await owner.GetFromJsonAsync<FollowLists>("/api/follows", ct))!.Followers);
         }
