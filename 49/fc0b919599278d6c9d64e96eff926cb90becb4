@@ -1,0 +1,37 @@
+api/Kuta.Api.Tests/ActivityPrivacyTests.cs
+  s_4b41d6b2cbe45c::t_02a16d91b85603 62,75,82-83,101
+api/Kuta.Api/MeEndpoints.cs
+  s_4b41d6b2cbe45c::t_02a16d91b85603 13,204-206,214
+web/src/lib/auth.ts
+  s_4b41d6b2cbe45c::t_02a16d91b85603 13
+web/src/components/activity-privacy.tsx
+  s_4b41d6b2cbe45c::t_02a16d91b85603 106,114,143-146
+web/src/locales/sv.json
+  s_4b41d6b2cbe45c::t_02a16d91b85603 604
+  s_4b41d6b2cbe45c::t_717612194c2e41 603
+  s_4b41d6b2cbe45c::t_36a915e0bafd4f 401
+web/src/locales/en.json
+  s_4b41d6b2cbe45c::t_02a16d91b85603 603-604
+  s_4b41d6b2cbe45c::t_36a915e0bafd4f 401
+README.md
+  s_4b41d6b2cbe45c::t_02a16d91b85603 131-133
+api/Kuta.Api/StravaImportEndpoint.cs
+  s_4b41d6b2cbe45c::t_36a915e0bafd4f 68-73,76
+  s_4b41d6b2cbe45c::t_26c2fd74296cf0 67
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.7.5",
+  "base_commit_sha": "49fc0b919599278d6c9d64e96eff926cb90becb4",
+  "prompts": {},
+  "sessions": {
+    "s_4b41d6b2cbe45c": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "666b8b83-04cc-4497-9a36-a615f20592fd",
+        "model": "claude-opus-5-5"
+      },
+      "human_author": "Simon Aunér <simonauner@gmail.com>"
+    }
+  }
+}

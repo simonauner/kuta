@@ -1,0 +1,33 @@
+AGENTS.md
+  s_4b41d6b2cbe45c::t_c4f8a3934ede10 45
+README.md
+  s_4b41d6b2cbe45c::t_c4f8a3934ede10 629,728
+api/Kuta.Api/AuthEndpoints.cs
+  s_4b41d6b2cbe45c::t_c4f8a3934ede10 7,54,119,125-128
+api/Kuta.Api.Tests/AuthFailureTests.cs
+  s_4b41d6b2cbe45c::t_c4f8a3934ede10 64,66,98-99
+web/privacy.html
+  s_4b41d6b2cbe45c::t_91baea763fe7f4 216-219
+  s_4b41d6b2cbe45c::t_c4f8a3934ede10 215,531-532
+web/src/routes/auth.tsx
+  s_4b41d6b2cbe45c::t_c4f8a3934ede10 31,33
+  s_4b41d6b2cbe45c::t_91baea763fe7f4 45-46
+api/Kuta.Api/Turnstile.cs
+  s_4b41d6b2cbe45c::t_c4f8a3934ede10 6-7
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.7.5",
+  "base_commit_sha": "ea278615463480fafd057a6dc25e8ee53e3a7698",
+  "prompts": {},
+  "sessions": {
+    "s_4b41d6b2cbe45c": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "666b8b83-04cc-4497-9a36-a615f20592fd",
+        "model": "claude-opus-5-5"
+      },
+      "human_author": "Simon Aunér <simonauner@gmail.com>"
+    }
+  }
+}
