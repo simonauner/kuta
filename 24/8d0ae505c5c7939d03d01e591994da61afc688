@@ -1,0 +1,31 @@
+web/src/locales/en.json
+  s_1d8c41d0c04d95::t_cb359171bc75d5 3-19,436-437
+  s_1d8c41d0c04d95::t_40f2b9de0891cc 398-399
+web/src/locales/sv.json
+  s_1d8c41d0c04d95::t_40f2b9de0891cc 398-399
+  s_1d8c41d0c04d95::t_cb359171bc75d5 3-19,436-437
+web/src/components/garmin.tsx
+  s_1d8c41d0c04d95::t_4330ede4e5efd3 1-2,4-8,19-39,41-54,56-155
+  s_1d8c41d0c04d95::t_e7d58bb5de6d11 40,55
+web/src/lib/jobs.ts
+  s_1d8c41d0c04d95::t_cb359171bc75d5 3
+web/src/routes/settings.tsx
+  s_1d8c41d0c04d95::t_cb359171bc75d5 7,91-95
+  s_1d8c41d0c04d95::t_e28539ac761949 96-97
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.7.5",
+  "base_commit_sha": "248d0ae505c5c7939d03d01e591994da61afc688",
+  "prompts": {},
+  "sessions": {
+    "s_1d8c41d0c04d95": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "bdd1f4bc-6213-49a7-8e73-7e9172c83f8c",
+        "model": "claude-opus-5-5"
+      },
+      "human_author": "Simon Aunér <simonauner@gmail.com>"
+    }
+  }
+}
