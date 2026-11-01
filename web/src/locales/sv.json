@@ -370,7 +370,7 @@
     "passwordRequired": "Ange ditt lösenord.",
     "wrongPassword": "Fel lösenord.",
     "invalidEmail": "Ange en giltig e-postadress.",
-    "invalidName": "Ange ett namn (högst 100 tecken).",
+    "invalidName": "Ange ett namn (högst 100 tecken, utan osynliga tecken och utan märken som liknar Kutas).",
     "nameRequired": "Välj ett namn först.",
     "fileRequired": "Välj en FIT-fil att ladda upp.",
     "fileTooLarge": "Filen är för stor (högst 20 MB).",

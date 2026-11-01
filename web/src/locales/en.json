@@ -370,7 +370,7 @@
     "passwordRequired": "Enter your password.",
     "wrongPassword": "Incorrect password.",
     "invalidEmail": "Enter a valid email address.",
-    "invalidName": "Enter a name (up to 100 characters).",
+    "invalidName": "Enter a name (up to 100 characters, without invisible characters or marks that look like Kuta's).",
     "nameRequired": "Choose a name first.",
     "fileRequired": "Choose a FIT file to upload.",
     "fileTooLarge": "The file is too large (20 MB maximum).",

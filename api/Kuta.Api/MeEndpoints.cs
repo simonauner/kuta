@@ -1,4 +1,6 @@
+using System.Globalization;
 using System.Security.Claims;
+using System.Text;
 using Dapper;
 using Microsoft.AspNetCore.Authentication;
 using Microsoft.AspNetCore.Authentication.Cookies;
@@ -22,6 +24,28 @@ public static class MeEndpoints
     // auth.users.id, which is also users.id
     public static Guid GetUserId(this ClaimsPrincipal user) =>
         Guid.Parse(user.FindFirstValue(ClaimTypes.NameIdentifier)!);
+
+    // Look-alikes of the supporter badge (bronze, silver, gold) and of a verified mark.
+    static readonly string[] BadgeLookalikes = ["✓", "✔", "✅", "☑", "🥇", "🥈", "🥉", "🏅", "🎖"];
+
+    // Names are free text and not unique, so they are what a stranger uses to pass as a friend in a follow request.
+    // Compatibility forms (full-width letters) are folded, whitespace collapsed, and invisible or direction-changing
+    // characters and badge look-alikes rejected. Null when the name is not allowed.
+    public static string? NormalizeDisplayName(string? name)
+    {
+        if (name is null) return null;
+        try { name = name.Normalize(NormalizationForm.FormKC); }
+        catch (ArgumentException) { return null; }
+        name = string.Join(' ', name.Split((char[]?)null, StringSplitOptions.RemoveEmptyEntries));
+        if (name.Length is 0 or > 100 || BadgeLookalikes.Any(name.Contains)) return null;
+        // EnumerateRunes turns lone surrogates into the replacement character.
+        foreach (var rune in name.EnumerateRunes())
+            if (rune == Rune.ReplacementChar || Rune.GetUnicodeCategory(rune) is UnicodeCategory.Control or UnicodeCategory.Format or UnicodeCategory.PrivateUse
+                or UnicodeCategory.Surrogate or UnicodeCategory.OtherNotAssigned or UnicodeCategory.LineSeparator
+                or UnicodeCategory.ParagraphSeparator)
+                return null;
+        return name;
+    }
 
     public static void MapMe(this RouteGroupBuilder api)
     {
@@ -63,9 +87,8 @@ public static class MeEndpoints
 
         me.MapPut("", async (UpdateMeRequest req, NpgsqlDataSource db, ClaimsPrincipal user) =>
         {
-            var displayName = req.DisplayName?.Trim();
-            if (displayName is not { Length: > 0 and <= 100 })
-                return Results.BadRequest(new ApiError("Ange ett namn (högst 100 tecken).", "invalidName"));
+            if (NormalizeDisplayName(req.DisplayName) is not { } displayName)
+                return Results.BadRequest(new ApiError("Ange ett namn (högst 100 tecken, utan osynliga tecken och utan märken som liknar Kutas).", "invalidName"));
 
             await using var conn = await db.OpenConnectionAsync();
             await conn.ExecuteAsync(
