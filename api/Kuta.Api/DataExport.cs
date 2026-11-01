@@ -36,7 +36,7 @@ public static class DataExport
             var profile = await conn.QuerySingleOrDefaultAsync<ExportProfile>(new CommandDefinition("""
                 select u.id, a.email, u.display_name, u.created_at, u.hr_consent_at, u.default_activity_privacy,
                     u.threshold_speed_m_s, u.supporter_tier, u.supporter_until, u.supporter_badge_privacy,
-                    u.terms_accepted_at
+                    u.terms_version, u.terms_accepted_at
                 from users u join auth.users a on a.id = u.id where u.id = @userId for share of u
                 """, new { userId }, tx, cancellationToken: ct));
             var activities = await conn.QueryAsync<ExportActivity>(new CommandDefinition("""
@@ -95,7 +95,7 @@ public static class DataExport
     private record ExportFollow(Guid FollowerId, Guid FollowingId, DateTime? AcceptedAt, DateTime CreatedAt);
     private record ExportProfile(Guid Id, string? Email, string DisplayName, DateTime CreatedAt, DateTime? HrConsentAt, string DefaultActivityPrivacy,
         double? ThresholdSpeedMS, string? SupporterTier, DateTime? SupporterUntil, string SupporterBadgePrivacy,
-        DateTime? TermsAcceptedAt);
+        string? TermsVersion, DateTime? TermsAcceptedAt);
     private record ExportActivity(Guid Id, string Source, DateTime CreatedAt, string Privacy,
         string? StravaActivityId, string? RawFileKey);
 }

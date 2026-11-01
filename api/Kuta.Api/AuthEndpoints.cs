@@ -11,6 +11,9 @@ public record ResetPasswordRequest(string? Password);
 
 public static class AuthEndpoints
 {
+    // Datumet på web/terms.html (testas i TermsVersionTests). Ändra vid varje ny version av villkoren.
+    public const string TermsVersion = "2026-11-01";
+
     // Webben hämtar en ny token efter varje in- och utloggning, eftersom token är knuten till användaren.
     public static void MapAntiforgery(this RouteGroupBuilder api)
     {

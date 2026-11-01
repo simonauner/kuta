@@ -52,8 +52,9 @@ public class AuthTests(KutaFactory factory) : IClassFixture<KutaFactory>
             await UseCsrfToken(client, ct);
             var put = await client.PutAsJsonAsync("/api/me", new { displayName = "Testlöpare" }, ct);
             Assert.Equal(HttpStatusCode.OK, put.StatusCode);
-            Assert.NotNull(await conn.ExecuteScalarAsync<DateTime?>(
-                "select terms_accepted_at from users where id = @id", new { id = me.GetProperty("id").GetGuid() }));
+            Assert.Equal(AuthEndpoints.TermsVersion, await conn.ExecuteScalarAsync<string>(
+                "select terms_version from users where id = @id and terms_accepted_at is not null",
+                new { id = me.GetProperty("id").GetGuid() }));
 
             await conn.ExecuteAsync(
                 "insert into activities (user_id, source, started_at, duration_s, distance_m) values (@id, 'manual', now(), 1800, 5000)",

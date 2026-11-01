@@ -30,7 +30,10 @@ public sealed class SupabaseAuthClient(HttpClient http, IConfiguration configura
     {
         using var request = ClientRequest(HttpMethod.Post, "/auth/v1/signup");
         // Registreringen kräver godkända villkor; tidpunkten följer med till users när profilen skapas.
-        request.Content = JsonContent.Create(new { email, password, data = new { terms_accepted_at = DateTime.UtcNow } });
+        request.Content = JsonContent.Create(new { email, password, data = new
+        {
+            terms_version = AuthEndpoints.TermsVersion, terms_accepted_at = DateTime.UtcNow,
+        } });
         using var response = await http.SendAsync(request, cancellationToken);
         ThrowIfUnavailable(response);
         if (!response.IsSuccessStatusCode)
