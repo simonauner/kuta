@@ -1,0 +1,31 @@
+api/Kuta.Api/SocialEndpoints.cs
+  s_4b41d6b2cbe45c::t_8a8c8d8618c3ea 5-7,45,68,75,81,85-92
+api/Kuta.Api/MeEndpoints.cs
+  s_4b41d6b2cbe45c::t_b3fc64003885be 50-77
+api/Kuta.Api.Tests/DisplayNameTests.cs
+  s_4b41d6b2cbe45c::t_b3fc64003885be 25-42
+web/src/locales/sv.json
+  s_4b41d6b2cbe45c::t_645d278caa13e5 629
+api/Kuta.Api.Tests/SocialTests.cs
+  s_4b41d6b2cbe45c::t_e501baa3cf147f 299-328
+web/src/routes/followers.tsx
+  s_4b41d6b2cbe45c::t_645d278caa13e5 27-28,73-77
+web/src/locales/en.json
+  s_4b41d6b2cbe45c::t_645d278caa13e5 629
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.7.5",
+  "base_commit_sha": "1c9a7e20dc0839a7975021b48763462a9cf5cd32",
+  "prompts": {},
+  "sessions": {
+    "s_4b41d6b2cbe45c": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "666b8b83-04cc-4497-9a36-a615f20592fd",
+        "model": "claude-opus-5-5"
+      },
+      "human_author": "Simon Aunér <simonauner@gmail.com>"
+    }
+  }
+}
