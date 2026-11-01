@@ -42,3 +42,10 @@ export function useSessionChanged() {
     return queryClient.resetQueries()
   }
 }
+
+// The public Turnstile site key for the sign-up and password forms; null when the API has the check off.
+export const turnstileQuery = {
+  queryKey: ['turnstile'],
+  queryFn: () => api.get<{ siteKey: string | null }>('/api/turnstile'),
+  staleTime: Infinity,
+}

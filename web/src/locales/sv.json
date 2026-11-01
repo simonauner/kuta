@@ -347,7 +347,8 @@
     "continue": "Fortsätt",
     "confirmSent": "Kolla din e-post och klicka på länken för att aktivera kontot.",
     "recoverySent": "Om adressen har ett konto får du ett mejl med en länk för att återställa lösenordet.",
-    "acceptTerms": "Jag godkänner <terms>användarvillkoren</terms> och <privacy>integritetspolicyn</privacy>."
+    "acceptTerms": "Jag godkänner <terms>användarvillkoren</terms> och <privacy>integritetspolicyn</privacy>.",
+    "turnstileNotice": "Vi kontrollerar med Cloudflare Turnstile att du är en människa. Läs mer i <privacy>integritetspolicyn</privacy>."
   },
   "errors": {
     "invalidActivityYear": "Ange ett år mellan 1 och 9998.",
@@ -364,6 +365,8 @@
     "signupFailed": "Kunde inte skapa kontot. Kontrollera e-postadressen.",
     "emailNotConfirmed": "Bekräfta din e-postadress först – kolla din inkorg.",
     "invalidCredentials": "Fel e-post eller lösenord.",
+    "turnstileFailed": "Kontrollen att du är en människa gick inte igenom. Försök igen.",
+    "turnstileUnavailable": "Kontrollen kan inte göras just nu. Försök igen om en stund.",
     "passwordRequired": "Ange ditt lösenord.",
     "wrongPassword": "Fel lösenord.",
     "invalidEmail": "Ange en giltig e-postadress.",

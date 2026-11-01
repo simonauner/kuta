@@ -212,6 +212,13 @@
             servrar och mejltjänst. Cloudflare Email Routing är avstängd.
           </li>
           <li>
+            <strong>Cloudflare Turnstile:</strong> när du skapar ett konto eller begär en länk för
+            nytt lösenord kontrollerar Turnstile att det är en människa som använder formuläret. Din
+            webbläsare laddar Cloudflares skript och skickar IP-adress och tekniska uppgifter om
+            webbläsaren och enheten till Cloudflare. Kutas server skickar kontrollens svar och din
+            IP-adress till Cloudflare för verifiering. Vi sparar inte resultatet.
+          </li>
+          <li>
             <strong>OpenFreeMap:</strong> levererar kartbilder när du öppnar en passkarta. Din
             webbläsare skickar IP-adress och förfrågningar om kartområden direkt till leverantören.
             Det kan avslöja ungefär var passet gick; själva rutten ritas i din webbläsare. Tjänsten
@@ -238,11 +245,13 @@
           medverkar vid support och drift. Överföringar som omfattas av Flys aktiva certifiering
           enligt EU–US Data Privacy Framework stöds av EU-kommissionens adekvansbeslut. Flys och
           Supabases biträdesavtal innehåller EU:s standardavtalsklausuler som skydd för de
-          överföringar där klausulerna är tillämpliga. Överföring till Proton i Schweiz stöds av
-          EU-kommissionens beslut om adekvat skyddsnivå. Vidareöverföringar omfattas av respektive
-          leverantörs avtalsvillkor och tillämpliga överföringsskydd. Kontakta privacy@kutaapp.com
-          för information om de skydd som gäller dina uppgifter och hur du kan få en kopia av
-          relevanta avtalsvillkor.
+          överföringar där klausulerna är tillämpliga. Cloudflare, Inc. finns i USA; överföringen
+          vid Turnstile stöds av Cloudflares certifiering enligt EU–US Data Privacy Framework och av
+          standardavtalsklausulerna i Cloudflares personuppgiftsbiträdesavtal för det som ramverket
+          inte täcker. Överföring till Proton i Schweiz stöds av EU-kommissionens beslut om adekvat
+          skyddsnivå. Vidareöverföringar omfattas av respektive leverantörs avtalsvillkor och
+          tillämpliga överföringsskydd. Kontakta privacy@kutaapp.com för information om de skydd som
+          gäller dina uppgifter och hur du kan få en kopia av relevanta avtalsvillkor.
         </p>
 
         <h3>6. Hur länge sparas uppgifterna?</h3>
@@ -519,6 +528,13 @@
             email service. Cloudflare Email Routing is disabled.
           </li>
           <li>
+            <strong>Cloudflare Turnstile:</strong> when you create an account or ask for a new
+            password link, Turnstile checks that a person is using the form. Your browser loads
+            Cloudflare's script and sends your IP address and technical details about the browser
+            and device to Cloudflare. Kuta's server sends the check's response and your IP address
+            to Cloudflare for verification. We do not keep the result.
+          </li>
+          <li>
             <strong>OpenFreeMap:</strong> provides map tiles when you open an activity map. Your
             browser sends your IP address and requests for map areas directly to the provider. This
             may reveal the approximate activity location; the route itself is drawn in your browser.
@@ -546,8 +562,11 @@
           by Fly's active EU–US Data Privacy Framework certification rely on the European
           Commission's adequacy decision. Fly's and Supabase's data processing agreements include EU
           Standard Contractual Clauses as safeguards for transfers to which those clauses apply.
-          Transfers to Proton in Switzerland rely on the European Commission's adequacy decision.
-          Onward transfers are subject to each provider's contractual terms and applicable transfer
+          Cloudflare, Inc. is in the United States; transfers for Turnstile rely on Cloudflare's
+          EU–US Data Privacy Framework certification and, for anything the framework does not cover,
+          the Standard Contractual Clauses in Cloudflare's data processing agreement. Transfers to
+          Proton in Switzerland rely on the European Commission's adequacy decision. Onward
+          transfers are subject to each provider's contractual terms and applicable transfer
           safeguards. Contact privacy@kutaapp.com for information about safeguards applicable to
           your data and how to obtain a copy of relevant contractual terms.
         </p>

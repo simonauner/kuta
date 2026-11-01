@@ -52,6 +52,7 @@ static async Task<int> RunAsync(string[] args)
     // Sign-in via our API against Supabase Auth (BFF); the session lives in an encrypted HttpOnly cookie
     builder.Services.AddHttpContextAccessor();
     builder.Services.AddHttpClient<SupabaseAuthClient>();
+    builder.Services.AddHttpClient<TurnstileVerifier>(client => client.Timeout = TimeSpan.FromSeconds(10));
     builder.Services.AddHttpClient<GarminClient>();
     builder.Services.AddSingleton<SharedTokenRefresh>();
     builder.Services.AddSingleton<RawFileStore>();
