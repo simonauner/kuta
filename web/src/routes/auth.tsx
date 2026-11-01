@@ -23,8 +23,10 @@ export function AuthPage() {
     null,
   )
   const sessionChanged = useSessionChanged()
-  // Bekräftelselänken (/api/auth/confirm) skickar hit med ?confirm=failed när länken är ogiltig eller använd
-  const confirmFailed = new URLSearchParams(window.location.search).get('confirm') === 'failed'
+  // Bekräftelselänken (/api/auth/confirm) loggar inte in: den skickar hit med ?confirm=ok, eller ?confirm=failed
+  // när länken är ogiltig eller använd
+  const confirm = new URLSearchParams(window.location.search).get('confirm')
+  const confirmFailed = confirm === 'failed'
 
   const submit = useMutation({
     mutationFn: async (form: FormData) => {
@@ -91,6 +93,11 @@ export function AuthPage() {
       {confirmFailed && !submit.error && (
         <p role="alert" className="mb-4 text-sm text-destructive">
           {t('auth.confirmFailed')}
+        </p>
+      )}
+      {confirm === 'ok' && mode === 'login' && !submit.error && (
+        <p role="status" className="mb-4 text-sm">
+          {t('auth.confirmed')}
         </p>
       )}
       <form onSubmit={onSubmit} className="space-y-4">

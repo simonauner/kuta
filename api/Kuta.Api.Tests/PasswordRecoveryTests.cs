@@ -28,10 +28,9 @@ public class PasswordRecoveryTests
             await Csrf(client, ct);
             Assert.Equal(HttpStatusCode.Accepted,
                 (await client.PostAsJsonAsync("/api/auth/signup", new { email, password = Password, acceptTerms = true }, ct)).StatusCode);
-            var signupHash = await EmailToken(email, "confirm", ct);
-            var confirm = await client.GetAsync($"/api/auth/confirm?token_hash={signupHash}", ct);
-            Assert.Equal("/app", confirm.Headers.Location?.ToString());
-            var originalCookies = confirm.Headers.GetValues("Set-Cookie").Select(c => c.Split(';')[0]);
+            await ConfirmAsync(conn, email, ct);
+            var login = await client.PostAsJsonAsync("/api/auth/login", new { email, password = Password }, ct);
+            var originalCookies = login.Headers.GetValues("Set-Cookie").Select(c => c.Split(';')[0]);
             var originalSession = Client(factory, cookies: false);
             originalSession.DefaultRequestHeaders.Add("Cookie", string.Join("; ", originalCookies));
             Assert.Equal(HttpStatusCode.OK, (await originalSession.GetAsync("/api/me", ct)).StatusCode);
@@ -92,8 +91,9 @@ public class PasswordRecoveryTests
             await Csrf(client, ct);
             Assert.Equal(HttpStatusCode.Accepted,
                 (await client.PostAsJsonAsync("/api/auth/signup", new { email, password = Password, acceptTerms = true }, ct)).StatusCode);
-            var signupHash = await EmailToken(email, "confirm", ct);
-            Assert.Equal("/app", (await client.GetAsync($"/api/auth/confirm?token_hash={signupHash}", ct)).Headers.Location?.ToString());
+            await ConfirmAsync(conn, email, ct);
+            Assert.Equal(HttpStatusCode.NoContent,
+                (await client.PostAsJsonAsync("/api/auth/login", new { email, password = Password }, ct)).StatusCode);
             await Csrf(client, ct);
             Assert.Equal(HttpStatusCode.Unauthorized,
                 (await client.PostAsJsonAsync("/api/auth/reset-password", new { password = NewPassword }, ct)).StatusCode);
@@ -204,6 +204,10 @@ public class PasswordRecoveryTests
 
     static HttpClient Client(WebApplicationFactory<Program> factory, bool cookies = true) =>
         factory.CreateClient(new WebApplicationFactoryClientOptions { AllowAutoRedirect = false, HandleCookies = cookies });
+
+    // Bekräftelselänken loggar inte in (se AuthTests); här räcker en bekräftad adress, och auth-gränsen per IP sparas.
+    static Task ConfirmAsync(NpgsqlConnection conn, string email, CancellationToken ct) => conn.ExecuteAsync(new CommandDefinition(
+        "update auth.users set email_confirmed_at = now() where email = @email", new { email }, cancellationToken: ct));
 
     static async Task Csrf(HttpClient client, CancellationToken ct)
     {

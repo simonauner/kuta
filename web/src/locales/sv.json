@@ -310,6 +310,7 @@
     "recover": "Återställ lösenord",
     "resetFailed": "Återställningslänken är ogiltig eller redan använd. Begär en ny länk.",
     "confirmFailed": "Bekräftelselänken är ogiltig eller redan använd. Logga in eller skapa kontot igen.",
+    "confirmed": "E-postadressen är bekräftad. Logga in med ditt lösenord.",
     "email": "E-post",
     "password": "Lösenord",
     "wait": "Vänta…",
