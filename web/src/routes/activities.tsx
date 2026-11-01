@@ -3,7 +3,7 @@ import { SportIcon } from '@/components/sport-icon'
 import { sports } from '@/lib/sports'
 import { UnreviewedActivities } from '@/components/unreviewed-activities'
 import { TagLabels } from '@/components/activity-tags'
-import { activityTagsQuery, activityYearsQuery, refreshActivityQueries } from '@/lib/activity-query'
+import { activityTagsQuery, activityYearsQuery } from '@/lib/activity-query'
 import { ErrorMessage } from '@/components/error-message'
 import { ActivitiesEmptyState } from '@/components/activities-empty-state'
 import { SlowLoading } from '@/components/slow-loading'
@@ -14,10 +14,9 @@ import { useState } from 'react'
 import { motion, useReducedMotion } from 'motion/react'
 import { Reveal } from '@/components/reveal'
 import { useTranslation } from 'react-i18next'
-import { useInfiniteQuery, useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
+import { useInfiniteQuery, useQuery } from '@tanstack/react-query'
 import { getRouteApi, Link } from '@tanstack/react-router'
 import { Button } from '@/components/ui/button'
-import { ConfirmationModal } from '@/components/ui/confirmation-modal'
 import { api } from '@/lib/api'
 import {
   activityTitle,
@@ -46,7 +45,6 @@ export function ActivitiesPage() {
     minimumFractionDigits: 2,
     maximumFractionDigits: 2,
   })
-  const queryClient = useQueryClient()
   const reduceMotion = useReducedMotion()
   const tagOptions = useQuery(activityTagsQuery)
   const timeZone = Intl.DateTimeFormat().resolvedOptions().timeZone
@@ -79,15 +77,6 @@ export function ActivitiesPage() {
     !sport
   // null = closed, 'new' = new goal, otherwise the goal being edited
   const [goalForm, setGoalForm] = useState<Goal | 'new' | null>(null)
-
-  const [deleting, setDeleting] = useState<string | null>(null)
-  const remove = useMutation({
-    mutationFn: (id: string) => api.send('DELETE', `/api/activities/${id}`),
-    onSuccess: async () => {
-      await refreshActivityQueries(queryClient)
-      setDeleting(null)
-    },
-  })
 
   return (
     <section>
@@ -207,17 +196,6 @@ export function ActivitiesPage() {
           </FormField>
         </>
       )}
-      <ConfirmationModal
-        open={deleting !== null}
-        title={t('activities.confirmDelete')}
-        description={t('activities.deleteWarning')}
-        confirmLabel={t('activities.delete')}
-        cancelLabel={t('common.cancel')}
-        pending={remove.isPending}
-        error={remove.error}
-        onConfirm={() => deleting && remove.mutate(deleting)}
-        onClose={() => setDeleting(null)}
-      />
 
       <SlowLoading loading={activities.isPending}>
         {activities.isSuccess &&
@@ -256,7 +234,7 @@ export function ActivitiesPage() {
                 {period.activities.map((a) => (
                   <motion.li
                     key={a.id}
-                    className="flex items-start justify-between gap-4 py-4"
+                    className="py-4"
                     initial={reduceMotion ? false : { opacity: 0, y: 8 }}
                     animate={{ opacity: 1, y: 0 }}
                     transition={{ duration: 0.2, ease: 'easeOut' }}
@@ -297,20 +275,6 @@ export function ActivitiesPage() {
                       </p>
                       <TagLabels tags={a.tags} />
                     </div>
-                    <Button
-                      variant="ghost"
-                      size="sm"
-                      disabled={remove.isPending}
-                      aria-label={t('activities.deleteLabel', {
-                        date: dateFormat.format(new Date(a.startedAt)),
-                      })}
-                      onClick={() => {
-                        remove.reset()
-                        setDeleting(a.id)
-                      }}
-                    >
-                      {t('activities.delete')}
-                    </Button>
                   </motion.li>
                 ))}
               </ul>

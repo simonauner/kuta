@@ -148,7 +148,6 @@
     "week": "Week {{week}}",
     "empty": "No activities yet.",
     "delete": "Delete",
-    "deleteLabel": "Delete activity {{date}}",
     "confirmDelete": "Delete the activity?",
     "sport": "Sport",
     "allSports": "All sports",
@@ -301,7 +300,8 @@
     "save": "Save changes",
     "cancel": "Cancel",
     "noRecordsWithoutFile": "Records only come from runs uploaded from a file with distance data.",
-    "backToRunner": "Back to the profile"
+    "backToRunner": "Back to the profile",
+    "delete": "Delete activity"
   },
   "consent": {
     "title": "Save heart rate from my activities.",

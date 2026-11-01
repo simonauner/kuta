@@ -1,8 +1,8 @@
 import { SlowLoading } from '@/components/slow-loading'
 import { isCyclingSport, knownSport, sportIcons } from '@/lib/sports'
 import { SportIcon } from '@/components/sport-icon'
-import { useQuery } from '@tanstack/react-query'
-import { Link, useParams, useSearch } from '@tanstack/react-router'
+import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
+import { Link, useNavigate, useParams, useSearch } from '@tanstack/react-router'
 import { useId, useMemo, useState } from 'react'
 import { ChevronDown } from 'lucide-react'
 import { useTranslation } from 'react-i18next'
@@ -19,7 +19,7 @@ import { ActivityMap } from '@/components/activity-map'
 import { ErrorMessage } from '@/components/error-message'
 import { RecordAward } from '@/components/record-award'
 import { ApiError } from '@/lib/api'
-import { activityQuery } from '@/lib/activity-query'
+import { activityQuery, refreshActivityQueries } from '@/lib/activity-query'
 import { api } from '@/lib/api'
 import {
   recordMeters,
@@ -39,6 +39,7 @@ import {
 } from '@/lib/activity'
 import { card } from '@/components/ui/card-variants'
 import { VisitorNotice } from '@/components/visitor-notice'
+import { ConfirmationModal } from '@/components/ui/confirmation-modal'
 
 // Pace from speed, smoothed over ~15 s so GPS noise doesn't cause spikes; standing still becomes a gap.
 function paceSeries(speed: (number | null)[], minSpeed = 0.5) {
@@ -640,6 +641,51 @@ export function ActivityPage() {
           {effortTable}
         </div>
       )}
+
+      {original.userId === me?.id && <DeleteActivity activityId={original.id} />}
     </section>
+  )
+}
+
+// Last on the page: deleting is rare and permanent, so it does not compete with editing.
+function DeleteActivity({ activityId }: { activityId: string }) {
+  const { t } = useTranslation()
+  const queryClient = useQueryClient()
+  const navigate = useNavigate()
+  const { returnTo, year, tag, sport } = useSearch({ from: '/app/activities/$activityId' })
+  const [confirming, setConfirming] = useState(false)
+  const remove = useMutation({
+    mutationFn: () => api.send('DELETE', `/api/activities/${activityId}`),
+    onSuccess: async () => {
+      setConfirming(false)
+      if (returnTo) await navigate({ href: returnTo })
+      else await navigate({ to: '/app/activities', search: { year, tag, sport } })
+      // After leaving: refetching the deleted activity on this page would only show "not found"
+      await refreshActivityQueries(queryClient)
+    },
+  })
+  return (
+    <div className="mt-10 border-t pt-6">
+      <Button
+        variant="destructive-outline"
+        onClick={() => {
+          remove.reset()
+          setConfirming(true)
+        }}
+      >
+        {t('activity.delete')}
+      </Button>
+      <ConfirmationModal
+        open={confirming}
+        title={t('activities.confirmDelete')}
+        description={t('activities.deleteWarning')}
+        confirmLabel={t('activities.delete')}
+        cancelLabel={t('common.cancel')}
+        pending={remove.isPending}
+        error={remove.error}
+        onConfirm={() => remove.mutate()}
+        onClose={() => setConfirming(false)}
+      />
+    </div>
   )
 }

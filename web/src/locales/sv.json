@@ -148,7 +148,6 @@
     "week": "v. {{week}}",
     "empty": "Inga aktiviteter än.",
     "delete": "Radera",
-    "deleteLabel": "Radera aktiviteten {{date}}",
     "confirmDelete": "Radera aktiviteten?",
     "sport": "Sport",
     "allSports": "Alla sporter",
@@ -301,7 +300,8 @@
     "save": "Spara ändringar",
     "cancel": "Avbryt",
     "noRecordsWithoutFile": "Rekord räknas bara ur löprundor som laddats upp från en fil med distansdata.",
-    "backToRunner": "Tillbaka till profilen"
+    "backToRunner": "Tillbaka till profilen",
+    "delete": "Radera aktivitet"
   },
   "consent": {
     "title": "Spara puls från mina aktiviteter.",
