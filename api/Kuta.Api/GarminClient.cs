@@ -24,6 +24,12 @@ public sealed class GarminClient(HttpClient http, IConfiguration configuration)
     string? ClientSecret => configuration["Garmin:ClientSecret"];
     public bool Configured => ClientId is { Length: > 0 } && ClientSecret is { Length: > 0 };
 
+    // Before launch only listed accounts may connect; Garmin:OpenToAll opens the connection to everyone. Existing
+    // connections keep receiving data and can always be disconnected.
+    public bool AvailableTo(Guid userId) => Configured && (configuration.GetValue("Garmin:OpenToAll", false)
+        || (configuration["Garmin:AllowedUserIds"] ?? "").Split(',', StringSplitOptions.TrimEntries)
+            .Any(id => Guid.TryParse(id, out var allowed) && allowed == userId));
+
     sealed record TokenResponse(
         [property: JsonPropertyName("access_token")] string AccessToken,
         [property: JsonPropertyName("refresh_token")] string RefreshToken,
