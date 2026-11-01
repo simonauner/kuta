@@ -1,0 +1,35 @@
+web/src/locales/sv.json
+  s_18157bd3682cdd::t_b75bcf6db89147 351-352,440
+api/Kuta.Api.Tests/DeleteAccountTests.cs
+  s_18157bd3682cdd::t_0ad13d333c9786 12-13,53,55,57-66,85-86
+web/src/components/danger-zone.tsx
+  s_18157bd3682cdd::t_9cdfb22b03413e 21-26,28-31,52,110-123
+api/Kuta.Api/MeEndpoints.cs
+  s_18157bd3682cdd::t_2b4bf0113e68d6 5,17,48
+  s_18157bd3682cdd::t_35440c37db426b 29-32,34-38
+api/Kuta.Api.Tests/KutaFactory.cs
+  s_18157bd3682cdd::t_8e563c504fbb79 66-67
+  s_18157bd3682cdd::t_0ad13d333c9786 60-65,68-70
+web/src/locales/en.json
+  s_18157bd3682cdd::t_b75bcf6db89147 351-352,440
+AGENTS.md
+  s_18157bd3682cdd::t_4816f7f6d5bd7d 51
+README.md
+  s_18157bd3682cdd::t_bd359a71bd3a7d 380
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.7.5",
+  "base_commit_sha": "aa6655254bef0222cbfd85c0e9ab6a253feeb497",
+  "prompts": {},
+  "sessions": {
+    "s_18157bd3682cdd": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "c8e5873c-f510-4ac1-8363-b864b8cfaff4",
+        "model": "claude-opus-5-5"
+      },
+      "human_author": "Simon Aunér <simonauner@gmail.com>"
+    }
+  }
+}
