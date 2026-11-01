@@ -1,0 +1,63 @@
+api/Kuta.Api/GarminEndpoints.cs
+  s_1d8c41d0c04d95::t_eb4c01b8e53916 15,54-55,57
+  s_1d8c41d0c04d95::t_f8c42195034b7d 1-14,16-53,56,58-146
+api/Kuta.Api/ActivityStorage.cs
+  s_1d8c41d0c04d95::t_85343a631f9d73 77,82,85-86
+api/Kuta.Api/GarminClient.cs
+  s_1d8c41d0c04d95::t_6a1d98e95753d1 52
+  s_1d8c41d0c04d95::t_c33b6baaf2f11a 1-51,53-143
+api/Kuta.Api/appsettings.Development.json
+  s_1d8c41d0c04d95::t_ddf4858d2a0f65 16-18
+api/Kuta.Api/JobQueue.cs
+  s_1d8c41d0c04d95::t_8f43eb9568bb5b 9-10
+fly.secrets.tpl
+  s_1d8c41d0c04d95::t_ddf4858d2a0f65 9-10
+api/Kuta.Api/ActivityEndpoints.cs
+  s_1d8c41d0c04d95::t_45e803b3c993c7 234
+api/Kuta.Api/Garmin.cs
+  s_1d8c41d0c04d95::t_e311b950bb819d 1-135,137-141,144-176,178-205
+  s_1d8c41d0c04d95::t_6a1d98e95753d1 136
+  s_1d8c41d0c04d95::t_45e803b3c993c7 177
+  s_1d8c41d0c04d95::t_917e0c42c00cfe 142-143
+api/Kuta.Api.Tests/GarminTests.cs
+  s_1d8c41d0c04d95::t_eb4c01b8e53916 93
+  s_1d8c41d0c04d95::t_05be6f8a4cc608 110,117
+  s_1d8c41d0c04d95::t_ec9e058b6bbffa 1-92,94-109,111-116,118-164
+api/Kuta.Api.Tests/SocialTests.cs
+  s_1d8c41d0c04d95::t_4551fc4db19f7f 55,68,71-73
+AGENTS.md
+  s_1d8c41d0c04d95::t_fb0abae4ef7c12 89,92,114
+README.md
+  s_1d8c41d0c04d95::t_fb0abae4ef7c12 597-607
+api/Kuta.Api/Program.cs
+  s_1d8c41d0c04d95::t_e0e902a07b4667 55,255-256
+api/Kuta.Api/Migrations/025_garmin_connections.sql
+  s_1d8c41d0c04d95::t_bc7c9dc844920d 35
+  s_1d8c41d0c04d95::t_9ea2e7eb4f6b21 1-34,36
+api/Kuta.Api/MeEndpoints.cs
+  s_1d8c41d0c04d95::t_18a458c67ced13 5,28-29,33-34
+  s_1d8c41d0c04d95::t_45e803b3c993c7 86,169
+api/Kuta.Api/DataExport.cs
+  s_1d8c41d0c04d95::t_eb4c01b8e53916 58,99
+  s_1d8c41d0c04d95::t_18a458c67ced13 56-57,59
+api/Kuta.Api.Tests/DataExportTests.cs
+  s_1d8c41d0c04d95::t_eb4c01b8e53916 49,187
+api/Kuta.Api/JobWorker.cs
+  s_1d8c41d0c04d95::t_8f43eb9568bb5b 1,83-84,112-114,119-120
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.7.5",
+  "base_commit_sha": "65d39e08affb02c1477e54f2b130f3f1e4ff31bc",
+  "prompts": {},
+  "sessions": {
+    "s_1d8c41d0c04d95": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "bdd1f4bc-6213-49a7-8e73-7e9172c83f8c",
+        "model": "claude-opus-5-5"
+      },
+      "human_author": "Simon Aunér <simonauner@gmail.com>"
+    }
+  }
+}
