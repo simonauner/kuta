@@ -1,5 +1,5 @@
 type FooterProps = {
-  labels: { privacy: string; openApp: string; links: string }
+  labels: { privacy: string; terms: string; openApp: string; links: string }
   language?: string
 } & ({ variant: 'public' } | { variant: 'app'; version: string })
 
@@ -24,6 +24,7 @@ export function Footer(props: FooterProps) {
         </div>
         <nav className="footer-links" aria-label={labels.links}>
           <a href={language === 'en' ? '/privacy#english' : '/privacy'}>{labels.privacy}</a>
+          <a href={language === 'en' ? '/terms#english' : '/terms'}>{labels.terms}</a>
           {props.variant === 'public' ? (
             <a href="/app">{labels.openApp}</a>
           ) : (

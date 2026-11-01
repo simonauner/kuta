@@ -380,7 +380,8 @@
     "development": "utveckling",
     "privacy": "Integritetspolicy",
     "openApp": "Öppna appen",
-    "links": "Sidfotslänkar"
+    "links": "Sidfotslänkar",
+    "terms": "Användarvillkor"
   },
   "settings": {
     "title": "Inställningar",

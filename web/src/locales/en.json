@@ -380,7 +380,8 @@
     "development": "development",
     "privacy": "Privacy policy",
     "openApp": "Open app",
-    "links": "Footer links"
+    "links": "Footer links",
+    "terms": "Terms of use"
   },
   "settings": {
     "title": "Settings",

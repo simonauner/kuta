@@ -24,6 +24,7 @@ test('shared footer renders the logo and switches public navigation for the tran
     assert.match(publicHtml, /alt="Kuta"/)
     assert.match(publicHtml, /href="\/app">Öppna appen/)
     assert.match(publicHtml, /href="\/privacy">Integritetspolicy/)
+    assert.match(publicHtml, /href="\/terms">Användarvillkor/)
     assert.doesNotMatch(publicHtml, /Version/)
     const appHtml = renderToStaticMarkup(
       createElement(Footer, {
@@ -35,6 +36,7 @@ test('shared footer renders the logo and switches public navigation for the tran
     )
     assert.match(appHtml, /alt="Kuta"/)
     assert.match(appHtml, /href="\/privacy#english">Privacy policy/)
+    assert.match(appHtml, /href="\/terms#english">Terms of use/)
     assert.match(appHtml, /Version &lt;test&gt;/)
     assert.doesNotMatch(appHtml, /Open app/)
   } finally {

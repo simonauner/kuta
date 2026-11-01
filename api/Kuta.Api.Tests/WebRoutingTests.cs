@@ -14,6 +14,7 @@ public class WebRoutingTests
         await File.WriteAllTextAsync(Path.Combine(webRoot, "index.html"), "<h1>Public landing</h1>", ct);
         await File.WriteAllTextAsync(Path.Combine(webRoot, "features.html"), "<h1>Available features</h1>", ct);
         await File.WriteAllTextAsync(Path.Combine(webRoot, "privacy.html"), "<h1>Privacy policy</h1>", ct);
+        await File.WriteAllTextAsync(Path.Combine(webRoot, "terms.html"), "<h1>Terms of use</h1>", ct);
         await File.WriteAllTextAsync(Path.Combine(webRoot, "app.html"), "<meta name=\"robots\" content=\"noindex\"><div>App shell</div>", ct);
         try
         {
@@ -25,6 +26,12 @@ public class WebRoutingTests
             {
                 var html = await client.GetStringAsync(path, ct);
                 Assert.Contains("Privacy policy", html);
+                Assert.DoesNotContain("App shell", html);
+            }
+            foreach (var path in new[] { "/terms", "/terms/" })
+            {
+                var html = await client.GetStringAsync(path, ct);
+                Assert.Contains("Terms of use", html);
                 Assert.DoesNotContain("App shell", html);
             }
             foreach (var path in new[] { "/features", "/features/" })
