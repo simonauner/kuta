@@ -1,0 +1,28 @@
+api/Kuta.Api/AuthEndpoints.cs
+  s_18157bd3682cdd::t_d0cedfa8dd16cb 1-3,20-39,41-46,115,141
+  s_18157bd3682cdd::t_55d2eb514b02e4 40
+api/Kuta.Api/Program.cs
+  s_18157bd3682cdd::t_d0cedfa8dd16cb 98-99,104
+api/Kuta.Api.Tests/AuthRateLimitTests.cs
+  s_18157bd3682cdd::t_55d2eb514b02e4 1-28
+.agents/skills/run-dev/SKILL.md
+  s_18157bd3682cdd::t_5d2cb519543169 27
+AGENTS.md
+  s_18157bd3682cdd::t_1ea1af95a60e6c 38,44
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.7.5",
+  "base_commit_sha": "1e7800e7c65d81a03928183aa8d7cebc3304ad4b",
+  "prompts": {},
+  "sessions": {
+    "s_18157bd3682cdd": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "c8e5873c-f510-4ac1-8363-b864b8cfaff4",
+        "model": "claude-opus-5-5"
+      },
+      "human_author": "Simon Aunér <simonauner@gmail.com>"
+    }
+  }
+}
