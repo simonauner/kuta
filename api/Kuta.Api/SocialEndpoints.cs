@@ -12,37 +12,46 @@ public record FeedPage(IReadOnlyList<FeedItem> Items, ActivityCursor? NextCursor
 
 public static class SocialEndpoints
 {
+    // An approved follow from viewer to owner. The owner's "view as follower" preview also counts, for that owner and
+    // transaction only (RunnerProfile.ViewerAsync).
+    public static string FollowedBy(string viewer, string owner) => $"""
+        (exists (select 1 from follows f where f.follower_id = {viewer} and f.following_id = {owner} and f.accepted_at is not null)
+         or current_setting('kuta.preview_follower_of', true) = {owner}::text)
+        """;
+
     // The same predicate protects detail, best efforts and the feed. Writes remain owner-only.
-    public const string CanRead = """
-        (a.user_id = @userId or a.privacy = 'public' or
-         (a.privacy = 'followers' and exists (select 1 from follows f
-          where f.follower_id = @userId and f.following_id = a.user_id and f.accepted_at is not null)))
+    public static readonly string CanRead = $"""
+        (a.user_id = @userId or a.privacy = 'public' or (a.privacy = 'followers' and {FollowedBy("@userId", "a.user_id")}))
         """;
 
     public static void MapSocial(this RouteGroupBuilder api)
     {
         var social = api.MapGroup("").RequireAuthorization();
-        social.MapGet("/runners/{id:guid}", async (Guid id, NpgsqlDataSource db, ClaimsPrincipal user) =>
+        social.MapGet("/runners/{id:guid}", async (Guid id, string? viewAs, NpgsqlDataSource db, ClaimsPrincipal user,
+            CancellationToken ct) =>
         {
-            await using var conn = await db.OpenConnectionAsync();
+            await using var conn = await db.OpenConnectionAsync(ct);
+            var (userId, error) = await RunnerProfile.ViewerAsync(conn, user.GetUserId(), id, viewAs, ct);
+            if (error is not null) return error;
             var runner = await conn.QuerySingleOrDefaultAsync<Runner>($"""
                 select u.id, u.display_name, case when f.follower_id is null then 'none'
                     when f.accepted_at is null then 'pending' else 'accepted' end as status,
                     {Supporters.VisibleTier} as supporter_tier, null::timestamptz as joined_at
                 from users u left join follows f on f.following_id = u.id and f.follower_id = @userId
                 where u.id = @id
-                """, new { id, userId = user.GetUserId() });
+                """, new { id, userId });
             return runner is null ? Results.NotFound() : Results.Ok(runner);
         });
         social.MapGet("/runners/{id:guid}/activities", async (Guid id, NpgsqlDataSource db, ClaimsPrincipal user,
-            DateTimeOffset? beforeStartedAt, Guid? beforeId) =>
+            DateTimeOffset? beforeStartedAt, Guid? beforeId, string? viewAs, CancellationToken ct) =>
         {
             if (beforeStartedAt.HasValue != beforeId.HasValue)
                 return Results.BadRequest(new ApiError("Sidmarkören är ogiltig. Ladda om sidan.", "invalidActivityPage"));
             await using var conn = await db.OpenConnectionAsync();
             if (!await conn.ExecuteScalarAsync<bool>("select exists(select 1 from users where id = @id)", new { id }))
                 return Results.NotFound();
-            return Results.Ok(await ReadFeedAsync(conn, user.GetUserId(), beforeStartedAt, beforeId, id));
+            var (viewer, error) = await RunnerProfile.ViewerAsync(conn, user.GetUserId(), id, viewAs, ct);
+            return error ?? Results.Ok(await ReadFeedAsync(conn, viewer, beforeStartedAt, beforeId, id));
         });
         social.MapGet("/follows", async (NpgsqlDataSource db, ClaimsPrincipal user) =>
         {

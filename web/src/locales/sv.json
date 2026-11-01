@@ -405,7 +405,8 @@
     "jobFailed": "Jobbet misslyckades. Försök igen senare.",
     "jobCancelled": "Jobbet avbröts.",
     "termsRequired": "Godkänn användarvillkoren och integritetspolicyn för att skapa ett konto.",
-    "garminUnavailable": "Garmin Connect är inte tillgängligt just nu."
+    "garminUnavailable": "Garmin Connect är inte tillgängligt just nu.",
+    "invalidViewAs": "Förhandsvisningen gäller bara din egen profil."
   },
   "home": "Kuta – startsida",
   "footer": {
@@ -739,7 +740,45 @@
       "connectionsDescription": "Dela din profillänk eller be en vän om deras för att börja följa varandra.",
       "privacyTitle": "Du väljer vad du delar",
       "privacyDescription": "Bestäm för varje pass och mål om bara du, dina följare eller alla på Kuta får se det."
-    }
+    },
+    "calendar": {
+      "title": "Senaste året",
+      "activeDays_one": "{{count}} aktiv dag",
+      "activeDays_other": "{{count}} aktiva dagar",
+      "streak_one": "{{count}} vecka i rad",
+      "streak_other": "{{count}} veckor i rad",
+      "longest_one": "längsta svit {{count}} vecka",
+      "longest_other": "längsta svit {{count}} veckor",
+      "summary_one": "Aktivitetskalender: {{count}} dag med pass det senaste året",
+      "summary_other": "Aktivitetskalender: {{count}} dagar med pass det senaste året",
+      "day_one": "{{count}} pass, {{distance}} km",
+      "day_other": "{{count}} pass, {{distance}} km"
+    },
+    "stats": {
+      "memberSince": "På Kuta sedan {{date}}",
+      "thisYear": "I år",
+      "allTime": "Totalt",
+      "sessions_one": "{{count}} pass",
+      "sessions_other": "{{count}} pass",
+      "topSports": "Vanligaste sporter",
+      "followers_one": "{{count}} följare",
+      "followers_other": "{{count}} följare",
+      "following_one": "följer {{count}}",
+      "following_other": "följer {{count}}"
+    },
+    "records": {
+      "title": "Personbästa"
+    },
+    "viewAs": {
+      "label": "Visa som",
+      "me": "Jag",
+      "followers": "Godkänd följare",
+      "public": "Någon med ett Kuta-konto",
+      "followersHint": "Så här ser dina godkända följare din profil. Privata pass och mål visas inte, och kartorna döljer start, mål och dina dolda platser.",
+      "publicHint": "Så här ser alla med ett Kuta-konto och länken profilen. Bara det du delar med alla visas, och kartorna döljer start, mål och dina dolda platser."
+    },
+    "latestActivities": "Senaste passen",
+    "allActivities": "Alla pass"
   },
   "onboarding": {
     "eyebrow": "Här börjar din utveckling",
