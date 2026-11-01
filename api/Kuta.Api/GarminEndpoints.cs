@@ -130,11 +130,16 @@ public static class GarminEndpoints
     // Outside the /api group: Garmin has neither a session nor a CSRF token. Responds 200 as soon as the notices are stored.
     public static void MapGarminPush(this WebApplication app)
     {
-        app.MapPost("/api/garmin/push", async (GarminPush push, HttpContext http, NpgsqlDataSource db, RawFileStore store,
+        app.MapPost("/api/garmin/push", async (HttpRequest request, NpgsqlDataSource db, RawFileStore store,
             IConfiguration configuration, CancellationToken ct) =>
         {
-            if (configuration.GetValue("Garmin:VerifyPushSource", true) && !FromGarmin(http.Connection.RemoteIpAddress))
+            // Checked before the body is read, so senders outside Garmin cannot make the API parse large bodies.
+            if (configuration.GetValue("Garmin:VerifyPushSource", true) && !FromGarmin(request.HttpContext.Connection.RemoteIpAddress))
                 return Results.StatusCode(StatusCodes.Status403Forbidden);
+            GarminPush? push;
+            try { push = await request.ReadFromJsonAsync<GarminPush>(ct); }
+            catch (Exception e) when (e is JsonException or InvalidOperationException) { push = null; }
+            if (push is null) return Results.BadRequest();
             await using var conn = await db.OpenConnectionAsync(ct);
             await Garmin.HandlePushAsync(conn, store, push, ct);
             return Results.Ok();

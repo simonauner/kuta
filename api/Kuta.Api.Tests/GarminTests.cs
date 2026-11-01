@@ -2,6 +2,7 @@ using System.Net;
 using System.Net.Http.Json;
 using Dapper;
 using Microsoft.AspNetCore.DataProtection;
+using Microsoft.AspNetCore.Hosting;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Npgsql;
@@ -167,6 +168,17 @@ public class GarminTests(KutaFactory factory) : IClassFixture<KutaFactory>
         Assert.False(allowList.AvailableTo(other));
         Assert.True(With(new(keys) { ["Garmin:OpenToAll"] = "true" }).AvailableTo(other));
         Assert.False(With(new() { ["Garmin:OpenToAll"] = "true" }).AvailableTo(other));
+    }
+
+    // The source is checked before the body is parsed, so anyone on the internet cannot make the API read large bodies.
+    [Fact]
+    public async Task Push_from_outside_Garmin_is_refused_before_the_body_is_read()
+    {
+        await using var verified = factory.WithWebHostBuilder(b => b.UseSetting("Garmin:VerifyPushSource", "true"));
+        using var client = verified.CreateClient();
+        var push = await client.PostAsync("/api/garmin/push",
+            new StringContent("not json", System.Text.Encoding.UTF8, "application/json"), TestContext.Current.CancellationToken);
+        Assert.Equal(HttpStatusCode.Forbidden, push.StatusCode);
     }
 
     [Fact]
