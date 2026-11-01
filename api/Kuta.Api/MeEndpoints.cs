@@ -35,7 +35,10 @@ public static class MeEndpoints
         {
             if (string.IsNullOrEmpty(req.Password))
                 return Results.BadRequest(new ApiError("Ange ditt lösenord.", "passwordRequired"));
-            var (result, _) = await supabase.SignInAsync(http.User.FindFirstValue(ClaimTypes.Email)!, req.Password, cancellationToken);
+            var email = http.User.FindFirstValue(ClaimTypes.Email)!;
+            // Shares the login limit, so a stolen session cannot guess the password from many IP addresses.
+            if (AuthEndpoints.LimitPerEmail(email) is { } limited) return limited;
+            var (result, _) = await supabase.SignInAsync(email, req.Password, cancellationToken);
             if (result != SignInResult.SignedIn)
                 return Results.Json(new ApiError("Fel lösenord.", "wrongPassword"), statusCode: StatusCodes.Status403Forbidden);
             await using var conn = await db.OpenConnectionAsync(cancellationToken);
