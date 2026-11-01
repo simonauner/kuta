@@ -6,7 +6,7 @@ import { DangerZone } from '@/components/danger-zone'
 import { ErrorMessage } from '@/components/error-message'
 import { HeartRateConsent } from '@/components/heart-rate-consent'
 import { LanguageSelect } from '@/components/language-select'
-import { StravaImport } from '@/components/strava-import'
+import { Recalculation, StravaImport } from '@/components/strava-import'
 import {
   Breadcrumb,
   BreadcrumbItem,
@@ -90,6 +90,13 @@ export function SettingsPage() {
           {t('settings.strava')}
         </h2>
         <StravaImport />
+      </section>
+
+      <section aria-labelledby="recalculate-heading" className="mt-8 border-t pt-6">
+        <h2 id="recalculate-heading" className="text-lg font-semibold">
+          {t('settings.recalculateTitle')}
+        </h2>
+        <Recalculation />
       </section>
 
       <section aria-labelledby="export-heading" className="mt-8 border-t pt-6">

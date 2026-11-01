@@ -60,32 +60,6 @@ export const api = {
     link.remove()
     setTimeout(() => URL.revokeObjectURL(url), 1000)
   },
-  uploadStream: async <T>(path: string, form: FormData, onMessage: (message: T) => void) => {
-    const res = await response(path, {
-      method: 'POST',
-      headers: { 'X-CSRF-TOKEN': await getCsrfToken() },
-      body: form,
-    })
-    if (!res.body) throw new ApiError(502, 'Missing import stream')
-    const reader = res.body.pipeThrough(new TextDecoderStream()).getReader()
-    let buffer = ''
-    try {
-      while (true) {
-        const { value, done } = await reader.read()
-        if (done) break
-        buffer += value
-        let newline: number
-        while ((newline = buffer.indexOf('\n')) !== -1) {
-          onMessage(JSON.parse(buffer.slice(0, newline)) as T)
-          buffer = buffer.slice(newline + 1)
-        }
-      }
-      if (buffer.length) throw new ApiError(502, 'Incomplete import stream')
-    } finally {
-      await reader.cancel()
-      reader.releaseLock()
-    }
-  },
   get: <T>(path: string) => request<T>(path),
   send: async <T = void>(method: 'POST' | 'PUT' | 'DELETE', path: string, body?: unknown) =>
     request<T>(path, {
