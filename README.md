@@ -119,6 +119,13 @@ Passlistans `year=2024` begränsar både första och efterföljande sidor till d
 Årsväljaren visas när historiken innehåller flera år; ”Alla år” är standard. Valet sparas i
 appens URL (`/app/activities?year=2024`) och följer med till passsidan och tillbaka.
 
+Under målen växlar flikarna Lista och Kalender (`/app/activities?view=calendar`). Kalendern visar ett
+år i taget (valt år, annars senaste året med pass) som tolv månader med veckor från måndag; dagar med
+pass markeras och visar antalet när det är fler än ett, och klick öppnar dagens pass i en modal.
+Tagg- och sportfiltret gäller båda vyerna, och vyn följer med till passsidan och tillbaka.
+`GET /api/activities/calendar?year=2026&timeZone=…&tag=race&sport=running` ger årets egna pass
+(id, sport, titel, start, lokal dag `day`, tid, distans och Garmin-märkning) äldst först, utan sidindelning.
+
 Passsidans kilometersplits visas både i en utfällbar panel ovanför kartan och under diagrammen.
 Knapparna Varv och Splits ligger bredvid varandra; högst en av panelerna kan vara öppen åt gången.
 De interpolerar tid och höjd vid varje kilometergräns mellan

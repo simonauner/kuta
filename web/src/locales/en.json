@@ -157,7 +157,15 @@
     "sport": "Sport",
     "allSports": "All sports",
     "noMatches": "No activities match the filters.",
-    "deleteWarning": "The activity, its streams, records and original file are deleted. This cannot be undone."
+    "deleteWarning": "The activity, its streams, records and original file are deleted. This cannot be undone.",
+    "views": "Activity views",
+    "list": "List",
+    "calendar": "Calendar",
+    "close": "Close",
+    "calendarCount_one": "{{count}} activity in {{year}}",
+    "calendarCount_other": "{{count}} activities in {{year}}",
+    "calendarDay_one": "{{date}}, {{count}} activity",
+    "calendarDay_other": "{{date}}, {{count}} activities"
   },
   "newActivity": {
     "title": "New activity",

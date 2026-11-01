@@ -8,6 +8,7 @@ import { ErrorMessage } from '@/components/error-message'
 import { ActivitiesEmptyState } from '@/components/activities-empty-state'
 import { SlowLoading } from '@/components/slow-loading'
 import { GoalDialog, GoalList } from '@/components/goals'
+import { ActivityCalendar } from '@/components/activity-calendar'
 import { TrainingLoadWarning } from '@/components/training-load'
 import type { Goal } from '@/lib/goals'
 import { useState } from 'react'
@@ -34,7 +35,8 @@ const route = getRouteApi('/app/activities')
 
 export function ActivitiesPage() {
   const { t, i18n } = useTranslation()
-  const { year, tag, sport } = route.useSearch()
+  const { year, tag, sport, view } = route.useSearch()
+  const calendar = view === 'calendar'
   const navigate = route.useNavigate()
   const dateFormat = new Intl.DateTimeFormat(i18n.resolvedLanguage, {
     dateStyle: 'medium',
@@ -50,7 +52,11 @@ export function ActivitiesPage() {
   const timeZone = Intl.DateTimeFormat().resolvedOptions().timeZone
   const years = useQuery(activityYearsQuery(timeZone))
   const availableYears = years.data ?? []
+  const [currentYear] = useState(() => new Date().getFullYear())
+  // The calendar always shows one year: the chosen one, otherwise the latest with activities.
+  const calendarYear = year ?? availableYears[0] ?? currentYear
   const activities = useInfiniteQuery({
+    enabled: !calendar,
     queryKey: ['activities', 'list', timeZone, year, tag, sport],
     initialPageParam: null as ActivityCursor | null,
     queryFn: ({ pageParam }) => {
@@ -70,8 +76,7 @@ export function ActivitiesPage() {
   const showOnboarding =
     years.isSuccess &&
     availableYears.length === 0 &&
-    activities.isSuccess &&
-    items.length === 0 &&
+    (calendar || (activities.isSuccess && items.length === 0)) &&
     year === undefined &&
     !tag &&
     !sport
@@ -105,26 +110,48 @@ export function ActivitiesPage() {
           onClose={() => setGoalForm(null)}
         />
       )}
-      {!showOnboarding && (availableYears.length > 1 || year !== undefined) && (
+      {!showOnboarding && (
+        <nav
+          aria-label={t('activities.views')}
+          className="mt-6 inline-flex rounded-lg bg-muted p-1"
+        >
+          {(['list', 'calendar'] as const).map((value) => (
+            <Link
+              key={value}
+              to="/app/activities"
+              search={{ year, tag, sport, view: value === 'calendar' ? value : undefined }}
+              activeOptions={{ exact: true }}
+              className="rounded-md px-3 py-1.5 text-sm font-medium text-muted-foreground transition-colors hover:text-foreground aria-[current=page]:bg-background aria-[current=page]:text-foreground aria-[current=page]:shadow-sm"
+            >
+              {t(`activities.${value}`)}
+            </Link>
+          ))}
+        </nav>
+      )}
+      {!showOnboarding && (availableYears.length > 1 || year !== undefined || calendar) && (
         <Reveal>
           <FormField layout="inline" label={t('activities.year')} className="mt-6">
             {(id) => (
               <Select
                 id={id}
                 className="w-32"
-                value={year ?? ''}
+                value={calendar ? calendarYear : (year ?? '')}
                 onChange={(e) =>
                   void navigate({
                     search: {
                       year: e.target.value ? Number(e.target.value) : undefined,
                       tag,
                       sport,
+                      view,
                     },
                   })
                 }
               >
-                <option value="">{t('activities.allYears')}</option>
-                {year !== undefined && !availableYears.includes(year) && (
+                {!calendar && <option value="">{t('activities.allYears')}</option>}
+                {calendar && !availableYears.includes(calendarYear) && (
+                  <option value={calendarYear}>{calendarYear}</option>
+                )}
+                {!calendar && year !== undefined && !availableYears.includes(year) && (
                   <option value={year}>{year}</option>
                 )}
                 {availableYears.map((value) => (
@@ -160,7 +187,7 @@ export function ActivitiesPage() {
                 value={tag ?? ''}
                 onChange={(e) =>
                   void navigate({
-                    search: activitySearch({ year, tag: e.currentTarget.value, sport }),
+                    search: activitySearch({ year, tag: e.currentTarget.value, sport, view }),
                   })
                 }
               >
@@ -181,7 +208,7 @@ export function ActivitiesPage() {
                 value={sport ?? ''}
                 onChange={(e) =>
                   void navigate({
-                    search: activitySearch({ year, tag, sport: e.currentTarget.value }),
+                    search: activitySearch({ year, tag, sport: e.currentTarget.value, view }),
                   })
                 }
               >
@@ -197,106 +224,119 @@ export function ActivitiesPage() {
         </>
       )}
 
-      <SlowLoading loading={activities.isPending}>
-        {activities.isSuccess &&
-          items.length === 0 &&
-          (showOnboarding ? (
-            <ActivitiesEmptyState context="activities" />
-          ) : (
-            <p className="mt-8 text-muted-foreground">
-              {t(year !== undefined || tag || sport ? 'activities.noMatches' : 'activities.empty')}
+      {calendar && !showOnboarding && (
+        <ActivityCalendar year={calendarYear} tag={tag} sport={sport} />
+      )}
+      {calendar && showOnboarding && <ActivitiesEmptyState context="activities" />}
+      {!calendar && (
+        <SlowLoading loading={activities.isPending}>
+          {activities.isSuccess &&
+            items.length === 0 &&
+            (showOnboarding ? (
+              <ActivitiesEmptyState context="activities" />
+            ) : (
+              <p className="mt-8 text-muted-foreground">
+                {t(
+                  year !== undefined || tag || sport ? 'activities.noMatches' : 'activities.empty',
+                )}
+              </p>
+            ))}
+          {activities.error && (
+            <p role="alert" className="mt-4 text-sm text-destructive">
+              <ErrorMessage error={activities.error} />
             </p>
-          ))}
-        {activities.error && (
-          <p role="alert" className="mt-4 text-sm text-destructive">
-            <ErrorMessage error={activities.error} />
-          </p>
-        )}
-        <div className="mt-8 space-y-6">
-          {groupActivities(items).map((period) => (
-            <div key={period.activities[0].id}>
-              {period.year !== null && (
-                <Heading level={2} className="mb-4">
-                  {period.year}
-                </Heading>
-              )}
-              {period.month !== null && (
-                <Heading level={3} className="mb-3">
-                  {monthFormat.format(period.month)}
-                </Heading>
-              )}
-              {period.week !== null && (
-                <Heading level={4} className="text-muted-foreground">
-                  {t('activities.week', { week: period.week })}
-                </Heading>
-              )}
-              <ul className="divide-y">
-                {period.activities.map((a) => (
-                  <motion.li
-                    key={a.id}
-                    className="py-4"
-                    initial={reduceMotion ? false : { opacity: 0, y: 8 }}
-                    animate={{ opacity: 1, y: 0 }}
-                    transition={{ duration: 0.2, ease: 'easeOut' }}
-                  >
-                    <div>
-                      <Link
-                        to="/app/activities/$activityId"
-                        params={{ activityId: a.id }}
-                        search={{ year, tag, sport }}
-                        className="inline-flex items-center gap-2 font-medium underline-offset-2 underline"
-                      >
-                        <span
-                          className="inline-block"
-                          style={{ viewTransitionName: `activity-title-${a.id}` }}
-                        >
-                          {activityTitle(a, t)}
-                        </span>
-                        <SportIcon
-                          sport={a.sport}
-                          style={{ viewTransitionName: `activity-sport-${a.id}` }}
-                        />
-                      </Link>
-                      {a.unreviewed && (
-                        <span className="mr-2 rounded-full bg-primary/15 px-2 py-0.5 text-xs font-medium text-primary">
-                          {t('unreviewed.label')}
-                        </span>
-                      )}
-                      {a.attribution && (
-                        <p className="text-xs text-muted-foreground">{a.attribution}</p>
-                      )}
-                      <p className="text-xs text-muted-foreground">
-                        {dateFormat.format(new Date(a.startedAt))}
-                      </p>
-                      <p className="mt-1 text-sm text-muted-foreground">
-                        {kmFormat.format(a.distanceM / 1000)} km · {formatDuration(a.durationS)} ·{' '}
-                        {formatSportPace(a.sport, a.durationS, a.distanceM, i18n.resolvedLanguage)}
-                        {a.avgHr !== null && ` · ${a.avgHr} bpm`}
-                      </p>
-                      <TagLabels tags={a.tags} />
-                    </div>
-                  </motion.li>
-                ))}
-              </ul>
-            </div>
-          ))}
-        </div>
-        <SlowLoading loading={activities.isFetchingNextPage}>
-          {(activities.hasNextPage || (activities.isError && !activities.data)) && (
-            <Button
-              variant="secondary-outline"
-              className="mt-6"
-              disabled={activities.isFetching}
-              onClick={() => {
-                if (activities.data) void activities.fetchNextPage()
-                else void activities.refetch()
-              }}
-            >
-              {activities.isError ? t('activities.retry') : t('activities.loadOlder')}
-            </Button>
           )}
+          <div className="mt-8 space-y-6">
+            {groupActivities(items).map((period) => (
+              <div key={period.activities[0].id}>
+                {period.year !== null && (
+                  <Heading level={2} className="mb-4">
+                    {period.year}
+                  </Heading>
+                )}
+                {period.month !== null && (
+                  <Heading level={3} className="mb-3">
+                    {monthFormat.format(period.month)}
+                  </Heading>
+                )}
+                {period.week !== null && (
+                  <Heading level={4} className="text-muted-foreground">
+                    {t('activities.week', { week: period.week })}
+                  </Heading>
+                )}
+                <ul className="divide-y">
+                  {period.activities.map((a) => (
+                    <motion.li
+                      key={a.id}
+                      className="py-4"
+                      initial={reduceMotion ? false : { opacity: 0, y: 8 }}
+                      animate={{ opacity: 1, y: 0 }}
+                      transition={{ duration: 0.2, ease: 'easeOut' }}
+                    >
+                      <div>
+                        <Link
+                          to="/app/activities/$activityId"
+                          params={{ activityId: a.id }}
+                          search={{ year, tag, sport }}
+                          className="inline-flex items-center gap-2 font-medium underline-offset-2 underline"
+                        >
+                          <span
+                            className="inline-block"
+                            style={{ viewTransitionName: `activity-title-${a.id}` }}
+                          >
+                            {activityTitle(a, t)}
+                          </span>
+                          <SportIcon
+                            sport={a.sport}
+                            style={{ viewTransitionName: `activity-sport-${a.id}` }}
+                          />
+                        </Link>
+                        {a.unreviewed && (
+                          <span className="mr-2 rounded-full bg-primary/15 px-2 py-0.5 text-xs font-medium text-primary">
+                            {t('unreviewed.label')}
+                          </span>
+                        )}
+                        {a.attribution && (
+                          <p className="text-xs text-muted-foreground">{a.attribution}</p>
+                        )}
+                        <p className="text-xs text-muted-foreground">
+                          {dateFormat.format(new Date(a.startedAt))}
+                        </p>
+                        <p className="mt-1 text-sm text-muted-foreground">
+                          {kmFormat.format(a.distanceM / 1000)} km · {formatDuration(a.durationS)} ·{' '}
+                          {formatSportPace(
+                            a.sport,
+                            a.durationS,
+                            a.distanceM,
+                            i18n.resolvedLanguage,
+                          )}
+                          {a.avgHr !== null && ` · ${a.avgHr} bpm`}
+                        </p>
+                        <TagLabels tags={a.tags} />
+                      </div>
+                    </motion.li>
+                  ))}
+                </ul>
+              </div>
+            ))}
+          </div>
+          <SlowLoading loading={activities.isFetchingNextPage}>
+            {(activities.hasNextPage || (activities.isError && !activities.data)) && (
+              <Button
+                variant="secondary-outline"
+                className="mt-6"
+                disabled={activities.isFetching}
+                onClick={() => {
+                  if (activities.data) void activities.fetchNextPage()
+                  else void activities.refetch()
+                }}
+              >
+                {activities.isError ? t('activities.retry') : t('activities.loadOlder')}
+              </Button>
+            )}
+          </SlowLoading>
         </SlowLoading>
-      </SlowLoading>
+      )}
     </section>
   )
 }
