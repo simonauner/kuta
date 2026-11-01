@@ -1,0 +1,80 @@
+api/Kuta.Api/AuthEndpoints.cs
+  s_bbd283fa78a4ac::t_4f898a899a9262 122-123
+  s_bbd283fa78a4ac::t_bc5ed677fd5968 20
+  s_bbd283fa78a4ac::t_b628e1fc6aa300 21-22,120,124-126
+api/Kuta.Api.Tests/FitImportTests.cs
+  s_bbd283fa78a4ac::t_4f898a899a9262 14
+  s_bbd283fa78a4ac::t_ffd924912b4f5e 13,15-23
+api/Kuta.Api/MeEndpoints.cs
+  s_bbd283fa78a4ac::t_4f898a899a9262 29-30
+  s_bbd283fa78a4ac::t_1a45c93a54573c 5,17,31-32,34-38,48
+web/src/components/danger-zone.tsx
+  s_bbd283fa78a4ac::t_4f898a899a9262 21
+  s_bbd283fa78a4ac::t_7f343d85380d4a 22-25,27-30,51,96-124
+api/Kuta.Api.Tests/KutaFactory.cs
+  s_bbd283fa78a4ac::t_4f898a899a9262 60
+  s_bbd283fa78a4ac::t_1b00df82dfdae5 61-70
+api/Kuta.Api/FitImport.cs
+  s_bbd283fa78a4ac::t_4f898a899a9262 151
+  s_bbd283fa78a4ac::t_71c1dd2304e674 152
+api/Kuta.Api/StravaImportEndpoint.cs
+  s_bbd283fa78a4ac::t_4f898a899a9262 232-233
+  s_bbd283fa78a4ac::t_01a18ece003496 234
+web/src/components/privacy-places.tsx
+  s_bbd283fa78a4ac::t_4f898a899a9262 25-26
+  s_bbd283fa78a4ac::t_9700eade7a71d2 12,27-52
+.github/workflows/api.yml
+  s_18157bd3682cdd::t_d8b8027e71c282 27-28,31
+.github/workflows/deploy.yml
+  s_18157bd3682cdd::t_db5bbfb48bc555 29
+.github/workflows/frontend.yml
+  s_18157bd3682cdd::t_70e60f237d18e9 26-27
+AGENTS.md
+  s_18157bd3682cdd::t_039a24fe6ca14c 51,78
+README.md
+  s_18157bd3682cdd::t_10fb03a3db419a 54-55,381
+api/Kuta.Api.Tests/AuthFailureTests.cs
+  s_18157bd3682cdd::t_a5ea809069f819 33-61
+api/Kuta.Api.Tests/DeleteAccountTests.cs
+  s_18157bd3682cdd::t_7b754b22de5d6e 12-13,53,55,57-66,85-86
+api/Kuta.Api.Tests/FitUploadTests.cs
+  s_18157bd3682cdd::t_d4857281ec181c 248,270
+api/Kuta.Api.Tests/RoutePrivacyTests.cs
+  s_18157bd3682cdd::t_bbf7a32b5fe118 98-108
+api/Kuta.Api/ActivityEndpoints.cs
+  s_18157bd3682cdd::t_5513d7afbb7f8d 315
+api/Kuta.Api/RoutePrivacy.cs
+  s_18157bd3682cdd::t_010bf87b973ec8 3-18
+web/src/components/activity-privacy.tsx
+  s_18157bd3682cdd::t_09a53528c619ce 10,72
+web/src/locales/en.json
+  s_18157bd3682cdd::t_a785085db32b66 351-352,440,607-610
+web/src/locales/sv.json
+  s_18157bd3682cdd::t_a7d406cf8d20f5 351-352,440,607-610
+web/src/routes/edit-activity.tsx
+  s_18157bd3682cdd::t_64be2b63e55a51 16,126
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.7.5",
+  "base_commit_sha": "9083cee6eebefa766d146341bbbcf47689c3808d",
+  "prompts": {},
+  "sessions": {
+    "s_18157bd3682cdd": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "c8e5873c-f510-4ac1-8363-b864b8cfaff4",
+        "model": "claude-opus-5-5"
+      },
+      "human_author": "Simon Aunér <simonauner@gmail.com>"
+    },
+    "s_bbd283fa78a4ac": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "ba02a37a-0928-4d11-8a7d-cdc3dcf22b4f",
+        "model": "claude-opus-5-5"
+      },
+      "human_author": "Simon Aunér <simonauner@gmail.com>"
+    }
+  }
+}
