@@ -1,0 +1,20 @@
+web/src/routes/settings.tsx
+  s_0c4b6e87907d31::t_cc32307ab468ab 82
+  s_0c4b6e87907d31::t_a4b5a984a8463b 83
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.7.5",
+  "base_commit_sha": "8ca9727ae636fd546cdb211f2f2a3bf5784db2ff",
+  "prompts": {},
+  "sessions": {
+    "s_0c4b6e87907d31": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "d61396c0-631b-4f33-9309-68151e06160f",
+        "model": "claude-opus-5-5"
+      },
+      "human_author": "Simon Aunér <simonauner@gmail.com>"
+    }
+  }
+}
