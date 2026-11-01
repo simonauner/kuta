@@ -1,0 +1,22 @@
+api/Kuta.Api/ActivityEndpoints.cs
+  s_4b41d6b2cbe45c::t_5b39844d30b95e 383,385
+api/Kuta.Api.Tests/FitUploadTests.cs
+  s_4b41d6b2cbe45c::t_5b39844d30b95e 65-69,253-269
+  s_4b41d6b2cbe45c::t_1680ca50e5c52e 270
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.7.5",
+  "base_commit_sha": "917865c11cc95cd30b7d3825729f7cb88a626aae",
+  "prompts": {},
+  "sessions": {
+    "s_4b41d6b2cbe45c": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "666b8b83-04cc-4497-9a36-a615f20592fd",
+        "model": "claude-opus-5-5"
+      },
+      "human_author": "Simon Aunér <simonauner@gmail.com>"
+    }
+  }
+}
