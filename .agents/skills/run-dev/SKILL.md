@@ -34,12 +34,16 @@ Testerna följer med till den egna portserien med samma bas: `KUTA_PORTS=BAS dot
 
 ## Avsluta
 
-Stoppa bara skriptet som uppgiften startade, med Ctrl+C eller dess antecknade PID/session. Skriptet stoppar API och Vite men lämnar Supabase igång. Stoppa även Supabase om uppgiften startade den för tillfällig verifiering och användaren inte vill behålla miljön. Kör från det antecknade worktreet med rätt workdir, exempelvis:
+Stoppa bara skriptet som uppgiften startade, med Ctrl+C eller dess antecknade PID/session. Skriptet stoppar API och Vite men lämnar Supabase igång. Stoppa även Supabase om uppgiften startade den och användaren inte vill behålla miljön. När sessionen avslutas eller arkiveras ska den egna Supabase-instansen tas bort helt, inklusive Docker-volymer och workdir. Kör från det antecknade worktreet med rätt BAS, exempelvis:
 
 ```bash
-supabase stop --workdir .context/supabase-55400
+supabase stop --no-backup --workdir .context/supabase-55400
 ```
 
-Använd inte `--no-backup`, globala Docker-prune-kommandon eller radering av volymer som städning. Lämna lånade resurser orörda. Om användaren vill behålla miljön, lämna dess URL och uppgifterna som behövs för att stoppa den senare.
+```bash
+rm -rf .context/supabase-55400
+```
+
+Kontrollera efteråt med `docker volume ls --filter label=com.supabase.cli.project=kuta-55400` att inga volymer finns kvar, och ta bort eventuella rester med `docker volume rm`. Detta gäller bara instansen som uppgiften startade. Använd inte globala Docker-prune-kommandon, och lämna lånade resurser och standardinstansen `kuta` orörda. Om användaren vill behålla miljön, lämna dess URL och uppgifterna som behövs för att stoppa den senare.
 
 Rapportera kontrollerade flöden, resultat och eventuella hinder, att data var syntetiska och om en miljö lämnats igång.
