@@ -1,0 +1,19 @@
+AGENTS.md
+  s_bbd283fa78a4ac::t_73490d64de347e 137-138
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.7.5",
+  "base_commit_sha": "5db564a5745a6448724565f52b661dbb42d50a51",
+  "prompts": {},
+  "sessions": {
+    "s_bbd283fa78a4ac": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "ba02a37a-0928-4d11-8a7d-cdc3dcf22b4f",
+        "model": "claude-opus-5-5"
+      },
+      "human_author": "Simon Aunér <simonauner@gmail.com>"
+    }
+  }
+}
