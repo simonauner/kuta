@@ -33,6 +33,7 @@ import { meQuery } from '@/lib/auth'
 import { equipmentQuery, lastUsedShoeQuery, type Equipment } from '@/lib/equipment'
 import { refreshActivityQueries } from '@/lib/activity-query'
 import { TagPicker } from '@/components/activity-tags'
+import { DefaultPrivacyNote } from '@/components/activity-privacy'
 
 // What the API reads from a FIT file, without saving anything (POST /api/activities/preview)
 type ActivityPreview = {
@@ -407,6 +408,7 @@ export function NewActivityPage() {
               : t('newActivity.locked')}
           </p>
         )}
+        <DefaultPrivacyNote />
 
         <Button
           type="submit"

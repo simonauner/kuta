@@ -1,4 +1,6 @@
+using System.Globalization;
 using System.Security.Claims;
+using System.Text;
 using Dapper;
 using Microsoft.AspNetCore.Authentication;
 using Microsoft.AspNetCore.Authentication.Cookies;
@@ -8,7 +10,7 @@ using Npgsql;
 
 public record UpdateMeRequest(string? DisplayName);
 // HasGarminData controls Garmin attribution on statistics and other views derived from the activities.
-public record Me(Guid Id, string? Email, string? DisplayName, bool HrConsent, string DefaultActivityPrivacy, bool AllActivitiesMatchDefaultPrivacy,
+public record Me(Guid Id, string? Email, string? DisplayName, bool HrConsent, string DefaultActivityPrivacy, int ActivitiesWithOtherPrivacy,
     Supporter Supporter, bool HasGarminData);
 // Tier is null when there is no supporter membership or it has expired.
 public record Supporter(string? Tier, DateTime? Until, string BadgePrivacy);
@@ -23,6 +25,56 @@ public static class MeEndpoints
     public static Guid GetUserId(this ClaimsPrincipal user) =>
         Guid.Parse(user.FindFirstValue(ClaimTypes.NameIdentifier)!);
 
+    // Look-alikes of the supporter badge (bronze, silver, gold) and of a verified mark.
+    static readonly string[] BadgeLookalikes = ["✓", "✔", "✅", "☑", "🥇", "🥈", "🥉", "🏅", "🎖"];
+
+    // Names are free text and not unique, so they are what a stranger uses to pass as a friend in a follow request.
+    // Compatibility forms (full-width letters) are folded, whitespace collapsed, and invisible or direction-changing
+    // characters and badge look-alikes rejected. Null when the name is not allowed.
+    public static string? NormalizeDisplayName(string? name)
+    {
+        if (name is null) return null;
+        try { name = name.Normalize(NormalizationForm.FormKC); }
+        catch (ArgumentException) { return null; }
+        name = string.Join(' ', name.Split((char[]?)null, StringSplitOptions.RemoveEmptyEntries));
+        if (name.Length is 0 or > 100 || BadgeLookalikes.Any(name.Contains)) return null;
+        // EnumerateRunes turns lone surrogates into the replacement character.
+        foreach (var rune in name.EnumerateRunes())
+            if (rune == Rune.ReplacementChar || Rune.GetUnicodeCategory(rune) is UnicodeCategory.Control or UnicodeCategory.Format or UnicodeCategory.PrivateUse
+                or UnicodeCategory.Surrogate or UnicodeCategory.OtherNotAssigned or UnicodeCategory.LineSeparator
+                or UnicodeCategory.ParagraphSeparator)
+                return null;
+        return name;
+    }
+
+    // Latin look-alikes in Cyrillic and Greek, in both cases since lowercasing changes some shapes (Н becomes н).
+    static readonly Dictionary<char, char> Confusables = new()
+    {
+        ['А'] = 'a', ['В'] = 'b', ['Е'] = 'e', ['К'] = 'k', ['М'] = 'm', ['Н'] = 'h', ['О'] = 'o', ['Р'] = 'p', ['С'] = 'c',
+        ['Т'] = 't', ['Х'] = 'x', ['У'] = 'y', ['І'] = 'i', ['Ј'] = 'j', ['Ѕ'] = 's', ['а'] = 'a', ['е'] = 'e', ['о'] = 'o',
+        ['р'] = 'p', ['с'] = 'c', ['у'] = 'y', ['х'] = 'x', ['і'] = 'i', ['ј'] = 'j', ['ѕ'] = 's', ['ԁ'] = 'd', ['ӏ'] = 'l',
+        ['һ'] = 'h', ['ԛ'] = 'q', ['ԝ'] = 'w', ['ү'] = 'y', ['Α'] = 'a', ['Β'] = 'b', ['Ε'] = 'e', ['Ζ'] = 'z', ['Η'] = 'h',
+        ['Ι'] = 'i', ['Κ'] = 'k', ['Μ'] = 'm', ['Ν'] = 'n', ['Ο'] = 'o', ['Ρ'] = 'p', ['Τ'] = 't', ['Υ'] = 'y', ['Χ'] = 'x',
+        ['α'] = 'a', ['ο'] = 'o', ['ν'] = 'v', ['ρ'] = 'p', ['ι'] = 'i', ['κ'] = 'k', ['υ'] = 'u', ['χ'] = 'x',
+        ['0'] = 'o', ['1'] = 'l', ['i'] = 'l', ['I'] = 'l',
+    };
+
+    // What a name looks like, so that "Anna", "anna", "Аnna" (Cyrillic А), "Ánna" and "Anna 🏃" compare equal. Only for
+    // warning about look-alikes, never for identity.
+    // shortcut: a hand-picked subset of Unicode's confusables (UTS #39); use the full table if look-alikes get through.
+    public static string NameSkeleton(string name)
+    {
+        var skeleton = new StringBuilder();
+        foreach (var c in name.Normalize(NormalizationForm.FormKD))
+        {
+            if (CharUnicodeInfo.GetUnicodeCategory(c) == UnicodeCategory.NonSpacingMark) continue;
+            var mapped = Confusables.GetValueOrDefault(c, char.ToLowerInvariant(c));
+            mapped = Confusables.GetValueOrDefault(mapped, mapped);
+            if (char.IsLetterOrDigit(mapped)) skeleton.Append(mapped);
+        }
+        return skeleton.Replace("rn", "m").Replace("vv", "w").ToString();
+    }
+
     public static void MapMe(this RouteGroupBuilder api)
     {
         var me = api.MapGroup("/me").RequireAuthorization();
@@ -35,7 +87,10 @@ public static class MeEndpoints
         {
             if (string.IsNullOrEmpty(req.Password))
                 return Results.BadRequest(new ApiError("Ange ditt lösenord.", "passwordRequired"));
-            var (result, _) = await supabase.SignInAsync(http.User.FindFirstValue(ClaimTypes.Email)!, req.Password, cancellationToken);
+            var email = http.User.FindFirstValue(ClaimTypes.Email)!;
+            // Shares the login limit, so a stolen session cannot guess the password from many IP addresses.
+            if (AuthEndpoints.LimitPerEmail(email) is { } limited) return limited;
+            var (result, _) = await supabase.SignInAsync(email, req.Password, cancellationToken);
             if (result != SignInResult.SignedIn)
                 return Results.Json(new ApiError("Fel lösenord.", "wrongPassword"), statusCode: StatusCodes.Status403Forbidden);
             await using var conn = await db.OpenConnectionAsync(cancellationToken);
@@ -60,19 +115,29 @@ public static class MeEndpoints
 
         me.MapPut("", async (UpdateMeRequest req, NpgsqlDataSource db, ClaimsPrincipal user) =>
         {
-            var displayName = req.DisplayName?.Trim();
-            if (displayName is not { Length: > 0 and <= 100 })
-                return Results.BadRequest(new ApiError("Ange ett namn (högst 100 tecken).", "invalidName"));
+            if (NormalizeDisplayName(req.DisplayName) is not { } displayName)
+                return Results.BadRequest(new ApiError("Ange ett namn (högst 100 tecken, utan osynliga tecken och utan märken som liknar Kutas).", "invalidName"));
 
             await using var conn = await db.OpenConnectionAsync();
-            await conn.ExecuteAsync(
+            // A change keeps the previous name (shown to others for 30 days) and is allowed at most once a week, so a
+            // follower cannot take a friend's name unnoticed or keep switching. The first change after the name was
+            // chosen is always allowed, for typos.
+            var saved = await conn.ExecuteAsync(
                 """
                 insert into users (id, display_name, terms_version, terms_accepted_at)
                 select @id, @displayName, raw_user_meta_data->>'terms_version', (raw_user_meta_data->>'terms_accepted_at')::timestamptz
                 from auth.users where id = @id
-                on conflict (id) do update set display_name = excluded.display_name
+                on conflict (id) do update set display_name = excluded.display_name,
+                    previous_display_name = case when users.display_name <> excluded.display_name
+                        then users.display_name else users.previous_display_name end,
+                    display_name_changed_at = case when users.display_name <> excluded.display_name
+                        then now() else users.display_name_changed_at end
+                where users.display_name is null or users.display_name = excluded.display_name
+                    or users.display_name_changed_at is null or users.display_name_changed_at < now() - interval '7 days'
                 """,
                 new { id = user.GetUserId(), displayName });
+            if (saved == 0)
+                return Results.Conflict(new ApiError("Du kan byta namn en gång i veckan.", "nameChangedRecently"));
             return Results.Ok(await LoadAsync(conn, user));
         });
 
@@ -175,8 +240,9 @@ public static class MeEndpoints
     {
         var profile = await LoadProfileAsync(conn, user.GetUserId());
         var privacy = profile?.DefaultActivityPrivacy ?? "private";
-        var (allMatch, hasGarminData) = await conn.QuerySingleAsync<(bool, bool)>("""
-            select not exists (select 1 from activities where user_id = @id and privacy <> @privacy and source <> 'garmin'),
+        // How many activities "apply to all" would change; Garmin activities stay private.
+        var (otherPrivacy, hasGarminData) = await conn.QuerySingleAsync<(int, bool)>("""
+            select (select count(*)::int from activities where user_id = @id and privacy <> @privacy and source <> 'garmin'),
                 exists (select 1 from activities where user_id = @id and source = 'garmin')
             """, new { id = user.GetUserId(), privacy });
         var supporter = await conn.QuerySingleOrDefaultAsync<Supporter>("""
@@ -184,7 +250,7 @@ public static class MeEndpoints
                 supporter_badge_privacy as badge_privacy
             from users where id = @id
             """, new { id = user.GetUserId() }) ?? new Supporter(null, null, "private");
-        return new Me(user.GetUserId(), user.FindFirstValue(ClaimTypes.Email), profile?.DisplayName, profile?.HrConsent ?? false, privacy, allMatch,
+        return new Me(user.GetUserId(), user.FindFirstValue(ClaimTypes.Email), profile?.DisplayName, profile?.HrConsent ?? false, privacy, otherPrivacy,
             supporter, hasGarminData);
     }
 }

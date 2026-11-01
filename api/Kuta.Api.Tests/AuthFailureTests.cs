@@ -61,9 +61,9 @@ public class AuthFailureTests
             });
     }
 
-    // With both keys set, sign-up and password links need a token that Cloudflare accepts before Supabase is called.
+    // With both keys set, sign-in, sign-up and password links need a token that Cloudflare accepts before Supabase is called.
     [Fact]
-    public async Task Signup_and_recover_require_a_valid_Turnstile_token_when_configured()
+    public async Task Login_signup_and_recover_require_a_valid_Turnstile_token_when_configured()
     {
         var ct = TestContext.Current.CancellationToken;
         var cloudflare = new CloudflareHandler();
@@ -95,6 +95,8 @@ public class AuthFailureTests
         Assert.Equal("turnstileFailed", await Code("signup", null));
         Assert.Equal("turnstileFailed", await Code("signup", "rejected"));
         Assert.Equal("authUnavailable", await Code("signup", "accepted"));
+        Assert.Equal("turnstileFailed", await Code("login", null));
+        Assert.Equal("authUnavailable", await Code("login", "accepted"));
         Assert.Equal("turnstileFailed", await Code("recover", null));
         Assert.Equal("authUnavailable", await Code("recover", "accepted"));
         Assert.Equal("turnstileUnavailable", await Code("signup", "unreachable"));

@@ -163,8 +163,9 @@ public static class Goals
         NpgsqlTransaction? tx = null, Guid? viewerId = null) =>
         (await conn.QueryAsync<StoredGoal>(new CommandDefinition($"""
             select id, sport_group, metric, period, target, recurring, starts_on, privacy from goals g
-            where user_id = @userId and (@viewerId::uuid is null or g.user_id = @viewerId or g.privacy = 'public' or
-                (g.privacy = 'followers' and {SocialEndpoints.FollowedBy("@viewerId", "g.user_id")}))
+            where user_id = @userId and (@viewerId::uuid is null or g.user_id = @viewerId or
+                {SocialEndpoints.NotBlocked("g.user_id", "@viewerId")} and (g.privacy = 'public' or
+                (g.privacy = 'followers' and {SocialEndpoints.FollowedBy("@viewerId", "g.user_id")})))
             order by created_at, id
             """, new { userId, viewerId }, tx, cancellationToken: ct))).ToArray();
 

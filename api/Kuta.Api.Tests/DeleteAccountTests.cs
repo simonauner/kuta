@@ -89,6 +89,26 @@ public class DeleteAccountTests(KutaFactory factory) : IClassFixture<KutaFactory
     }
 
     [Fact]
+    public async Task Password_check_shares_the_login_limit_per_email()
+    {
+        var ct = TestContext.Current.CancellationToken;
+        await using var conn = await factory.Services.GetRequiredService<NpgsqlDataSource>().OpenConnectionAsync(ct);
+        using var client = factory.CreateClient();
+        var email = $"delete-limit-{Guid.NewGuid():N}@example.com";
+        await TestSession.CreateRunnerAsync(factory, client, conn, email, "Delete limit runner", ct);
+        try
+        {
+            await TestSession.SetPasswordAsync(conn, email, Password);
+            while (AuthEndpoints.LimitPerEmail(email) is null) { }
+            using var response = await client.SendAsync(
+                new HttpRequestMessage(HttpMethod.Delete, "/api/me") { Content = JsonContent.Create(new { password = Password }) }, ct);
+            Assert.Equal(HttpStatusCode.TooManyRequests, response.StatusCode);
+            Assert.Equal(1, await conn.ExecuteScalarAsync<int>("select count(*) from auth.users where email = @email", new { email }));
+        }
+        finally { await conn.ExecuteAsync("delete from auth.users where email = @email", new { email }); }
+    }
+
+    [Fact]
     public async Task Account_without_a_profile_can_be_deleted()
     {
         var ct = TestContext.Current.CancellationToken;

@@ -59,7 +59,7 @@ public class ActivityPrivacyTests(KutaFactory factory) : IClassFixture<KutaFacto
             var ownerMe = (await owner.GetFromJsonAsync<Me>("/api/me", ct))!;
             var viewerMe = (await viewer.GetFromJsonAsync<Me>("/api/me", ct))!;
             Assert.Equal("private", ownerMe.DefaultActivityPrivacy);
-            Assert.True(ownerMe.AllActivitiesMatchDefaultPrivacy);
+            Assert.Equal(0, ownerMe.ActivitiesWithOtherPrivacy);
             var ownerId = ownerMe.Id;
             var viewerId = viewerMe.Id;
             var ids = (await conn.QueryAsync<Guid>("""
@@ -72,15 +72,15 @@ public class ActivityPrivacyTests(KutaFactory factory) : IClassFixture<KutaFacto
             Assert.Equal(HttpStatusCode.OK, response.StatusCode);
             var updatedMe = (await response.Content.ReadFromJsonAsync<Me>(ct))!;
             Assert.Equal("public", updatedMe.DefaultActivityPrivacy);
-            Assert.False(updatedMe.AllActivitiesMatchDefaultPrivacy);
+            Assert.Equal(2, updatedMe.ActivitiesWithOtherPrivacy);
             Assert.Equal("public", (await owner.GetFromJsonAsync<Me>("/api/me", ct))!.DefaultActivityPrivacy);
             Assert.Equal("private", await Privacy(ids[0]));
             Assert.Equal("followers", await Privacy(ids[1]));
 
             response = await owner.PutAsJsonAsync("/api/me/activity-privacy", new { privacy = "public", applyToAll = true }, ct);
             Assert.Equal(HttpStatusCode.OK, response.StatusCode);
-            Assert.True((await response.Content.ReadFromJsonAsync<Me>(ct))!.AllActivitiesMatchDefaultPrivacy);
-            Assert.True((await owner.GetFromJsonAsync<Me>("/api/me", ct))!.AllActivitiesMatchDefaultPrivacy);
+            Assert.Equal(0, (await response.Content.ReadFromJsonAsync<Me>(ct))!.ActivitiesWithOtherPrivacy);
+            Assert.Equal(0, (await owner.GetFromJsonAsync<Me>("/api/me", ct))!.ActivitiesWithOtherPrivacy);
             Assert.Equal("public", await Privacy(ids[0]));
             Assert.Equal("public", await Privacy(ids[1]));
             Assert.Equal(HttpStatusCode.OK, (await viewer.GetAsync($"/api/activities/{ids[0]}", ct)).StatusCode);
@@ -98,7 +98,7 @@ public class ActivityPrivacyTests(KutaFactory factory) : IClassFixture<KutaFacto
             Assert.Equal("invalidPrivacy", (await response.Content.ReadFromJsonAsync<ApiError>(ct))!.Code);
             Assert.Equal("private", await Privacy(ids[0]));
             await conn.ExecuteAsync("update activities set privacy = 'followers' where id = @id", new { id = ids[0] });
-            Assert.False((await owner.GetFromJsonAsync<Me>("/api/me", ct))!.AllActivitiesMatchDefaultPrivacy);
+            Assert.Equal(1, (await owner.GetFromJsonAsync<Me>("/api/me", ct))!.ActivitiesWithOtherPrivacy);
         }
         finally
         {

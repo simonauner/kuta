@@ -10,7 +10,7 @@ export type Me = {
   displayName: string | null
   hrConsent: boolean
   defaultActivityPrivacy: 'private' | 'followers' | 'public'
-  allActivitiesMatchDefaultPrivacy: boolean
+  activitiesWithOtherPrivacy: number
   // tier is null when there is no supportership or it has expired
   supporter: {
     tier: SupporterTier | null

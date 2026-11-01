@@ -15,6 +15,7 @@ import { meQuery, type SupporterTier } from '@/lib/auth'
 type Runner = {
   id: string
   displayName: string
+  previousName: string | null
   status: 'none' | 'pending' | 'accepted'
   supporterTier: SupporterTier | null
 }
@@ -68,6 +69,11 @@ export function RunnerPage() {
                 {runner.data.displayName}
                 <SupporterBadge tier={runner.data.supporterTier} />
               </h1>
+              {runner.data.previousName && (
+                <p className="basis-full text-metadata text-muted-foreground">
+                  {t('social.previousName', { name: runner.data.previousName })}
+                </p>
+              )}
               {me?.id !== runnerId && (
                 <div className="flex flex-wrap items-center gap-3">
                   {runner.data.status === 'pending' && (
