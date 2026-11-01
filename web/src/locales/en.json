@@ -36,8 +36,8 @@
     "waitingTitle": "Your feed starts here",
     "waitingDescription": "No one you follow has shared an activity yet. Add one of your own while you wait.",
     "addActivityHelp": "Log it manually or upload a FIT file from your watch.",
-    "stravaTitle": "Moving from Strava?",
-    "stravaDescription": "Import your archive and keep your training history.",
+    "stravaTitle": "New to Kuta?",
+    "stravaDescription": "Start by connecting your Garmin and bringing over your old activities from Strava.",
     "socialTitle": "Train together",
     "socialDescription": "Ask a friend to share their profile link so you can follow them, or share your own.",
     "copyProfileLink": "Copy my profile link"
@@ -456,7 +456,10 @@
     "exportDetailsLabel": "What is in the export?",
     "exportDetails": "Activities are saved as JSON with streams, laps, tags and equipment, and saved original files are included. Manual activities have no original file, and files that were not saved or were deleted when heart rate consent was withdrawn cannot be exported.",
     "importDetailsLabel": "What is imported?",
-    "importDetails": "Names, descriptions, summaries and available streams are imported. Shoes are imported first and linked to the activities, so distance and time per shoe add up. Heart rate is saved only with your heart rate consent. Photos, contacts and private notes are not imported."
+    "importDetails": "Names, descriptions, summaries and available streams are imported. Shoes are imported first and linked to the activities, so distance and time per shoe add up. Heart rate is saved only with your heart rate consent. Photos, contacts and private notes are not imported.",
+    "importTitle": "Import and connections",
+    "importIntro": "Get new activities automatically from your Garmin watch and bring your history from Strava.",
+    "importLink": "Connect Garmin or import from Strava"
   },
   "jobs": {
     "queued": "Queued. The job will start shortly.",

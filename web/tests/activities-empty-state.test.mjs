@@ -46,9 +46,9 @@ test('each empty page says what will appear there and keeps the same first actio
         for (const other of contexts)
           assert.equal(html.includes(translations.emptyState[other].title), other === context)
         assert.ok(html.includes(translations.onboarding.addActivity))
-        assert.ok(html.includes(translations.settings.strava))
+        assert.ok(html.includes(translations.settings.importLink))
         assert.match(html, /href="\/app\/activities\/new"/)
-        assert.match(html, /href="\/app\/settings#import-heading"/)
+        assert.match(html, /href="\/app\/settings\/import"/)
       }
     }
   } finally {

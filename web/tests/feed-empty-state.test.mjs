@@ -60,7 +60,7 @@ test('only an empty home feed offers onboarding, with different copy when follow
     const welcome = await render()
     assert.match(welcome, /Dags för din första aktivitet/)
     assert.match(welcome, /href="\/app\/activities\/new"/)
-    assert.match(welcome, /href="\/app\/settings#import-heading"/)
+    assert.match(welcome, /href="\/app\/settings\/import"/)
     assert.match(welcome, /Kopiera min profillänk/)
     const following = await render({ following: [{ id: 'friend' }] })
     assert.match(following, /Ingen du följer har delat någon aktivitet ännu/)

@@ -1,20 +1,12 @@
 import { SlowLoading } from '@/components/slow-loading'
 import { useQuery } from '@tanstack/react-query'
-import { Link } from '@tanstack/react-router'
 import { useTranslation } from 'react-i18next'
 import { ErrorMessage } from '@/components/error-message'
 import { Button } from '@/components/ui/button'
 import { followsQuery, useFollowChange } from '@/lib/follows'
 import { FollowRow } from '@/components/follow-row'
 
-import {
-  Breadcrumb,
-  BreadcrumbItem,
-  BreadcrumbLink,
-  BreadcrumbList,
-  BreadcrumbPage,
-  BreadcrumbSeparator,
-} from '@/components/ui/breadcrumb'
+import { SettingsBreadcrumb } from '@/components/settings-breadcrumb'
 import { card } from '@/components/ui/card-variants'
 import { Heading } from '@/components/ui/heading'
 
@@ -24,25 +16,7 @@ export function FollowersPage() {
   const change = useFollowChange()
   return (
     <section className="space-y-6">
-      <Breadcrumb aria-label={t('breadcrumbs')}>
-        <BreadcrumbList>
-          <BreadcrumbItem>
-            <BreadcrumbLink render={<Link to="/app/profile" activeOptions={{ exact: true }} />}>
-              {t('nav.profile')}
-            </BreadcrumbLink>
-          </BreadcrumbItem>
-          <BreadcrumbSeparator />
-          <BreadcrumbItem>
-            <BreadcrumbLink render={<Link to="/app/settings" activeOptions={{ exact: true }} />}>
-              {t('settings.title')}
-            </BreadcrumbLink>
-          </BreadcrumbItem>
-          <BreadcrumbSeparator />
-          <BreadcrumbItem>
-            <BreadcrumbPage>{t('settings.followers')}</BreadcrumbPage>
-          </BreadcrumbItem>
-        </BreadcrumbList>
-      </Breadcrumb>
+      <SettingsBreadcrumb page={t('settings.followers')} />
       <Heading level={1}>{t('settings.followers')}</Heading>
       <p className="text-sm text-muted-foreground">{t('social.profileLinksHint')}</p>
       <SlowLoading loading={follows.isPending}>

@@ -15,12 +15,12 @@ export function AddActivityButton({ className }: { className?: string }) {
   )
 }
 
-export function StravaImportLink({ className }: { className?: string }) {
+export function ImportLink({ className }: { className?: string }) {
   const { t } = useTranslation()
   return (
     <Button asChild variant="link" className={className}>
-      <Link to="/app/settings" hash="import-heading">
-        {t('settings.strava')}
+      <Link to="/app/settings/import">
+        {t('settings.importLink')}
         <ArrowRight aria-hidden="true" />
       </Link>
     </Button>

@@ -26,7 +26,7 @@ Appens URL:er är `/app` (flöde), `/app/activities`, `/app/stats`, `/app/profil
 
 ## Följare och flöde
 
-När flödet är tomt visas genvägar till ett första pass, Strava-importen i Inställningar och kopiering av den egna profillänken. Den som redan följer någon får en text om att inga pass har delats ännu. Välkomstvyn försvinner när flödet får innehåll. Aktiviteter, Statistik och den egna profilen har ett gemensamt, kort tomläge med en rad om vad som visas där när användaren saknar pass. Bara flödet har en välkomstvy; båda använder samma knappar till nytt pass och Strava-import. Tomma filterresultat och andra löpares profiler visar fortsatt sina vanliga tomlägen.
+När flödet är tomt visas genvägar till ett första pass, en guide till Import och anslutningar (koppla Garmin, importera från Strava) och kopiering av den egna profillänken. Den som redan följer någon får en text om att inga pass har delats ännu. Välkomstvyn försvinner när flödet får innehåll. Aktiviteter, Statistik och den egna profilen har ett gemensamt, kort tomläge med en rad om vad som visas där när användaren saknar pass. Bara flödet har en välkomstvy; båda använder samma knappar till nytt pass och Strava-import. Tomma filterresultat och andra löpares profiler visar fortsatt sina vanliga tomlägen.
 
 Flödet på `/app` visar egna pass och pass från löpare du följer efter deras godkännande,
 nyaste först, 25 åt gången. **Inställningar → Följare** innehåller inkommande förfrågningar

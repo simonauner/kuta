@@ -14,6 +14,7 @@ import { EquipmentPage } from '@/routes/equipment'
 import { RunnerPage } from '@/routes/runner'
 import { ProfilePage } from '@/routes/profile'
 import { SettingsPage } from '@/routes/settings'
+import { ImportPage } from '@/routes/import'
 import { StatsPage } from '@/routes/stats'
 import { activityPageSearch, activitySearch } from '@/lib/activity'
 import { activityQuery } from '@/lib/activity-query'
@@ -94,6 +95,12 @@ const privacyPlacesRoute = createRoute({
   component: lazyRouteComponent(() => import('@/routes/privacy-places'), 'PrivacyPlacesPage'),
 })
 
+const importRoute = createRoute({
+  getParentRoute: () => rootRoute,
+  path: '/app/settings/import',
+  component: ImportPage,
+})
+
 const routeTree = rootRoute.addChildren([
   feedRoute,
   activitiesRoute,
@@ -107,6 +114,7 @@ const routeTree = rootRoute.addChildren([
   settingsRoute,
   followersRoute,
   privacyPlacesRoute,
+  importRoute,
 ])
 
 export const router = createRouter({

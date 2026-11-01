@@ -1,6 +1,6 @@
 import { ChartNoAxesCombined, NotebookPen, UserRound } from 'lucide-react'
 import { useTranslation } from 'react-i18next'
-import { AddActivityButton, StravaImportLink } from '@/components/onboarding-actions'
+import { AddActivityButton, ImportLink } from '@/components/onboarding-actions'
 import { Card } from '@/components/ui/card'
 import { Heading } from '@/components/ui/heading'
 
@@ -19,7 +19,7 @@ export function ActivitiesEmptyState({ context }: { context: 'stats' | 'activiti
       </p>
       <div className="mt-6 flex flex-col items-center gap-3">
         <AddActivityButton />
-        <StravaImportLink />
+        <ImportLink />
       </div>
     </Card>
   )

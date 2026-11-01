@@ -4,7 +4,7 @@ import { FileArchive, Plus, Users } from 'lucide-react'
 import { useTranslation } from 'react-i18next'
 import { ErrorMessage } from '@/components/error-message'
 import { ShareProfile } from '@/components/share-profile'
-import { AddActivityButton, StravaImportLink } from '@/components/onboarding-actions'
+import { AddActivityButton, ImportLink } from '@/components/onboarding-actions'
 import { Button } from '@/components/ui/button'
 import { followsQuery } from '@/lib/follows'
 import { card } from '@/components/ui/card-variants'
@@ -54,7 +54,7 @@ export function FeedEmptyState() {
               <p className="mb-4 mt-2 text-sm text-muted-foreground">
                 {t('feed.stravaDescription')}
               </p>
-              <StravaImportLink />
+              <ImportLink />
             </section>
             <section aria-labelledby="social-start-heading" className={card()}>
               <Users aria-hidden="true" className="mb-4 size-5 text-muted-foreground" />

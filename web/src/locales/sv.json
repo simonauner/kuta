@@ -36,8 +36,8 @@
     "waitingTitle": "Här börjar ditt flöde",
     "waitingDescription": "Ingen du följer har delat någon aktivitet ännu. Lägg till en egen aktivitet medan du väntar.",
     "addActivityHelp": "Registrera manuellt eller ladda upp en FIT-fil från din klocka.",
-    "stravaTitle": "Flyttar du från Strava?",
-    "stravaDescription": "Importera ditt arkiv och behåll din träningshistorik.",
+    "stravaTitle": "Ny på Kuta?",
+    "stravaDescription": "Börja med att koppla din Garmin och föra över gamla aktiviteter från Strava.",
     "socialTitle": "Träna tillsammans",
     "socialDescription": "Be en kompis dela sin profillänk för att börja följa dem, eller dela din egen.",
     "copyProfileLink": "Kopiera min profillänk"
@@ -456,7 +456,10 @@
     "exportDetailsLabel": "Vad ingår i exporten?",
     "exportDetails": "Aktiviteterna sparas som JSON med mätserier, varv, taggar och utrustning, och sparade originalfiler följer med. Manuella aktiviteter saknar originalfil, och filer som inte sparats eller raderats när pulssamtycket återkallades kan inte exporteras.",
     "importDetailsLabel": "Vad importeras?",
-    "importDetails": "Namn, beskrivningar, sammanfattningar och tillgängliga mätserier importeras. Skor importeras först och kopplas till aktiviteterna, så att distans och tid per sko stämmer. Puls sparas bara med ditt pulssamtycke. Foton, kontakter och privata anteckningar importeras inte."
+    "importDetails": "Namn, beskrivningar, sammanfattningar och tillgängliga mätserier importeras. Skor importeras först och kopplas till aktiviteterna, så att distans och tid per sko stämmer. Puls sparas bara med ditt pulssamtycke. Foton, kontakter och privata anteckningar importeras inte.",
+    "importTitle": "Import och anslutningar",
+    "importIntro": "Hämta nya aktiviteter automatiskt från din Garminklocka och ta med din historik från Strava.",
+    "importLink": "Koppla Garmin eller importera från Strava"
   },
   "jobs": {
     "queued": "I kö. Jobbet startar strax.",
