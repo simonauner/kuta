@@ -1,0 +1,27 @@
+api/Kuta.Api/Program.cs
+  s_4b41d6b2cbe45c::t_ccf080cd223ed3 113-116
+api/Kuta.Api/DataExport.cs
+  s_4b41d6b2cbe45c::t_ccf080cd223ed3 9-11,17-35
+web/src/locales/en.json
+  s_4b41d6b2cbe45c::t_ccf080cd223ed3 401
+web/src/locales/sv.json
+  s_4b41d6b2cbe45c::t_ccf080cd223ed3 401
+api/Kuta.Api.Tests/DataExportTests.cs
+  s_4b41d6b2cbe45c::t_30c7d7cf26379d 170,189-192
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.7.5",
+  "base_commit_sha": "5db5ac55e4a1ec806af8ac3459292839fbd4983f",
+  "prompts": {},
+  "sessions": {
+    "s_4b41d6b2cbe45c": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "666b8b83-04cc-4497-9a36-a615f20592fd",
+        "model": "claude-opus-5-5"
+      },
+      "human_author": "Simon Aunér <simonauner@gmail.com>"
+    }
+  }
+}
