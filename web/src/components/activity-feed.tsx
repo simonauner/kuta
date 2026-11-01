@@ -32,10 +32,13 @@ export function ActivityFeed({
   runnerId,
   viewAs,
   emptyState,
+  limit,
 }: {
   runnerId?: string
   viewAs?: 'followers' | 'public'
   emptyState?: ReactNode
+  // Show only the latest activities, without loading older ones.
+  limit?: number
 }) {
   const { t, i18n } = useTranslation()
   const feed = useInfiniteQuery({
@@ -80,6 +83,7 @@ export function ActivityFeed({
       <ul className="space-y-4">
         {feed.data?.pages
           .flatMap((page) => page.items)
+          .slice(0, limit)
           .map((activity) => (
             <li key={activity.id} className="rounded-lg border p-4">
               <div className="flex items-center gap-1.5 text-sm text-muted-foreground">
@@ -113,7 +117,7 @@ export function ActivityFeed({
             </li>
           ))}
       </ul>
-      {feed.hasNextPage && (
+      {feed.hasNextPage && !limit && (
         <Button
           variant="outline"
           disabled={feed.isFetchingNextPage}

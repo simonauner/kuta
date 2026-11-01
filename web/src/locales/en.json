@@ -772,7 +772,9 @@
       "public": "Anyone with a Kuta account",
       "followersHint": "This is how your approved followers see your profile. Private activities and goals are not shown, and maps hide the start, finish and your hidden places.",
       "publicHint": "This is how anyone with a Kuta account and the link sees your profile. Only what you share with everyone is shown, and maps hide the start, finish and your hidden places."
-    }
+    },
+    "latestActivities": "Latest activities",
+    "allActivities": "All activities"
   },
   "onboarding": {
     "eyebrow": "Your progress starts here",
