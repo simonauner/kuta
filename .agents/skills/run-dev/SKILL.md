@@ -24,7 +24,7 @@ Kör skriptet i en beständig terminal eller bakgrundssession. Anteckna worktree
 ## Kontrollera flödet
 
 - Vänta tills både webben svarar och API:ts `/api/health` ger ett lyckat svar. Utskrivna adresser betyder inte att API:t är redo.
-- Skapa vid behov ett syntetiskt konto genom appens registrering. Bekräftelsemejlet finns i instansens Mailpit. Återanvänd inloggningen; auth har en gräns på 10 anrop per 5 minuter och IP.
+- Skapa vid behov ett syntetiskt konto genom appens registrering. Bekräftelsemejlet finns i instansens Mailpit. Återanvänd inloggningen; auth har en gräns på 10 anrop per 5 minuter och IP, och 10 inloggningsförsök per 15 minuter och e-postadress.
 - Om mejlet använder Supabases engelska standardmall, kontrollera projektet och starta bara om auth-containern för en miljö som uppgiften äger: `docker restart supabase_auth_kuta-BAS` för en extra instans (ersätt BAS med portbasen). Registrera sedan igen. Ändra inte en lånad miljö för att lösa det.
 - Vite laddar om webbändringar. Efter C#-ändringar måste skriptet startas om; det använder inte `dotnet watch`.
 - Kontrollera berörda flöden, direktlänkar, bakåt/framåt, tangentbordsåtkomst samt relevanta laddnings- och feltillstånd. Läs konsol- och nätverksfel. Vid ändrade beroenden eller CSP ska även den byggda webben kontrolleras enligt `AGENTS.md`.

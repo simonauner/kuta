@@ -1,3 +1,6 @@
+using System.Net;
+using System.Net.Sockets;
+using System.Threading.RateLimiting;
 using Microsoft.AspNetCore.Antiforgery;
 using Microsoft.AspNetCore.Mvc;
 
@@ -13,6 +16,33 @@ public static class AuthEndpoints
 {
     // Datumet på web/terms.html (testas i TermsVersionTests). Ändra vid varje ny version av villkoren.
     public const string TermsVersion = "2026-11-01";
+
+    // Klientens partition i auth-gränsen per IP. En IPv6-klient förfogar normalt över ett helt /64-nät och kan byta
+    // adress inom det fritt, så hela nätet räknas som en klient.
+    public static string ClientPartition(IPAddress? address)
+    {
+        if (address is null) return "unknown";
+        if (address.IsIPv4MappedToIPv6) address = address.MapToIPv4();
+        if (address.AddressFamily != AddressFamily.InterNetworkV6) return address.ToString();
+        var bytes = address.GetAddressBytes();
+        Array.Clear(bytes, 8, 8);
+        return $"{new IPAddress(bytes)}/64";
+    }
+
+    // Per e-postadress oberoende av IP: lösenordsgissning eller återställningsmejl mot ett konto från många adresser.
+    // Ett konto kan då låsas i 15 minuter av någon annan; det är priset för att gissningar inte kan spridas ut.
+    static readonly PartitionedRateLimiter<string> PerEmail = PartitionedRateLimiter.Create<string, string>(email =>
+        RateLimitPartition.GetFixedWindowLimiter(email, _ => new FixedWindowRateLimiterOptions
+        {
+            PermitLimit = 10, Window = TimeSpan.FromMinutes(15),
+        }));
+
+    public static IResult? LimitPerEmail(string email)
+    {
+        using var lease = PerEmail.AttemptAcquire(email.Trim().ToLowerInvariant());
+        return lease.IsAcquired ? null
+            : Results.Json(new ApiError("För många försök. Försök igen om en stund.", "rateLimited"), statusCode: 429);
+    }
 
     // Webben hämtar en ny token efter varje in- och utloggning, eftersom token är knuten till användaren.
     public static void MapAntiforgery(this RouteGroupBuilder api)
@@ -82,6 +112,7 @@ public static class AuthEndpoints
         {
             if (string.IsNullOrWhiteSpace(req.Email) || string.IsNullOrEmpty(req.Password))
                 return Results.BadRequest(new ApiError("Ange e-post och lösenord.", "credentialsRequired"));
+            if (LimitPerEmail(req.Email) is { } limited) return limited;
 
             var (result, session) = await supabase.SignInAsync(req.Email.Trim(), req.Password, cancellationToken);
             switch (result)
@@ -107,6 +138,7 @@ public static class AuthEndpoints
             if (string.IsNullOrWhiteSpace(req.Email) || !System.Net.Mail.MailAddress.TryCreate(req.Email.Trim(), out var address)
                 || address.Address != req.Email.Trim())
                 return Results.BadRequest(new ApiError("Ange en giltig e-postadress.", "invalidEmail"));
+            if (LimitPerEmail(address.Address) is { } limited) return limited;
             await supabase.RecoverAsync(address.Address, ct);
             return Results.Accepted(null, new ApiMessage("Om adressen har ett konto får du ett mejl med en länk för att återställa lösenordet."));
         });
