@@ -6,6 +6,7 @@ import { Link, Outlet, useRouterState } from '@tanstack/react-router'
 import { Activity, BarChart3, Home, User } from 'lucide-react'
 import { motion } from 'motion/react'
 import { meQuery } from '@/lib/auth'
+import { pendingRequests, followsQuery } from '@/lib/follows'
 import { cn } from '@/lib/utils'
 import { AuthPage, ChooseNamePage, ResetPasswordPage } from '@/routes/auth'
 
@@ -20,6 +21,8 @@ export function Layout() {
   const { t, i18n } = useTranslation()
   const pathname = useRouterState({ select: (s) => s.location.pathname })
   const me = useQuery(meQuery)
+  const follows = useQuery({ ...followsQuery, enabled: !!me.data?.displayName })
+  const requests = pendingRequests(follows.data).length
 
   if (new URLSearchParams(window.location.search).get('reset') === 'password')
     return <ResetPasswordPage />
@@ -70,8 +73,23 @@ export function Layout() {
                         active ? 'text-primary md:bg-primary/10' : 'text-muted-foreground',
                       )}
                     >
-                      <Icon aria-hidden="true" className="size-5" />
+                      <span className="relative">
+                        <Icon aria-hidden="true" className="size-5" />
+                        {to === '/app' && requests > 0 && (
+                          <span
+                            aria-hidden="true"
+                            className="absolute -right-2 -top-1.5 flex min-w-4 items-center justify-center rounded-full bg-primary px-1 text-[10px] font-semibold leading-4 text-primary-foreground"
+                          >
+                            {requests}
+                          </span>
+                        )}
+                      </span>
                       {t(label)}
+                      {to === '/app' && requests > 0 && (
+                        <span className="sr-only">
+                          {t('nav.followRequests', { count: requests })}
+                        </span>
+                      )}
                     </Link>
                   </li>
                 )

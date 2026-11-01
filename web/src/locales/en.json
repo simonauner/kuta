@@ -23,7 +23,9 @@
     "activities": "Activities",
     "stats": "Statistics",
     "profile": "Profile",
-    "main": "Main navigation"
+    "main": "Main navigation",
+    "followRequests_one": ", {{count}} new follow request",
+    "followRequests_other": ", {{count}} new follow requests"
   },
   "language": "Language",
   "slowLoading": "This is taking unusually long...",
@@ -630,7 +632,10 @@
     "profileLinkCopied": "Profile link copied.",
     "profileLinkCopyFailed": "Could not copy the link. You can copy it from the field below.",
     "profileLink": "Profile link",
-    "profileLinksHint": "To follow someone, open their shared profile link. You can copy your own link from your profile."
+    "profileLinksHint": "To follow someone, open their shared profile link. You can copy your own link from your profile.",
+    "requestsTitle_one": "{{name}} wants to follow you",
+    "requestsTitle_other": "{{count}} people want to follow you",
+    "manageFollowers": "Manage followers"
   },
   "goals": {
     "new": "New goal",

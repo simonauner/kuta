@@ -23,7 +23,9 @@
     "activities": "Aktiviteter",
     "stats": "Statistik",
     "profile": "Profil",
-    "main": "Huvudnavigering"
+    "main": "Huvudnavigering",
+    "followRequests_one": ", {{count}} ny följförfrågan",
+    "followRequests_other": ", {{count}} nya följförfrågningar"
   },
   "language": "Språk",
   "slowLoading": "Detta tar ovanligt lång tid...",
@@ -630,7 +632,10 @@
     "profileLinkCopied": "Profillänken är kopierad.",
     "profileLinkCopyFailed": "Kunde inte kopiera länken. Du kan kopiera den från fältet nedan.",
     "profileLink": "Profillänk",
-    "profileLinksHint": "För att följa någon öppnar du personens delade profillänk. Din egen länk kopierar du från din profil."
+    "profileLinksHint": "För att följa någon öppnar du personens delade profillänk. Din egen länk kopierar du från din profil.",
+    "requestsTitle_one": "{{name}} vill följa dig",
+    "requestsTitle_other": "{{count}} personer vill följa dig",
+    "manageFollowers": "Hantera följare"
   },
   "goals": {
     "new": "Nytt mål",

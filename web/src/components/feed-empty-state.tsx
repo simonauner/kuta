@@ -6,16 +6,13 @@ import { ErrorMessage } from '@/components/error-message'
 import { ShareProfile } from '@/components/share-profile'
 import { AddActivityButton, StravaImportLink } from '@/components/onboarding-actions'
 import { Button } from '@/components/ui/button'
-import { api } from '@/lib/api'
+import { followsQuery } from '@/lib/follows'
 import { card } from '@/components/ui/card-variants'
 import { Heading } from '@/components/ui/heading'
 
 export function FeedEmptyState() {
   const { t } = useTranslation()
-  const follows = useQuery({
-    queryKey: ['follows'],
-    queryFn: () => api.get<{ following: { id: string }[] }>('/api/follows'),
-  })
+  const follows = useQuery(followsQuery)
 
   return (
     <SlowLoading loading={follows.isPending}>
