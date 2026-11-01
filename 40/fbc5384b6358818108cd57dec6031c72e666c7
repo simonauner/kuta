@@ -1,0 +1,28 @@
+api/Kuta.Api.Tests/GarminTests.cs
+  s_1d8c41d0c04d95::t_4e96746a34f0eb 157-171
+  s_1d8c41d0c04d95::t_71701eb9f11875 156
+AGENTS.md
+  s_1d8c41d0c04d95::t_4e96746a34f0eb 89
+README.md
+  s_1d8c41d0c04d95::t_4e96746a34f0eb 607-608
+api/Kuta.Api/GarminClient.cs
+  s_1d8c41d0c04d95::t_523b3da89ddbd4 27-32
+api/Kuta.Api/GarminEndpoints.cs
+  s_1d8c41d0c04d95::t_523b3da89ddbd4 56,63
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.7.5",
+  "base_commit_sha": "40fbc5384b6358818108cd57dec6031c72e666c7",
+  "prompts": {},
+  "sessions": {
+    "s_1d8c41d0c04d95": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "bdd1f4bc-6213-49a7-8e73-7e9172c83f8c",
+        "model": "claude-opus-5-5"
+      },
+      "human_author": "Simon Aunér <simonauner@gmail.com>"
+    }
+  }
+}
