@@ -1,0 +1,47 @@
+api/Kuta.Api/RunnerProfile.cs
+  s_d210553cab99d0::t_3574286a4d4a6b 18,28-29,33-48
+  s_d210553cab99d0::t_19e6f1f9fbc13d 49-50
+web/src/locales/en.json
+  s_d210553cab99d0::t_c4a7cd8d109071 404-405,767-772,774
+  s_d210553cab99d0::t_5c8893b9e511d7 773
+api/Kuta.Api.Tests/RunnerProfileTests.cs
+  s_d210553cab99d0::t_ec06614c435a67 105-134,136-148,166-173
+  s_d210553cab99d0::t_3d8c615a41ce97 135
+api/Kuta.Api/SocialEndpoints.cs
+  s_d210553cab99d0::t_3574286a4d4a6b 15-21,23-24,30-31,33-35,42,46,53-54
+web/src/components/activity-feed.tsx
+  s_d210553cab99d0::t_5a0e2c6ac6bd09 33,37,46
+  s_d210553cab99d0::t_544caf139796ef 42
+api/Kuta.Api/Goals.cs
+  s_d210553cab99d0::t_3574286a4d4a6b 98,107-108,164,167
+web/src/locales/sv.json
+  s_d210553cab99d0::t_5c8893b9e511d7 773
+  s_d210553cab99d0::t_c4a7cd8d109071 404-405,767-772,774
+web/src/routes/profile.tsx
+  s_d210553cab99d0::t_ef08ec05090eea 3-4,8,13-18,21-22,27-35,42,53-69,71-72,74-87
+  s_d210553cab99d0::t_ea2fd5ba52a90e 6,70
+web/src/components/runner-summary.tsx
+  s_d210553cab99d0::t_5a0e2c6ac6bd09 28-32,34-35,37-38,43,45,79,110,112,148,150
+api/Kuta.Api/Supporters.cs
+  s_d210553cab99d0::t_3574286a4d4a6b 4,6
+AGENTS.md
+  s_d210553cab99d0::t_0bccf58a5891f7 82
+web/src/components/goals.tsx
+  s_d210553cab99d0::t_5a0e2c6ac6bd09 68,72,76,79
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.7.5",
+  "base_commit_sha": "72a6a8462141c8b9fa1668e79c032faa40fd8661",
+  "prompts": {},
+  "sessions": {
+    "s_d210553cab99d0": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "f56d2e43-3450-4a53-9b96-6b311a235fb4",
+        "model": "claude-opus-5-5"
+      },
+      "human_author": "Simon Aunér <simonauner@gmail.com>"
+    }
+  }
+}
