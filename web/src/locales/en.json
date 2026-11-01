@@ -170,7 +170,7 @@
     "deleteWarning": "The activity, its streams, records and original file are deleted. This cannot be undone."
   },
   "newActivity": {
-    "title": "Create activity",
+    "title": "New activity",
     "upload": "Upload file",
     "file": "FIT file from your watch",
     "overwrite": "The file replaces what you entered: {{fields}}.",
@@ -449,7 +449,7 @@
     "progress": "Processed {{processed}} of {{total}} activities"
   },
   "dangerZone": {
-    "title": "Danger zone",
+    "title": "Delete data",
     "description": "Delete all your activities and start fresh. Your account and settings will remain.",
     "delete": "Delete all activities",
     "confirmTitle": "Delete all your activities?",
@@ -558,7 +558,7 @@
     "restore": "Restore imported version",
     "selected": "Showing leg {{number}}: {{sport}}",
     "distanceBySport": "Distance by sport",
-    "confirmRestore": "Restoring will remove the split. Do you want to continue?",
+    "confirmRestore": "The split is removed and the activity gets back the parts from the import.",
     "restoreConfirm": "Restore"
   },
   "privacyPlaces": {

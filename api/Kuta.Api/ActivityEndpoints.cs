@@ -115,7 +115,7 @@ public static class ActivityEndpoints
             if (year is < 1 or > 9998)
                 return Results.BadRequest(new ApiError("Ange ett år mellan 1 och 9998.", "invalidActivityYear"));
             if (sportGroup is not null && !SportGroups.IsValid(sportGroup))
-                return Results.BadRequest(new ApiError("Välj en giltig träningsform.", "invalidSportGroup"));
+                return Results.BadRequest(new ApiError("Välj en giltig sport.", "invalidSportGroup"));
             timeZone ??= "UTC";
             await using var conn = await db.OpenConnectionAsync(cancellationToken);
             if (!await ActivityList.IsValidTimeZoneAsync(conn, timeZone, cancellationToken))
@@ -128,7 +128,7 @@ public static class ActivityEndpoints
             string? sportGroup, CancellationToken cancellationToken) =>
         {
             if (sportGroup is not null && !SportGroups.IsValid(sportGroup))
-                return Results.BadRequest(new ApiError("Välj en giltig träningsform.", "invalidSportGroup"));
+                return Results.BadRequest(new ApiError("Välj en giltig sport.", "invalidSportGroup"));
             timeZone ??= "UTC";
             await using var conn = await db.OpenConnectionAsync(cancellationToken);
             if (!await ActivityList.IsValidTimeZoneAsync(conn, timeZone, cancellationToken))
@@ -224,7 +224,7 @@ public static class ActivityEndpoints
                 // Composite foreign keys reject unknown equipment and equipment owned by another user.
                 return Results.BadRequest(EquipmentEndpoints.InvalidEquipment);
             }
-            if (id is null) return Results.Conflict(new ApiError("Det här passet är redan uppladdat.", "duplicateActivity"));
+            if (id is null) return Results.Conflict(new ApiError("Den här aktiviteten är redan uppladdad.", "duplicateActivity"));
 
             return Results.Created($"/api/activities/{id}", new ActivitySummary(
                 id.Value, split?.Kind ?? parsed.Sport, title, parsed.StartedAt, parsed.DurationS, split is null ? parsed.DistanceM : Multisport.Build(split, parsed.T, parsed.Dist)!.Sum(p => p.DistanceM), parsed.AvgHr, ActivityInput.NormalizeTags(tags), equipmentIds.Distinct().ToArray()));
@@ -377,13 +377,13 @@ public static class ActivityEndpoints
         if (await conn.ExecuteScalarAsync<bool>(
                 "select exists (select 1 from activities where user_id = @userId and raw_file_sha256 = @sha256)",
                 new { userId, sha256 }))
-            return (null, Results.Conflict(new ApiError("Det här passet är redan uppladdat.", "duplicateActivity")));
+            return (null, Results.Conflict(new ApiError("Den här aktiviteten är redan uppladdad.", "duplicateActivity")));
 
         ParsedActivity? parsed;
         try { parsed = FitImport.Parse(bytes); }
         catch (FitException) { parsed = null; }
         if (parsed is null)
-            return (null, Results.BadRequest(new ApiError("Filen kunde inte läsas som ett pass från en FIT-fil.", "invalidFit")));
+            return (null, Results.BadRequest(new ApiError("Filen kunde inte läsas som en aktivitet från en FIT-fil.", "invalidFit")));
         return (new FitUpload(bytes, sha256, profile.HrConsent ? parsed : parsed.WithoutHeartRate(), profile.HrConsent), null);
     }
 }
