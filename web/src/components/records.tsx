@@ -46,7 +46,7 @@ function EffortLink({ effort }: { effort: { activityId: string; elapsedS: number
   )
 }
 
-// Löprekord: personbästa och årsbästa, utveckling per distans och prognos (VDOT).
+// Running records: personal and yearly bests, progress per distance and prediction (VDOT).
 export function RecordsSection({ year }: { year: number }) {
   const { t, i18n } = useTranslation()
   const timeZone = Intl.DateTimeFormat().resolvedOptions().timeZone

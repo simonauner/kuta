@@ -11,7 +11,7 @@ import { useSessionChanged, type Me } from '@/lib/auth'
 
 type Mode = 'login' | 'signup' | 'recover'
 
-// Visas i stället för appen när ingen är inloggad.
+// Shown instead of the app when nobody is signed in.
 export function AuthPage() {
   const { t, i18n } = useTranslation()
   const english = i18n.resolvedLanguage === 'en'
@@ -23,8 +23,8 @@ export function AuthPage() {
     null,
   )
   const sessionChanged = useSessionChanged()
-  // Bekräftelselänken (/api/auth/confirm) loggar inte in: den skickar hit med ?confirm=ok, eller ?confirm=failed
-  // när länken är ogiltig eller använd
+  // The confirmation link (/api/auth/confirm) doesn't sign in: it redirects here with ?confirm=ok, or ?confirm=failed
+  // when the link is invalid or used
   const confirm = new URLSearchParams(window.location.search).get('confirm')
   const confirmFailed = confirm === 'failed'
 
@@ -42,7 +42,7 @@ export function AuthPage() {
       })
     },
     onSuccess: async (result) => {
-      // Registrering med e-postbekräftelse svarar 202 med ett meddelande; annars är vi inloggade
+      // Signup with email confirmation answers 202 with a message; otherwise we are signed in
       if (result) setCheckEmail(mode === 'recover' ? 'auth.recoverySent' : 'auth.confirmSent')
       else await sessionChanged()
     },
@@ -247,7 +247,7 @@ export function ResetPasswordPage() {
   )
 }
 
-// Första inloggningen: profilen (users-raden) skapas när användaren väljer ett namn.
+// First sign-in: the profile (users row) is created when the user picks a name.
 export function ChooseNamePage() {
   const { t } = useTranslation()
   const queryClient = useQueryClient()

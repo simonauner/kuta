@@ -8,8 +8,8 @@ import { refreshActivityQueries } from '@/lib/activity-query'
 import { api } from '@/lib/api'
 import { meQuery } from '@/lib/auth'
 
-// Garmin kräver märkning av statistik och annat som härleds ur deras data; bara för egna vyer,
-// eftersom hasGarminData gäller den inloggade.
+// Garmin requires attribution on statistics and anything else derived from their data; own views only,
+// since hasGarminData applies to the signed-in user.
 export function GarminDerivedNote({ className }: { className?: string }) {
   const { data: me } = useQuery(meQuery)
   const { t } = useTranslation()

@@ -22,7 +22,7 @@ public static class TrainingLoads
         if (threshold is not { } speed)
             return new TrainingLoadSummary(null, null, null, [], null, false);
 
-        // Lagrad intensitet ur tidsserierna; annars snittfarten för löppass och löpdelar (manuella och äldre pass).
+        // Stored intensity from the streams; otherwise the average speed for runs and running legs (manual and older activities).
         var daily = await conn.QueryAsync<(DateOnly Day, double Intensity)>(new CommandDefinition($"""
             with {SportGroups.Cte}
             select day, sum(intensity) from (

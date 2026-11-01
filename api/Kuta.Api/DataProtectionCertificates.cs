@@ -1,14 +1,14 @@
 using System.Security.Cryptography;
 using System.Security.Cryptography.X509Certificates;
 
-// Det aktuella certifikatet krypterar nya Data Protection-nycklar i databasen; det förra
-// dekrypterar bara nycklar från före ett certifikatbyte.
+// The current certificate encrypts new Data Protection keys in the database; the previous one
+// only decrypts keys from before a certificate rotation.
 public sealed record DataProtectionCertificates(X509Certificate2? Current, X509Certificate2? Previous)
 {
     private const string CurrentKey = "DataProtection:Certificate";
     private const string PreviousKey = "DataProtection:PreviousCertificate";
 
-    // Sätts som miljövariabler, där sektionsavgränsaren är dubbla understreck.
+    // Set as environment variables, where the section separator is a double underscore.
     private static string Name(string key) => $"{key.Replace(":", "__")} ({key})";
 
     public static DataProtectionCertificates Load(IConfiguration configuration, bool requireCurrent)
@@ -16,8 +16,8 @@ public sealed record DataProtectionCertificates(X509Certificate2? Current, X509C
         var current = LoadCertificate(configuration, CurrentKey);
         if (current is null && requireCurrent)
             throw new InvalidOperationException(
-                $"{Name(CurrentKey)} måste sättas utanför Development: ett base64-kodat PKCS #12-certifikat (.pfx) " +
-                "som krypterar Data Protection-nycklarna i databasen.");
+                $"{Name(CurrentKey)} must be set outside Development: a base64-encoded PKCS #12 certificate (.pfx) " +
+                "that encrypts the Data Protection keys in the database.");
         return new DataProtectionCertificates(current, LoadCertificate(configuration, PreviousKey));
     }
 
@@ -33,13 +33,13 @@ public sealed record DataProtectionCertificates(X509Certificate2? Current, X509C
                 Convert.FromBase64String(encoded), configuration[$"{key}Password"]);
             return certificate.HasPrivateKey
                 ? certificate
-                : throw new CryptographicException("Certifikatet saknar privat nyckel.");
+                : throw new CryptographicException("The certificate has no private key.");
         }
         catch (Exception exception) when (exception is FormatException or CryptographicException)
         {
             throw new InvalidOperationException(
-                $"{Name(key)} måste vara ett base64-kodat PKCS #12-certifikat (.pfx) med privat nyckel; " +
-                $"sätt {Name($"{key}Password")} om filen har lösenord.", exception);
+                $"{Name(key)} must be a base64-encoded PKCS #12 certificate (.pfx) with a private key; " +
+                $"set {Name($"{key}Password")} if the file has a password.", exception);
         }
     }
 }

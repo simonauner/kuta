@@ -22,14 +22,14 @@ public sealed record JobResponse(Guid Id, string Kind, string Status, JsonElemen
     static JsonElement? Parse(string? json) => json is null ? null : JsonDocument.Parse(json).RootElement.Clone();
 }
 
-// Ett avbrutet jobb som inte ska försökas igen; koden visas för användaren.
+// An aborted job that should not be retried; the code is shown to the user.
 public sealed class JobFailedException(string code) : Exception(code)
 {
     public string Code { get; } = code;
 }
 
-// Kön är en vanlig tabell. En arbetare tar nästa jobb med "for update skip locked" och håller det med ett tidsbegränsat
-// lås som förnyas under körningen. Stannar arbetaren (omstart, krasch) går låset ut och jobbet tas upp igen.
+// The queue is a plain table. A worker takes the next job with "for update skip locked" and holds it with a time-limited
+// lock that is renewed while running. If the worker stops (restart, crash) the lock expires and the job is picked up again.
 public static class JobQueue
 {
     public static readonly TimeSpan Lease = TimeSpan.FromMinutes(2);
@@ -42,7 +42,7 @@ public static class JobQueue
     public static string Serialize<T>(T value) => JsonSerializer.Serialize(value, Json);
     public static T? Deserialize<T>(string? json) => json is null ? default : JsonSerializer.Deserialize<T>(json, Json);
 
-    // Null när användaren redan har ett aktivt jobb av samma slag.
+    // Null when the user already has an active job of the same kind.
     public static async Task<JobRow?> EnqueueAsync(NpgsqlConnection conn, Guid userId, string kind, Guid? id = null,
         CancellationToken ct = default) =>
         await conn.QuerySingleOrDefaultAsync<JobRow>(new CommandDefinition($"""
@@ -60,13 +60,13 @@ public static class JobQueue
         conn.QuerySingleOrDefaultAsync<JobRow>(new CommandDefinition(
             $"select {Columns} from jobs where id = @id and user_id = @userId", new { id, userId }, cancellationToken: ct));
 
-    // Senaste jobbet av varje slag, så att webben kan visa en pågående import efter omladdning.
+    // The latest job of each kind, so the web can show an ongoing import after a reload.
     public static async Task<IReadOnlyList<JobRow>> LatestAsync(NpgsqlConnection conn, Guid userId, CancellationToken ct = default) =>
         (await conn.QueryAsync<JobRow>(new CommandDefinition($"""
             select distinct on (kind) {Columns} from jobs where user_id = @userId order by kind, created_at desc
             """, new { userId }, cancellationToken: ct))).ToList();
 
-    // Tar nästa körbara jobb: köat och moget, eller körande med utgånget lås. userId begränsar till en användare (tester).
+    // Takes the next runnable job: queued and due, or running with an expired lock. userId limits to one user (tests).
     public static Task<JobRow?> ClaimAsync(NpgsqlConnection conn, Guid? userId = null, CancellationToken ct = default) =>
         conn.QuerySingleOrDefaultAsync<JobRow>(new CommandDefinition($"""
             update jobs set status = 'running', attempts = attempts + 1, locked_until = now() + @lease
@@ -79,7 +79,7 @@ public static class JobQueue
             returning {Columns}
             """, new { lease = Lease, userId }, cancellationToken: ct));
 
-    // Sparar förloppet och förnyar låset. False om jobbet har försvunnit (kontot raderat) eller tagits över.
+    // Saves progress and renews the lock. False if the job is gone (account deleted) or has been taken over.
     public static async Task<bool> HeartbeatAsync(NpgsqlConnection conn, Guid id, string? progress, CancellationToken ct = default) =>
         await conn.ExecuteAsync(new CommandDefinition("""
             update jobs set progress = coalesce(@progress::jsonb, progress), locked_until = now() + @lease
@@ -92,7 +92,7 @@ public static class JobQueue
             where id = @id
             """, new { id, result }, cancellationToken: ct));
 
-    // Slutgiltigt fel, eller ett nytt försök senare med ökande väntetid tills försöken är slut.
+    // Final failure, or a retry later with increasing delay until the attempts run out.
     public static async Task<bool> FailAsync(NpgsqlConnection conn, Guid id, string code, bool retry, CancellationToken ct = default) =>
         await conn.ExecuteScalarAsync<bool>(new CommandDefinition("""
             update jobs set
@@ -105,7 +105,7 @@ public static class JobQueue
             returning status = 'failed'
             """, new { id, code, retry, maxAttempts = MaxAttempts }, cancellationToken: ct));
 
-    // Vid nedstängning: lämna tillbaka jobbet direkt utan att räkna försöket.
+    // On shutdown: hand the job back immediately without counting the attempt.
     public static Task ReleaseAsync(NpgsqlConnection conn, Guid id) =>
         conn.ExecuteAsync("""
             update jobs set status = 'queued', attempts = greatest(attempts - 1, 0), locked_until = null

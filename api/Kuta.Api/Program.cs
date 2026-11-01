@@ -16,7 +16,7 @@ try
 {
     return await RunAsync(args);
 }
-catch (HostAbortedException) { throw; } // WebApplicationFactory avbryter starten vid Build.
+catch (HostAbortedException) { throw; } // WebApplicationFactory aborts startup at Build.
 catch (Exception exception)
 {
     PrivateLogProvider.WriteFailure(Console.Error, PrivateLogProvider.StartupFailed, exception);
@@ -27,29 +27,29 @@ static async Task<int> RunAsync(string[] args)
 {
     var builder = WebApplication.CreateBuilder(args);
 
-    // Ramverksloggar kan innehålla URL:er, tokens och undantag. Bara granskade diagnostikfält får lämna processen.
+    // Framework logs can contain URLs, tokens and exceptions. Only reviewed diagnostic fields may leave the process.
     builder.Logging.ClearProviders();
     builder.Logging.AddProvider(new PrivateLogProvider(Console.Out));
 
-    // GSS-kryptering (Kerberos) av: vi loggar in med lösenord, och utan libgssapi i imagen loggar Npgsql ett fel vid varje försök
+    // GSS encryption (Kerberos) off: we log in with a password, and without libgssapi in the image Npgsql logs an error on every attempt
     var connectionString = new NpgsqlConnectionStringBuilder(builder.Configuration.GetConnectionString("Default")
-        ?? throw new InvalidOperationException("ConnectionStrings:Default saknas")) { GssEncryptionMode = GssEncryptionMode.Disable }
+        ?? throw new InvalidOperationException("ConnectionStrings:Default is missing")) { GssEncryptionMode = GssEncryptionMode.Disable }
         .ConnectionString;
 
-    // Dapper: snake_case-kolumner -> PascalCase-properties
+    // Dapper: snake_case columns -> PascalCase properties
     DefaultTypeMap.MatchNamesWithUnderscores = true;
 
-    // Npgsql med PostGIS/NetTopologySuite
+    // Npgsql with PostGIS/NetTopologySuite
     var dataSourceBuilder = new NpgsqlDataSourceBuilder(connectionString);
     dataSourceBuilder.UseNetTopologySuite();
-    // Fabriksregistrering: containern äger då poolen och stänger dess anslutningar när appen avslutas.
-    // En färdig instans kasseras aldrig, så varje testapp lämnade annars sina anslutningar öppna.
+    // Factory registration: the container then owns the pool and closes its connections when the app shuts down.
+    // A ready-made instance is never disposed, so every test app would otherwise leave its connections open.
     builder.Services.AddSingleton(_ => dataSourceBuilder.Build());
 
     builder.Services.ConfigureHttpJsonOptions(o =>
         o.SerializerOptions.PropertyNamingPolicy = System.Text.Json.JsonNamingPolicy.CamelCase);
 
-    // Inloggning via vårt API mot Supabase Auth (BFF); sessionen ligger i en krypterad HttpOnly-cookie
+    // Sign-in via our API against Supabase Auth (BFF); the session lives in an encrypted HttpOnly cookie
     builder.Services.AddHttpContextAccessor();
     builder.Services.AddHttpClient<SupabaseAuthClient>();
     builder.Services.AddHttpClient<GarminClient>();
@@ -58,19 +58,19 @@ static async Task<int> RunAsync(string[] args)
     builder.Services.AddSingleton<ImportFiles>();
     builder.Services.AddHostedService<JobWorker>();
 
-    // Nycklarna sparas i Postgres och krypteras med ett certifikat utanför Development (DataProtection__Certificate)
+    // The keys are stored in Postgres and encrypted with a certificate outside Development (DataProtection__Certificate)
     builder.Services.AddSingleton<IConfigureOptions<KeyManagementOptions>, PostgresKeyManagementSetup>();
     var dataProtection = builder.Services.AddDataProtection().SetApplicationName("kuta");
     var certificates = DataProtectionCertificates.Load(builder.Configuration, requireCurrent: !builder.Environment.IsDevelopment());
     if (certificates.Current is { } currentCertificate) dataProtection.ProtectKeysWithCertificate(currentCertificate);
     if (certificates.Previous is { } previousCertificate) dataProtection.UnprotectKeysWithAnyCertificate(previousCertificate);
 
-    // Bakom Flys proxy (ASPNETCORE_FORWARDEDHEADERS_ENABLED): klientens IP i ForwardedHeaders__ForwardedForHeaderName
-    // (Fly-Client-IP) för rate limiten, och X-Forwarded-Proto så att appen ser https.
+    // Behind Fly's proxy (ASPNETCORE_FORWARDEDHEADERS_ENABLED): the client IP in ForwardedHeaders__ForwardedForHeaderName
+    // (Fly-Client-IP) for the rate limit, and X-Forwarded-Proto so the app sees https.
     builder.Services.Configure<ForwardedHeadersOptions>(builder.Configuration.GetSection("ForwardedHeaders"));
     builder.Services.AddHsts(o => o.MaxAge = TimeSpan.FromDays(365));
 
-    // __Host- kräver Secure, som inte går över http lokalt
+    // __Host- requires Secure, which doesn't work over http locally
     var cookiePrefix = builder.Environment.IsDevelopment() ? "" : "__Host-";
     var cookieSecurePolicy = builder.Environment.IsDevelopment() ? CookieSecurePolicy.SameAsRequest : CookieSecurePolicy.Always;
     builder.Services.AddAuthentication(CookieAuthenticationDefaults.AuthenticationScheme)
@@ -78,13 +78,13 @@ static async Task<int> RunAsync(string[] args)
         {
             o.Cookie.Name = cookiePrefix + "kuta.session";
             o.Cookie.HttpOnly = true;
-            // Lax så att länken i bekräftelsemejlet öppnar appen inloggad; skrivningar skyddas av antiforgery-token
+            // Lax so the link in the confirmation email opens the app signed in; writes are protected by the antiforgery token
             o.Cookie.SameSite = SameSiteMode.Lax;
             o.Cookie.SecurePolicy = cookieSecurePolicy;
             o.ExpireTimeSpan = SupabaseCookieSession.IdleTimeout;
             o.SlidingExpiration = true;
             o.Events.OnValidatePrincipal = SupabaseCookieSession.ValidatePrincipalAsync;
-            // API: svara 401/403 i stället för att redirecta till en inloggningssida
+            // API: respond 401/403 instead of redirecting to a login page
             o.Events.OnRedirectToLogin = ctx => { ctx.Response.StatusCode = 401; return Task.CompletedTask; };
             o.Events.OnRedirectToAccessDenied = ctx => { ctx.Response.StatusCode = 403; return Task.CompletedTask; };
         });
@@ -96,20 +96,20 @@ static async Task<int> RunAsync(string[] args)
         o.Cookie.SecurePolicy = cookieSecurePolicy;
     });
 
-    // Bromsar lösenordsgissning och massregistrering: 10 auth-anrop per 5 minuter och IP (IPv6 per /64-nät).
-    // Inloggning och återställning har dessutom en gräns per e-postadress (AuthEndpoints).
+    // Slows password guessing and mass sign-up: 10 auth calls per 5 minutes and IP (IPv6 per /64 network).
+    // Login and recovery also have a limit per email address (AuthEndpoints).
     builder.Services.AddRateLimiter(o =>
     {
         o.RejectionStatusCode = StatusCodes.Status429TooManyRequests;
         o.AddPolicy("auth", ctx => RateLimitPartition.GetFixedWindowLimiter(
             AuthEndpoints.ClientPartition(ctx.Connection.RemoteIpAddress),
             _ => new FixedWindowRateLimiterOptions { PermitLimit = 10, Window = TimeSpan.FromMinutes(5) }));
-        // Filtolkning kostar minne och CPU: 30 uppladdningar/förhandsvisningar per 5 minuter och användare.
-        // Gruppen kräver inloggning, och auktoriseringen körs före rate limiten.
+        // File parsing costs memory and CPU: 30 uploads/previews per 5 minutes and user.
+        // The group requires sign-in, and authorization runs before the rate limit.
         o.AddPolicy("uploads", ctx => RateLimitPartition.GetFixedWindowLimiter(
             ctx.User.FindFirstValue(ClaimTypes.NameIdentifier) ?? "anonymous",
             _ => new FixedWindowRateLimiterOptions { PermitLimit = 30, Window = TimeSpan.FromMinutes(5) }));
-        // Följförfrågningar: 20 per timme och användare, mot massförfrågningar till delade profillänkar.
+        // Follow requests: 20 per hour and user, against mass requests to shared profile links.
         o.AddPolicy("follows", ctx => RateLimitPartition.GetFixedWindowLimiter(
             ctx.User.FindFirstValue(ClaimTypes.NameIdentifier) ?? "anonymous",
             _ => new FixedWindowRateLimiterOptions { PermitLimit = 20, Window = TimeSpan.FromHours(1) }));
@@ -120,11 +120,11 @@ static async Task<int> RunAsync(string[] args)
     app.Lifetime.ApplicationStarted.Register(() => diagnostics.LogInformation(PrivateLogProvider.Started, ""));
     app.Lifetime.ApplicationStopped.Register(() => diagnostics.LogInformation(PrivateLogProvider.Stopped, ""));
 
-    // API:t svarar bara med JSON och redirects: inget får köras eller laddas från svaren. Webbens CSP ligger i
-    // index.html (web/vite.config.ts); headern lägger till det en meta-tagg inte kan, frame-ancestors.
+    // The API only responds with JSON and redirects: nothing may run or load from the responses. The web CSP lives in
+    // index.html (web/vite.config.ts); the header adds what a meta tag cannot, frame-ancestors.
     app.Use((context, next) =>
     {
-        // OnStarting behåller säkerhetsheaders även när felhanteraren tömmer svaret.
+        // OnStarting keeps the security headers even when the exception handler clears the response.
         context.Response.OnStarting(() =>
         {
             var api = context.Request.Path.StartsWithSegments("/api");
@@ -138,7 +138,7 @@ static async Task<int> RunAsync(string[] args)
         });
         return next(context);
     });
-    // Yttre middleware ser även hanterade fel och fel efter att svaret har börjat skickas.
+    // Outer middleware also sees handled errors and errors after the response has started.
     app.Use(async (context, next) =>
     {
         var started = Stopwatch.GetTimestamp();
@@ -154,7 +154,7 @@ static async Task<int> RunAsync(string[] args)
                     failure, (_, _) => "");
         }
     });
-    // Även Development ska ge neutrala felsvar utan undantagsinnehåll.
+    // Development too should give neutral error responses without exception content.
     app.UseExceptionHandler(new ExceptionHandlerOptions
     {
         SuppressDiagnosticsCallback = _ => true,
@@ -167,8 +167,8 @@ static async Task<int> RunAsync(string[] args)
 
     if (!app.Environment.IsDevelopment()) app.UseHsts();
 
-    // En adress för appen: kuta.fly.dev och www skickas vidare till CanonicalHost (kutaapp.com i fly.toml), så att
-    // cookies, länkar och bekräftelsemejl alltid gäller samma origin. Flys hälsokontroll går mot maskinens IP och berörs inte.
+    // One address for the app: kuta.fly.dev and www redirect to CanonicalHost (kutaapp.com in fly.toml), so that
+    // cookies, links and confirmation emails always use the same origin. Fly's health check targets the machine IP and is unaffected.
     app.Use((context, next) =>
     {
         var canonical = app.Configuration["CanonicalHost"];
@@ -180,8 +180,8 @@ static async Task<int> RunAsync(string[] args)
         return Task.CompletedTask;
     });
 
-    // I drift ligger den byggda webben i wwwroot (se Dockerfile), så att webb och API delar origin.
-    // Filnamnen under /assets innehåller en hash och kan cachas för alltid; resten (index.html, sw.js) ska inte cachas.
+    // In production the built web app lives in wwwroot (see Dockerfile), so web and API share an origin.
+    // File names under /assets contain a hash and can be cached forever; the rest (index.html, sw.js) must not be cached.
     var staticFiles = new StaticFileOptions
     {
         OnPrepareResponse = ctx => ctx.Context.Response.Headers.CacheControl =
@@ -189,14 +189,14 @@ static async Task<int> RunAsync(string[] args)
     };
     app.UseDefaultFiles();
     app.UseStaticFiles(staticFiles);
-    // Uttryckligen i den här ordningen: annars lägger WebApplication routing och auth först, så att 401/403 saknar
-    // headers och fallback-routen tar sw.js m.fl. innan de statiska filerna hittas.
+    // Explicitly in this order: otherwise WebApplication puts routing and auth first, so 401/403 lack
+    // headers and the fallback route takes sw.js etc. before the static files are found.
     app.UseRouting();
     app.UseAuthentication();
     app.UseAuthorization();
     app.UseRateLimiter();
 
-    // Kör SQL-migreringar (inbäddade i Migrations/) vid start
+    // Run SQL migrations (embedded in Migrations/) at startup
     var upgrader = DeployChanges.To
         .PostgresqlDatabase(connectionString)
         .WithScriptsEmbeddedInAssembly(Assembly.GetExecutingAssembly())
@@ -204,8 +204,8 @@ static async Task<int> RunAsync(string[] args)
         .LogToNowhere()
         .Build();
 
-    // Bara en process i taget migrerar (parallella teststarter, flera maskiner): ett sessionslås i Postgres runt DbUp,
-    // med ett godtyckligt men fast nyckeltal. Släpps uttryckligen: en poolad anslutning behåller annars låset.
+    // Only one process migrates at a time (parallel test starts, several machines): a Postgres session lock around DbUp,
+    // with an arbitrary but fixed key. Released explicitly: a pooled connection would otherwise keep the lock.
     DbUp.Engine.DatabaseUpgradeResult result;
     using (var migrationLock = new NpgsqlConnection(connectionString))
     {
@@ -235,7 +235,7 @@ static async Task<int> RunAsync(string[] args)
 
     api.MapGet("/locale", (HttpContext http) =>
     {
-        // IP-baserade standardspråk får inte återanvändas mellan besökare eller nätverk.
+        // IP-based default languages must not be reused across visitors or networks.
         http.Response.Headers.CacheControl = "no-store";
         return Results.Ok(new { isSwedishIp = SwedishIp.Contains(http.Connection.RemoteIpAddress) });
     });
@@ -259,7 +259,7 @@ static async Task<int> RunAsync(string[] args)
     app.MapFallbackToFile("/terms", "terms.html", staticFiles);
     app.MapFallbackToFile("/features", "features.html", staticFiles);
 
-    // De publika sidorna är statiska; bara appens kända sökvägar får React-skalet.
+    // The public pages are static; only the app's known paths get the React shell.
     foreach (var path in new[] { "/app", "/app/activities", "/app/activities/new", "/app/activities/{activityId:guid}", "/app/activities/{activityId:guid}/edit", "/app/stats", "/app/profile", "/app/settings/equipment", "/app/settings/followers", "/app/settings/privacy-places", "/app/runners/{runnerId:guid}", "/app/settings" })
         app.MapFallbackToFile(path, "app.html", staticFiles);
 
@@ -267,5 +267,5 @@ static async Task<int> RunAsync(string[] args)
     return 0;
 }
 
-// Synlig för WebApplicationFactory i testerna
+// Visible to WebApplicationFactory in the tests
 public partial class Program;

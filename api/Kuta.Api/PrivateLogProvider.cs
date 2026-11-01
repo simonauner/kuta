@@ -1,7 +1,7 @@
 using System.Text.Json;
 using System.Text.Json.Serialization;
 
-// Serialisera bara granskade fält, aldrig loggformatterare, godtyckligt state eller scopes.
+// Serialize only reviewed fields, never log formatters, arbitrary state or scopes.
 public sealed class PrivateLogProvider(TextWriter output) : ILoggerProvider
 {
     public const string Category = "Kuta.Diagnostics";
@@ -21,7 +21,7 @@ public sealed class PrivateLogProvider(TextWriter output) : ILoggerProvider
     public ILogger CreateLogger(string categoryName) => new PrivateLogger(output, categoryName == Category);
     public void Dispose() { }
 
-    // Samma integritetsgräns före ILogger finns tillgänglig vid start och migrering.
+    // Same privacy boundary before ILogger is available, at startup and migration.
     public static void WriteFailure(TextWriter output, EventId eventId, Exception exception) =>
         new PrivateLogger(output, true).Log(LogLevel.Error, eventId, "", exception, (_, _) => "");
 

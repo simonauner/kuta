@@ -1,6 +1,6 @@
 public static class Supporters
 {
-    // Aktiv supporternivå för users-raden u, sedd av @userId med samma läsregel som passen; annars null.
+    // Active supporter tier for the users row u, as seen by @userId with the same read rule as activities; otherwise null.
     public const string VisibleTier = """
         case when u.supporter_until > now() and (u.id = @userId or u.supporter_badge_privacy = 'public' or
             (u.supporter_badge_privacy = 'followers' and exists (select 1 from follows f

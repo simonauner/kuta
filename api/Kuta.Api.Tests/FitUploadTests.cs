@@ -9,7 +9,7 @@ using Npgsql;
 using Xunit;
 using static TestSession;
 
-// Kräver lokal Supabase med Storage (se KutaFactory). FIT-filerna skapas här med Garmins SDK.
+// Requires local Supabase with Storage (see KutaFactory). The FIT files are created here with Garmin's SDK.
 public class FitUploadTests(KutaFactory factory) : IClassFixture<KutaFactory>
 {
     [Fact]
@@ -26,7 +26,7 @@ public class FitUploadTests(KutaFactory factory) : IClassFixture<KutaFactory>
             var start = new System.DateTime(2026, 10, 1, 6, 30, 0, DateTimeKind.Utc);
             var morning = FitFile.Run(start, seconds: 600);
 
-            // Förhandsvisningen för formuläret sparar ingenting och visar ingen puls utan samtycke
+            // The form preview saves nothing and shows no heart rate without consent
             var preview = await Upload(client, morning, ct, "/api/activities/preview");
             var previewed = await preview.Content.ReadFromJsonAsync<JsonElement>(ct);
             Assert.Equal((1800d, 600, "Garmin Fenix 5s", JsonValueKind.Null), (previewed.GetProperty("distanceM").GetDouble(),
@@ -34,7 +34,7 @@ public class FitUploadTests(KutaFactory factory) : IClassFixture<KutaFactory>
                 previewed.GetProperty("avgHr").ValueKind));
             Assert.Empty((await client.GetFromJsonAsync<ActivityPage>("/api/activities", ct))!.Items);
 
-            // Utan samtycke: passet sparas, men varken puls eller råfil (som innehåller puls). Titeln från formuläret följer med.
+            // Without consent: the activity is saved, but neither heart rate nor raw file (which contains heart rate). The title from the form is kept.
             var upload = await Upload(client, morning, ct, title: " Morgonrunda ", description: " Lugnt pass\nMed vänner ");
             Assert.Equal(HttpStatusCode.Created, upload.StatusCode);
             var created = await upload.Content.ReadFromJsonAsync<JsonElement>(ct);
@@ -58,12 +58,12 @@ public class FitUploadTests(KutaFactory factory) : IClassFixture<KutaFactory>
                        max(start_s) filter (where lap_index = 1)
                 from activity_laps where activity_id = @id
                 """, new { id });
-            Assert.Equal((10, 0, (short?)170, 60), laps); // varvens puls följer samtycket
+            Assert.Equal((10, 0, (short?)170, 60), laps); // lap heart rate follows the consent
 
             Assert.Equal(HttpStatusCode.Conflict, (await Upload(client, morning, ct)).StatusCode);
             Assert.Equal(HttpStatusCode.BadRequest, (await Upload(client, "inte en fit-fil"u8.ToArray(), ct)).StatusCode);
 
-            // Med samtycke: pulsen sparas, både sammanfattning och tidsserie
+            // With consent: heart rate is saved, both summary and time series
             var consent = await client.PutAsync("/api/me/hr-consent", null, ct);
             Assert.True((await consent.Content.ReadFromJsonAsync<JsonElement>(ct)).GetProperty("hrConsent").GetBoolean());
             var evening = await Upload(client, FitFile.Run(start.AddHours(12), seconds: 300), ct);
@@ -76,7 +76,7 @@ public class FitUploadTests(KutaFactory factory) : IClassFixture<KutaFactory>
                 "select count(avg_hr) from activity_laps where activity_id = @eveningId", new { eveningId }));
             Assert.Equal(1, await StoredFiles(conn, runner));
 
-            // Återkallat samtycke raderar all sparad puls, även råfilerna
+            // Withdrawn consent deletes all stored heart rate, including the raw files
             Assert.Equal(HttpStatusCode.OK, (await client.DeleteAsync("/api/me/hr-consent", ct)).StatusCode);
             Assert.Equal(0, await conn.ExecuteScalarAsync<int>(
                 """
@@ -90,7 +90,7 @@ public class FitUploadTests(KutaFactory factory) : IClassFixture<KutaFactory>
             var list = await client.GetFromJsonAsync<ActivityPage>("/api/activities", ct);
             Assert.Equal(2, list!.Items.Count);
 
-            // En annan användare ser inte passen
+            // Another user does not see the activities
             var otherClient = factory.CreateClient();
             await CreateRunnerAsync(factory, otherClient, conn, other, "Någon annan", ct);
             Assert.Empty((await otherClient.GetFromJsonAsync<ActivityPage>("/api/activities", ct))!.Items);
@@ -118,7 +118,7 @@ public class FitUploadTests(KutaFactory factory) : IClassFixture<KutaFactory>
             var id = (await (await Upload(client, fit, ct)).Content.ReadFromJsonAsync<JsonElement>(ct)).GetProperty("id").GetGuid();
             Assert.Equal(1, await StoredFiles(conn, runner));
 
-            // Passsidan: ägaren får passet med tidsserier (puls med, eftersom samtycke finns)
+            // Activity page: the owner gets the activity with time series (heart rate included, since consent exists)
             var detail = await client.GetFromJsonAsync<JsonElement>($"/api/activities/{id}", ct);
             Assert.Equal(360d, detail.GetProperty("distanceM").GetDouble());
             var detailStreams = detail.GetProperty("streams");
@@ -131,7 +131,7 @@ public class FitUploadTests(KutaFactory factory) : IClassFixture<KutaFactory>
             Assert.Equal(2, detailLaps.GetArrayLength());
             Assert.Equal(155, detailLaps[0].GetProperty("avgHr").GetInt32());
 
-            // Någon annan kan varken se eller ta bort passet, och får inte veta att det finns
+            // Someone else can neither see nor delete the activity, and does not learn that it exists
             await CreateRunnerAsync(factory, otherClient, conn, other, "Någon annan", ct);
             Assert.Equal(HttpStatusCode.NotFound, (await otherClient.GetAsync($"/api/activities/{id}", ct)).StatusCode);
             Assert.Equal(HttpStatusCode.NotFound, (await otherClient.DeleteAsync($"/api/activities/{id}", ct)).StatusCode);
@@ -144,7 +144,7 @@ public class FitUploadTests(KutaFactory factory) : IClassFixture<KutaFactory>
             Assert.Equal(0, await StoredFiles(conn, runner));
             Assert.Equal(HttpStatusCode.NotFound, (await client.DeleteAsync($"/api/activities/{id}", ct)).StatusCode);
 
-            // Samma fil går att ladda upp igen efter borttagning (t.ex. för att få med puls)
+            // The same file can be uploaded again after deletion (e.g. to include heart rate)
             Assert.Equal(HttpStatusCode.Created, (await Upload(client, fit, ct)).StatusCode);
         }
         finally
@@ -192,7 +192,7 @@ public class FitUploadTests(KutaFactory factory) : IClassFixture<KutaFactory>
         }
     }
 
-    // Filtolkning kostar minne: uppladdning och förhandsvisning delar en gräns per användare, inte per IP.
+    // File parsing costs memory: upload and preview share a limit per user, not per IP.
     [Fact]
     public async Task Uploads_are_rate_limited_per_user()
     {
@@ -220,7 +220,7 @@ public class FitUploadTests(KutaFactory factory) : IClassFixture<KutaFactory>
         }
     }
 
-    // Råfiler i den lokala Supabase Storage (fit/<användar-id>/…)
+    // Raw files in the local Supabase Storage (fit/<user-id>/…)
     static Task<int> StoredFiles(NpgsqlConnection conn, string email) => conn.ExecuteScalarAsync<int>(
         """
         select count(*) from storage.objects
@@ -240,7 +240,7 @@ public class FitUploadTests(KutaFactory factory) : IClassFixture<KutaFactory>
     }
 }
 
-// Syntetiskt löppass: en punkt per sekund, 3 m/s österut från Stockholm, puls 150–165.
+// Synthetic run: one point per second, 3 m/s eastward from Stockholm, heart rate 150–165.
 static class FitFile
 {
     const double SemicirclesPerDegree = 2147483648.0 / 180.0;
@@ -269,11 +269,11 @@ static class FitFile
             record.SetHeartRate((byte)(150 + i % 16));
             record.SetPositionLat((int)(latitude * SemicirclesPerDegree));
             record.SetPositionLong((int)((18.06 + i * 0.00005) * SemicirclesPerDegree));
-            record.SetCadence(85); // per ben: 170 steg/min
+            record.SetCadence(85); // per leg: 170 steps/min
             record.SetTemperature(18);
             encoder.Write(record);
 
-            // Ett varv per minut (som klockans autolap), skrivet när varvet är slut
+            // One lap per minute (like the watch's auto lap), written when the lap ends
             if (i > 0 && i % 60 == 0)
             {
                 var lap = new LapMesg();

@@ -38,12 +38,12 @@ const newActivityRoute = createRoute({
   validateSearch: activitySearch,
   component: NewActivityPage,
 })
-// Passsidan laddas först när den öppnas: kartan (MapLibre) och diagrammen är tunga
+// The activity page loads only when opened: the map (MapLibre) and charts are heavy
 const activityRoute = createRoute({
   getParentRoute: () => rootRoute,
   path: '/app/activities/$activityId',
   validateSearch: activitySearch,
-  // Vänta in titeln före ögonblicksbilden; queryn behåller passsidans felhantering.
+  // Wait for the title before the snapshot; the query keeps the activity page's error handling.
   loader: ({ params }) => queryClient.prefetchQuery(activityQuery(params.activityId)),
   component: lazyRouteComponent(() => import('@/routes/activity'), 'ActivityPage'),
 })

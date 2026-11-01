@@ -2,7 +2,7 @@ using Xunit;
 
 public class FitImportTests
 {
-    // Taket skyddar minnet: en mätpunkt kan ta några byte i filen men flera hundra i SDK:ns objekt.
+    // The cap protects memory: a data point can take a few bytes in the file but several hundred in the SDK's objects.
     [Fact]
     public void Parse_rejects_files_with_more_records_than_the_cap()
     {
@@ -11,7 +11,7 @@ public class FitImportTests
         Assert.Null(FitImport.Parse(FitFile.Run(start, FitImport.MaxRecords)));
     }
 
-    // Latitud utanför ±90° kan inte lagras som geography och fällde tidigare hela Strava-importen.
+    // A latitude outside ±90° cannot be stored as geography and used to fail the whole Strava import.
     [Fact]
     public void Positions_outside_valid_latitude_are_treated_as_missing()
     {

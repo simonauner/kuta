@@ -1,12 +1,12 @@
 #!/usr/bin/env bash
-# Startar Kuta lokalt i en terminal: Supabase (om det inte redan kör), API:t och webben (Vite med hot reload).
-# Ctrl+C stoppar API:t och webben. Supabase fortsätter köra; skriptet skriver ut hur det stoppas.
-# API:t laddas inte om vid ändringar (dotnet watch går inte att stoppa med signaler i SDK 10.0.402): starta om skriptet.
+# Starts Kuta locally in one terminal: Supabase (unless already running), the API and the web (Vite with hot reload).
+# Ctrl+C stops the API and the web. Supabase keeps running; the script prints how to stop it.
+# The API does not reload on changes (dotnet watch cannot be stopped with signals in SDK 10.0.402): restart the script.
 #
-#   scripts/run-dev.sh                 portar från 55300 (supabase/config.toml som den är)
-#   scripts/run-dev.sh --ports 55400   en egen instans från 55400, med egen Supabase-stack och databas
+#   scripts/run-dev.sh                 ports from 55300 (supabase/config.toml as is)
+#   scripts/run-dev.sh --ports 55400   an own instance from 55400, with its own Supabase stack and database
 #
-# Portar från BAS: webben BAS, förhandsvisning BAS+1, API:t BAS+2, Supabase BAS+20–29 (Mailpit BAS+24).
+# Ports from BAS: web BAS, preview BAS+1, API BAS+2, Supabase BAS+20–29 (Mailpit BAS+24).
 set -eo pipefail
 cd "$(dirname "$0")/.."
 root="$(pwd)"
@@ -16,11 +16,11 @@ while [ $# -gt 0 ]; do
   case "$1" in
     --ports) base="${2:-}"; shift 2 ;;
     --ports=*) base="${1#--ports=}"; shift ;;
-    *) echo "[run-dev] Okänt argument: $1 (använd --ports BAS)" >&2; exit 1 ;;
+    *) echo "[run-dev] Unknown argument: $1 (use --ports BAS)" >&2; exit 1 ;;
   esac
 done
 if ! [[ "$base" =~ ^[0-9]+$ ]] || [ "$base" -lt 1024 ] || [ "$base" -gt 65500 ]; then
-  echo "[run-dev] --ports måste vara ett tal mellan 1024 och 65500" >&2
+  echo "[run-dev] --ports must be a number between 1024 and 65500" >&2
   exit 1
 fi
 
@@ -28,7 +28,7 @@ if [ "$base" = 55300 ]; then
   workdir=.
   project=kuta
 else
-  # Egen kopia av Supabase-konfigurationen med portarna flyttade och eget project_id (egna containrar och data)
+  # Own copy of the Supabase config with the ports moved and its own project_id (own containers and data)
   workdir=".context/supabase-$base"
   project="kuta-$base"
   mkdir -p "$workdir/supabase"
@@ -40,7 +40,7 @@ fi
 
 if ! supabase status --workdir "$workdir" >/dev/null 2>&1; then
   supabase start --workdir "$workdir"
-  # Auth-containern kan starta före Kong och fastna på Supabases engelska standardmejl; en omstart läser in vår mall.
+  # The auth container can start before Kong and get stuck on Supabase's English default email; a restart loads our template.
   docker restart "supabase_auth_$project" >/dev/null
   until curl -sf "http://127.0.0.1:$((base + 21))/auth/v1/health" \
     -H "apikey: $(supabase status --workdir "$workdir" -o env | sed -n 's/^PUBLISHABLE_KEY="\(.*\)"$/\1/p')" >/dev/null; do
@@ -50,11 +50,11 @@ fi
 
 use_node() { set +eu; source "${NVM_DIR:-$HOME/.nvm}/nvm.sh"; nvm use >/dev/null; }
 [ -d web/node_modules ] || (cd web && use_node && npm install)
-# Egen byggkatalog per instans, så att instanser som startar samtidigt inte skriver i samma bin/obj
+# Own build directory per instance, so instances starting at the same time do not write to the same bin/obj
 build="$root/.context/api-$base"
 dotnet build api/Kuta.Api --nologo --verbosity quiet --artifacts-path "$build"
 
-# Prefix på varje rad så att det syns vilken process som skriver
+# Prefix on every line to show which process is writing
 prefix() { awk -v p="[$1] " '{ print p $0; fflush() }'; }
 
 pids=()
@@ -66,7 +66,7 @@ cleanup() {
 trap cleanup EXIT
 trap 'exit 130' INT TERM
 
-# exec + process substitution så att $! är själva servern och inte prefix-processen
+# exec + process substitution so that $! is the server itself and not the prefix process
 (cd api/Kuta.Api && export ASPNETCORE_ENVIRONMENT=Development \
   Urls="http://localhost:$((base + 2))" \
   ConnectionStrings__Default="Host=127.0.0.1;Port=$((base + 22));Database=postgres;Username=postgres;Password=postgres" \
@@ -78,10 +78,10 @@ pids+=($!)
   > >(prefix web) 2>&1 &
 pids+=($!)
 
-echo "Webben:  http://localhost:$base"
+echo "Web:     http://localhost:$base"
 echo "API:     http://localhost:$((base + 2))"
 echo "Mailpit: http://127.0.0.1:$((base + 24))"
-echo "Stoppa Supabase: supabase stop --workdir $workdir"
+echo "Stop Supabase: supabase stop --workdir $workdir"
 
-# Stoppa båda när någon av dem avslutas; bash 3.2 på macOS saknar wait -n.
+# Stop both when either of them exits; bash 3.2 on macOS lacks wait -n.
 while kill -0 "${pids[0]}" 2>/dev/null && kill -0 "${pids[1]}" 2>/dev/null; do sleep 1; done

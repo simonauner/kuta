@@ -70,7 +70,7 @@ export function ActivitiesPage() {
     year === undefined &&
     !tag &&
     !sport
-  // null = stängd, 'new' = nytt mål, annars målet som redigeras
+  // null = closed, 'new' = new goal, otherwise the goal being edited
   const [goalForm, setGoalForm] = useState<Goal | 'new' | null>(null)
 
   const remove = useMutation({

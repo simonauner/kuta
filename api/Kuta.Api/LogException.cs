@@ -1,10 +1,10 @@
 using System.Diagnostics;
 using System.Runtime.CompilerServices;
 
-// Egen projektion: Exception.ToString(), Message, StackTrace och Data får aldrig serialiseras.
+// Own projection: Exception.ToString(), Message, StackTrace and Data must never be serialized.
 internal sealed record LogException(string Type, LogFrame[] Frames, LogException[] Inner)
 {
-    // Build-sökvägen kommer från kompilatorn, inte från arbetskatalogen på driftmaskinen.
+    // The build path comes from the compiler, not from the working directory on the production machine.
     static readonly string SourceRoot = Path.GetFullPath(Path.Combine(Path.GetDirectoryName(SourcePath())!, "../.."))
         + Path.DirectorySeparatorChar;
 
@@ -33,7 +33,7 @@ internal sealed record LogException(string Type, LogFrame[] Frames, LogException
         }
         catch (Exception)
         {
-            // Diagnostikfel får inte dölja originalfelet eller släppa igenom dess fritext.
+            // Diagnostic errors must not hide the original error or let its free text through.
             return new("unavailable", [], []);
         }
     }
@@ -43,7 +43,7 @@ internal sealed record LogException(string Type, LogFrame[] Frames, LogException
         var method = frame.GetMethod();
         if (method is null || method.Module.Assembly.IsDynamic || method is System.Reflection.Emit.DynamicMethod) return null;
         var file = frame.GetFileName();
-        // Bara källfiler under projektets build-rot får en sökväg; externa filer utelämnas.
+        // Only source files under the project's build root get a path; external files are omitted.
         var relative = file?.StartsWith(SourceRoot, StringComparison.Ordinal) == true
             ? file[SourceRoot.Length..].Replace('\\', '/') : null;
         return new(method.DeclaringType is { } type ? TypeName(type) : null, method.Name,

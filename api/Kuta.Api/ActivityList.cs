@@ -23,7 +23,7 @@ public static class ActivityList
     public static async Task<ActivityPage> ReadAsync(NpgsqlConnection conn, Guid userId, string timeZone,
         DateTimeOffset? beforeStartedAt = null, Guid? beforeId = null, CancellationToken ct = default, string? tag = null, int? year = null, string? sport = null)
     {
-        // Läs en extra rad för att avgöra om det finns en sida till. Markören kräver ingen kvarvarande rad.
+        // Read one extra row to tell whether there is another page. The cursor requires no remaining row.
         var cursorFilter = beforeStartedAt.HasValue ? "and (a.started_at, a.id) < (@beforeStartedAt, @beforeId)" : "";
         var yearFilter = year.HasValue ? """
             and a.started_at >= (make_date(@year, 1, 1)::timestamp at time zone @timeZone)

@@ -32,7 +32,7 @@ export function StatsPage() {
   const { t, i18n } = useTranslation()
   const [currentYear] = useState(() => new Date().getFullYear())
   const [year, setYear] = useState(currentYear)
-  // Sportgrupp: löpning räknar även terräng- och virtuell löpning osv. Tom = alla.
+  // Sport group: running also counts trail and virtual running, etc. Empty = all.
   const [sportGroup, setSportGroup] = useState('running')
   const sportGroups = useQuery(sportGroupsQuery)
   const [metric, setMetric] = useState<Metric>('distanceM')

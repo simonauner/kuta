@@ -1,5 +1,5 @@
-// Alla anrop går till vårt API med sessionscookien. Skrivande anrop kräver CSRF-token (X-CSRF-TOKEN),
-// som är knuten till användaren och därför hämtas om efter in- och utloggning.
+// All calls go to our API with the session cookie. Writing calls require a CSRF token (X-CSRF-TOKEN),
+// which is bound to the user and therefore refetched after sign-in and sign-out.
 
 export class ApiError extends Error {
   status: number
@@ -31,7 +31,7 @@ function getCsrfToken() {
 async function response(path: string, init?: RequestInit): Promise<Response> {
   const res = await fetch(path, init)
   if (!res.ok) {
-    // Sessionen har gått ut: token hör till den gamla användaren
+    // The session has expired: the token belongs to the old user
     if (res.status === 401) resetCsrfToken()
     const body = await res.json().catch(() => null)
     throw new ApiError(
@@ -67,7 +67,7 @@ export const api = {
       headers: { 'Content-Type': 'application/json', 'X-CSRF-TOKEN': await getCsrfToken() },
       body: body === undefined ? undefined : JSON.stringify(body),
     }),
-  // Filuppladdning: webbläsaren sätter själv Content-Type med multipart-gränsen
+  // File upload: the browser sets Content-Type with the multipart boundary itself
   upload: async <T>(path: string, form: FormData) =>
     request<T>(path, {
       method: 'POST',

@@ -34,7 +34,7 @@ import { equipmentQuery, lastUsedShoeQuery, type Equipment } from '@/lib/equipme
 import { refreshActivityQueries } from '@/lib/activity-query'
 import { TagPicker } from '@/components/activity-tags'
 
-// Det API:t läser ur en FIT-fil, utan att spara något (POST /api/activities/preview)
+// What the API reads from a FIT file, without saving anything (POST /api/activities/preview)
 type ActivityPreview = {
   sport: string
   startedAt: string
@@ -48,8 +48,8 @@ type ActivityPreview = {
   canSplit: boolean
 }
 
-// Ett pass skapas antingen helt manuellt eller från en FIT-fil som fyller i fälten. Från en fil går titel,
-// beskrivning, sport och sko att ändra: mätvärdena hör ihop med tidsserierna (karta, diagram, splits, rekord).
+// An activity is created either fully manually or from a FIT file that fills in the fields. From a file, title,
+// description, sport and shoe can be changed: the metrics belong with the streams (map, charts, splits, records).
 export function NewActivityPage() {
   const { t, i18n } = useTranslation()
   const navigate = useNavigate()
@@ -85,14 +85,14 @@ export function NewActivityPage() {
     },
   })
 
-  const [pendingFile, setPendingFile] = useState<File | null>(null) // vald i modalen, inte använd än
+  const [pendingFile, setPendingFile] = useState<File | null>(null) // picked in the modal, not used yet
   const [dialogKey, setDialogKey] = useState(0)
   const [file, setFile] = useState<File | null>(null)
   const [split, setSplit] = useState<MultisportDraft>(undefined)
   const [tags, setTags] = useState<ActivityTag[]>([])
   const [title, setTitle] = useState('')
   const [description, setDescription] = useState('')
-  const [sport, setSport] = useState<string | null>(null) // null = som filen (eller löpning)
+  const [sport, setSport] = useState<string | null>(null) // null = as in the file (or running)
   const [initialStartedAt] = useState(() => toDateTimeLocal(new Date()))
   const [startedAt, setStartedAt] = useState(initialStartedAt)
   const [distanceKm, setDistanceKm] = useState('')
@@ -100,7 +100,7 @@ export function NewActivityPage() {
   const [elevation, setElevation] = useState('')
   const [avgHr, setAvgHr] = useState('')
 
-  // Läses om när samtycket ändras, så att pulsen som visas är den som sparas
+  // Re-read when consent changes, so the heart rate shown is the one saved
   const preview = useQuery({
     queryKey: ['activityPreview', file?.name, file?.size, file?.lastModified, me?.hrConsent],
     queryFn: () => {
@@ -161,7 +161,7 @@ export function NewActivityPage() {
     save.mutate(partsFromForm(split, e.currentTarget))
   }
 
-  // Ifyllda fält som filen skriver över; titel och beskrivning behålls och varnas inte för. Startfältet räknas bara om det ändrats.
+  // Filled fields the file overwrites; title and description are kept and not warned about. The start field counts only if changed.
   const overwritten = [
     sport !== null && t('newActivity.sport'),
     startedAt !== initialStartedAt && t('newActivity.startedAt'),
@@ -172,7 +172,7 @@ export function NewActivityPage() {
   ].filter((field): field is string => !!field && !file)
 
   const locked = file !== null
-  // Titeln passet får om fältet lämnas tomt (sport + tid på dygnet)
+  // The title the activity gets if the field is left empty (sport + time of day)
   const start = fromFile?.startedAt ?? startedAt
   const titlePlaceholder = start
     ? activityTitle({ title: null, sport: selectedSport, startedAt: start }, t)
@@ -189,7 +189,7 @@ export function NewActivityPage() {
           disabled={save.isPending}
           onClick={() => {
             setPendingFile(null)
-            setDialogKey((k) => k + 1) // tomt filfält varje gång modalen öppnas
+            setDialogKey((k) => k + 1) // empty file field every time the modal opens
             uploadDialog.current?.showModal()
           }}
         >

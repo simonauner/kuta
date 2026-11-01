@@ -1,4 +1,4 @@
-# Bygger webben och API:t till en image där API:t också servar webben (samma origin, se Program.cs).
+# Builds the web and the API into an image where the API also serves the web (same origin, see Program.cs).
 FROM node:24-alpine AS web
 WORKDIR /src/web
 COPY web/package.json web/package-lock.json ./
@@ -18,7 +18,7 @@ FROM mcr.microsoft.com/dotnet/aspnet:10.0
 WORKDIR /app
 COPY --from=api /out .
 COPY --from=web /src/web/dist ./wwwroot
-# aspnet-imagen lyssnar på ASPNETCORE_HTTP_PORTS=8080
+# the aspnet image listens on ASPNETCORE_HTTP_PORTS=8080
 EXPOSE 8080
 USER $APP_UID
 ENTRYPOINT ["dotnet", "Kuta.Api.dll"]

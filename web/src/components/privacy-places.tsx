@@ -22,8 +22,8 @@ type PrivacyPlace = {
 const queryKey = ['privacyPlaces']
 const endpoint = '/api/me/privacy-places'
 
-// Under ett synlighetsval: registreringen är öppen, så "publikt" betyder i praktiken alla, och utan dolda platser
-// kan kartminiatyrerna ändå visa ungefär var löparen bor.
+// Below a visibility choice: sign-up is open, so "public" in practice means everyone, and without hidden places
+// the map thumbnails can still show roughly where the runner lives.
 export function SharingHints({ privacy }: { privacy: 'private' | 'followers' | 'public' }) {
   const { t } = useTranslation()
   const places = useQuery({

@@ -8,14 +8,14 @@ import path from 'node:path'
 import { defineConfig, type PreviewServer, type ViteDevServer } from 'vite'
 import { VitePWA } from 'vite-plugin-pwa'
 
-// Strikt CSP i den byggda appen (inte i dev, där Vite kör inline-skript för HMR).
-// Lägg till origins här när appen börjar hämta från andra, t.ex. kartor från R2.
-// frame-ancestors fungerar inte i en meta-tagg och sätts som header där webben hostas.
+// Strict CSP in the built app (not in dev, where Vite runs inline scripts for HMR).
+// Add origins here when the app starts fetching from others, e.g. maps from R2.
+// frame-ancestors doesn't work in a meta tag and is set as a header where the web is hosted.
 const contentSecurityPolicy = [
   "default-src 'self'",
   "script-src 'self'",
   "style-src 'self'",
-  // OpenFreeMap: kartstil, kartbitar, typsnitt och ikoner för passkartan (src/components/activity-map.tsx)
+  // OpenFreeMap: map style, tiles, fonts and icons for the activity map (src/components/activity-map.tsx)
   "img-src 'self' data: blob: https://tiles.openfreemap.org",
   "connect-src 'self' https://tiles.openfreemap.org",
   "worker-src 'self' blob:",
@@ -27,7 +27,7 @@ const contentSecurityPolicy = [
 const webPort = Number(process.env.KUTA_WEB_PORT ?? 55300)
 const apiPort = Number(process.env.KUTA_API_PORT ?? 55302)
 
-// Samma dokumentvägar i Vites utvecklingsserver och förhandsvisning som i .NET.
+// Same document paths in Vite's dev server and preview as in .NET.
 function configureHtmlRoutes(server: ViteDevServer | PreviewServer) {
   server.middlewares.use((req, _res, next) => {
     const url = new URL(req.url ?? '/', 'http://localhost')
@@ -90,7 +90,7 @@ export default defineConfig({
     tailwindcss(),
     VitePWA({
       registerType: 'autoUpdate',
-      // Bara appens navigeringar får appskalet; startsidan och API:t ska nå servern.
+      // Only app navigations get the app shell; the landing page and the API must reach the server.
       workbox: {
         navigateFallback: '/app.html',
         navigateFallbackAllowlist: [
@@ -109,7 +109,7 @@ export default defineConfig({
         short_name: 'Kuta',
         description: 'Logga, analysera och dela dina löppass.',
         lang: 'sv',
-        // Behåll identiteten för redan installerade PWA:er när startadressen flyttas.
+        // Keep the identity of already installed PWAs when the start URL moves.
         id: '/',
         start_url: '/app',
         display: 'standalone',
@@ -132,8 +132,8 @@ export default defineConfig({
   resolve: {
     alias: { '@': path.resolve(import.meta.dirname, 'src') },
   },
-  // Kuta håller sig till 553xx lokalt (Supabase 55320–55329) så att det kan köras bredvid andra projekt.
-  // scripts/run-dev.sh --ports flyttar serien för att köra flera instanser samtidigt.
+  // Kuta stays within 553xx locally (Supabase 55320–55329) so it can run alongside other projects.
+  // scripts/run-dev.sh --ports shifts the range to run several instances at once.
   server: {
     port: webPort,
     strictPort: true,

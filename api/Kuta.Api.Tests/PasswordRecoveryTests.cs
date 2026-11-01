@@ -35,7 +35,7 @@ public class PasswordRecoveryTests
             originalSession.DefaultRequestHeaders.Add("Cookie", string.Join("; ", originalCookies));
             Assert.Equal(HttpStatusCode.OK, (await originalSession.GetAsync("/api/me", ct)).StatusCode);
 
-            // Mejllänken kan öppnas i en annan webbläsare utan att logga in i appen.
+            // The email link can be opened in another browser without signing in to the app.
             var recovery = Client(factory);
             await Csrf(recovery, ct);
             Assert.Equal(HttpStatusCode.Accepted,
@@ -50,7 +50,7 @@ public class PasswordRecoveryTests
             Assert.Equal(HttpStatusCode.Unauthorized, (await recovery.GetAsync("/api/me", ct)).StatusCode);
             Assert.Equal(HttpStatusCode.Unauthorized, (await recovery.GetAsync("/api/activities", ct)).StatusCode);
 
-            // Testa en stulen kopia med en egen giltig CSRF-token.
+            // Test a stolen copy with its own valid CSRF token.
             var replay = Client(factory, cookies: false);
             var replayCsrf = await replay.GetAsync("/api/antiforgery", ct);
             var replayToken = (await replayCsrf.Content.ReadFromJsonAsync<JsonElement>(ct)).GetProperty("token").GetString();
@@ -205,7 +205,7 @@ public class PasswordRecoveryTests
     static HttpClient Client(WebApplicationFactory<Program> factory, bool cookies = true) =>
         factory.CreateClient(new WebApplicationFactoryClientOptions { AllowAutoRedirect = false, HandleCookies = cookies });
 
-    // Bekräftelselänken loggar inte in (se AuthTests); här räcker en bekräftad adress, och auth-gränsen per IP sparas.
+    // The confirmation link does not sign in (see AuthTests); a confirmed address is enough here, and the per-IP auth limit is spared.
     static Task ConfirmAsync(NpgsqlConnection conn, string email, CancellationToken ct) => conn.ExecuteAsync(new CommandDefinition(
         "update auth.users set email_confirmed_at = now() where email = @email", new { email }, cancellationToken: ct));
 
@@ -226,7 +226,7 @@ public class PasswordRecoveryTests
             {
                 var full = await mailpit.GetFromJsonAsync<JsonElement>($"/api/v1/message/{message.GetProperty("ID").GetString()}", ct);
                 var html = full.GetProperty("HTML").GetString()!;
-                // En lånad standardinstans kan fortfarande ha Supabases standardmall för recovery.
+                // A borrowed default instance may still have Supabase's default recovery template.
                 if (type == "recovery" && !html.Contains("reset-password") && !html.Contains("type=recovery")) continue;
                 if (type == "confirm" && !html.Contains("/api/auth/confirm")) continue;
                 var match = Regex.Match(html, "(?:token_hash|token)=([0-9a-f]+)");

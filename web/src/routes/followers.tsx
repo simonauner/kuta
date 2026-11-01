@@ -22,7 +22,7 @@ type Runner = {
   displayName: string
   status: 'pending' | 'accepted' | 'blocked'
   supporterTier: SupporterTier | null
-  // Bara för inkommande förfrågningar: namn är fria, så kontots ålder hjälper att känna igen imitation.
+  // Only for incoming requests: names are free, so the account's age helps spot impersonation.
   joinedAt: string | null
 }
 

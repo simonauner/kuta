@@ -1,9 +1,9 @@
-// Manuellt pass från formuläret "Skapa ny aktivitet". Tider i UTC, SI-enheter.
+// Manual activity from the "Skapa ny aktivitet" form. Times in UTC, SI units.
 public record ManualActivityRequest(
     string? Sport, string? Title, DateTimeOffset? StartedAt, int? DurationS, double? DistanceM,
     float? ElevationGainM, short? AvgHr, string[]? Tags = null, Guid[]? EquipmentIds = null, string? Description = null);
 
-// Det löparen själv fyller i, kontrollerat innan det sparas
+// What the runner fills in, validated before it is saved
 public static class ActivityInput
 {
     public static bool IsValidPrivacy(string? privacy) => privacy is "private" or "followers" or "public";
@@ -31,7 +31,7 @@ public static class ActivityInput
     public static ApiError? ValidateTitle(string? title) =>
         title?.Trim().Length > MaxTitleLength ? new ApiError("Titeln får vara högst 100 tecken.", "invalidTitle") : null;
 
-    // Tom titel = ingen egen titel (webben visar sport + tid på dygnet)
+    // Empty title = no custom title (the web shows sport + time of day)
     public static string? NormalizeTitle(string? title) => string.IsNullOrWhiteSpace(title) ? null : title.Trim();
 
     public static ApiError? ValidateSport(string? sport) =>

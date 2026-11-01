@@ -7,7 +7,7 @@ using Microsoft.VisualBasic.FileIO;
 public sealed record StravaActivity(string Id, string? Title, string Filename, ParsedActivity Summary,
     string? GearId = null, string? GearName = null, string? Description = null);
 
-// Läser bara aktivitetsdata, aldrig exportens profil, kontakter, privata anteckningar eller media.
+// Reads only activity data, never the export's profile, contacts, private notes or media.
 public static class StravaImport
 {
     public const int MaxFileBytes = 20 * 1024 * 1024;
@@ -19,7 +19,7 @@ public static class StravaImport
         using var parser = new TextFieldParser(csv) { HasFieldsEnclosedInQuotes = true };
         parser.SetDelimiters(",");
         var header = parser.ReadFields() ?? throw new InvalidDataException("Missing CSV header.");
-        int Index(string name) => Array.LastIndexOf(header, name); // De sista distans-/tidskolumnerna använder SI.
+        int Index(string name) => Array.LastIndexOf(header, name); // The last distance/time columns use SI.
         foreach (var required in new[] { "Activity ID", "Activity Date", "Activity Name", "Activity Type", "Filename", "Elapsed Time", "Distance" })
             if (Index(required) < 0) throw new InvalidDataException("Missing CSV column.");
         if (Index("Distance") == Array.IndexOf(header, "Distance"))
@@ -104,7 +104,7 @@ public static class StravaImport
         var byLabel = metadata.GroupBy(m => m.Label, StringComparer.Ordinal).ToDictionary(
             g => g.Key, g => g.Select(m => (m.Name, m.Brand)).Distinct().ToArray(), StringComparer.Ordinal);
         var result = new List<StravaShoe>();
-        // shoes.csv saknar id: bara skor med en referens från aktiviteter kan identifieras säkert.
+        // shoes.csv has no IDs: only shoes referenced from activities can be identified reliably.
         foreach (var group in activities.Where(a => a.GearId is not null).GroupBy(a => a.GearId!))
         {
             var label = group.OrderByDescending(a => a.Summary.StartedAt).FirstOrDefault(a => a.GearName is not null)?.GearName
@@ -151,7 +151,7 @@ public static class StravaImport
             ct.ThrowIfCancellationRequested();
             var read = input.Read(buffer);
             if (read == 0) break;
-            // Även byte från filer som senare avvisas förbrukar arkivets gemensamma budget.
+            // Bytes from files that are later rejected also consume the archive's shared budget.
             budget.Consume(read);
             if (output.Length + read > MaxFileBytes) throw new InvalidDataException("File too large.");
             output.Write(buffer, 0, read);
@@ -209,7 +209,7 @@ public static class StravaImport
             }
             var latitude = Coordinate("lat", 90);
             var longitude = Coordinate("lon", 180);
-            // Börja inte räkna avstånd över luckan mellan två GPX-segment.
+            // Don't count distance across the gap between two GPX segments.
             float? velocity = null;
             if (lat.Count > 0 && point.Parent == previousSegment)
             {

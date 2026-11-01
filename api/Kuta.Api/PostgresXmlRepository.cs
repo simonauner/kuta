@@ -5,8 +5,8 @@ using Microsoft.AspNetCore.DataProtection.Repositories;
 using Microsoft.Extensions.Options;
 using Npgsql;
 
-// Sparar Data Protection-nycklarna i Postgres så att cookies och antiforgery-token överlever omstarter.
-// IXmlRepository är synkront, därav synkrona anrop.
+// Stores the Data Protection keys in Postgres so that cookies and antiforgery tokens survive restarts.
+// IXmlRepository is synchronous, hence the synchronous calls.
 public sealed class PostgresXmlRepository(NpgsqlDataSource db) : IXmlRepository
 {
     public IReadOnlyCollection<XElement> GetAllElements()

@@ -1,12 +1,12 @@
 import { isoWeek } from './activity.ts'
 
-// Som API:t: mål i SI-enheter (meter, sekunder) eller antal pass. sportGroup null = alla träningsformer.
+// Like the API: goals in SI units (meters, seconds) or number of activities. sportGroup null = all sports.
 export const goalMetrics = ['distance', 'duration', 'count'] as const
 export const goalPeriods = ['week', 'month', 'year'] as const
 export const goalPrivacies = ['private', 'followers', 'public'] as const
 export type GoalMetric = (typeof goalMetrics)[number]
 export type GoalPeriod = (typeof goalPeriods)[number]
-// Samma val och läsregel som passens synlighet; nya mål är privata.
+// Same choices and read rule as activity visibility; new goals are private.
 export type GoalPrivacy = (typeof goalPrivacies)[number]
 export type GoalPeriodProgress = { start: string; end: string; value: number; achieved: boolean }
 export type Goal = {
@@ -28,7 +28,7 @@ export function goalFraction(value: number, target: number) {
   return target > 0 ? Math.min(1, Math.max(0, value / target)) : 0
 }
 
-// Formulärets enheter: km, minuter och hela pass.
+// Form units: km, minutes and whole activities.
 export function goalInput(metric: GoalMetric, target: number) {
   const value = metric === 'distance' ? target / 1000 : metric === 'duration' ? target / 60 : target
   return String(Math.round(value * 1000) / 1000)
@@ -62,11 +62,11 @@ function localDate(date: string) {
   return new Date(y, m - 1, d)
 }
 
-// Periodens namn, oberoende av när den visas: "v. 44 2026", "oktober 2026", "2026".
+// The period's name, regardless of when it is shown: "v. 44 2026", "oktober 2026", "2026".
 export function goalPeriodLabel(period: GoalPeriod, start: string, locale?: string) {
   const date = localDate(start)
   if (period === 'week') {
-    // Veckoåret följer torsdagen, som ISO-veckan: måndag 29 dec 2025 är v. 1 2026.
+    // The week-year follows the Thursday, like the ISO week: Monday 29 Dec 2025 is week 1 2026.
     const thursday = new Date(date.getFullYear(), date.getMonth(), date.getDate() + 3)
     return { week: isoWeek(date), year: thursday.getFullYear() }
   }
@@ -77,7 +77,7 @@ export function goalPeriodLabel(period: GoalPeriod, start: string, locale?: stri
   return { year: date.getFullYear() }
 }
 
-// Hela dagar kvar av perioden, inklusive i dag. end är periodens första dag efter slutet.
+// Whole days left in the period, including today. end is the first day after the period.
 export function goalDaysLeft(end: string, today: Date) {
   const [y, m, d] = end.split('-').map(Number)
   const days =

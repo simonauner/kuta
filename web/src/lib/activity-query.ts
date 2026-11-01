@@ -9,7 +9,7 @@ export async function clearHeartRateQueries(queryClient: QueryClient) {
     predicate: (query: { queryKey: readonly unknown[] }) =>
       ['activities', 'activity', 'activityPreview'].includes(String(query.queryKey[0])),
   }
-  // Stoppa även sena svar från att lägga tillbaka raderad puls.
+  // Also stop late responses from putting deleted heart rate back.
   await queryClient.cancelQueries(filter)
   queryClient.removeQueries(filter)
 }
@@ -43,7 +43,7 @@ export const activityYearsQuery = (timeZone: string) =>
 const isGoalQuery = (key: readonly unknown[]) =>
   (key[0] === 'activities' && key[1] === 'goals') || (key[0] === 'runner' && key[2] === 'goals')
 
-// Synligheterna bland egna pass; nyckeln under 'activities' så att den uppdateras med passen.
+// Visibilities among own activities; key under 'activities' so it refreshes with the activities.
 export const activityPrivaciesQuery = {
   queryKey: ['activities', 'privacies'],
   queryFn: () => api.get<GoalPrivacy[]>('/api/activities/privacies'),
