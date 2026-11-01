@@ -1,0 +1,32 @@
+api/Kuta.Api.Tests/ActivityPrivacyTests.cs
+  s_4b41d6b2cbe45c::t_02a16d91b85603 62,75,82-83,101
+api/Kuta.Api/MeEndpoints.cs
+  s_4b41d6b2cbe45c::t_02a16d91b85603 13,204-206,214
+web/src/lib/auth.ts
+  s_4b41d6b2cbe45c::t_02a16d91b85603 13
+web/src/components/activity-privacy.tsx
+  s_4b41d6b2cbe45c::t_02a16d91b85603 106,114,143-146
+web/src/locales/sv.json
+  s_4b41d6b2cbe45c::t_02a16d91b85603 603
+  s_4b41d6b2cbe45c::t_717612194c2e41 602
+web/src/locales/en.json
+  s_4b41d6b2cbe45c::t_02a16d91b85603 602-603
+README.md
+  s_4b41d6b2cbe45c::t_02a16d91b85603 131-133
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.7.5",
+  "base_commit_sha": "6915dd9ff11c82a00e2a51e2c4a6e3f2c261a73e",
+  "prompts": {},
+  "sessions": {
+    "s_4b41d6b2cbe45c": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "666b8b83-04cc-4497-9a36-a615f20592fd",
+        "model": "claude-opus-5-5"
+      },
+      "human_author": "Simon Aunér <simonauner@gmail.com>"
+    }
+  }
+}
