@@ -17,6 +17,7 @@ import {
 } from '@/lib/year-comparison'
 import { Card } from '@/components/ui/card'
 import { Select } from '@/components/ui/select'
+import { HelpPopover } from '@/components/help-popover'
 
 const shownYears = 5
 
@@ -79,9 +80,14 @@ export function YearComparison({ year, sportGroup }: { year: number; sportGroup:
     <section className="mt-10" aria-labelledby="year-comparison-title">
       <div className="flex flex-wrap items-end justify-between gap-3">
         <div>
-          <Heading level={2} id="year-comparison-title">
-            {t('yearComparison.title')}
-          </Heading>
+          <div className="flex items-center gap-2">
+            <Heading level={2} id="year-comparison-title">
+              {t('yearComparison.title')}
+            </Heading>
+            <HelpPopover label={t('yearComparison.methodLabel')}>
+              {t('yearComparison.method', { years: shownYears })}
+            </HelpPopover>
+          </div>
           <p className="mt-2 text-body text-muted-foreground">{t('yearComparison.description')}</p>
         </div>
         <FormField label={t('yearComparison.metric')} className="text-sm font-medium">
@@ -221,9 +227,6 @@ export function YearComparison({ year, sportGroup }: { year: number; sportGroup:
                   </tbody>
                 </table>
               </div>
-              <p className="mt-4 text-metadata leading-relaxed text-muted-foreground">
-                {t('yearComparison.method', { years: shownYears })}
-              </p>
             </>
           )}
         </div>

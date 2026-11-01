@@ -20,6 +20,7 @@ import {
 import { Card } from '@/components/ui/card'
 import { card } from '@/components/ui/card-variants'
 import { Heading } from '@/components/ui/heading'
+import { HelpPopover } from '@/components/help-popover'
 
 // "2026-05-03" is a local day; new Date() would parse it as UTC and could show the day before.
 const localDay = (day: string) => new Date(`${day}T00:00`)
@@ -74,9 +75,12 @@ export function TrainingLoadSection() {
 
   return (
     <section id="training-load" className="mt-10 scroll-mt-4" aria-labelledby="training-load-title">
-      <Heading level={2} id="training-load-title">
-        {t('trainingLoad.title')}
-      </Heading>
+      <div className="flex items-center justify-between gap-4">
+        <Heading level={2} id="training-load-title">
+          {t('trainingLoad.title')}
+        </Heading>
+        <HelpPopover label={t('trainingLoad.methodLabel')}>{t('trainingLoad.method')}</HelpPopover>
+      </div>
       <p className="mt-2 text-sm text-muted-foreground">{t('trainingLoad.description')}</p>
       {load.error && (
         <p role="alert" className="mt-4 text-sm text-destructive">
@@ -177,9 +181,6 @@ export function TrainingLoadSection() {
               </Card>
             </>
           )}
-          <p className="mt-4 text-xs leading-relaxed text-muted-foreground">
-            {t('trainingLoad.method')}
-          </p>
         </div>
       )}
     </section>
@@ -206,7 +207,14 @@ function ThresholdForm({ summary }: { summary: TrainingLoadSummary }) {
   const predicted = summary.predictedThresholdSpeedMS
   return (
     <form onSubmit={submit} className={card({ className: 'mt-4' })} noValidate>
-      <FormField label={t('trainingLoad.threshold')}>
+      <FormField
+        label={t('trainingLoad.threshold')}
+        action={
+          <HelpPopover label={t('trainingLoad.thresholdHelpLabel')}>
+            {t('trainingLoad.thresholdHelp')}
+          </HelpPopover>
+        }
+      >
         {(id) => (
           <>
             <p id={`${id}-hint`} className="mb-3 text-xs text-muted-foreground">

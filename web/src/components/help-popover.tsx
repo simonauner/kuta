@@ -17,7 +17,7 @@ export function HelpPopover({ label, children }: { label: string; children: Reac
           align="end"
           sideOffset={8}
           collisionPadding={16}
-          className="z-50 w-72 max-w-[calc(100vw-2rem)] rounded-md border bg-background p-4 text-sm leading-relaxed text-foreground shadow-md outline-none"
+          className="z-50 max-h-[min(28rem,var(--radix-popover-content-available-height))] w-80 max-w-[calc(100vw-2rem)] overflow-y-auto rounded-md border bg-background p-4 text-sm leading-relaxed text-foreground shadow-md outline-none"
         >
           {children}
         </Popover.Content>

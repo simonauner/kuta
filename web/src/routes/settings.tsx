@@ -22,6 +22,7 @@ import { api } from '@/lib/api'
 import { meQuery, useSessionChanged } from '@/lib/auth'
 import { card } from '@/components/ui/card-variants'
 import { Heading } from '@/components/ui/heading'
+import { HelpPopover } from '@/components/help-popover'
 
 export function SettingsPage() {
   const { t } = useTranslation()
@@ -108,9 +109,14 @@ export function SettingsPage() {
       </section>
 
       <section aria-labelledby="import-heading" className="mt-8 border-t pt-6">
-        <Heading level={2} id="import-heading" className="scroll-mt-24">
-          {t('settings.strava')}
-        </Heading>
+        <div className="flex items-center justify-between gap-4">
+          <Heading level={2} id="import-heading" className="scroll-mt-24">
+            {t('settings.strava')}
+          </Heading>
+          <HelpPopover label={t('settings.importDetailsLabel')}>
+            {t('settings.importDetails')}
+          </HelpPopover>
+        </div>
         <StravaImport />
       </section>
 
@@ -122,9 +128,14 @@ export function SettingsPage() {
       </section>
 
       <section aria-labelledby="export-heading" className="mt-8 border-t pt-6">
-        <Heading level={2} id="export-heading">
-          {t('settings.exportTitle')}
-        </Heading>
+        <div className="flex items-center justify-between gap-4">
+          <Heading level={2} id="export-heading">
+            {t('settings.exportTitle')}
+          </Heading>
+          <HelpPopover label={t('settings.exportDetailsLabel')}>
+            {t('settings.exportDetails')}
+          </HelpPopover>
+        </div>
         <p className="mt-2 text-sm text-muted-foreground">{t('settings.exportHelp')}</p>
         <Button
           variant="secondary-outline"

@@ -1,5 +1,5 @@
 import { SlowLoading } from '@/components/slow-loading'
-import { isCyclingSport } from '@/lib/sports'
+import { isCyclingSport, knownSport, sportIcons } from '@/lib/sports'
 import { SportIcon } from '@/components/sport-icon'
 import { useQuery } from '@tanstack/react-query'
 import { Link, useParams, useSearch } from '@tanstack/react-router'
@@ -416,6 +416,11 @@ export function ActivityPage() {
           </ul>
         </section>
       )}
+      {original.userId === me?.id &&
+        a.streams === null &&
+        sportIcons[knownSport(a.sport)] === 'run' && (
+          <p className="mt-4 text-sm text-muted-foreground">{t('activity.noRecordsWithoutFile')}</p>
+        )}
       {bestEfforts.error && (
         <p role="alert" className="mt-4 text-sm text-destructive">
           <ErrorMessage error={bestEfforts.error} />{' '}

@@ -173,7 +173,12 @@ export function RecordsSection({ year }: { year: number }) {
       </Card>
 
       <Card className="mt-6">
-        <Heading level={3}>{t('records.predictions')}</Heading>
+        <div className="flex items-center justify-between gap-4">
+          <Heading level={3}>{t('records.predictions')}</Heading>
+          <HelpPopover label={t('records.predictionsMethodLabel')}>
+            {t('records.predictionsMethod')}
+          </HelpPopover>
+        </div>
         {predictions.error && (
           <QueryError error={predictions.error} retry={() => void predictions.refetch()} />
         )}
@@ -215,9 +220,6 @@ export function RecordsSection({ year }: { year: number }) {
                     </Card>
                   ))}
                 </dl>
-                <p className="mt-4 text-metadata leading-relaxed text-muted-foreground">
-                  {t('records.predictionsMethod')}
-                </p>
               </>
             )}
           </div>

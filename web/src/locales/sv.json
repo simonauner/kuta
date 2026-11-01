@@ -53,7 +53,8 @@
     "empty": "Inga aktiviteter för vald sport och år.",
     "noHeartRate": "Inga sparade pulsdata under perioden.",
     "chartScale": "Skala: 0–{{max}}. Alla värden finns i tabellen nedan.",
-    "method": "Tid inkluderar pauser. Tempo beräknas som total tid per kilometer för aktiviteter med distans och tid. Lägre tempo betyder snabbare fart. Snittpuls vägs med aktiviteternas tid, endast för aktiviteter med sparad puls. Saknade värden visas som –. Alla sporter kombinerar även tempo och puls mellan sporter. Månader följer din enhets tidszon."
+    "method": "Tid inkluderar pauser. Tempo beräknas som total tid per kilometer för aktiviteter med distans och tid. Lägre tempo betyder snabbare fart. Snittpuls vägs med aktiviteternas tid, endast för aktiviteter med sparad puls. Saknade värden visas som –. Alla sporter kombinerar även tempo och puls mellan sporter. Månader följer din enhets tidszon.",
+    "methodLabel": "Så räknas statistiken"
   },
   "yearComparison": {
     "title": "År för år",
@@ -70,7 +71,8 @@
     "change": "Mot året före",
     "fullYear": "Helår",
     "empty": "Inga aktiviteter för vald sport.",
-    "method": "Diagrammet visar valt år och upp till {{years}} senaste år. Jämförelsen gäller samma månad och dag varje år, och förändringen jämför med året före. Tid inkluderar pauser, och hela aktiviteten räknas till dagen den startar i din enhets tidszon."
+    "method": "Diagrammet visar valt år och upp till {{years}} senaste år. Jämförelsen gäller samma månad och dag varje år, och förändringen jämför med året före. Tid inkluderar pauser, och hela aktiviteten räknas till dagen den startar i din enhets tidszon.",
+    "methodLabel": "Så räknas jämförelsen"
   },
   "trainingLoad": {
     "title": "Träningsbelastning",
@@ -89,10 +91,13 @@
     "dailyLoad": "Daglig belastning",
     "chartScale": "Skala: 0–{{max}}.",
     "chart": "Kondition, trötthet och daglig belastning {{from}}–{{to}}.",
-    "method": "En timme i tröskeltempo ger belastningen 100; belastningen växer med farten i kvadrat. Farten jämnas ut över 30 sekunder och pauser räknas inte. Aktiviteter utan fil uppskattas ur snittfarten. Kondition är snittet av daglig belastning över cirka 42 dagar, trötthet över 7 dagar och form skillnaden. Tröskeltempot är farten du orkar hålla i en timme, härlett ur VDOT om du inte angett det själv, och gäller hela historiken. Backar justeras inte än. Bara löpning räknas.",
+    "method": "En timme i tröskeltempo ger belastningen 100, och belastningen växer med farten i kvadrat. Farten jämnas ut över 30 sekunder, pauser räknas inte och backar justeras efter hur mycket energi löpningen kostar i lutningen. Aktiviteter utan fil uppskattas ur snittfarten. Kondition är snittet av daglig belastning över cirka 42 dagar, trötthet över 7 dagar och form skillnaden mellan dem. Bara löpning räknas.",
     "warningTitle": "Belastningen ökar snabbt",
     "warningText": "Konditionen har ökat med {{ramp}} på en vecka. En vanlig tumregel är högst cirka 7 per vecka; en lugnare period minskar risken för överbelastning.",
-    "warningLink": "Se träningsbelastning"
+    "warningLink": "Se träningsbelastning",
+    "methodLabel": "Så räknas träningsbelastningen",
+    "thresholdHelpLabel": "Vad är tröskeltempo?",
+    "thresholdHelp": "Tröskeltempot är det snabbaste tempo du orkar hålla i ungefär en timme. För många ligger det nära tempot på ett lopp mellan 10 km och halvmaraton. Kuta använder det för att räkna hur hård varje löprunda var. Utan eget värde räknas det fram ur din prognos."
   },
   "records": {
     "helpLabel": "Hjälp om löprekord",
@@ -130,7 +135,8 @@
     "predictionsBasis": "Baserad på {{distance}} på {{time}} den {{date}} (VDOT {{vdot}}).",
     "showActivity": "Visa aktiviteten",
     "predictionsEmpty": "Ingen prognos än. Den behöver en insats på 5 km eller längre de senaste 90 dagarna.",
-    "predictionsMethod": "Prognosen använder Jack Daniels och Jimmy Gilberts VDOT-formler och utgår från din starkaste insats på 5 km eller längre de senaste 90 dagarna. Den förutsätter att du tränat för distansen; maraton kräver uthållighet som en kortare insats inte visar. Insatser från vanlig träning är ofta långsammare än lopp."
+    "predictionsMethod": "Prognosen utgår från din starkaste insats på 5 km eller längre de senaste 90 dagarna och använder Jack Daniels och Jimmy Gilberts VDOT-formler. VDOT är ett mått på din löpkondition. Prognosen förutsätter att du tränat för distansen; maraton kräver uthållighet som en kortare insats inte visar. Insatser från vanlig träning är ofta långsammare än lopp.",
+    "predictionsMethodLabel": "Så räknas prognosen"
   },
   "activities": {
     "year": "År",
@@ -291,7 +297,8 @@
     "speed": "Hastighet",
     "edit": "Redigera aktivitet",
     "save": "Spara ändringar",
-    "cancel": "Avbryt"
+    "cancel": "Avbryt",
+    "noRecordsWithoutFile": "Rekord räknas bara ur löprundor som laddats upp från en fil med distansdata."
   },
   "consent": {
     "title": "Spara puls från mina aktiviteter.",
@@ -402,12 +409,12 @@
     "import": "Importera aktiviteter",
     "importing": "Importerar …",
     "importWait": "Importen körs på servern. Du kan lämna sidan och komma tillbaka; förloppet visas här.",
-    "importHelp": "Välj hela ZIP-exporten, högst 500 MB. Skor importeras först och kopplas till aktiviteterna för rätt distans och tid per sko. Namn, sammanfattningar och tillgängliga mätserier importeras. Puls sparas enligt ditt val ovan. Efter ett avbrott kan du köra importen igen; dubbletter hoppas över. Dina importerade aktiviteter finns under Aktiviteter.",
+    "importHelp": "Välj hela ZIP-exporten från Strava, högst 500 MB. Dubbletter hoppas över, så importen går att köra igen.",
     "importResult": "Importerade: {{imported}}. Dubbletter: {{duplicates}}. Misslyckade: {{failed}}.",
     "importEquipmentResult": "Skor importerade: {{imported}}. Tidigare aktiviteter kompletterade med skor: {{linked}}.",
     "failedImports": "Strava-ID för aktiviteter som inte kunde importeras",
     "exportTitle": "Exportera data",
-    "exportHelp": "Ladda ner en ZIP med dina aktiviteter som JSON, inklusive mätserier, varv, taggar och utrustning, samt din profil och dina rekord. Sparade originalfiler följer med. Manuella aktiviteter saknar originalfil, och filer som inte sparats eller har raderats när pulssamtycket återkallats kan inte exporteras. Dina dolda platser ingår också.",
+    "exportHelp": "Ladda ner en ZIP med alla dina aktiviteter, din profil, dina rekord och dolda platser.",
     "export": "Ladda ner ZIP",
     "exporting": "Förbereder export …",
     "exportWait": "Det kan ta flera minuter. Låt sidan vara öppen tills nedladdningen börjar.",
@@ -416,12 +423,16 @@
     "followers": "Följare",
     "importUploading": "Laddar upp …",
     "recalculateTitle": "Räkna om aktiviteter",
-    "recalculateHelp": "Räknar om rekord och träningsbelastning för alla dina aktiviteter med tidsserier, till exempel efter att beräkningarna förbättrats. Aktiviteterna och deras mätvärden ändras inte. Det körs på servern och du kan lämna sidan.",
+    "recalculateHelp": "Räknar om rekord och träningsbelastning för alla aktiviteter, till exempel när beräkningarna har förbättrats. Aktiviteterna ändras inte.",
     "recalculate": "Räkna om alla aktiviteter",
     "recalculating": "Räknar om …",
     "recalculated_one": "{{count}} aktivitet omräknad.",
     "recalculated_other": "{{count}} aktiviteter omräknade.",
-    "garmin": "Garmin Connect"
+    "garmin": "Garmin Connect",
+    "exportDetailsLabel": "Vad ingår i exporten?",
+    "exportDetails": "Aktiviteterna sparas som JSON med mätserier, varv, taggar och utrustning, och sparade originalfiler följer med. Manuella aktiviteter saknar originalfil, och filer som inte sparats eller raderats när pulssamtycket återkallades kan inte exporteras.",
+    "importDetailsLabel": "Vad importeras?",
+    "importDetails": "Namn, beskrivningar, sammanfattningar och tillgängliga mätserier importeras. Skor importeras först och kopplas till aktiviteterna, så att distans och tid per sko stämmer. Puls sparas bara med ditt pulssamtycke. Foton, kontakter och privata anteckningar importeras inte."
   },
   "jobs": {
     "queued": "I kö. Jobbet startar strax.",
@@ -577,7 +588,7 @@
   "activityPrivacy": {
     "title": "Aktiviteternas synlighet",
     "default": "Standardsynlighet för nya aktiviteter",
-    "help": "Sparas automatiskt. Gäller nya manuella aktiviteter, FIT-uppladdningar och Strava-importer. Befintliga aktiviteter behåller sin synlighet tills du tillämpar valet på alla.",
+    "help": "Sparas automatiskt och gäller nya aktiviteter. Befintliga aktiviteter behåller sin synlighet tills du tillämpar valet på alla.",
     "applyAll": "Tillämpa på alla aktiviteter",
     "allMatch": "Alla dina aktiviteter har den valda synligheten.",
     "confirm": "Ändra alla befintliga aktiviteter till ”{{visibility}}”? Detta ersätter de individuella synlighetsvalen för alla dina aktiviteter.",

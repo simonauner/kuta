@@ -17,6 +17,7 @@ import { sportGroupsQuery, activityYearsQuery } from '@/lib/activity-query'
 import { sportGroupLabel } from '@/lib/sport-groups'
 import { card } from '@/components/ui/card-variants'
 import { Select } from '@/components/ui/select'
+import { HelpPopover } from '@/components/help-popover'
 
 type StatisticsMonth = {
   month: number
@@ -164,9 +165,10 @@ export function StatsPage() {
                   </div>
                 ))}
               </dl>
-              <Heading level={2} className="mt-8">
-                {t('stats.monthly')}
-              </Heading>
+              <div className="mt-8 flex items-center justify-between gap-4">
+                <Heading level={2}>{t('stats.monthly')}</Heading>
+                <HelpPopover label={t('stats.methodLabel')}>{t('stats.method')}</HelpPopover>
+              </div>
               <div className={card({ className: 'mt-4' })}>
                 <FormField
                   layout="inline"
@@ -267,9 +269,6 @@ export function StatsPage() {
                   </tbody>
                 </table>
               </div>
-              <p className="mt-4 text-metadata leading-relaxed text-muted-foreground">
-                {t('stats.method')}
-              </p>
             </div>
           ))}
       </SlowLoading>

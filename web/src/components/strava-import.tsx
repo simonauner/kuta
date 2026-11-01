@@ -122,7 +122,7 @@ export function StravaImport() {
           />
         )}
       </FormField>
-      <p className="mt-2 text-xs text-muted-foreground">{t('settings.importHelp')}</p>
+      <p className="mt-2 text-sm text-muted-foreground">{t('settings.importHelp')}</p>
       <Button type="submit" className="mt-4" disabled={!file || upload.isPending || running}>
         {upload.isPending
           ? t('settings.importUploading')

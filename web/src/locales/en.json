@@ -53,7 +53,8 @@
     "empty": "No activities for the selected sport and year.",
     "noHeartRate": "No saved heart rate data during this period.",
     "chartScale": "Scale: 0–{{max}}. All values are in the table below.",
-    "method": "Time includes pauses. Pace is total time per kilometre for activities with distance and time. Lower pace means faster speed. Heart rate is weighted by activity duration, using only activities with saved heart rate. Missing values appear as –. All sports also combines pace and heart rate across sports. Months follow your device’s time zone."
+    "method": "Time includes pauses. Pace is total time per kilometre for activities with distance and time. Lower pace means faster speed. Heart rate is weighted by activity duration, using only activities with saved heart rate. Missing values appear as –. All sports also combines pace and heart rate across sports. Months follow your device’s time zone.",
+    "methodLabel": "How statistics are calculated"
   },
   "yearComparison": {
     "title": "Year over year",
@@ -70,7 +71,8 @@
     "change": "Vs previous year",
     "fullYear": "Full year",
     "empty": "No activities for the selected sport.",
-    "method": "The chart shows the selected year and up to {{years}} most recent years. The comparison uses the same month and day each year, and the change compares with the year before. Time includes pauses, and each activity counts on the day it starts in your device's time zone."
+    "method": "The chart shows the selected year and up to {{years}} most recent years. The comparison uses the same month and day each year, and the change compares with the year before. Time includes pauses, and each activity counts on the day it starts in your device's time zone.",
+    "methodLabel": "How the comparison is calculated"
   },
   "trainingLoad": {
     "title": "Training load",
@@ -89,10 +91,13 @@
     "dailyLoad": "Daily load",
     "chartScale": "Scale: 0–{{max}}.",
     "chart": "Fitness, fatigue and daily load {{from}}–{{to}}.",
-    "method": "One hour at threshold pace gives a load of 100; load grows with the square of speed. Speed is smoothed over 30 seconds and pauses do not count. Activities without a file are estimated from average pace. Fitness is the average daily load over about 42 days, fatigue over 7 days and form the difference. Threshold pace is the pace you can hold for an hour, derived from VDOT unless you set it yourself, and applies to your whole history. Hills are not adjusted for yet. Only running counts.",
+    "method": "One hour at threshold pace gives a load of 100, and load grows with the square of speed. Speed is smoothed over 30 seconds, pauses are not counted and hills are adjusted for how much energy running costs on the slope. Activities without a file are estimated from the average speed. Fitness is the average daily load over about 42 days, fatigue over 7 days and form the difference between them. Only running counts.",
     "warningTitle": "Your load is increasing quickly",
     "warningText": "Your fitness has increased by {{ramp}} in a week. A common rule of thumb is at most about 7 per week; an easier period lowers the risk of overload.",
-    "warningLink": "See training load"
+    "warningLink": "See training load",
+    "methodLabel": "How training load is calculated",
+    "thresholdHelpLabel": "What is threshold pace?",
+    "thresholdHelp": "Threshold pace is the fastest pace you can hold for about an hour. For many runners it is close to their race pace between 10 km and a half marathon. Kuta uses it to work out how hard each run was. Without your own value it is derived from your prediction."
   },
   "records": {
     "helpLabel": "Help with running records",
@@ -130,7 +135,8 @@
     "predictionsBasis": "Based on {{distance}} in {{time}} on {{date}} (VDOT {{vdot}}).",
     "showActivity": "Show activity",
     "predictionsEmpty": "No prediction yet. It needs an effort of 5 km or longer in the last 90 days.",
-    "predictionsMethod": "The prediction uses Jack Daniels and Jimmy Gilbert's VDOT formulas, based on your strongest effort of 5 km or longer in the last 90 days. It assumes you have trained for the distance; a marathon takes endurance that a shorter effort does not show. Efforts within training runs are often slower than races."
+    "predictionsMethod": "The prediction starts from your strongest effort of 5 km or longer in the last 90 days and uses Jack Daniels and Jimmy Gilbert's VDOT formulas. VDOT is a measure of your running fitness. The prediction assumes you have trained for the distance; a marathon takes endurance that a shorter effort does not show. Efforts in regular training are often slower than races.",
+    "predictionsMethodLabel": "How the prediction is calculated"
   },
   "activities": {
     "year": "Year",
@@ -291,7 +297,8 @@
     "speed": "Speed",
     "edit": "Edit activity",
     "save": "Save changes",
-    "cancel": "Cancel"
+    "cancel": "Cancel",
+    "noRecordsWithoutFile": "Records only come from runs uploaded from a file with distance data."
   },
   "consent": {
     "title": "Save heart rate from my activities.",
@@ -402,12 +409,12 @@
     "import": "Import activities",
     "importing": "Importing …",
     "importWait": "The import runs on the server. You can leave this page and come back; progress is shown here.",
-    "importHelp": "Choose the complete ZIP export, up to 500 MB. Shoes are imported first and linked to activities to calculate distance and time per shoe. Names, summaries and available streams are imported. Heart rate follows your choice above. You can retry after an interruption; duplicates are skipped. Find your imported activities under Activities.",
+    "importHelp": "Choose the whole ZIP export from Strava, at most 500 MB. Duplicates are skipped, so you can run the import again.",
     "importResult": "Imported: {{imported}}. Duplicates: {{duplicates}}. Failed: {{failed}}.",
     "importEquipmentResult": "Shoes imported: {{imported}}. Existing activities linked to shoes: {{linked}}.",
     "failedImports": "Strava IDs of activities that could not be imported",
     "exportTitle": "Export data",
-    "exportHelp": "Download a ZIP with your activities as JSON, including streams, laps, tags and equipment, along with your profile and best efforts. Saved original files are included. Manual activities have no original file, and files that were not saved or were deleted when heart rate consent was withdrawn cannot be exported. Your hidden places are also included.",
+    "exportHelp": "Download a ZIP with all your activities, your profile, your records and hidden places.",
     "export": "Download ZIP",
     "exporting": "Preparing export…",
     "exportWait": "This may take several minutes. Keep this page open until the download starts.",
@@ -416,12 +423,16 @@
     "followers": "Followers",
     "importUploading": "Uploading …",
     "recalculateTitle": "Recalculate activities",
-    "recalculateHelp": "Recalculates records and training load for all your activities with recorded data, for example after the calculations have improved. Your activities and their measurements are not changed. It runs on the server and you can leave the page.",
+    "recalculateHelp": "Recalculates records and training load for all activities, for example when the calculations have improved. Your activities are not changed.",
     "recalculate": "Recalculate all activities",
     "recalculating": "Recalculating …",
     "recalculated_one": "{{count}} activity recalculated.",
     "recalculated_other": "{{count}} activities recalculated.",
-    "garmin": "Garmin Connect"
+    "garmin": "Garmin Connect",
+    "exportDetailsLabel": "What is in the export?",
+    "exportDetails": "Activities are saved as JSON with streams, laps, tags and equipment, and saved original files are included. Manual activities have no original file, and files that were not saved or were deleted when heart rate consent was withdrawn cannot be exported.",
+    "importDetailsLabel": "What is imported?",
+    "importDetails": "Names, descriptions, summaries and available streams are imported. Shoes are imported first and linked to the activities, so distance and time per shoe add up. Heart rate is saved only with your heart rate consent. Photos, contacts and private notes are not imported."
   },
   "jobs": {
     "queued": "Queued. The job will start shortly.",
@@ -577,7 +588,7 @@
   "activityPrivacy": {
     "title": "Activity visibility",
     "default": "Default visibility for new activities",
-    "help": "Saved automatically. Applies to new manual activities, FIT uploads and Strava imports. Existing activities keep their visibility until you apply this choice to all.",
+    "help": "Saved automatically and applies to new activities. Existing activities keep their visibility until you apply the choice to all of them.",
     "applyAll": "Apply to all activities",
     "allMatch": "All your activities have the selected visibility.",
     "confirm": "Change every existing activity to “{{visibility}}”? This replaces individual visibility choices for all your activities.",
