@@ -380,8 +380,9 @@ public static class ActivityEndpoints
             return (null, Results.Conflict(new ApiError("Det här passet är redan uppladdat.", "duplicateActivity")));
 
         ParsedActivity? parsed;
+        // The SDK throws more than FitException for a corrupt file with a valid checksum (as in the Garmin import).
         try { parsed = FitImport.Parse(bytes); }
-        catch (FitException) { parsed = null; }
+        catch (Exception e) when (e is not OperationCanceledException) { parsed = null; }
         if (parsed is null)
             return (null, Results.BadRequest(new ApiError("Filen kunde inte läsas som ett pass från en FIT-fil.", "invalidFit")));
         return (new FitUpload(bytes, sha256, profile.HrConsent ? parsed : parsed.WithoutHeartRate(), profile.HrConsent), null);
