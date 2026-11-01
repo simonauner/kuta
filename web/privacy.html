@@ -42,7 +42,7 @@
       <article id="svenska" lang="sv" aria-labelledby="sv-title">
         <h2 id="sv-title">Dina personuppgifter i Kuta</h2>
         <p class="policy-date">
-          Senast uppdaterad: <time datetime="2026-10-31">31 oktober 2026</time>
+          Senast uppdaterad: <time datetime="2026-11-01">1 november 2026</time>
         </p>
         <p>
           Kuta hjälper dig att samla och analysera dina löppass. Här beskriver vi hur
@@ -163,11 +163,14 @@
             i Frankrike.
           </li>
           <li>
-            <strong>Cloudflare Email Routing och Google Gmail:</strong> inkommande mejl till
-            privacy@kutaapp.com vidarebefordras via Cloudflare till ett privat Gmail-konto. Det
-            innebär behandling av avsändare, mottagare, innehåll och eventuella bilagor. Denna
-            mejllösning är under översyn; en företagsinkorg med tillämpligt biträdesavtal och dess
-            lagringsvillkor behöver fastställas före publicering.
+            <strong>Proton Mail for Business:</strong> hanterar inkommande mejl och svar från
+            privacy@kutaapp.com. Det innebär behandling av avsändare, mottagare, innehåll och
+            eventuella bilagor. Proton anger att Mail-data lagras krypterat på servrar i Schweiz,
+            Tyskland eller Norge.
+          </li>
+          <li>
+            <strong>Cloudflare:</strong> hanterar domänens DNS, som används för att hitta Kutas
+            servrar och mejltjänst. Cloudflare Email Routing är avstängd.
           </li>
           <li>
             <strong>OpenFreeMap:</strong> levererar kartbilder när du öppnar en passkarta. Din
@@ -181,15 +184,20 @@
           <a
             href="https://www.scaleway.com/en/docs/transactional-email/reference-content/data-privacy/"
             >Scaleway</a
-          >
+          >, <a href="https://proton.me/legal/privacy">Proton</a>,
+          <a href="https://www.cloudflare.com/privacypolicy/">Cloudflare</a>
           och <a href="https://openfreemap.org/privacy/">OpenFreeMap</a>. Uppgifter kan också lämnas
           till en myndighet om lag kräver det.
         </p>
         <p>
-          Placering i Sverige innebär inte att all behandling sker enbart i Sverige. Internationella
-          leverantörer och deras underleverantörer kan behandla uppgifter utanför EU/EES. Vilka
-          överföringar och skyddsåtgärder som gäller för Kutas avtal behöver verifieras före
-          publicering av denna policy.
+          Placering i Sverige innebär inte att all behandling sker enbart i Sverige. Leverantörerna
+          kan behandla exempelvis support- och driftuppgifter utanför EU/EES. Flys globala nätverk
+          kan även hantera inkommande webbtrafik utanför EU/EES. Flys och Supabases biträdesavtal
+          innehåller EU:s standardavtalsklausuler som skydd för de överföringar där klausulerna är
+          tillämpliga. Överföring till Proton i Schweiz stöds av EU-kommissionens beslut om adekvat
+          skyddsnivå. Vidareöverföringar omfattas av respektive leverantörs avtalsvillkor och
+          tillämpliga överföringsskydd. Kontakta privacy@kutaapp.com för information om de skydd som
+          gäller dina uppgifter och hur du kan få en kopia av relevanta avtalsvillkor.
         </p>
 
         <h3>6. Hur länge sparas uppgifterna?</h3>
@@ -205,11 +213,21 @@
           lagligheten i behandlingen före återkallelsen.
         </p>
         <p>
-          Sessionens giltighet upphör efter 30 dagars inaktivitet och senast efter 180 dagar. Det är
-          en giltighetstid för inloggningen, inte ett löfte om att sessionsrader automatiskt raderas
-          då. Uppgifter kan behöva bevaras längre för rättsliga skyldigheter eller rättsliga
-          anspråk. Automatisk städning av sessionsrader saknas. Lagringstider och raderingsrutiner
-          för dessa rader och supportmejl återstår att besluta och införa före publicering.
+          Inloggningen upphör efter 30 dagars inaktivitet och senast efter 180 dagar.
+          Sessionsuppgifter i databasen raderas automatiskt 30 dagar efter registrerat avslut,
+          exempelvis vid utloggning, eller sessionens absoluta utgång, beroende på vilket som
+          inträffar först. Inaktivitet registrerar inte i sig ett avslut i databasen. Utan tidigare
+          registrerat avslut kan uppgifterna därför finnas kvar i upp till 210 dagar från
+          inloggningen, plus tiden till nästa rensning. Rensningen körs varje timme när databasen är
+          i drift; driftavbrott eller ett pausat projekt kan fördröja den. Kontoradering tar även
+          bort kontots sessionsrader.
+        </p>
+        <p>
+          Avslutade supportärenden raderas senast 12 månader efter avslut genom månatlig genomgång,
+          inklusive tömning av papperskorgen för raderade ärenden. Onödiga känsliga uppgifter och
+          bilagor raderas tidigare. Uppgifter kan behöva bevaras separat för en konkret rättslig
+          skyldighet eller tvist. Radering i inkorgen och papperskorgen omfattar inte leverantörens
+          eventuella säkerhetskopior.
         </p>
 
         <p>
@@ -221,8 +239,12 @@
           <a
             href="https://www.scaleway.com/en/docs/transactional-email/reference-content/data-privacy/"
             >Scaleways information</a
-          >. Kuta har ännu ingen egen backup. Supabases faktiska logg- och backuptider samt
-          mejlvidarebefordringens lagring behöver fortfarande kontrolleras.
+          >. Proton anger att krypterade säkerhetskopior behålls i upp till 30 dagar enligt
+          <a href="https://proton.me/mail/privacy-policy">Protons Mail-policy</a>. Kuta har ännu
+          ingen egen backup. Kuta använder Supabases Free-plan, där leverantören anger ett dygns
+          lagring för API- och databasloggar. Automatiska databasbackuper och återställning till
+          valfri tidpunkt ingår inte i planen. Dessa uppgifter fastställer inte en gemensam
+          tidsgräns för alla interna säkerhetsloggar eller driftkopior hos leverantörerna.
         </p>
 
         <h3>7. Kakor och lokal lagring</h3>
@@ -243,8 +265,10 @@
           grundas på berättigat intresse och återkalla samtycke när som helst.
         </p>
         <p>
-          Mejla <a href="mailto:privacy@kutaapp.com">privacy@kutaapp.com</a> för att använda dina
-          rättigheter eller begära export eller kontoradering. Vi kan behöva verifiera din
+          Du kan ladda ner en ZIP-export och radera ditt konto under Profil → Inställningar. För
+          stora träningshistoriker kan exporten ta flera minuter att förbereda. Mejla
+          <a href="mailto:privacy@kutaapp.com">privacy@kutaapp.com</a> för att använda dina
+          rättigheter eller få hjälp med export eller kontoradering. Vi kan behöva verifiera din
           identitet. Vi svarar normalt inom en månad. Du har också rätt att klaga hos
           <a href="https://www.imy.se/privatperson/utfora-arenden/lamna-ett-klagomal/"
             >Integritetsskyddsmyndigheten (IMY)</a
@@ -267,7 +291,7 @@
       </article>
       <article id="english" lang="en" aria-labelledby="en-title">
         <h2 id="en-title">Your personal data in Kuta</h2>
-        <p class="policy-date">Last updated: <time datetime="2026-10-31">31 October 2026</time></p>
+        <p class="policy-date">Last updated: <time datetime="2026-11-01">1 November 2026</time></p>
         <p>
           Kuta helps you collect and analyse your running activities. This policy explains how
           personal data is processed when you visit our website, use the app or contact us.
@@ -389,11 +413,14 @@
             data in France.
           </li>
           <li>
-            <strong>Cloudflare Email Routing and Google Gmail:</strong> incoming emails to
-            privacy@kutaapp.com are forwarded through Cloudflare to a personal Gmail account. This
-            involves processing sender, recipient, message content and any attachments. This
-            arrangement is under review; a business mailbox with applicable data processing terms
-            and its retention arrangements must be established before publication.
+            <strong>Proton Mail for Business:</strong> handles incoming emails and replies from
+            privacy@kutaapp.com. This involves processing sender, recipient, message content and any
+            attachments. Proton states that Mail data is stored encrypted on servers in Switzerland,
+            Germany or Norway.
+          </li>
+          <li>
+            <strong>Cloudflare:</strong> manages the domain's DNS, used to locate Kuta's servers and
+            email service. Cloudflare Email Routing is disabled.
           </li>
           <li>
             <strong>OpenFreeMap:</strong> provides map tiles when you open an activity map. Your
@@ -407,15 +434,21 @@
           <a
             href="https://www.scaleway.com/en/docs/transactional-email/reference-content/data-privacy/"
             >Scaleway</a
-          >
+          >, <a href="https://proton.me/legal/privacy">Proton</a>,
+          <a href="https://www.cloudflare.com/privacypolicy/">Cloudflare</a>
           and <a href="https://openfreemap.org/privacy/">OpenFreeMap</a>. We may also disclose
           information to authorities when required by law.
         </p>
         <p>
           Hosting in Sweden does not mean all processing takes place exclusively in Sweden.
-          International providers and their subprocessors may process data outside the EU/EEA. The
-          transfers and safeguards applicable to Kuta's agreements must be verified before this
-          policy is published.
+          Providers may process support and operational data outside the EU/EEA. Fly's global
+          network may also handle incoming web traffic outside the EU/EEA. Fly's and Supabase's data
+          processing agreements include EU Standard Contractual Clauses as safeguards for transfers
+          to which those clauses apply. Transfers to Proton in Switzerland rely on the European
+          Commission's adequacy decision. Onward transfers are subject to each provider's
+          contractual terms and applicable transfer safeguards. Contact privacy@kutaapp.com for
+          information about safeguards applicable to your data and how to obtain a copy of relevant
+          contractual terms.
         </p>
 
         <h3>6. How long do we keep data?</h3>
@@ -431,12 +464,20 @@
           lawfulness of processing before withdrawal.
         </p>
         <p>
-          Sign-in expires after 30 days of inactivity and no later than 180 days. These are sign-in
-          validity periods, not a promise that session database records are automatically deleted
-          then. Information may need to be retained longer for legal obligations or legal claims.
-          Automatic cleanup of session records is not implemented. Retention periods and deletion
-          procedures for those records and support emails still need to be decided and implemented
-          before publication.
+          Sign-in expires after 30 days of inactivity and no later than 180 days. Session database
+          records are automatically deleted 30 days after a recorded end, such as signing out, or
+          the session's absolute expiry, whichever occurs first. Inactivity alone does not record an
+          end in the database. Without an earlier recorded end, records may therefore remain for up
+          to 210 days from sign-in, plus the time until the next cleanup. Cleanup runs hourly while
+          the database is running; outages or a paused project may delay it. Deleting your account
+          also deletes its session records.
+        </p>
+        <p>
+          Closed support cases are deleted no later than 12 months after closure through a monthly
+          review, including emptying the trash for deleted cases. Unnecessary sensitive information
+          and attachments are deleted sooner. Information may need to be retained separately for a
+          specific legal obligation or dispute. Deletion from the inbox and trash does not cover any
+          backups retained by the provider.
         </p>
 
         <p>
@@ -449,8 +490,12 @@
           <a
             href="https://www.scaleway.com/en/docs/transactional-email/reference-content/data-privacy/"
             >Scaleway's information</a
-          >. Kuta does not yet operate its own backups. Supabase's actual log and backup retention
-          and the email forwarding service's retention still need to be checked.
+          >. Proton states that encrypted backups are kept for up to 30 days according to its
+          <a href="https://proton.me/mail/privacy-policy">Mail privacy policy</a>. Kuta does not yet
+          operate its own backups. Kuta uses Supabase's Free plan, for which the provider specifies
+          one-day retention for API and database logs. Automatic database backups and point-in-time
+          recovery are not included in this plan. These details do not establish a common retention
+          limit for all internal security logs or operational copies held by providers.
         </p>
 
         <h3>7. Cookies and local storage</h3>
@@ -470,9 +515,11 @@
           interests and withdraw consent at any time.
         </p>
         <p>
-          Email <a href="mailto:privacy@kutaapp.com">privacy@kutaapp.com</a> to exercise your rights
-          or request an export or account deletion. We may need to verify your identity. We normally
-          respond within one month. You can also complain to the
+          You can download a ZIP export and delete your account under Profile → Settings. Exports of
+          large training histories may take several minutes to prepare. Email
+          <a href="mailto:privacy@kutaapp.com">privacy@kutaapp.com</a> to exercise your rights or
+          get help with an export or account deletion. We may need to verify your identity. We
+          normally respond within one month. You can also complain to the
           <a href="https://www.imy.se/privatperson/utfora-arenden/lamna-ett-klagomal/"
             >Swedish Authority for Privacy Protection (IMY)</a
           >
