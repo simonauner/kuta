@@ -1,0 +1,34 @@
+api/Kuta.Api/Migrations/023_route_privacy_seed.sql
+  s_18157bd3682cdd::t_1aafec37a714e9 1-4
+api/Kuta.Api/SocialEndpoints.cs
+  s_18157bd3682cdd::t_1aafec37a714e9 109-117,121-123,129,140,145,147,150
+  s_18157bd3682cdd::t_9ee0fd9a85afa9 149
+api/Kuta.Api.Tests/SocialTests.cs
+  s_18157bd3682cdd::t_0fa02437ddbb68 65-66,88-94
+README.md
+  s_1d8c41d0c04d95::t_0b2b051f3e8d57 162-166
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.7.5",
+  "base_commit_sha": "ba4bed9a0be9c4e1a998b113a6eeaf9ba8b3fe0a",
+  "prompts": {},
+  "sessions": {
+    "s_18157bd3682cdd": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "c8e5873c-f510-4ac1-8363-b864b8cfaff4",
+        "model": "claude-opus-5-5"
+      },
+      "human_author": "Simon Aunér <simonauner@gmail.com>"
+    },
+    "s_1d8c41d0c04d95": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "bdd1f4bc-6213-49a7-8e73-7e9172c83f8c",
+        "model": "unknown"
+      },
+      "human_author": "Simon Aunér <simonauner@gmail.com>"
+    }
+  }
+}
