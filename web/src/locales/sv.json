@@ -679,7 +679,8 @@
     "deleting": "Tar bort…",
     "includes": "Räknar {{sports}}.",
     "visibility": "Synlighet",
-    "visibilityHelp": "Synliga mål visas med förlopp på din profil."
+    "visibilityHelp": "Synliga mål visas med förlopp på din profil.",
+    "visibilityRevealsActivities": "Förloppet räknar alla dina pass, även pass som de som ser målet inte får se. De kan då se när du gör ett sådant pass och ungefär hur långt eller länge det var."
   },
   "sportGroups": {
     "running": "Löpning",

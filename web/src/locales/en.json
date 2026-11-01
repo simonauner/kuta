@@ -679,7 +679,8 @@
     "deleting": "Deleting…",
     "includes": "Includes {{sports}}.",
     "visibility": "Visibility",
-    "visibilityHelp": "Visible goals are shown with their progress on your profile."
+    "visibilityHelp": "Visible goals are shown with their progress on your profile.",
+    "visibilityRevealsActivities": "Progress counts all your activities, including ones that people who see the goal can't see. They can then tell when you do such an activity and roughly how far or how long it was."
   },
   "sportGroups": {
     "running": "Running",
