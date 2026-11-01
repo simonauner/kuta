@@ -8,7 +8,6 @@ import {
   type ActivityPart,
 } from '@/lib/multisport'
 import { MultisportEditor } from '@/components/multisport-editor'
-import { Modal } from '@/components/ui/modal'
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
 import { Link, useNavigate, useSearch } from '@tanstack/react-router'
 import { useRef, useState, type FormEvent } from 'react'
@@ -36,6 +35,13 @@ import { TagPicker } from '@/components/activity-tags'
 import { Select } from '@/components/ui/select'
 import { Heading } from '@/components/ui/heading'
 import { VisibilityField, type Visibility } from '@/components/activity-visibility'
+import { ConfirmationModal } from '@/components/ui/confirmation-modal'
+import { Modal } from '@/components/ui/modal'
+import { FitDrop } from '@/components/fit-drop'
+import { BulkUpload } from '@/components/bulk-upload'
+
+// Below the API's 30 uploads per 5 minutes, so one batch is never cut off by the limit.
+const maxBatch = 25
 
 // What the API reads from a FIT file, without saving anything (POST /api/activities/preview)
 type ActivityPreview = {
@@ -67,7 +73,6 @@ export function NewActivityPage() {
     shoeChoice ??
     (activeShoes.some((shoe) => shoe.id === lastUsedShoe.data?.id) ? lastUsedShoe.data?.id : '') ??
     ''
-  const uploadDialog = useRef<HTMLDialogElement>(null)
   const shoeDialog = useRef<HTMLDialogElement>(null)
   const shoeSelect = useRef<HTMLSelectElement>(null)
   const [shoeName, setShoeName] = useState('')
@@ -88,8 +93,8 @@ export function NewActivityPage() {
     },
   })
 
-  const [pendingFile, setPendingFile] = useState<File | null>(null) // picked in the modal, not used yet
-  const [dialogKey, setDialogKey] = useState(0)
+  const [pendingFile, setPendingFile] = useState<File | null>(null) // waits for confirmation to replace filled fields
+  const [batch, setBatch] = useState<File[] | null>(null) // several files are saved straight away
   const [file, setFile] = useState<File | null>(null)
   const [split, setSplit] = useState<MultisportDraft>(undefined)
   const [tags, setTags] = useState<ActivityTag[]>([])
@@ -185,254 +190,293 @@ export function NewActivityPage() {
     ? activityTitle({ title: null, sport: selectedSport, startedAt: start }, t)
     : undefined
 
+  function applyFile(chosen: File) {
+    setFile(chosen)
+    setSplit(undefined)
+    setSport(null)
+    save.reset()
+  }
+  // One file fills in the form; several are saved straight away.
+  function chooseFiles(files: File[]) {
+    if (files.length > 1) setBatch(files.slice(0, maxBatch))
+    else if (overwritten.length > 0) setPendingFile(files[0])
+    else applyFile(files[0])
+  }
+  const batchCapped = (batch?.length ?? 0) >= maxBatch
+
   return (
     <section>
       <BackLink />
-      <div className="mt-4 flex items-center justify-between gap-4">
-        <Heading level={1}>{t('newActivity.title')}</Heading>
-        <Button
-          variant="secondary-outline"
-          size="sm"
-          disabled={save.isPending}
-          onClick={() => {
-            setPendingFile(null)
-            setDialogKey((k) => k + 1) // empty file field every time the modal opens
-            uploadDialog.current?.showModal()
-          }}
-        >
-          {t('newActivity.upload')}
-        </Button>
-      </div>
+      <Heading level={1} className="mt-4">
+        {t('newActivity.title')}
+      </Heading>
 
-      <form onSubmit={onSubmit} className="mt-6 space-y-6">
-        {file && (
-          <div className="text-sm">
-            <p className="flex flex-wrap items-center gap-x-3">
-              <span className="font-medium">{file.name}</span>
-              <Button
-                type="button"
-                variant="link"
-                onClick={() => {
-                  setFile(null)
-                  setSplit(undefined)
-                  setSport(null)
-                  save.reset()
-                }}
-              >
-                {t('newActivity.removeFile')}
-              </Button>
+      {batch ? (
+        <div className="mt-6">
+          {batchCapped && (
+            <p role="status" className="mb-4 text-sm text-muted-foreground">
+              {t('newActivity.bulkLimit', { max: maxBatch })}
             </p>
-            {preview.isFetching && (
-              <p className="mt-1 text-xs text-muted-foreground">{t('newActivity.reading')}</p>
+          )}
+          <BulkUpload files={batch} privacy={visibility} onReset={() => setBatch(null)} />
+        </div>
+      ) : (
+        <>
+          {!file && (
+            <div className="mt-6 space-y-4">
+              <FitDrop onFiles={chooseFiles} disabled={save.isPending} />
+              {/* The full consent only while it is missing; once given, one line is enough */}
+              {me?.hrConsent ? (
+                <p className="text-sm text-muted-foreground">
+                  <Trans
+                    i18nKey="newActivity.hrSaved"
+                    components={{
+                      settings: (
+                        <Link to="/app/settings" className="underline underline-offset-4" />
+                      ),
+                    }}
+                  />
+                </p>
+              ) : (
+                <HeartRateConsent />
+              )}
+            </div>
+          )}
+          <Heading level={2} className="mt-8">
+            {t(file ? 'newActivity.detailsTitle' : 'newActivity.manualTitle')}
+          </Heading>
+
+          <form onSubmit={onSubmit} className="mt-6 space-y-6">
+            {file && (
+              <div className="text-sm">
+                <p className="flex flex-wrap items-center gap-x-3">
+                  <span className="font-medium">{file.name}</span>
+                  <Button
+                    type="button"
+                    variant="link"
+                    onClick={() => {
+                      setFile(null)
+                      setSplit(undefined)
+                      setSport(null)
+                      save.reset()
+                    }}
+                  >
+                    {t('newActivity.removeFile')}
+                  </Button>
+                </p>
+                {preview.isFetching && (
+                  <p className="mt-1 text-xs text-muted-foreground">{t('newActivity.reading')}</p>
+                )}
+                {preview.error && (
+                  <p role="alert" className="mt-1 text-destructive">
+                    <ErrorMessage error={preview.error} />
+                  </p>
+                )}
+              </div>
             )}
-            {preview.error && (
-              <p role="alert" className="mt-1 text-destructive">
-                <ErrorMessage error={preview.error} />
+
+            <div className="grid grid-cols-2 gap-4">
+              <FormField label={t('newActivity.name')} className="col-span-2">
+                {(id) => (
+                  <Input
+                    id={id}
+                    value={title}
+                    maxLength={100}
+                    placeholder={titlePlaceholder}
+                    onChange={(e) => setTitle(e.currentTarget.value)}
+                  />
+                )}
+              </FormField>
+              <FormField label={t('newActivity.description')} className="col-span-2">
+                {(id) => (
+                  <textarea
+                    id={id}
+                    value={description}
+                    maxLength={10000}
+                    rows={3}
+                    onChange={(e) => setDescription(e.currentTarget.value)}
+                    className="w-full rounded-md border border-input bg-transparent px-3 py-2 text-base shadow-xs outline-none focus-visible:border-ring focus-visible:ring-[3px] focus-visible:ring-ring/50 md:text-sm dark:bg-input/30"
+                  />
+                )}
+              </FormField>
+              <FormField label={t('newActivity.sport')}>
+                {(id) => (
+                  <Select
+                    id={id}
+                    value={selectedSport}
+                    disabled={!!importedMultisport || !!split}
+                    onChange={(e) => setSport(e.currentTarget.value)}
+                  >
+                    {sportOptions.map((s) => (
+                      <option key={s} value={s}>
+                        {t(`newActivity.sports.${s}`)}
+                      </option>
+                    ))}
+                  </Select>
+                )}
+              </FormField>
+              <FormField
+                label={t('shoes.title')}
+                action={
+                  <Button
+                    type="button"
+                    variant="link"
+                    disabled={save.isPending || addShoe.isPending}
+                    onClick={() => {
+                      setShoeName('')
+                      setShoeBrand('')
+                      addShoe.reset()
+                      shoeDialog.current?.showModal()
+                    }}
+                  >
+                    {t('shoes.createNew')}
+                  </Button>
+                }
+              >
+                {(id) => (
+                  <Select
+                    ref={shoeSelect}
+                    id={id}
+                    value={shoeId}
+                    onChange={(e) => setShoeChoice(e.currentTarget.value)}
+                    disabled={shoes.isPending || !!shoes.error}
+                  >
+                    <option value="">{t('shoes.none')}</option>
+                    {activeShoes.map((shoe) => (
+                      <option key={shoe.id} value={shoe.id}>
+                        {shoe.name}
+                        {shoe.brand ? ` (${shoe.brand})` : ''}
+                      </option>
+                    ))}
+                  </Select>
+                )}
+              </FormField>
+              {(shoes.error || lastUsedShoe.error) && (
+                <p role="alert" className="col-span-2 text-sm text-destructive">
+                  <ErrorMessage error={(shoes.error || lastUsedShoe.error)!} />
+                </p>
+              )}
+              <FormField label={t('newActivity.startedAt')}>
+                {(id) => (
+                  <Input
+                    id={id}
+                    type="datetime-local"
+                    required
+                    disabled={locked}
+                    value={fromFile ? toDateTimeLocal(new Date(fromFile.startedAt)) : startedAt}
+                    onChange={(e) => setStartedAt(e.currentTarget.value)}
+                  />
+                )}
+              </FormField>
+              <FormField label={t('newActivity.distance')}>
+                {(id) => (
+                  <Input
+                    id={id}
+                    type="number"
+                    inputMode="decimal"
+                    min={0}
+                    max={1000}
+                    step={0.01}
+                    required
+                    disabled={locked}
+                    value={fromFile ? (fromFile.distanceM / 1000).toFixed(2) : distanceKm}
+                    onChange={(e) => setDistanceKm(e.currentTarget.value)}
+                  />
+                )}
+              </FormField>
+              <FormField label={t('newActivity.duration')}>
+                {(id) => (
+                  <Input
+                    id={id}
+                    required
+                    disabled={locked}
+                    pattern="\d+(:[0-5]\d){0,2}"
+                    placeholder="0:45:00"
+                    title={t('newActivity.durationHint')}
+                    value={fromFile ? formatDuration(fromFile.durationS) : duration}
+                    onChange={(e) => setDuration(e.currentTarget.value)}
+                  />
+                )}
+              </FormField>
+              <FormField label={t('newActivity.elevation')}>
+                {(id) => (
+                  <Input
+                    id={id}
+                    type="number"
+                    inputMode="numeric"
+                    min={0}
+                    max={20000}
+                    disabled={locked}
+                    value={fromFile ? Math.round(fromFile.elevationGainM ?? 0) : elevation}
+                    onChange={(e) => setElevation(e.currentTarget.value)}
+                  />
+                )}
+              </FormField>
+              {me?.hrConsent && (
+                <FormField label={t('newActivity.avgHr')}>
+                  {(id) => (
+                    <Input
+                      id={id}
+                      type="number"
+                      inputMode="numeric"
+                      min={30}
+                      max={250}
+                      disabled={locked}
+                      value={fromFile ? (fromFile.avgHr ?? '') : avgHr}
+                      onChange={(e) => setAvgHr(e.currentTarget.value)}
+                    />
+                  )}
+                </FormField>
+              )}
+            </div>
+            {fromFile && (
+              <MultisportEditor
+                key={`${file?.name}:${file?.lastModified}`}
+                activity={multisportView(
+                  {
+                    ...fromFile,
+                    partsEdited: false,
+                    originalParts: fromFile.parts,
+                    originalSport: fromFile.sport,
+                  },
+                  split,
+                )}
+                onChange={setSplit}
+                disabled={save.isPending}
+              />
+            )}
+            <TagPicker value={tags} onChange={setTags} disabled={save.isPending} />
+            <VisibilityField value={visibility} onChange={setPrivacy} disabled={save.isPending} />
+            {fromFile && (
+              <p className="text-xs text-muted-foreground">
+                {fromFile.device
+                  ? t('newActivity.lockedFrom', { device: fromFile.device })
+                  : t('newActivity.locked')}
               </p>
             )}
-          </div>
-        )}
 
-        <div className="grid grid-cols-2 gap-4">
-          <FormField label={t('newActivity.name')} className="col-span-2">
-            {(id) => (
-              <Input
-                id={id}
-                value={title}
-                maxLength={100}
-                placeholder={titlePlaceholder}
-                onChange={(e) => setTitle(e.currentTarget.value)}
-              />
+            <Button
+              type="submit"
+              disabled={
+                save.isPending ||
+                shoes.isPending ||
+                !!shoes.error ||
+                lastUsedShoe.isPending ||
+                !!lastUsedShoe.error ||
+                (locked && !fromFile) ||
+                preview.isFetching
+              }
+            >
+              {save.isPending ? t('newActivity.saving') : t('newActivity.save')}
+            </Button>
+            {save.error && (
+              <p role="alert" className="text-sm text-destructive">
+                <ErrorMessage error={save.error} />
+              </p>
             )}
-          </FormField>
-          <FormField label={t('newActivity.description')} className="col-span-2">
-            {(id) => (
-              <textarea
-                id={id}
-                value={description}
-                maxLength={10000}
-                rows={3}
-                onChange={(e) => setDescription(e.currentTarget.value)}
-                className="w-full rounded-md border border-input bg-transparent px-3 py-2 text-base shadow-xs outline-none focus-visible:border-ring focus-visible:ring-[3px] focus-visible:ring-ring/50 md:text-sm dark:bg-input/30"
-              />
-            )}
-          </FormField>
-          <FormField label={t('newActivity.sport')}>
-            {(id) => (
-              <Select
-                id={id}
-                value={selectedSport}
-                disabled={!!importedMultisport || !!split}
-                onChange={(e) => setSport(e.currentTarget.value)}
-              >
-                {sportOptions.map((s) => (
-                  <option key={s} value={s}>
-                    {t(`newActivity.sports.${s}`)}
-                  </option>
-                ))}
-              </Select>
-            )}
-          </FormField>
-          <FormField
-            label={t('shoes.title')}
-            action={
-              <Button
-                type="button"
-                variant="link"
-                disabled={save.isPending || addShoe.isPending}
-                onClick={() => {
-                  setShoeName('')
-                  setShoeBrand('')
-                  addShoe.reset()
-                  shoeDialog.current?.showModal()
-                }}
-              >
-                {t('shoes.createNew')}
-              </Button>
-            }
-          >
-            {(id) => (
-              <Select
-                ref={shoeSelect}
-                id={id}
-                value={shoeId}
-                onChange={(e) => setShoeChoice(e.currentTarget.value)}
-                disabled={shoes.isPending || !!shoes.error}
-              >
-                <option value="">{t('shoes.none')}</option>
-                {activeShoes.map((shoe) => (
-                  <option key={shoe.id} value={shoe.id}>
-                    {shoe.name}
-                    {shoe.brand ? ` (${shoe.brand})` : ''}
-                  </option>
-                ))}
-              </Select>
-            )}
-          </FormField>
-          {(shoes.error || lastUsedShoe.error) && (
-            <p role="alert" className="col-span-2 text-sm text-destructive">
-              <ErrorMessage error={(shoes.error || lastUsedShoe.error)!} />
-            </p>
-          )}
-          <FormField label={t('newActivity.startedAt')}>
-            {(id) => (
-              <Input
-                id={id}
-                type="datetime-local"
-                required
-                disabled={locked}
-                value={fromFile ? toDateTimeLocal(new Date(fromFile.startedAt)) : startedAt}
-                onChange={(e) => setStartedAt(e.currentTarget.value)}
-              />
-            )}
-          </FormField>
-          <FormField label={t('newActivity.distance')}>
-            {(id) => (
-              <Input
-                id={id}
-                type="number"
-                inputMode="decimal"
-                min={0}
-                max={1000}
-                step={0.01}
-                required
-                disabled={locked}
-                value={fromFile ? (fromFile.distanceM / 1000).toFixed(2) : distanceKm}
-                onChange={(e) => setDistanceKm(e.currentTarget.value)}
-              />
-            )}
-          </FormField>
-          <FormField label={t('newActivity.duration')}>
-            {(id) => (
-              <Input
-                id={id}
-                required
-                disabled={locked}
-                pattern="\d+(:[0-5]\d){0,2}"
-                placeholder="0:45:00"
-                title={t('newActivity.durationHint')}
-                value={fromFile ? formatDuration(fromFile.durationS) : duration}
-                onChange={(e) => setDuration(e.currentTarget.value)}
-              />
-            )}
-          </FormField>
-          <FormField label={t('newActivity.elevation')}>
-            {(id) => (
-              <Input
-                id={id}
-                type="number"
-                inputMode="numeric"
-                min={0}
-                max={20000}
-                disabled={locked}
-                value={fromFile ? Math.round(fromFile.elevationGainM ?? 0) : elevation}
-                onChange={(e) => setElevation(e.currentTarget.value)}
-              />
-            )}
-          </FormField>
-          {me?.hrConsent && (
-            <FormField label={t('newActivity.avgHr')}>
-              {(id) => (
-                <Input
-                  id={id}
-                  type="number"
-                  inputMode="numeric"
-                  min={30}
-                  max={250}
-                  disabled={locked}
-                  value={fromFile ? (fromFile.avgHr ?? '') : avgHr}
-                  onChange={(e) => setAvgHr(e.currentTarget.value)}
-                />
-              )}
-            </FormField>
-          )}
-        </div>
-        {fromFile && (
-          <MultisportEditor
-            key={`${file?.name}:${file?.lastModified}`}
-            activity={multisportView(
-              {
-                ...fromFile,
-                partsEdited: false,
-                originalParts: fromFile.parts,
-                originalSport: fromFile.sport,
-              },
-              split,
-            )}
-            onChange={setSplit}
-            disabled={save.isPending}
-          />
-        )}
-        <TagPicker value={tags} onChange={setTags} disabled={save.isPending} />
-        <VisibilityField value={visibility} onChange={setPrivacy} disabled={save.isPending} />
-        {fromFile && (
-          <p className="text-xs text-muted-foreground">
-            {fromFile.device
-              ? t('newActivity.lockedFrom', { device: fromFile.device })
-              : t('newActivity.locked')}
-          </p>
-        )}
-
-        <Button
-          type="submit"
-          disabled={
-            save.isPending ||
-            shoes.isPending ||
-            !!shoes.error ||
-            lastUsedShoe.isPending ||
-            !!lastUsedShoe.error ||
-            (locked && !fromFile) ||
-            preview.isFetching
-          }
-        >
-          {save.isPending ? t('newActivity.saving') : t('newActivity.save')}
-        </Button>
-        {save.error && (
-          <p role="alert" className="text-sm text-destructive">
-            <ErrorMessage error={save.error} />
-          </p>
-        )}
-      </form>
+          </form>
+        </>
+      )}
 
       <Modal
         ref={shoeDialog}
@@ -480,67 +524,20 @@ export function NewActivityPage() {
         </form>
       </Modal>
 
-      <Modal ref={uploadDialog} aria-labelledby="upload-title">
-        <Heading level={2} id="upload-title">
-          {t('newActivity.upload')}
-        </Heading>
-        {overwritten.length > 0 && (
-          <p
-            role="alert"
-            className="mt-3 rounded-md bg-destructive/10 p-3 text-sm text-destructive"
-          >
-            {t('newActivity.overwrite', {
-              fields: new Intl.ListFormat(i18n.resolvedLanguage).format(overwritten),
-            })}
-          </p>
-        )}
-        <FormField label={t('newActivity.file')} className="mt-5">
-          {(id) => (
-            <Input
-              key={dialogKey}
-              id={id}
-              type="file"
-              accept=".fit"
-              onChange={(e) => setPendingFile(e.currentTarget.files?.[0] ?? null)}
-            />
-          )}
-        </FormField>
-        {/* The full consent only while it is missing; once given, one line is enough */}
-        {me?.hrConsent ? (
-          <p className="mt-4 text-sm text-muted-foreground">
-            <Trans
-              i18nKey="newActivity.hrSaved"
-              components={{
-                settings: <Link to="/app/settings" className="underline underline-offset-4" />,
-              }}
-            />
-          </p>
-        ) : (
-          <HeartRateConsent className="mt-4" />
-        )}
-        <div className="mt-6 flex flex-wrap justify-end gap-3">
-          <Button
-            type="button"
-            variant="secondary-outline"
-            onClick={() => uploadDialog.current?.close()}
-          >
-            {t('newActivity.cancel')}
-          </Button>
-          <Button
-            type="button"
-            disabled={!pendingFile}
-            onClick={() => {
-              setFile(pendingFile)
-              setSplit(undefined)
-              setSport(null)
-              save.reset()
-              uploadDialog.current?.close()
-            }}
-          >
-            {t('newActivity.useFile')}
-          </Button>
-        </div>
-      </Modal>
+      <ConfirmationModal
+        open={pendingFile !== null}
+        title={t('newActivity.overwriteTitle')}
+        description={t('newActivity.overwrite', {
+          fields: new Intl.ListFormat(i18n.resolvedLanguage).format(overwritten),
+        })}
+        confirmLabel={t('newActivity.useFile')}
+        cancelLabel={t('common.cancel')}
+        onConfirm={() => {
+          if (pendingFile) applyFile(pendingFile)
+          setPendingFile(null)
+        }}
+        onClose={() => setPendingFile(null)}
+      />
     </section>
   )
 }

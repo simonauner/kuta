@@ -15,10 +15,12 @@ export const card = cva('rounded-xl border bg-card text-card-foreground', {
       spacious: 'p-6 sm:p-8',
       none: '',
     },
+    // A drop target for files
+    dashed: { true: 'border-2 border-dashed', false: '' },
     interactive: {
       true: 'transition-colors hover:bg-accent focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-ring',
       false: '',
     },
   },
-  defaultVariants: { tone: 'default', padding: 'default', interactive: false },
+  defaultVariants: { tone: 'default', padding: 'default', interactive: false, dashed: false },
 })

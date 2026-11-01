@@ -6,8 +6,9 @@ export function Card({
   tone,
   padding,
   interactive,
+  dashed,
   className,
   ...props
 }: ComponentProps<'div'> & VariantProps<typeof card>) {
-  return <div {...props} className={card({ tone, padding, interactive, className })} />
+  return <div {...props} className={card({ tone, padding, interactive, dashed, className })} />
 }

@@ -156,7 +156,6 @@
   },
   "newActivity": {
     "title": "Ny aktivitet",
-    "upload": "Ladda upp fil",
     "file": "FIT-fil från din klocka",
     "overwrite": "Filen ersätter det du fyllt i: {{fields}}.",
     "useFile": "Fyll i från filen",
@@ -238,7 +237,25 @@
     "save": "Spara",
     "saving": "Sparar …",
     "description": "Beskrivning (valfritt)",
-    "hrSaved": "Puls sparas från filen. Ändra i <settings>Inställningar</settings>."
+    "hrSaved": "Puls sparas från filen. Ändra i <settings>Inställningar</settings>.",
+    "dropTitle": "Ladda upp från klockan",
+    "dropHelp": "Dra hit en eller flera FIT-filer, eller välj filer. En fil fyller i formuläret nedan, flera sparas direkt.",
+    "chooseFiles": "Välj filer",
+    "manualTitle": "Eller fyll i manuellt",
+    "detailsTitle": "Detaljer",
+    "overwriteTitle": "Ersätta det du fyllt i?",
+    "bulkTitle_one": "Laddar upp {{count}} fil",
+    "bulkTitle_other": "Laddar upp {{count}} filer",
+    "bulkDone": "Klart: {{saved}} sparade, {{duplicates}} redan uppladdade, {{failed}} misslyckades.",
+    "bulkLimit": "Högst {{max}} filer åt gången. De första {{max}} laddas upp.",
+    "showActivities": "Visa aktiviteter",
+    "uploadMore": "Ladda upp fler",
+    "bulk": {
+      "waiting": "Väntar",
+      "uploading": "Laddar upp …",
+      "saved": "Sparad",
+      "duplicate": "Redan uppladdad"
+    }
   },
   "activity": {
     "excludeFromRecords": "Undanta från löprekord",

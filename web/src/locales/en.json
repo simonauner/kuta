@@ -156,7 +156,6 @@
   },
   "newActivity": {
     "title": "New activity",
-    "upload": "Upload file",
     "file": "FIT file from your watch",
     "overwrite": "The file replaces what you entered: {{fields}}.",
     "useFile": "Fill in from file",
@@ -238,7 +237,25 @@
     "save": "Save",
     "saving": "Saving …",
     "description": "Description (optional)",
-    "hrSaved": "Heart rate from the file is saved. Change this in <settings>Settings</settings>."
+    "hrSaved": "Heart rate from the file is saved. Change this in <settings>Settings</settings>.",
+    "dropTitle": "Upload from your watch",
+    "dropHelp": "Drop one or more FIT files here, or choose files. One file fills in the form below, several are saved straight away.",
+    "chooseFiles": "Choose files",
+    "manualTitle": "Or fill in manually",
+    "detailsTitle": "Details",
+    "overwriteTitle": "Replace what you filled in?",
+    "bulkTitle_one": "Uploading {{count}} file",
+    "bulkTitle_other": "Uploading {{count}} files",
+    "bulkDone": "Done: {{saved}} saved, {{duplicates}} already uploaded, {{failed}} failed.",
+    "bulkLimit": "At most {{max}} files at a time. The first {{max}} are uploaded.",
+    "showActivities": "Show activities",
+    "uploadMore": "Upload more",
+    "bulk": {
+      "waiting": "Waiting",
+      "uploading": "Uploading …",
+      "saved": "Saved",
+      "duplicate": "Already uploaded"
+    }
   },
   "activity": {
     "excludeFromRecords": "Exclude from running records",
