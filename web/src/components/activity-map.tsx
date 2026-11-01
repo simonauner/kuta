@@ -2,9 +2,9 @@ import { LngLatBounds, Map, NavigationControl } from 'maplibre-gl'
 import { useEffect, useRef } from 'react'
 import { mapStyle } from '@/lib/map'
 
-// Kartbilder från OpenFreeMap (OpenStreetMap-data, ingen nyckel). Leverantören ser vilka kartbitar som hämtas,
-// alltså ungefär var passet gick. shortcut: byt till egen PMTiles-fil (AGENTS.md) när det ska stanna hos Kuta.
-// Origins för stil, kartbitar, typsnitt och ikoner finns i CSP:n i vite.config.ts.
+// Map tiles from OpenFreeMap (OpenStreetMap data, no key). The provider sees which tiles are fetched,
+// i.e. roughly where the activity went. shortcut: switch to our own PMTiles file (AGENTS.md) when it must stay with Kuta.
+// Origins for style, tiles, fonts and icons are in the CSP in vite.config.ts.
 export function ActivityMap({
   coordinates,
   label,
@@ -30,7 +30,7 @@ export function ActivityMap({
       bounds,
       fitBoundsOptions: { padding: 32 },
       attributionControl: { compact: true },
-      // Scroll och ett finger flyttar sidan, inte kartan; zooma med Ctrl/Cmd + scroll eller två fingrar
+      // Scroll and one finger move the page, not the map; zoom with Ctrl/Cmd + scroll or two fingers
       cooperativeGestures: !thumbnail,
       interactive: !thumbnail,
     })

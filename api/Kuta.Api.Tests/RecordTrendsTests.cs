@@ -29,9 +29,9 @@ public class RecordTrendsTests(KutaFactory factory) : IClassFixture<KutaFactory>
             // Import order differs from the activity dates.
             await Effort(userId, "2026-04-10T12:00:00Z", 5000, 1390);
             await Effort(userId, "2026-01-05T12:00:00Z", 5000, 1500);
-            await Effort(userId, "2026-01-31T23:30:00Z", 5000, 1400); // februari i Stockholm
+            await Effort(userId, "2026-01-31T23:30:00Z", 5000, 1400); // February in Stockholm
             await Effort(userId, "2026-02-10T12:00:00Z", 5000, 1450);
-            await Effort(userId, "2026-03-10T12:00:00Z", 5000, 1400); // lika snabb: inget nytt rekord
+            await Effort(userId, "2026-03-10T12:00:00Z", 5000, 1400); // equally fast: no new record
             await Effort(userId, "2026-04-11T12:00:00Z", 10000, 2000);
             await Effort(otherId, "2026-01-01T12:00:00Z", 5000, 1000);
 
@@ -67,7 +67,7 @@ public class RecordTrendsTests(KutaFactory factory) : IClassFixture<KutaFactory>
             var utc = await RecordTrends.ReadAsync(conn, userId, 5000, "UTC", ct);
             Assert.Equal((1, 1400d), (utc.Months[0].Month, utc.Months[0].ElapsedS));
 
-            // Fönstret slutar vid "nu": januari ligger utanför 90 dagar från slutet av april.
+            // The window ends at "now": January is outside 90 days from the end of April.
             var now = new DateTime(2026, 4, 30, 0, 0, 0, DateTimeKind.Utc);
             var prediction = await RecordTrends.PredictAsync(conn, userId, now, ct);
             Assert.Equal((10000, 2000d), (prediction.Basis!.DistanceM, prediction.Basis.ElapsedS));

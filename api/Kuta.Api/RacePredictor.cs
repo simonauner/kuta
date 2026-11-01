@@ -2,17 +2,17 @@ public sealed record RacePrediction(int DistanceM, double ElapsedS);
 
 public sealed record RacePredictions(StoredBestEffort? Basis, double? Vdot, IReadOnlyList<RacePrediction> Predictions);
 
-// Jack Daniels och Jimmy Gilberts formler (Oxygen Power, 1979): syreupptag vid en fart och andel av maxkapaciteten
-// som kan hållas under en viss tid. VDOT = syreupptaget loppet krävde / andelen; samma VDOT ger likvärdiga lopp.
+// Jack Daniels and Jimmy Gilbert's formulas (Oxygen Power, 1979): oxygen uptake at a speed and the fraction of max capacity
+// that can be sustained for a given time. VDOT = oxygen uptake the race required / the fraction; equal VDOT gives equivalent races.
 public static class RacePredictor
 {
-    // Underlaget är de senaste veckornas form, inte gamla personbästa.
+    // The basis is recent weeks' form, not old personal bests.
     public static readonly TimeSpan Window = TimeSpan.FromDays(90);
 
-    // Korta insatser ur intervallpass överskattar uthålligheten, så prognosen bygger på 5 km och längre.
+    // Short efforts from interval sessions overestimate endurance, so the prediction is based on 5 km and longer.
     public const int MinimumBasisDistanceM = 5000;
 
-    // Över världsrekordnivå (~85) är insatsen ett mätfel, inte form.
+    // Above world-record level (~85) the effort is a measurement error, not form.
     public const double MaximumVdot = 90;
 
     public static double Vdot(double meters, double seconds)
@@ -24,8 +24,8 @@ public static class RacePredictor
         return oxygen / fraction;
     }
 
-    // Tröskelfart (m/s): farten som VDOT räcker till i en timme, den löparversion av FTP som rTSS bygger på.
-    // Andelen av maxkapaciteten efter 60 min är fast, så syreupptaget ger farten ur andragradsekvationen.
+    // Threshold speed (m/s): the speed VDOT sustains for one hour, the runner's version of FTP that rTSS builds on.
+    // The fraction of max capacity after 60 min is fixed, so the oxygen uptake gives the speed from the quadratic equation.
     public static double ThresholdSpeed(double vdot)
     {
         const double minutes = 60;
@@ -36,7 +36,7 @@ public static class RacePredictor
         return metersPerMinute / 60;
     }
 
-    // VDOT sjunker när tiden för en given distans ökar, så tiden kan sökas med bisektion.
+    // VDOT falls as the time for a given distance increases, so the time can be found by bisection.
     public static double? Predict(double meters, double vdot)
     {
         double low = 60, high = 48 * 3600;
@@ -50,7 +50,7 @@ public static class RacePredictor
         return (low + high) / 2;
     }
 
-    // efforts: personens insatser inom fönstret. Den med högst VDOT är underlaget; lika VDOT ger den senaste.
+    // efforts: the person's efforts within the window. The one with the highest VDOT is the basis; equal VDOT picks the latest.
     public static RacePredictions Calculate(IEnumerable<StoredBestEffort> efforts)
     {
         var basis = efforts

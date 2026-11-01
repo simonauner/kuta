@@ -6,7 +6,7 @@ using Microsoft.AspNetCore.Authentication.Cookies;
 using Microsoft.AspNetCore.DataProtection;
 using Npgsql;
 
-// En separat cookie ger bara rätt att byta lösenord, aldrig tillgång till appens data.
+// A separate cookie only grants the right to change the password, never access to the app's data.
 public static class PasswordRecovery
 {
     private record Ticket(Guid Id, Guid UserId, string AccessToken);
@@ -57,10 +57,10 @@ public static class PasswordRecovery
 
         await using var conn = await db.OpenConnectionAsync(ct);
         await using var transaction = await conn.BeginTransactionAsync(ct);
-        // Samordna även olika återställningslänkar för samma konto.
+        // Also coordinate different recovery links for the same account.
         await conn.ExecuteAsync("select pg_advisory_xact_lock(hashtextextended(@userId, 0))",
             new { userId = ticket.UserId.ToString() }, transaction);
-        // Låset gör även en kopia av cookien oanvändbar efter ett lyckat byte.
+        // The lock also makes a copy of the cookie unusable after a successful change.
         var active = await conn.QuerySingleOrDefaultAsync<Guid?>(
             """
             select id from user_sessions
@@ -76,7 +76,7 @@ public static class PasswordRecovery
         }
         catch (Exception exception) when (exception is HttpRequestException or OperationCanceledException)
         {
-            // Bytet kan ha lyckats hos Supabase även om svaret försvann. Avsluta sessionerna även då.
+            // The change may have succeeded at Supabase even if the response was lost. End the sessions then too.
             await EndSessionsAsync(conn, transaction, ticket.UserId);
             throw;
         }
@@ -95,7 +95,7 @@ public static class PasswordRecovery
 
     private static async Task EndSessionsAsync(NpgsqlConnection conn, NpgsqlTransaction transaction, Guid userId)
     {
-        // Klientens avbrott får inte lämna gamla sessioner aktiva efter ett möjligt lösenordsbyte.
+        // A client abort must not leave old sessions active after a possible password change.
         using var completion = new CancellationTokenSource(TimeSpan.FromSeconds(30));
         await conn.ExecuteAsync(new CommandDefinition(
             "update user_sessions set ended_at = now() where user_id = @userId and ended_at is null",

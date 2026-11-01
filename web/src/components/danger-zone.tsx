@@ -18,7 +18,7 @@ export function DangerZone() {
   const dialog = useRef<HTMLDialogElement>(null)
   const [word, setWord] = useState<string | null>(null)
   const [confirmation, setConfirmation] = useState('')
-  // Kontoradering bekräftas med lösenordet (API:t kontrollerar det mot Supabase) i stället för löparordet.
+  // Account deletion is confirmed with the password (the API checks it against Supabase) instead of the runner word.
   const [password, setPassword] = useState('')
   const confirmed =
     word !== null &&

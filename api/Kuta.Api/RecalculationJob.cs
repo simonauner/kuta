@@ -4,8 +4,8 @@ using Npgsql;
 public sealed record RecalculationProgress(int Processed, int Total, Guid? LastActivityId);
 public sealed record RecalculationResult(int Recalculated);
 
-// Räknar om rekord och löpintensitet för alla användarens pass med tidsserier, 50 åt gången i passets id-ordning.
-// Förloppet sparar senaste passet, så ett avbrutet jobb fortsätter där det slutade.
+// Recalculates records and run intensity for all the user's activities with streams, 50 at a time in activity id order.
+// The progress stores the latest activity, so an interrupted job continues where it left off.
 public static class RecalculationJob
 {
     const int BatchSize = 50;
@@ -32,7 +32,7 @@ public static class RecalculationJob
             foreach (var id in ids)
             {
                 ct.ThrowIfCancellationRequested();
-                // Ett pass som raderats under tiden hoppas över.
+                // An activity deleted in the meantime is skipped.
                 await BestEfforts.RecalculateAsync(conn, id, job.UserId, ct);
                 processed++;
             }

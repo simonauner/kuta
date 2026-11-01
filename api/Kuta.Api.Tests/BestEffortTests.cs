@@ -44,14 +44,14 @@ public class BestEffortTests(KutaFactory factory) : IClassFixture<KutaFactory>
                 new { thresholdSpeedMS = 4 }, ct)).StatusCode);
             var load = (await owner.GetFromJsonAsync<TrainingLoadSummary>("/api/training-load?timeZone=Europe/Stockholm", ct))!;
             Assert.Equal(("manual", 4d), (load.ThresholdSource, load.ThresholdSpeedMS!.Value));
-            // Historiken börjar vid nyår, så svaret är kapat till de senaste dagarna och innehåller passets belastning.
+            // The history starts at New Year, so the response is cut to the latest days and includes the activity's load.
             Assert.Equal(TrainingLoads.ShownDays, load.Days.Count);
             Assert.True(load.Days[^1].Fitness > 0);
             Assert.Null((await other.GetFromJsonAsync<TrainingLoadSummary>("/api/training-load", ct))!.ThresholdSpeedMS);
             Assert.Equal(HttpStatusCode.BadRequest, (await owner.GetAsync("/api/training-load?timeZone=Nowhere", ct)).StatusCode);
             Assert.Equal(HttpStatusCode.Unauthorized, (await anonymous.GetAsync("/api/training-load", ct)).StatusCode);
             var predictions = (await owner.GetFromJsonAsync<RacePredictions>("/api/records/predictions", ct))!;
-            Assert.Null(predictions.Basis); // passen ligger utanför fönstret
+            Assert.Null(predictions.Basis); // the activities are outside the window
             Assert.Equal(HttpStatusCode.Unauthorized, (await anonymous.GetAsync("/api/records/trend?distanceM=5000", ct)).StatusCode);
             Assert.Equal(HttpStatusCode.Unauthorized, (await anonymous.GetAsync("/api/records/predictions", ct)).StatusCode);
 
@@ -93,7 +93,7 @@ public class BestEffortTests(KutaFactory factory) : IClassFixture<KutaFactory>
             Assert.Equal(100d * 200 / 700, recalculated.StartOffsetS, precision: 8);
             Assert.Equal(start.AddSeconds(recalculated.StartOffsetS).Ticks / 10, recalculated.AchievedAt.Ticks / 10);
             Assert.Empty((await owner.GetFromJsonAsync<StoredBestEffort[]>("/api/records?year=2025", ct))!);
-            // Samma omberäkning sparar löpintensiteten bakom träningsbelastningen: 700²/100 + 500²/50 + 300²/150.
+            // The same recalculation stores the run intensity behind the training load: 700²/100 + 500²/50 + 300²/150.
             Assert.Equal(10500, await conn.ExecuteScalarAsync<double>(
                 "select run_intensity from activities where id = @id", new { id = first.Id }), precision: 6);
 

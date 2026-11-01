@@ -7,17 +7,17 @@ using Microsoft.AspNetCore.Authentication;
 using Microsoft.AspNetCore.Authentication.Cookies;
 using Npgsql;
 
-// Supabase-sessionen ligger i den krypterade HttpOnly-cookien, så
-// refresh-token når aldrig webbläsaren i läsbar form eller JavaScript.
+// The Supabase session lives in the encrypted HttpOnly cookie, so
+// the refresh token never reaches the browser in readable form or JavaScript.
 public static class SupabaseCookieSession
 {
-    // Cookien glider så länge användaren är aktiv; PWA:n ska inte logga ut den som löper varje vecka.
+    // The cookie slides as long as the user is active; the PWA should not sign out someone who runs every week.
     public static readonly TimeSpan IdleTimeout = TimeSpan.FromDays(30);
-    // Hård övre gräns från inloggningen, oavsett aktivitet. Ligger i user_sessions.expires_at.
+    // Hard upper limit from sign-in, regardless of activity. Stored in user_sessions.expires_at.
     public static readonly TimeSpan AbsoluteLifetime = TimeSpan.FromDays(180);
-    // Förnya access-token strax innan den går ut.
+    // Refresh the access token just before it expires.
     private static readonly TimeSpan RefreshMargin = TimeSpan.FromMinutes(2);
-    // Fråga Supabase om sessionen återkallats högst så här ofta mellan förnyelser.
+    // Ask Supabase whether the session was revoked at most this often between refreshes.
     private static readonly TimeSpan ValidationInterval = TimeSpan.FromMinutes(5);
 
     private const string AccessTokenName = "supabase_access_token";
@@ -77,7 +77,7 @@ public static class SupabaseCookieSession
             return;
         }
 
-        // Kontrolleras i vår databas vid varje anrop, så utloggning och den absoluta gränsen slår igenom direkt.
+        // Checked in our database on every call, so sign-out and the absolute limit take effect immediately.
         await using (var conn = await services.GetRequiredService<NpgsqlDataSource>().OpenConnectionAsync(cancellationToken))
         {
             var active = await conn.ExecuteScalarAsync<bool>(
@@ -103,7 +103,7 @@ public static class SupabaseCookieSession
             }
             catch (Exception exception) when (exception is HttpRequestException or TaskCanceledException or JsonException)
             {
-                // Supabase är tillfälligt otillgängligt: behåll en ännu giltig token och försök igen senare.
+                // Supabase is temporarily unavailable: keep a still valid token and try again later.
                 if (accessExpires <= now) await RejectAsync(context);
                 return;
             }
@@ -167,9 +167,9 @@ public static class SupabaseCookieSession
     }
 }
 
-// Anrop som skickas med samma gamla cookie delar ett förnyelseresultat, eftersom Supabase roterar
-// refresh-token och ser återanvändning som möjlig stöld.
-// shortcut: förnyelser samordnas bara inom en process; använd databassamordning innan API:t körs på flera instanser.
+// Calls sent with the same old cookie share one refresh result, since Supabase rotates
+// the refresh token and treats reuse as possible theft.
+// shortcut: refreshes are only coordinated within one process; use database coordination before the API runs on several instances.
 public sealed class SharedTokenRefresh
 {
     private static readonly TimeSpan ResultLifetime = TimeSpan.FromSeconds(30);
@@ -179,7 +179,7 @@ public sealed class SharedTokenRefresh
     {
         Lazy<Task<AuthSession?>>? created = null;
         var refresh = pending.GetOrAdd(refreshToken, _ => created =
-            // Inte knuten till ett enskilt anrops cancellation, eftersom andra anrop delar den
+            // Not tied to a single call's cancellation, since other calls share it
             new Lazy<Task<AuthSession?>>(() => auth.RefreshAsync(refreshToken, CancellationToken.None)));
         if (ReferenceEquals(refresh, created)) _ = ForgetAsync(refreshToken, refresh);
         return refresh.Value;
@@ -187,7 +187,7 @@ public sealed class SharedTokenRefresh
 
     private async Task ForgetAsync(string key, Lazy<Task<AuthSession?>> refresh)
     {
-        // Behåll ett lyckat resultat en stund för anrop som fortfarande bär den gamla cookien; släpp fel direkt.
+        // Keep a successful result for a while for calls still carrying the old cookie; drop failures immediately.
         try { if (await refresh.Value is not null) await Task.Delay(ResultLifetime); }
         catch (Exception) { }
         pending.TryRemove(new KeyValuePair<string, Lazy<Task<AuthSession?>>>(key, refresh));

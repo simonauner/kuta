@@ -1,8 +1,8 @@
 public record SportGroup(string Key, string[] Sports);
 
-// Sporter som räknas tillsammans i mål och statistik. Nycklarna är egna gruppnamn; sporter utan grupp är sin egen grupp.
-// Garmin anger terräng och öppet vatten som undertyper, så FIT-pass har redan "running" och "swimming";
-// de övriga namnen kommer från Strava och från Garmins sportnamn (Sport-enumen i gemener).
+// Sports counted together in goals and statistics. The keys are our own group names; sports without a group are their own group.
+// Garmin reports trail and open water as subtypes, so FIT activities already have "running" and "swimming";
+// the other names come from Strava and from Garmin's sport names (the Sport enum in lower case).
 public static class SportGroups
 {
     public static readonly SportGroup[] Named =
@@ -22,7 +22,7 @@ public static class SportGroups
 
     public static string GroupOf(string sport) => GroupBySport.GetValueOrDefault(sport, sport);
 
-    // Valbara grupper: de namngivna först, sedan övriga sporter som egna grupper.
+    // Selectable groups: the named ones first, then remaining sports as their own groups.
     public static readonly SportGroup[] All =
     [
         .. Named,
@@ -32,11 +32,11 @@ public static class SportGroups
 
     public static bool IsValid(string? key) => key is not null && All.Any(g => g.Key == key);
 
-    // SQL: CTE:n sport_groups mappar sport → grupp; omappade sporter är sin egen grupp via coalesce(sg.sport_group, sport).
+    // SQL: the sport_groups CTE maps sport → group; unmapped sports are their own group via coalesce(sg.sport_group, sport).
     public const string Cte = "sport_groups as (select * from unnest(@groupedSports::text[], @sportGroupKeys::text[]) as m(sport, sport_group))";
-    // SQL: CTE:n effective (kräver Cte och @userId) har en rad per eget pass (part = false) och en rad per
-    // annan sportgrupp i ett multisportpass (part = true). Distansen följer den gällande uppdelningen.
-    // Filtrera med "not part" för alla sporter och "sport_group = …" för en grupp; count(distinct id) räknar pass.
+    // SQL: the effective CTE (requires Cte and @userId) has one row per own activity (part = false) and one row per
+    // other sport group in a multisport activity (part = true). The distance follows the current split.
+    // Filter with "not part" for all sports and "sport_group = …" for one group; count(distinct id) counts activities.
     public const string EffectiveCte = """
         effective as (
             select a.id, a.started_at, coalesce(m.sport_group, a.sport) as sport_group,

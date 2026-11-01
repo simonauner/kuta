@@ -17,7 +17,7 @@ import {
   type TrainingLoadSummary,
 } from '@/lib/training-load'
 
-// "2026-05-03" är en lokal dag; new Date() skulle tolka den som UTC och kunna visa dagen före.
+// "2026-05-03" is a local day; new Date() would parse it as UTC and could show the day before.
 const localDay = (day: string) => new Date(`${day}T00:00`)
 
 function useTrainingLoad() {
@@ -29,7 +29,7 @@ function useTrainingLoad() {
   })
 }
 
-// Varning högst upp på Pass när konditionen ökar snabbare än tumregeln. Fel och laddning visas inte här.
+// Warning at the top of Activities when fitness rises faster than the rule of thumb. Errors and loading aren't shown here.
 export function TrainingLoadWarning() {
   const { t, i18n } = useTranslation()
   const load = useTrainingLoad()

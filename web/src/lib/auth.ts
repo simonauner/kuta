@@ -3,7 +3,7 @@ import { api, ApiError, resetCsrfToken } from '@/lib/api'
 
 export type SupporterTier = 'bronze' | 'silver' | 'gold'
 
-// hrConsent: uttryckligt samtycke till att puls (hälsodata) sparas
+// hrConsent: explicit consent to storing heart rate (health data)
 export type Me = {
   id: string
   email: string
@@ -11,17 +11,17 @@ export type Me = {
   hrConsent: boolean
   defaultActivityPrivacy: 'private' | 'followers' | 'public'
   allActivitiesMatchDefaultPrivacy: boolean
-  // tier är null när supporterskapet saknas eller har gått ut
+  // tier is null when there is no supportership or it has expired
   supporter: {
     tier: SupporterTier | null
     until: string | null
     badgePrivacy: 'private' | 'followers' | 'public'
   }
-  // Styr Garmins märkning av vyer som härleds ur passen (statistik, rekord, mål)
+  // Controls Garmin attribution on views derived from activities (statistics, records, goals)
   hasGarminData: boolean
 }
 
-// null = inte inloggad
+// null = not signed in
 export const meQuery = queryOptions({
   queryKey: ['me'],
   queryFn: async () => {
@@ -34,7 +34,7 @@ export const meQuery = queryOptions({
   },
 })
 
-// Efter in- och utloggning: ny CSRF-token och inga cachade data från förra användaren
+// After sign-in and sign-out: new CSRF token and no cached data from the previous user
 export function useSessionChanged() {
   const queryClient = useQueryClient()
   return () => {

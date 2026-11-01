@@ -2,7 +2,7 @@ using Xunit;
 
 public class TermsVersionTests
 {
-    // Den sparade versionen ska peka ut den publicerade texten.
+    // The stored version must point to the published text.
     [Fact]
     public void Terms_version_matches_the_date_on_the_terms_page()
     {

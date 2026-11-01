@@ -21,7 +21,7 @@ public static class StravaEquipment
                 returning id
                 """, new { userId, shoe.Id, shoe.Name, shoe.Brand }, tx);
             if (id is not null) imported++;
-            // Bevara användarens namn, startvärden och pensionering vid återimport.
+            // Keep the user's name, starting values and retirement on reimport.
             ids.Add(shoe.Id, id ?? await conn.QuerySingleAsync<Guid>(
                 "select id from equipment where user_id=@userId and strava_gear_id=@Id", new { userId, shoe.Id }, tx));
         }
@@ -29,7 +29,7 @@ public static class StravaEquipment
         return (ids, imported);
     }
 
-    // Komplettera bara pass utan utrustning; ett eget val på passet ska aldrig skrivas över.
+    // Only fill in activities without equipment; the user's own choice on an activity must never be overwritten.
     public static async Task<bool> AttachMissingAsync(NpgsqlConnection conn, Guid userId, Guid equipmentId,
         string stravaId, byte[]? hash, CancellationToken ct)
     {

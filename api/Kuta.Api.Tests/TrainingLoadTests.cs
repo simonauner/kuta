@@ -18,17 +18,17 @@ public class TrainingLoadTests
     [Fact]
     public void Gps_noise_is_smoothed_and_pauses_and_broken_samples_add_no_load()
     {
-        // 2 och 4 m/s varannan sekund: utan utjämning blir v² i snitt 10, med 30 s-avsnitt 9.
+        // 2 and 4 m/s every other second: without smoothing v² averages 10, with 30 s segments 9.
         var t = Enumerable.Range(0, 601).ToArray();
         var dist = t.Select(s => (float?)(s * 3 + (s % 2 == 1 ? -1 : 0))).ToArray();
         Assert.Equal(600 * 9, TrainingLoad.Intensity(t, dist), precision: 0);
 
-        // Autopaus: klockan står still i två minuter mellan två lika långa avsnitt.
+        // Auto pause: the watch stands still for two minutes between two equally long segments.
         var (t1, d1) = Steady(300, 3);
         var (t2, d2) = Steady(300, 3, 420, 900);
         Assert.Equal(600 * 9, TrainingLoad.Intensity([.. t1, .. t2], [.. d1, .. d2]), precision: 6);
 
-        // Ett trasigt värde bryter strömmen i stället för att räkna farten över luckan.
+        // A broken value breaks the stream instead of computing the speed across the gap.
         float?[] broken = [0, 300, null, 900, 1200];
         Assert.Equal(300d * 300 / 100 * 2, TrainingLoad.Intensity([0, 100, 200, 300, 400], broken), precision: 6);
         Assert.Equal(0, TrainingLoad.Intensity([0, 100], null));
@@ -42,7 +42,7 @@ public class TrainingLoadTests
         Assert.Equal(2.152, TrainingLoad.GradeFactor(-0.1) * 3.6, precision: 3);
         Assert.Equal(TrainingLoad.GradeFactor(0.45), TrainingLoad.GradeFactor(2));
 
-        // 10 % uppför i 3 m/s; saknad eller ofullständig höjd räknas som plan mark.
+        // 10 % uphill at 3 m/s; missing or incomplete elevation counts as flat ground.
         var (t, dist) = Steady(600, 3);
         var up = t.Select(s => (float?)(s * 0.3)).ToArray();
         var flat = 600 * 9d;
@@ -53,7 +53,7 @@ public class TrainingLoadTests
         Assert.Equal(flat, TrainingLoad.Intensity(t, dist, up.Select(_ => (float?)null).ToArray()), precision: 6);
         Assert.Equal(flat, TrainingLoad.Intensity(t, dist, up[..10]), precision: 6);
 
-        // Multisportdelarna klipper höjden tillsammans med distansen, även vid interpolerade gränser.
+        // The multisport parts clip elevation together with distance, even at interpolated boundaries.
         ActivityPart[] parts = [new(0, "cycling", 0, 295, 885, false), new(1, "running", 295, 600, 915, false)];
         Assert.Equal(hill * 305 / 600, TrainingLoad.RunIntensity("multisport", t, dist, up, parts), precision: 6);
     }
@@ -71,7 +71,7 @@ public class TrainingLoadTests
     [Fact]
     public void Threshold_speed_is_the_pace_vdot_sustains_for_an_hour()
     {
-        // VDOT 50 klarar 10 km på cirka 41:20, så timfarten ligger strax under: knappt 4 m/s (4:13 /km).
+        // VDOT 50 runs 10 km in about 41:20, so the one-hour pace is just below: just under 4 m/s (4:13 /km).
         var speed = RacePredictor.ThresholdSpeed(50);
         Assert.InRange(speed, 3.9, 4.0);
         Assert.Equal(50, RacePredictor.Vdot(speed * 3600, 3600), precision: 6);
@@ -88,7 +88,7 @@ public class TrainingLoadTests
         Assert.Equal(single[1].Fitness - single[1].Fatigue, single[1].Form, precision: 9);
         Assert.Empty(TrainingLoad.Series(new Dictionary<DateOnly, double>(), start));
 
-        // Jämn träning ger ingen varning; en fördubbling den sista veckan gör det, men inte före 42 dagars historik.
+        // Steady training gives no warning; a doubling in the last week does, but not before 42 days of history.
         Dictionary<DateOnly, double> Loads(int days, Func<int, double> load) =>
             Enumerable.Range(0, days).ToDictionary(i => start.AddDays(i), load);
         var steady = TrainingLoad.Series(Loads(120, _ => 60), start.AddDays(119));

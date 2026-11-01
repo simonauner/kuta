@@ -10,8 +10,8 @@ public static class ActivityStatistics
     public static async Task<IReadOnlyList<ActivityStatisticsMonth>> ReadAsync(
         NpgsqlConnection conn, Guid userId, int year, string timeZone, string? sportGroup, CancellationToken ct)
     {
-        // sportGroup är en nyckel ur SportGroups.All (null = alla). Hela pass i gruppen räknas, och vid gruppfilter även
-        // matchande delar av multisportpass i andra grupper.
+        // sportGroup is a key from SportGroups.All (null = all). Whole activities in the group count, and with a group filter also
+        // matching parts of multisport activities in other groups.
         return (await conn.QueryAsync<ActivityStatisticsMonth>(new CommandDefinition($"""
             with {SportGroups.Cte}, scoped as (
                 select a.* from activities a

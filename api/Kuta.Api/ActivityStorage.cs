@@ -25,7 +25,7 @@ public static class ActivityStorage
         ManualActivityRequest req, CancellationToken ct)
     {
         await using var tx = await conn.BeginTransactionAsync(ct);
-        // Samma profillås som återkallat samtycke: läs aldrig ett äldre samtycke före transaktionen.
+        // Same profile lock as consent withdrawal: never read an older consent before the transaction.
         var profile = await conn.QuerySingleOrDefaultAsync<Profile>(new CommandDefinition(
             "select display_name, hr_consent_at is not null as hr_consent, default_activity_privacy from users where id = @userId for update",
             new { userId }, tx, cancellationToken: ct));
@@ -56,7 +56,7 @@ public static class ActivityStorage
             avgHr, tags, equipmentIds.Distinct().ToArray());
     }
 
-    // Samma lås används vid återkallat samtycke, så att en lång import inte kan spara puls efteråt.
+    // The same lock is used for consent withdrawal, so a long import cannot save heart rate afterwards.
     public static async Task<Guid?> SaveAsync(NpgsqlConnection conn, RawFileStore store, Guid userId,
         ParsedActivity parsed, string source, string? title, string? stravaId, byte[]? bytes, string extension,
         CancellationToken ct, string[]? tags = null, Guid[]? equipmentIds = null, string? description = null, MultisportRequest? split = null)
@@ -127,12 +127,12 @@ public static class ActivityStorage
     public static async Task CleanupUnreferencedFileAsync(NpgsqlConnection failedConnection, RawFileStore store,
         Guid userId, string key)
     {
-        // Ett förlorat commitsvar betyder inte rollback. Kontrollera utfallet innan filen raderas.
+        // A lost commit response does not mean rollback. Check the outcome before deleting the file.
         using var completion = new CancellationTokenSource(TimeSpan.FromSeconds(30));
         await using var conn = failedConnection.CloneWith(failedConnection.ConnectionString);
         await conn.OpenAsync(completion.Token);
         await using var tx = await conn.BeginTransactionAsync(completion.Token);
-        // Hindra en ny import från att återanvända nyckeln mellan kontroll och radering.
+        // Prevent a new import from reusing the key between the check and the deletion.
         await conn.ExecuteAsync(new CommandDefinition("select id from users where id = @userId for update",
             new { userId }, tx, cancellationToken: completion.Token));
         var referenced = await conn.ExecuteScalarAsync<bool>(new CommandDefinition(

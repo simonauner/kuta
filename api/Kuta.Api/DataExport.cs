@@ -21,7 +21,7 @@ public static class DataExport
     public static async Task<FileStream> CreateAsync(NpgsqlConnection conn, RawFileStore store, Guid userId,
         CancellationToken ct)
     {
-        // Bygg klart före svaret: lagringsfel får aldrig ge en lyckad men ofullständig export.
+        // Build fully before responding: storage errors must never yield a successful but incomplete export.
         var options = new FileStreamOptions
         {
             Mode = FileMode.CreateNew, Access = FileAccess.ReadWrite, Share = FileShare.None,
@@ -32,7 +32,7 @@ public static class DataExport
         try
         {
             await using var tx = await conn.BeginTransactionAsync(ct);
-            // Samma låsordning som samtyckesåterkallelse; skydda råfilerna även mot samtidig passradering.
+            // Same lock order as consent withdrawal; also protect the raw files against concurrent activity deletion.
             var profile = await conn.QuerySingleOrDefaultAsync<ExportProfile>(new CommandDefinition("""
                 select u.id, a.email, u.display_name, u.created_at, u.hr_consent_at, u.default_activity_privacy,
                     u.threshold_speed_m_s, u.supporter_tier, u.supporter_until, u.supporter_badge_privacy,

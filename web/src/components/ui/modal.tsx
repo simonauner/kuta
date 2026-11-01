@@ -42,7 +42,7 @@ export function Modal({
         startedOutside.current = false
         if (!dismiss) return
         const dialog = event.currentTarget
-        // Samma avbrytbara händelse som Escape, så även kontrollerade modaler följer sina onCancel-regler.
+        // Same cancelable event as Escape, so controlled modals also follow their onCancel rules.
         if (dialog.dispatchEvent(new Event('cancel', { cancelable: true }))) dialog.close()
       }}
     />

@@ -33,13 +33,13 @@ public class DailyTotalsTests(KutaFactory factory) : IClassFixture<KutaFactory>
                 """, new { triathlon });
 
             var running = await DailyTotals.ReadAsync(conn, userId, "Europe/Stockholm", "running", ct);
-            // Nyårsaftonens pass startar 00:30 lokal tid; terränglöpning hör till löpgruppen; triathlonets löpdel räknas.
+            // The New Year's Eve activity starts 00:30 local time; trail running belongs to the running group; the triathlon's run part counts.
             Assert.Equal(new[] { (new DateOnly(2026, 1, 1), 2, 13000d, 5400d), (new DateOnly(2026, 3, 1), 1, 10000d, 2000d) },
                 running.Select(d => (d.Day, d.Count, d.DistanceM, d.DurationS)));
             var utc = await DailyTotals.ReadAsync(conn, userId, "UTC", "running", ct);
             Assert.Equal(new DateOnly(2025, 12, 31), utc[0].Day);
 
-            // Utan grupp räknas triathlonet en gång med sin hela distans.
+            // Without a group the triathlon counts once with its full distance.
             var all = await DailyTotals.ReadAsync(conn, userId, "Europe/Stockholm", null, ct);
             Assert.Equal(new[] { (new DateOnly(2026, 1, 1), 3, 43000d), (new DateOnly(2026, 3, 1), 1, 51000d) },
                 all.Select(d => (d.Day, d.Count, d.DistanceM)));

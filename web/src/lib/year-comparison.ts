@@ -7,10 +7,10 @@ export type LocalDate = { year: number; month: number; day: number }
 
 export type YearSeries = {
   year: number
-  // Ackumulerat värde vid slutet av varje dag med pass, med dag 0 = 0 först och årets sista (eller dagens) dag sist.
+  // Accumulated value at the end of each day with activities, with day 0 = 0 first and the year's last day (or today) last.
   points: { day: number; value: number }[]
   total: number
-  // Ackumulerat till och med samma månad och dag som idag, så att skottår inte förskjuter jämförelsen.
+  // Accumulated through the same month and day as today, so leap years don't shift the comparison.
   toDate: number
 }
 
@@ -27,7 +27,7 @@ function parseDay(text: string): LocalDate {
   return { year, month, day }
 }
 
-// Bygger en ackumulerad serie per år (nyast först) ur dagssummorna. Innevarande år slutar idag.
+// Builds an accumulated series per year (newest first) from the daily totals. The current year ends today.
 export function yearComparison(days: DailyTotal[], metric: YearMetric, today: LocalDate) {
   const byYear = new Map<number, { date: LocalDate; value: number }[]>()
   for (const total of days) {
@@ -56,13 +56,13 @@ export function yearComparison(days: DailyTotal[], metric: YearMetric, today: Lo
     })
 }
 
-// Förändring mot ett jämförelsevärde; null när jämförelsen saknar underlag.
+// Change against a comparison value; null when the comparison lacks data.
 export function relativeChange(value: number, previous: number | undefined) {
   if (previous === undefined || previous <= 0) return null
   return (value - previous) / previous
 }
 
-// Flyttar isär etiketter (y i diagrammets koordinater) så att de har minst `gap` mellan sig och stannar inom [min, max].
+// Spreads labels apart (y in chart coordinates) so they are at least `gap` apart and stay within [min, max].
 export function spreadLabels(ys: number[], gap: number, min: number, max: number) {
   const order = ys.map((y, index) => ({ y, index })).sort((a, b) => a.y - b.y)
   for (let i = 0; i < order.length; i++) {

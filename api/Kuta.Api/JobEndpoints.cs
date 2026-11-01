@@ -6,7 +6,7 @@ public static class JobEndpoints
     public static void MapJobs(this RouteGroupBuilder api)
     {
         var jobs = api.MapGroup("/jobs").RequireAuthorization();
-        // Senaste jobbet av varje slag, även avslutade, så att webben kan visa förlopp och resultat efter omladdning.
+        // The latest job of each kind, including finished ones, so the web can show progress and results after a reload.
         jobs.MapGet("", async (NpgsqlDataSource db, ClaimsPrincipal user, CancellationToken ct) =>
         {
             await using var conn = await db.OpenConnectionAsync(ct);
@@ -19,7 +19,7 @@ public static class JobEndpoints
                 ? Results.Ok(JobResponse.From(job)) : Results.NotFound();
         });
 
-        // Köar omberäkning av alla egna pass; ett redan aktivt jobb returneras i stället för ett nytt.
+        // Queues recalculation of all own activities; an already active job is returned instead of a new one.
         api.MapPost("/activities/recalculate", async (NpgsqlDataSource db, ClaimsPrincipal user, CancellationToken ct) =>
         {
             await using var conn = await db.OpenConnectionAsync(ct);

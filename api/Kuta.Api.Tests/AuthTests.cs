@@ -8,8 +8,8 @@ using Npgsql;
 using Xunit;
 using static TestSession;
 
-// Kräver lokal Supabase (se KutaFactory): kontot skapas på riktigt i Supabase Auth och
-// bekräftelsemejlet läses från Mailpit.
+// Requires local Supabase (see KutaFactory): the account is really created in Supabase Auth and
+// the confirmation email is read from Mailpit.
 public class AuthTests(KutaFactory factory) : IClassFixture<KutaFactory>
 {
 
@@ -39,7 +39,7 @@ public class AuthTests(KutaFactory factory) : IClassFixture<KutaFactory>
             Assert.Equal(HttpStatusCode.Forbidden, beforeConfirm.StatusCode);
 
             var tokenHash = await ConfirmationTokenHash(email, ct);
-            // Länken bekräftar bara adressen: den som klickar loggas inte in på kontot (login-CSRF)
+            // The link only confirms the address: whoever clicks it is not signed in to the account (login CSRF)
             var confirm = await client.GetAsync($"/api/auth/confirm?token_hash={tokenHash}", ct);
             Assert.Equal(HttpStatusCode.Redirect, confirm.StatusCode);
             Assert.Equal("/app?confirm=ok", confirm.Headers.Location?.ToString());
@@ -54,7 +54,7 @@ public class AuthTests(KutaFactory factory) : IClassFixture<KutaFactory>
             Assert.Equal(email, me.GetProperty("email").GetString());
             Assert.Equal(JsonValueKind.Null, me.GetProperty("displayName").ValueKind);
 
-            // Antiforgery-token är knuten till användaren och måste hämtas om efter inloggning
+            // The antiforgery token is bound to the user and must be fetched again after login
             await UseCsrfToken(client, ct);
             var put = await client.PutAsJsonAsync("/api/me", new { displayName = "Testlöpare" }, ct);
             Assert.Equal(HttpStatusCode.OK, put.StatusCode);
@@ -78,7 +78,7 @@ public class AuthTests(KutaFactory factory) : IClassFixture<KutaFactory>
 
             Assert.Equal(HttpStatusCode.NoContent, (await client.PostAsync("/api/auth/logout", null, ct)).StatusCode);
             Assert.Equal(HttpStatusCode.Unauthorized, (await client.GetAsync("/api/me", ct)).StatusCode);
-            // En kopia av den gamla cookien fungerar inte heller: sessionen är avslutad i databasen
+            // A copy of the old cookie does not work either: the session is ended in the database
             Assert.Equal(HttpStatusCode.Unauthorized, (await replay.GetAsync("/api/me", ct)).StatusCode);
 
             await UseCsrfToken(client, ct);
@@ -92,7 +92,7 @@ public class AuthTests(KutaFactory factory) : IClassFixture<KutaFactory>
         }
         finally
         {
-            // Kaskaderar till users, user_sessions och activities
+            // Cascades to users, user_sessions and activities
             await conn.ExecuteAsync("delete from auth.users where email = @email", new { email });
         }
     }

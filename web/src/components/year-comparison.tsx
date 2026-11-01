@@ -19,7 +19,7 @@ import {
 const selectClass = 'rounded-md border bg-background px-3 py-2 text-sm text-foreground'
 const shownYears = 5
 
-// Ackumulerad mängd per år på samma kalender, med valt år framhävt och jämförelse vid samma datum.
+// Accumulated volume per year on the same calendar, with the selected year highlighted and comparison at the same date.
 export function YearComparison({ year, sportGroup }: { year: number; sportGroup: string }) {
   const { t, i18n } = useTranslation()
   const [metric, setMetric] = useState<YearMetric>('distanceM')
@@ -61,7 +61,7 @@ export function YearComparison({ year, sportGroup }: { year: number; sportGroup:
   const maximum = Math.max(1, ...shown.map((s) => s.total))
   const x = (day: number) => pad.left + (day / 366) * (width - pad.left - pad.right)
   const y = (value: number) => pad.top + (1 - value / maximum) * (height - pad.top - pad.bottom)
-  // Valt år ritas sist så att det hamnar överst; övriga år tonas efter hur gamla de är.
+  // The selected year is drawn last so it ends up on top; other years fade by age.
   const drawOrder = [...shown].sort((a, b) =>
     a.year === year ? 1 : b.year === year ? -1 : a.year - b.year,
   )

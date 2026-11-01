@@ -30,7 +30,7 @@ import { Modal } from '@/components/ui/modal'
 import { ErrorMessage } from '@/components/error-message'
 import { SportIcon } from '@/components/sport-icon'
 
-// Under 'activities' så att nya, ändrade och raderade pass också uppdaterar målen.
+// Under 'activities' so that new, edited and deleted activities also refresh the goals.
 const goalsQueryKey = (timeZone: string) => ['activities', 'goals', timeZone]
 function useGoalText() {
   const { t, i18n } = useTranslation()
@@ -59,8 +59,8 @@ function useGoalText() {
   return { t, i18n, amount, title, groupLabel, privacyLabel }
 }
 
-// Utan runnerId: egna mål, redigerbara via onSelect. Med runnerId: löparens mål som besökaren får se enligt
-// varje måls synlighet, utan redigering.
+// Without runnerId: own goals, editable via onSelect. With runnerId: the runner's goals the visitor may see per
+// each goal's visibility, without editing.
 export function GoalList({
   onSelect,
   runnerId,
@@ -71,7 +71,7 @@ export function GoalList({
   const timeZone = Intl.DateTimeFormat().resolvedOptions().timeZone
   const params = new URLSearchParams({ timeZone })
   const goals = useQuery({
-    // Under 'runner' så att följ/avfölj hämtar om de delade målen.
+    // Under 'runner' so that follow/unfollow refetches the shared goals.
     queryKey: runnerId ? ['runner', runnerId, 'goals', timeZone] : goalsQueryKey(timeZone),
     queryFn: () =>
       api.get<Goal[]>(
@@ -214,7 +214,7 @@ export function GoalDialog({ goal, onClose }: { goal: Goal | null; onClose: () =
   const queryClient = useQueryClient()
   const dialog = useRef<HTMLDialogElement>(null)
   const [sportGroup, setSportGroup] = useState(goal ? (goal.sportGroup ?? '') : 'running')
-  // Visa vilka träningsformer en grupp räknar.
+  // Show which sports a group counts.
   const selectedGroup = groups.data?.find((g) => g.key === sportGroup)
   const included = selectedGroup && sportGroupMembers(selectedGroup, t)
   const [metric, setMetric] = useState<GoalMetric>(goal?.metric ?? 'distance')
@@ -222,7 +222,7 @@ export function GoalDialog({ goal, onClose }: { goal: Goal | null; onClose: () =
   const [period, setPeriod] = useState<GoalPeriod>(goal?.period ?? 'week')
   const [recurring, setRecurring] = useState(goal?.recurring ?? true)
   const [privacy, setPrivacy] = useState<GoalPrivacy>(goal?.privacy ?? 'private')
-  // Förloppet räknar alla egna pass, så ett synligt mål avslöjar när pass som tittaren inte får se görs.
+  // Progress counts all own activities, so a visible goal reveals when activities the viewer can't see happen.
   const activityPrivacies = useQuery(activityPrivaciesQuery)
   const revealsHiddenActivities = activityPrivacies.data?.some(
     (value) => goalPrivacies.indexOf(value) < goalPrivacies.indexOf(privacy),

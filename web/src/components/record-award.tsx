@@ -11,7 +11,7 @@ const metals = {
   bronze: ['#7a3f17', '#c98245', '#ffe2c4', '#a65e2a', '#dd9a5e'],
 }
 
-// Fyllning med glansrand för ikoner i rekordens och supporterbadgens metaller.
+// Fill with a sheen stripe for icons in the records' and supporter badge's metals.
 export function MetalGradient({ id, metal }: { id: string; metal: keyof typeof metals }) {
   const colors = metals[metal]
   return (

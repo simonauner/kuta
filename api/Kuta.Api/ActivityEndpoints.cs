@@ -6,18 +6,18 @@ using Microsoft.AspNetCore.Mvc;
 using Dynastream.Fit;
 using Npgsql;
 
-// Typade records, inte dynamic: Dapper-rader serialiseras som dictionary med snake_case-nycklar.
+// Typed records, not dynamic: Dapper rows serialize as dictionaries with snake_case keys.
 public record ActivitySummary(
     Guid Id, string Sport, string? Title, System.DateTime StartedAt,
     int DurationS, double DistanceM, short? AvgHr, string[] Tags, Guid[] EquipmentIds);
 
-// Ett pass med tidsserier (en array per kanal, index = mätpunkt; null där klockan inte mätte).
+// An activity with streams (one array per channel, index = sample; null where the watch did not measure).
 public record ActivityDetail(
     Guid Id, string Sport, string? Title, System.DateTime StartedAt, int DurationS, int? MovingS, double DistanceM,
     short? AvgHr, short? MaxHr, float? AvgSpeedMps, float? ElevationGainM, string? Device, ActivityStreams? Streams,
     IEnumerable<ActivityLap> Laps, string[] Tags, Guid[] EquipmentIds, ActivityPart[] Parts, bool PartsEdited, bool CanSplit, string? Description, ActivityPart[] OriginalParts, string OriginalSport, Guid UserId, string DisplayName, string Privacy, bool ExcludeFromRecords, string? Attribution);
 
-// Det som formuläret förifylls med från en FIT-fil
+// What the form is prefilled with from a FIT file
 public record ActivityPreview(
     string Sport, System.DateTime StartedAt, int DurationS, int? MovingS, double DistanceM, short? AvgHr, short? MaxHr,
     float? ElevationGainM, string? Device, ActivityStreams Streams, ActivityPart[] Parts, bool CanSplit);
@@ -26,7 +26,7 @@ public record ActivityStreams(
     int[] T, float?[]? Dist, short?[]? Hr, float?[]? Speed, float?[]? Alt, double?[]? Lat, double?[]? Lon,
     short?[]? Cadence, short?[]? Temp);
 
-// Varv som klockan registrerade (manuellt eller automatiskt, t.ex. varje km)
+// Laps recorded by the watch (manually or automatically, e.g. every km)
 public record ActivityLap(
     short LapIndex, int StartS, int DurationS, int? MovingS, double DistanceM, short? AvgHr, short? MaxHr,
     float? AscentM, float? DescentM, short? AvgCadence);
@@ -44,7 +44,7 @@ public static class ActivityEndpoints
         var activities = api.MapGroup("/activities").RequireAuthorization();
         activities.MapMultisport();
 
-        // Inloggad användares pass, 25 åt gången med stabila rubriker för hela perioderna.
+        // The signed-in user's activities, 25 at a time with stable headings for whole periods.
         activities.MapGet("", async (NpgsqlDataSource db, ClaimsPrincipal user, string? timeZone, string? tag, string? sport,
             DateTimeOffset? beforeStartedAt, Guid? beforeId, int? year, CancellationToken cancellationToken) =>
         {
@@ -75,7 +75,7 @@ public static class ActivityEndpoints
         });
 
         activities.MapGet("/sport-groups", () => Results.Ok(SportGroups.All));
-        // Synligheterna bland egna pass: målformuläret varnar när ett synligt mål räknar pass som tittaren inte får se.
+        // Privacies among own activities: the goal form warns when a visible goal counts activities the viewer cannot see.
         activities.MapGet("/privacies", async (NpgsqlDataSource db, ClaimsPrincipal user, CancellationToken cancellationToken) =>
         {
             await using var conn = await db.OpenConnectionAsync(cancellationToken);
@@ -111,7 +111,7 @@ public static class ActivityEndpoints
         });
 
         // Shared activities use the same read rule as the feed; private activities still return 404.
-        // shortcut: skickar alla mätpunkter (ett sexttimmarspass ≈ 1–2 MB JSON); glesa ut eller komprimera när det märks.
+        // shortcut: sends every sample (a six-hour activity ≈ 1–2 MB JSON); thin out or compress when it shows.
         activities.MapGet("/{id:guid}", async (Guid id, NpgsqlDataSource db, ClaimsPrincipal user,
             CancellationToken cancellationToken) =>
         {
@@ -120,8 +120,8 @@ public static class ActivityEndpoints
             return detail is null ? Results.NotFound() : Results.Ok(detail);
         });
 
-        // Förhandsvisning för formuläret "Skapa ny aktivitet": tolkar filen utan att spara något.
-        // Pulsen följer samtycket även här, så att formuläret visar det som faktiskt kommer att sparas.
+        // Preview for the "Skapa ny aktivitet" form: parses the file without saving anything.
+        // Heart rate follows the consent here too, so the form shows what will actually be saved.
         activities.MapPost("/preview", async (IFormFile? file, NpgsqlDataSource db, ClaimsPrincipal user,
             CancellationToken cancellationToken) =>
         {
@@ -137,7 +137,7 @@ public static class ActivityEndpoints
         .DisableAntiforgery()
         .RequireRateLimiting("uploads");
 
-        // Manuellt pass utan fil: bara sammanfattning, inga tidsserier eller rekord
+        // Manual activity without a file: summary only, no streams or records
         activities.MapPost("/manual", async (ManualActivityRequest req, NpgsqlDataSource db, ClaimsPrincipal user,
             CancellationToken cancellationToken) =>
         {
@@ -151,9 +151,9 @@ public static class ActivityEndpoints
                 : Results.Created($"/api/activities/{activity.Id}", activity);
         });
 
-        // Uppladdning av en FIT-fil: tolka den, spara råfilen (bara med pulssamtycke) och skriv passet med tidsserier
-        // i en transaktion. Samma fil igen ger 409 (raw_file_sha256 är unik per användare).
-        // Titel och sport kan ändras i formuläret; mätvärdena kommer alltid från filen.
+        // FIT file upload: parse it, store the raw file (only with heart rate consent) and write the activity with streams
+        // in one transaction. The same file again gives 409 (raw_file_sha256 is unique per user).
+        // Title and sport can be changed in the form; the measurements always come from the file.
         activities.MapPost("", async (IFormFile? file, [FromForm] string? title, [FromForm] string? sport, IFormCollection form,
             NpgsqlDataSource db, RawFileStore store, ClaimsPrincipal user, CancellationToken cancellationToken) =>
         {
@@ -203,7 +203,7 @@ public static class ActivityEndpoints
             return Results.Created($"/api/activities/{id}", new ActivitySummary(
                 id.Value, split?.Kind ?? parsed.Sport, title, parsed.StartedAt, parsed.DurationS, split is null ? parsed.DistanceM : Multisport.Build(split, parsed.T, parsed.Dist)!.Sum(p => p.DistanceM), parsed.AvgHr, ActivityInput.NormalizeTags(tags), equipmentIds.Distinct().ToArray()));
         })
-        // CSRF-token kontrolleras av filtret i AuthEndpoints (X-CSRF-TOKEN), inte av ramverkets formulärkontroll
+        // The CSRF token is checked by the filter in AuthEndpoints (X-CSRF-TOKEN), not by the framework's form check
         .DisableAntiforgery()
         .RequireRateLimiting("uploads");
 
@@ -247,7 +247,7 @@ public static class ActivityEndpoints
             var owned = (await conn.QueryAsync<OwnedActivity>(
                 "select id, raw_file_key from activities where user_id = @userId for update",
                 new { userId }, tx)).ToArray();
-            // Råfiler först; radera bara de pass som valdes, så en samtidig import behåller sin råfil.
+            // Raw files first; delete only the selected activities, so a concurrent import keeps its raw file.
             await store.DeleteAsync(owned.Select(a => a.RawFileKey).OfType<string>(), cancellationToken);
             await conn.ExecuteAsync("delete from activities where user_id = @userId and id = any(@ids)",
                 new { userId, ids = owned.Select(a => a.Id).ToArray() }, tx);
@@ -255,9 +255,9 @@ public static class ActivityEndpoints
             return Results.NoContent();
         });
 
-        // Tar bort ett eget pass med tidsserier (kaskad) och råfil. Någon annans pass ger 404, som ett som inte finns.
-        // Råfilen först: misslyckas raderingen ligger passet kvar och kan tas bort igen, i stället för att filen
-        // (som innehåller puls) blir kvar utan något som pekar på den.
+        // Deletes an own activity with its streams (cascade) and raw file. Someone else's activity gives 404, like a missing one.
+        // Raw file first: if deletion fails the activity remains and can be deleted again, instead of the file
+        // (which contains heart rate) being left behind with nothing pointing to it.
         activities.MapDelete("/{id:guid}", async (Guid id, NpgsqlDataSource db, RawFileStore store, ClaimsPrincipal user,
             CancellationToken cancellationToken) =>
         {
@@ -288,7 +288,7 @@ public static class ActivityEndpoints
         {
             if (!await reader.ReadAsync(cancellationToken)) return null;
 
-            // Läses för hand: Dapper/Npgsql klarar inte null-element i arrayer utan typen float?[] osv.
+            // Read by hand: Dapper/Npgsql cannot handle null elements in arrays without the type float?[] etc.
             T? Value<T>(int i) => reader.IsDBNull(i) ? default : reader.GetFieldValue<T>(i);
             var streams = reader.IsDBNull(12) ? null : new ActivityStreams(
                 reader.GetFieldValue<int[]>(12), Value<float?[]>(13), Value<short?[]>(14), Value<float?[]>(15),
@@ -319,7 +319,7 @@ public static class ActivityEndpoints
 
     private record OwnedActivity(Guid Id, string? RawFileKey);
 
-    // En tolkad FIT-fil; utan pulssamtycke är pulsen redan borttagen
+    // A parsed FIT file; without heart rate consent the heart rate is already removed
     private record FitUpload(byte[] Bytes, byte[] Sha256, ParsedActivity Parsed, bool HrConsent);
 
     private static async Task<(FitUpload? Fit, IResult? Error)> ReadFitAsync(IFormFile? file, NpgsqlConnection conn,

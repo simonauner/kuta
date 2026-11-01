@@ -6,10 +6,10 @@ using Microsoft.AspNetCore.Mvc;
 using Npgsql;
 
 public record UpdateMeRequest(string? DisplayName);
-// HasGarminData styr Garmins märkning av statistik och andra vyer härledda ur passen.
+// HasGarminData controls Garmin attribution on statistics and other views derived from the activities.
 public record Me(Guid Id, string? Email, string? DisplayName, bool HrConsent, string DefaultActivityPrivacy, bool AllActivitiesMatchDefaultPrivacy,
     Supporter Supporter, bool HasGarminData);
-// Tier är null när supporterskapet saknas eller har gått ut.
+// Tier is null when there is no supporter membership or it has expired.
 public record Supporter(string? Tier, DateTime? Until, string BadgePrivacy);
 public record Profile(string DisplayName, bool HrConsent, string DefaultActivityPrivacy);
 public record ActivityPrivacyRequest(string? Privacy, bool ApplyToAll = false);
@@ -18,7 +18,7 @@ public record DeleteAccountRequest(string? Password);
 
 public static class MeEndpoints
 {
-    // auth.users.id, som också är users.id
+    // auth.users.id, which is also users.id
     public static Guid GetUserId(this ClaimsPrincipal user) =>
         Guid.Parse(user.FindFirstValue(ClaimTypes.NameIdentifier)!);
 
@@ -26,8 +26,8 @@ public static class MeEndpoints
     {
         var me = api.MapGroup("/me").RequireAuthorization();
 
-        // Kräver lösenordet: en upplåst telefon eller ett injicerat skript ska inte kunna radera allt.
-        // Supabase-sessionen som kontrollen skapar försvinner med kontot.
+        // Requires the password: an unlocked phone or an injected script must not be able to delete everything.
+        // The Supabase session the check creates goes away with the account.
         me.MapDelete("", async ([FromBody] DeleteAccountRequest req, NpgsqlDataSource db, RawFileStore store, ImportFiles files,
             SupabaseAuthClient supabase, HttpContext http, CancellationToken cancellationToken) =>
         {
@@ -38,7 +38,7 @@ public static class MeEndpoints
                 return Results.Json(new ApiError("Fel lösenord.", "wrongPassword"), statusCode: StatusCodes.Status403Forbidden);
             await using var conn = await db.OpenConnectionAsync(cancellationToken);
             var userId = http.User.GetUserId();
-            // Köade importarkiv kaskadraderas inte med jobben; ta bort dem efter kontot (arbetaren städar resten).
+            // Queued import archives are not cascade-deleted with the jobs; remove them after the account (the worker cleans up the rest).
             var imports = (await conn.QueryAsync<Guid>("select id from jobs where user_id = @userId and kind = @kind",
                 new { userId, kind = JobKinds.StravaImport })).ToList();
             await DeleteAccountAsync(conn, store, userId, cancellationToken);
@@ -47,7 +47,7 @@ public static class MeEndpoints
             return Results.NoContent();
         }).RequireRateLimiting("auth");
 
-        // displayName är null tills webben skapat profilen med PUT efter första inloggningen
+        // displayName is null until the web has created the profile with PUT after the first login
         me.MapGet("", async (NpgsqlDataSource db, ClaimsPrincipal user) =>
         {
             await using var conn = await db.OpenConnectionAsync();
@@ -107,7 +107,7 @@ public static class MeEndpoints
                 : Results.Ok(await LoadAsync(conn, user));
         });
 
-        // Uttryckligt samtycke till att puls sparas (hälsodata). Första tidpunkten behålls.
+        // Explicit consent to storing heart rate (health data). The first timestamp is kept.
         me.MapPut("/hr-consent", async (NpgsqlDataSource db, ClaimsPrincipal user) =>
         {
             await using var conn = await db.OpenConnectionAsync();
@@ -118,9 +118,9 @@ public static class MeEndpoints
                 : Results.Ok(await LoadAsync(conn, user));
         });
 
-        // Återkallat samtycke: all sparad puls raderas, inte bara framtida – även råfilerna, som innehåller puls.
-        // Filerna först: misslyckas det finns pulsen kvar i databasen tills användaren försöker igen, i stället för
-        // att ligga kvar i lagringen utan att något pekar på den.
+        // Withdrawn consent: all stored heart rate is deleted, not just future data – including the raw files, which contain heart rate.
+        // Files first: if that fails the heart rate remains in the database until the user tries again, instead of
+        // remaining in storage with nothing pointing to it.
         me.MapDelete("/hr-consent", async (NpgsqlDataSource db, RawFileStore store, ClaimsPrincipal user,
             CancellationToken cancellationToken) =>
         {
@@ -150,14 +150,14 @@ public static class MeEndpoints
         CancellationToken ct)
     {
         await using var tx = await conn.BeginTransactionAsync(ct);
-        // Samma lås som importen: inga nya råfiler får sparas mellan listning och kaskadradering.
+        // Same lock as the import: no new raw files may be stored between listing and cascade deletion.
         await conn.ExecuteAsync(new CommandDefinition("select id from users where id = @id for update",
             new { id }, tx, cancellationToken: ct));
         var keys = await conn.QueryAsync<string>(new CommandDefinition(
             "select raw_file_key from activities where user_id = @id and raw_file_key is not null for update",
             new { id }, tx, cancellationToken: ct));
         await store.DeleteAsync(keys, ct);
-        // En transaktion raderar även profil, pass, utrustning och både Supabase- och Kuta-sessioner.
+        // One transaction also deletes the profile, activities, equipment and both Supabase and Kuta sessions.
         await conn.ExecuteAsync(new CommandDefinition("delete from auth.users where id = @id",
             new { id }, tx, cancellationToken: ct));
         await tx.CommitAsync(ct);

@@ -1,6 +1,6 @@
-# Fly-hemligheterna för appen kuta som 1Password-referenser, aldrig värden. `scripts/fly-secrets.sh fly.toml` löser upp
-# dem med `op inject` och importerar dem (se README, Driftsättning). Objektet fly-kuta-new i valvet Development har ett fält
-# per hemlighet, med hemlighetens namn. Det som inte är hemligt ligger i fly.toml under [env].
+# The Fly secrets for the app kuta as 1Password references, never values. `scripts/fly-secrets.sh fly.toml` resolves
+# them with `op inject` and imports them (see README, Driftsättning). The item fly-kuta-new in the vault Development has one field
+# per secret, named after the secret. Anything not secret lives in fly.toml under [env].
 ConnectionStrings__Default=op://Development/fly-kuta-new/ConnectionStrings__Default
 Supabase__SecretKey=op://Development/fly-kuta-new/Supabase__SecretKey
 Storage__AccessKeyId=op://Development/fly-kuta-new/Storage__AccessKeyId

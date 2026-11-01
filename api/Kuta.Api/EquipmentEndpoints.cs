@@ -53,7 +53,7 @@ public static class EquipmentEndpoints
         equipment.MapDelete("/{id:guid}", async (Guid id, NpgsqlDataSource db, ClaimsPrincipal user) =>
         {
             await using var conn = await db.OpenConnectionAsync();
-            // Länkarna försvinner via FK-kaskad; passen behålls.
+            // The links go away via FK cascade; the activities are kept.
             var deleted = await conn.ExecuteAsync(
                 "delete from equipment where id = @id and user_id = @userId", new { id, userId = user.GetUserId() });
             return deleted == 0 ? Results.NotFound() : Results.NoContent();

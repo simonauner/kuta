@@ -37,7 +37,7 @@ public class ActivityListTests(WebApplicationFactory<Program> factory) : IClassF
             Assert.Equal(25, first.Items.Count);
             var cursor = Assert.IsType<ActivityCursor>(first.NextCursor);
             await conn.ExecuteAsync("delete from activities where id = @id", new { id = cursor.Id });
-            // Ett nytt pass framför markören får inte flytta sidgränsen.
+            // A new activity ahead of the cursor must not move the page boundary.
             await Add(conn, userId, "2026-11-01T12:00:00Z");
             var second = await ActivityList.ReadAsync(conn, userId, "UTC", cursor.StartedAt, cursor.Id, ct: ct);
             Assert.Equal(25, second.Items.Count);
@@ -61,23 +61,23 @@ public class ActivityListTests(WebApplicationFactory<Program> factory) : IClassF
         var otherId = await Runner(conn);
         try
         {
-            var lone = await Add(conn, userId, "2026-12-31T23:30:00Z"); // 2027 i Stockholm
+            var lone = await Add(conn, userId, "2026-12-31T23:30:00Z"); // 2027 in Stockholm
             await Add(conn, otherId, "2027-01-02T12:00:00Z");
             var local = await ActivityList.ReadAsync(conn, userId, "Europe/Stockholm", ct: ct);
             var single = Assert.Single(local.Items);
             Assert.False(single.ShowMonth);
             Assert.False(single.ShowWeek);
-            await Add(conn, userId, "2026-12-31T22:30:00Z"); // Fortfarande 2026
+            await Add(conn, userId, "2026-12-31T22:30:00Z"); // Still 2026
             var differentYears = await ActivityList.ReadAsync(conn, userId, "Europe/Stockholm", ct: ct);
             Assert.All(differentYears.Items, a => { Assert.False(a.ShowMonth); Assert.False(a.ShowWeek); });
             var utc = await ActivityList.ReadAsync(conn, userId, "UTC", ct: ct);
             Assert.All(utc.Items, a => { Assert.True(a.ShowMonth); Assert.True(a.ShowWeek); });
-            await Add(conn, userId, "2027-01-31T23:30:00Z"); // Februari i Stockholm
+            await Add(conn, userId, "2027-01-31T23:30:00Z"); // February in Stockholm
             var months = await ActivityList.ReadAsync(conn, userId, "Europe/Stockholm", ct: ct);
             var january = months.Items.Single(a => a.Id == lone);
             Assert.True(january.ShowMonth);
             Assert.False(january.ShowWeek);
-            // Fyll sidan så att januaripasset ligger ensamt sist; det andra ligger på nästa sida.
+            // Fill the page so the January activity is alone at the end; the other one is on the next page.
             await conn.ExecuteAsync("""
                 insert into activities (user_id, source, started_at, duration_s, distance_m)
                 select @userId, 'manual', '2027-01-20T12:00:00Z', 1800, 5000 from generate_series(1, 23)
