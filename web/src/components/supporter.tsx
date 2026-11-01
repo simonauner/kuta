@@ -48,7 +48,8 @@ export function SupporterSection() {
   const { data: me } = useQuery(meQuery)
   const queryClient = useQueryClient()
   const dialog = useRef<HTMLDialogElement>(null)
-  const [choice, setChoice] = useState<SupporterTier | 'custom'>('silver')
+  // Layout visar bara inställningarna när me är laddat, så den aktiva nivån finns vid första renderingen.
+  const [choice, setChoice] = useState<SupporterTier | 'custom'>(me?.supporter.tier ?? 'silver')
   const [custom, setCustom] = useState('')
   const supporter = me?.supporter
   const save = useMutation({
