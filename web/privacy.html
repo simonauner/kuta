@@ -56,7 +56,8 @@
         <ul>
           <li>
             <strong>Konto:</strong> e-postadress, visningsnamn, användar-id och uppgifter för
-            inloggning, lösenordsåterställning och sessioner. Lösenord hanteras av vår
+            inloggning, lösenordsåterställning och sessioner, samt när du godkände
+            <a href="/terms">användarvillkoren</a> och integritetspolicyn. Lösenord hanteras av vår
             autentiseringsleverantör Supabase.
           </li>
           <li>
@@ -133,14 +134,40 @@
           automatiserade beslut som har rättsliga eller motsvarande betydande följder för dig.
         </p>
 
-        <h3>4. Garmin Connect</h3>
-        <p>
-          Automatisk anslutning till Garmin Connect är planerad och är ännu inte tillgänglig. I dag
-          väljer du själv vilka filer du laddar upp. Om en Garminanslutning införs uppdaterar vi
-          denna information innan funktionen börjar samla in uppgifter, med vilka data som överförs,
-          hur du godkänner anslutningen och hur du kopplar från den. Garminanslutning och Kutas
-          pulssamtycke är separata val.
+        <h3>4. Garmin Connect (ännu inte tillgänglig)</h3>
+        <p class="policy-draft">
+          Anslutning till Garmin Connect är ännu inte tillgänglig, och Kuta hämtar i dag inga
+          uppgifter från Garmin. I dag väljer du själv vilka filer du laddar upp. Beskrivningen
+          nedan gäller först när anslutningen finns i appen och du själv har valt att ansluta.
         </p>
+        <ul>
+          <li>
+            <strong>Vad som hämtas:</strong> när du godkänner anslutningen hos Garmin hämtar Kuta
+            dina aktiviteter från Garmin Connect: sammanfattningar och aktivitetsfiler med till
+            exempel tidpunkt, aktivitetstyp, distans, tid, GPS-rutt, höjd, tempo, kadens,
+            temperatur, varv och klockmodell, samt en anslutningsnyckel som knyter ditt Garminkonto
+            till Kuta. Puls sparas bara om du även har gett Kutas pulssamtycke; Garminanslutning och
+            pulssamtycke är separata val.
+          </li>
+          <li>
+            <strong>Vem som ser uppgifterna:</strong> uppgifter från Garmin visas tills vidare bara
+            för dig, även om du annars delar pass med andra.
+          </li>
+          <li>
+            <strong>Koppla från:</strong> du kan när som helst koppla från anslutningen i Kuta eller
+            hos Garmin. Då slutar Kuta hämta uppgifter och raderar de uppgifter som hämtats från
+            Garmin.
+          </li>
+          <li>
+            <strong>Ingen AI-träning:</strong> uppgifter från Garmin används aldrig för att träna
+            AI-modeller och säljs aldrig.
+          </li>
+          <li>
+            <strong>Leverantörer:</strong> uppgifterna hanteras av Fly.io (appserver), Supabase
+            (databas och fillagring) och Cloudflare R2 (fillagring), och kartbilder hämtas från
+            OpenFreeMap när du öppnar en karta (se avsnitt 5).
+          </li>
+        </ul>
 
         <h3>5. Vem får tillgång?</h3>
         <p>
@@ -334,8 +361,9 @@
         <ul>
           <li>
             <strong>Account:</strong> email address, display name, user ID and information needed
-            for sign-in, password recovery and sessions. Passwords are handled by our authentication
-            provider, Supabase.
+            for sign-in, password recovery and sessions, and when you accepted the
+            <a href="/terms#english">terms of use</a> and privacy policy. Passwords are handled by
+            our authentication provider, Supabase.
           </li>
           <li>
             <strong>Activities:</strong> information you enter or upload, such as title, activity
@@ -412,14 +440,39 @@
           decisions that produce legal or similarly significant effects on you.
         </p>
 
-        <h3>4. Garmin Connect</h3>
-        <p>
-          Automatic Garmin Connect integration is planned and is not yet available. Currently, you
-          choose the files to upload. If we introduce a Garmin connection, we will update this
-          information before it starts collecting data, explaining what is transferred, how you
-          authorise the connection and how to disconnect. Connecting Garmin and giving Kuta heart
-          rate consent are separate choices.
+        <h3>4. Garmin Connect (not yet available)</h3>
+        <p class="policy-draft">
+          The Garmin Connect connection is not yet available, and Kuta does not currently collect
+          any data from Garmin. Currently, you choose the files to upload. The description below
+          applies only once the connection is available in the app and you have chosen to connect.
         </p>
+        <ul>
+          <li>
+            <strong>What is collected:</strong> when you authorise the connection at Garmin, Kuta
+            retrieves your activities from Garmin Connect: summaries and activity files with, for
+            example, start time, activity type, distance, duration, GPS route, elevation, pace,
+            cadence, temperature, laps and device model, as well as a connection token linking your
+            Garmin account to Kuta. Heart rate is stored only if you have also given Kuta heart rate
+            consent; connecting Garmin and heart rate consent are separate choices.
+          </li>
+          <li>
+            <strong>Who sees the data:</strong> data from Garmin is, for now, shown only to you,
+            even if you otherwise share activities with others.
+          </li>
+          <li>
+            <strong>Disconnecting:</strong> you can disconnect at any time in Kuta or at Garmin.
+            Kuta then stops retrieving data and deletes the data retrieved from Garmin.
+          </li>
+          <li>
+            <strong>No AI training:</strong> data from Garmin is never used to train AI models and
+            is never sold.
+          </li>
+          <li>
+            <strong>Providers:</strong> the data is handled by Fly.io (application server), Supabase
+            (database and file storage) and Cloudflare R2 (file storage), and map tiles are loaded
+            from OpenFreeMap when you open a map (see section 5).
+          </li>
+        </ul>
 
         <h3>5. Who receives data?</h3>
         <p>
