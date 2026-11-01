@@ -1,0 +1,20 @@
+web/src/components/multisport-editor.tsx
+  s_6c44e3e6be41ae::t_e41b236ac87324 8
+  s_6c44e3e6be41ae::t_f94b93de514634 50-51,166
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.7.5",
+  "base_commit_sha": "bda795f2a13775e8ce6089f1352e924bb1ba2e48",
+  "prompts": {},
+  "sessions": {
+    "s_6c44e3e6be41ae": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "45251d91-25af-4b79-9d6a-fcd72ccdf2a1",
+        "model": "claude-opus-5-5"
+      },
+      "human_author": "Simon Aunér <simonauner@gmail.com>"
+    }
+  }
+}
