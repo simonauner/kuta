@@ -372,6 +372,7 @@
     "invalidGoal": "Kontrollera sport, typ, period och mål.",
     "invalidSportGroup": "Välj en giltig träningsform.",
     "importInProgress": "En import pågår redan. Vänta tills den är klar.",
+    "importBusy": "Många importer pågår just nu. Försök igen om en stund.",
     "jobFailed": "Jobbet misslyckades. Försök igen senare.",
     "jobCancelled": "Jobbet avbröts.",
     "termsRequired": "Godkänn användarvillkoren och integritetspolicyn för att skapa ett konto."
