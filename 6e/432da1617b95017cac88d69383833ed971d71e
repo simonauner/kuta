@@ -1,0 +1,67 @@
+web/src/components/training-load.tsx
+  s_bee2e5fcf7ec11::t_0f4342d8a7c50c 43
+  s_bee2e5fcf7ec11::t_bacd2a7dbf363f 20,54,105,108,111,176
+  s_bee2e5fcf7ec11::t_74280f4565c68c 207
+  s_bee2e5fcf7ec11::t_1f4188485d753b 21
+web/src/components/year-comparison.tsx
+  s_bee2e5fcf7ec11::t_bacd2a7dbf363f 18,118,183
+web/src/components/heart-rate-consent.tsx
+  s_bee2e5fcf7ec11::t_bacd2a7dbf363f 10,79
+  s_bee2e5fcf7ec11::t_0f4342d8a7c50c 40
+web/src/components/ui/card.tsx
+  s_bee2e5fcf7ec11::t_802f3729313ff1 1,4-13
+  s_bee2e5fcf7ec11::t_1f4188485d753b 2-3
+web/src/components/activity-feed.tsx
+  s_bee2e5fcf7ec11::t_1f4188485d753b 15
+  s_bee2e5fcf7ec11::t_74280f4565c68c 82
+web/src/components/goals.tsx
+  s_bee2e5fcf7ec11::t_1f4188485d753b 33
+  s_bee2e5fcf7ec11::t_66d6a09b6621d7 144
+AGENTS.md
+  s_bee2e5fcf7ec11::t_ec3f70adc31587 136
+web/src/routes/followers.tsx
+  s_bee2e5fcf7ec11::t_1f4188485d753b 19
+  s_bee2e5fcf7ec11::t_74280f4565c68c 158,171,182
+web/src/components/feed-empty-state.tsx
+  s_bee2e5fcf7ec11::t_1f4188485d753b 10
+  s_bee2e5fcf7ec11::t_74280f4565c68c 32,51,61
+web/src/components/ui/card-variants.ts
+  s_bee2e5fcf7ec11::t_1f4188485d753b 1-24
+web/src/routes/settings.tsx
+  s_bee2e5fcf7ec11::t_1f4188485d753b 23
+  s_bee2e5fcf7ec11::t_66d6a09b6621d7 61-64,71-74,81-84
+web/src/routes/stats.tsx
+  s_bee2e5fcf7ec11::t_74280f4565c68c 159,170
+  s_bee2e5fcf7ec11::t_1f4188485d753b 18
+web/src/components/unreviewed-activities.tsx
+  s_bee2e5fcf7ec11::t_bacd2a7dbf363f 11,37,65
+web/src/components/activities-empty-state.tsx
+  s_bee2e5fcf7ec11::t_bacd2a7dbf363f 14,38,89
+web/src/routes/activity.tsx
+  s_bee2e5fcf7ec11::t_1f4188485d753b 40
+  s_bee2e5fcf7ec11::t_66d6a09b6621d7 399
+web/src/components/records.tsx
+  s_bee2e5fcf7ec11::t_bacd2a7dbf363f 22,144,174,176,206,216,226
+web/src/components/multisport-editor.tsx
+  s_bee2e5fcf7ec11::t_1f4188485d753b 18
+  s_bee2e5fcf7ec11::t_74280f4565c68c 92
+web/src/components/danger-zone.tsx
+  s_bee2e5fcf7ec11::t_1f4188485d753b 12
+  s_bee2e5fcf7ec11::t_74280f4565c68c 63
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.7.5",
+  "base_commit_sha": "6e432da1617b95017cac88d69383833ed971d71e",
+  "prompts": {},
+  "sessions": {
+    "s_bee2e5fcf7ec11": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "cd696b42-7e9f-47b1-8f97-a4d814189962",
+        "model": "claude-opus-5-5"
+      },
+      "human_author": null
+    }
+  }
+}
