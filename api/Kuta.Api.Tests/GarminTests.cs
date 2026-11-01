@@ -79,15 +79,25 @@ public class GarminTests(KutaFactory factory) : IClassFixture<KutaFactory>
             var job = await JobQueue.ClaimAsync(conn, userId, ct);
             Assert.Equal(JobKinds.GarminImport, job!.Kind);
 
+            // Runs get the last used active shoe, like the activity form.
+            var shoe = await conn.QuerySingleAsync<Guid>(
+                "insert into equipment (user_id, name, kind) values (@userId, 'Synthetic shoe', 'shoe') returning id", new { userId });
+            var earlier = await ActivityAsync(conn, userId, "fit");
+            await conn.ExecuteAsync("insert into activity_equipment (activity_id, equipment_id, user_id) values (@earlier, @shoe, @userId)",
+                new { earlier, shoe, userId });
+
             var fake = new FakeGarmin(FitFile.Run(DateTime.UtcNow.AddHours(-2), 600));
             var result = await Garmin.RunImportAsync(conn, Store, Client(fake), Provider, job, ct);
 
             Assert.Equal(new GarminImportResult(1, 1), result);
             Assert.All(fake.Requests, r => Assert.EndsWith("Bearer synthetic-access", r));
             Assert.Equal(0, await conn.ExecuteScalarAsync<int>("select count(*)::int from garmin_files where user_id = @userId", new { userId }));
-            var activity = await conn.QuerySingleAsync<(Guid Id, string Privacy, string Device, string Title)>(
-                "select id, privacy, device, title from activities where user_id = @userId and source = 'garmin'", new { userId });
-            Assert.Equal(("private", "Forerunner 965", "Morning Run"), (activity.Privacy, activity.Device, activity.Title));
+            var activity = await conn.QuerySingleAsync<(Guid Id, string Privacy, string Device, string Title, bool Unreviewed)>(
+                "select id, privacy, device, title, reviewed_at is null from activities where user_id = @userId and source = 'garmin'", new { userId });
+            Assert.Equal(("private", "Forerunner 965", "Morning Run", true),
+                (activity.Privacy, activity.Device, activity.Title, activity.Unreviewed));
+            Assert.Equal([shoe], await conn.QueryAsync<Guid>(
+                "select equipment_id from activity_equipment where activity_id = @id", new { id = activity.Id }));
             // Privacy policy: Garmin activities may not be shared until Garmin approves showing them to others.
             var error = await Assert.ThrowsAsync<PostgresException>(() => conn.ExecuteAsync(
                 "update activities set privacy = 'followers' where id = @id", new { id = activity.Id }));
@@ -151,6 +161,44 @@ public class GarminTests(KutaFactory factory) : IClassFixture<KutaFactory>
             Assert.Equal(0, await conn.ExecuteScalarAsync<int>("select count(*)::int from activities where user_id = @userId", new { userId }));
         }
         finally { await conn.ExecuteAsync("delete from auth.users where email = @email", new { email }); }
+    }
+
+    [Fact]
+    public async Task Unreviewed_imports_are_counted_per_user_and_cleared_by_editing_or_dismissing()
+    {
+        var ct = TestContext.Current.CancellationToken;
+        await using var conn = await factory.Services.GetRequiredService<NpgsqlDataSource>().OpenConnectionAsync(ct);
+        using var client = factory.CreateClient();
+        var email = $"garmin-review-{Guid.NewGuid():N}@example.com";
+        var other = await RunnerAsync(conn);
+        try
+        {
+            await TestSession.CreateRunnerAsync(factory, client, conn, email, "Garmin runner", ct);
+            var userId = await conn.QuerySingleAsync<Guid>("select id from auth.users where email = @email", new { email });
+            var older = await ActivityAsync(conn, userId, "garmin");
+            var latest = await ActivityAsync(conn, userId, "garmin");
+            await ActivityAsync(conn, userId, "fit");
+            await ActivityAsync(conn, other, "garmin");
+            await conn.ExecuteAsync("""
+                update activities set reviewed_at = null where source = 'garmin' and user_id in (@userId, @other);
+                update activities set started_at = started_at - interval '1 day' where id = @older
+                """, new { userId, other, older });
+
+            var before = await client.GetFromJsonAsync<UnreviewedActivities>("/api/activities/unreviewed", ct);
+            Assert.Equal((2, latest, "running"), (before!.Count, before.Latest!.Id, before.Latest.Sport));
+            var update = await client.PutAsJsonAsync($"/api/activities/{latest}",
+                new { title = "Edited", tags = Array.Empty<string>(), equipmentIds = Array.Empty<Guid>() }, ct);
+            Assert.Equal(HttpStatusCode.NoContent, update.StatusCode);
+            var after = await client.GetFromJsonAsync<UnreviewedActivities>("/api/activities/unreviewed", ct);
+            Assert.Equal((1, older), (after!.Count, after.Latest!.Id));
+
+            Assert.Equal(HttpStatusCode.NoContent, (await client.PostAsync("/api/activities/unreviewed/dismiss", null, ct)).StatusCode);
+            Assert.Equal(new UnreviewedActivities(0, null),
+                await client.GetFromJsonAsync<UnreviewedActivities>("/api/activities/unreviewed", ct));
+            Assert.Equal(1, await conn.ExecuteScalarAsync<int>(
+                "select count(*)::int from activities where user_id = @other and reviewed_at is null", new { other }));
+        }
+        finally { await conn.ExecuteAsync("delete from auth.users where email = @email or id = @other", new { email, other }); }
     }
 
     [Fact]

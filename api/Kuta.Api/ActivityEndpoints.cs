@@ -31,6 +31,10 @@ public record ActivityLap(
     short LapIndex, int StartS, int DurationS, int? MovingS, double DistanceM, short? AvgHr, short? MaxHr,
     float? AscentM, float? DescentM, short? AvgCadence);
 
+// Latest carries what the web needs for its title ("New activity from Garmin: Morning Run").
+public record UnreviewedActivities(int Count, UnreviewedActivity? Latest);
+public record UnreviewedActivity(Guid Id, string? Title, string Sport, System.DateTime StartedAt);
+
 public record ActivityUpdateRequest(string? Title, string? Description, string[] Tags, Guid[] EquipmentIds, MultisportRequest? Multisport = null, bool RestoreParts = false, string? Privacy = null, bool? ExcludeFromRecords = null);
 
 public static class ActivityEndpoints
@@ -62,6 +66,28 @@ public static class ActivityEndpoints
                 return Results.BadRequest(new ApiError("Tidszonen är ogiltig. Kontrollera enhetens inställningar.", "invalidTimeZone"));
             return Results.Ok(await ActivityList.ReadAsync(conn, user.GetUserId(), timeZone,
                 beforeStartedAt, beforeId, cancellationToken, tag, year, sport));
+        });
+
+        // Imported activities (Garmin) the user has not edited yet; the app suggests adding title and equipment.
+        activities.MapGet("/unreviewed", async (NpgsqlDataSource db, ClaimsPrincipal user) =>
+        {
+            await using var conn = await db.OpenConnectionAsync();
+            var userId = user.GetUserId();
+            var count = await conn.ExecuteScalarAsync<int>(
+                "select count(*)::int from activities where user_id = @userId and reviewed_at is null", new { userId });
+            var latest = await conn.QuerySingleOrDefaultAsync<UnreviewedActivity>("""
+                select id, title, sport, started_at from activities where user_id = @userId and reviewed_at is null
+                order by started_at desc, id desc limit 1
+                """, new { userId });
+            return Results.Ok(new UnreviewedActivities(count, latest));
+        });
+
+        activities.MapPost("/unreviewed/dismiss", async (NpgsqlDataSource db, ClaimsPrincipal user) =>
+        {
+            await using var conn = await db.OpenConnectionAsync();
+            await conn.ExecuteAsync("update activities set reviewed_at = now() where user_id = @userId and reviewed_at is null",
+                new { userId = user.GetUserId() });
+            return Results.NoContent();
         });
 
         activities.MapGet("/years", async (NpgsqlDataSource db, ClaimsPrincipal user, string? timeZone,
@@ -231,7 +257,7 @@ public static class ActivityEndpoints
             await conn.ExecuteAsync("delete from activity_equipment where activity_id = @id and user_id = @userId",
                 new { id, userId }, tx);
             await EquipmentEndpoints.AttachAsync(conn, tx, id, userId, req.EquipmentIds);
-            await conn.ExecuteAsync("update activities set title = @title, description = @description, tags = @tags, privacy = case when source = 'garmin' then privacy else coalesce(@Privacy, privacy) end, exclude_from_records = coalesce(@ExcludeFromRecords, exclude_from_records) where id = @id and user_id = @userId",
+            await conn.ExecuteAsync("update activities set title = @title, description = @description, tags = @tags, privacy = case when source = 'garmin' then privacy else coalesce(@Privacy, privacy) end, exclude_from_records = coalesce(@ExcludeFromRecords, exclude_from_records), reviewed_at = coalesce(reviewed_at, now()) where id = @id and user_id = @userId",
                 new { id, userId, req.Privacy, req.ExcludeFromRecords, title = ActivityInput.NormalizeTitle(req.Title), description = ActivityInput.NormalizeDescription(req.Description), tags = ActivityInput.NormalizeTags(req.Tags) }, tx);
             await tx.CommitAsync();
             return Results.NoContent();

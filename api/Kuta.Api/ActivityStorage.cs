@@ -72,9 +72,10 @@ public static class ActivityStorage
         var id = await conn.QuerySingleOrDefaultAsync<Guid?>(
             """
             insert into activities (user_id, source, sport, title, started_at, duration_s, moving_s, distance_m,
-                                    avg_hr, max_hr, avg_speed_mps, elevation_gain_m, route, device, raw_file_key, raw_file_sha256, strava_activity_id, tags, description, privacy)
+                                    avg_hr, max_hr, avg_speed_mps, elevation_gain_m, route, device, raw_file_key, raw_file_sha256, strava_activity_id, tags, description, privacy, reviewed_at)
             values (@userId, @source, @Sport, @title, @StartedAt, @DurationS, @MovingS, @DistanceM,
-                    @AvgHr, @MaxHr, @AvgSpeedMps, @ElevationGainM, @route::geography, @Device, @key, @hash, @stravaId, @tags, @description, @privacy)
+                    @AvgHr, @MaxHr, @AvgSpeedMps, @ElevationGainM, @route::geography, @Device, @key, @hash, @stravaId, @tags, @description, @privacy,
+                    case when @source = 'garmin' then null else now() end)
             on conflict do nothing returning id
             """,
             new
