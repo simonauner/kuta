@@ -348,6 +348,8 @@
     "signupFailed": "Kunde inte skapa kontot. Kontrollera e-postadressen.",
     "emailNotConfirmed": "Bekräfta din e-postadress först – kolla din inkorg.",
     "invalidCredentials": "Fel e-post eller lösenord.",
+    "passwordRequired": "Ange ditt lösenord.",
+    "wrongPassword": "Fel lösenord.",
     "invalidEmail": "Ange en giltig e-postadress.",
     "invalidName": "Ange ett namn (högst 100 tecken).",
     "nameRequired": "Välj ett namn först.",
@@ -435,6 +437,7 @@
     "accountDescription": "Radera ditt konto och alla uppgifter som sparats i Kuta.",
     "deleteAccount": "Radera konto",
     "accountConfirmTitle": "Vill du verkligen radera ditt konto?",
+    "passwordLabel": "Ditt lösenord",
     "accountWarning": "Ditt konto, din profil, din utrustning, alla pass, rekord, pulsdata och originalfiler raderas permanent. Du loggas ut på alla enheter. Det går inte att ångra.",
     "words": [
       "FARTLEK",

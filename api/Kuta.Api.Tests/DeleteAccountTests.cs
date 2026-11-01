@@ -9,6 +9,8 @@ using Xunit;
 
 public class DeleteAccountTests(KutaFactory factory) : IClassFixture<KutaFactory>
 {
+    const string Password = "synthetic-pass-1";
+
     [Fact]
     public async Task Delete_requires_auth_and_csrf_removes_owned_data_and_invalidates_all_sessions()
     {
@@ -48,12 +50,20 @@ public class DeleteAccountTests(KutaFactory factory) : IClassFixture<KutaFactory
             oldSession.DefaultRequestHeaders.Add("Cookie", owner.DefaultRequestHeaders.GetValues("Cookie"));
             Assert.Equal(HttpStatusCode.NotFound, (await other.GetAsync($"/api/activities/{ownerId}", ct)).StatusCode);
             Assert.Equal(HttpStatusCode.NotFound, (await other.DeleteAsync($"/api/activities/{ownerId}", ct)).StatusCode);
-            Assert.Equal(HttpStatusCode.Unauthorized, (await anonymous.DeleteAsync("/api/me", ct)).StatusCode);
+            Assert.Equal(HttpStatusCode.Unauthorized, (await DeleteMe(anonymous, Password)).StatusCode);
             owner.DefaultRequestHeaders.Remove("X-CSRF-TOKEN");
-            Assert.Equal(HttpStatusCode.BadRequest, (await owner.DeleteAsync("/api/me", ct)).StatusCode);
-            Assert.Equal(1, await conn.ExecuteScalarAsync<int>("select count(*) from auth.users where id = @ownerId", new { ownerId }));
+            Assert.Equal(HttpStatusCode.BadRequest, (await DeleteMe(owner, Password)).StatusCode);
             await TestSession.UseCsrfToken(owner, ct);
-            using var response = await owner.DeleteAsync("/api/me", ct);
+            // The session alone is not enough: the current password must be given.
+            await TestSession.SetPasswordAsync(conn, email, Password);
+            using (var wrong = await DeleteMe(owner, "wrong-password-1"))
+            {
+                Assert.Equal(HttpStatusCode.Forbidden, wrong.StatusCode);
+                Assert.Contains("wrongPassword", await wrong.Content.ReadAsStringAsync(ct));
+            }
+            Assert.Equal(HttpStatusCode.BadRequest, (await DeleteMe(owner, "")).StatusCode);
+            Assert.Equal(1, await conn.ExecuteScalarAsync<int>("select count(*) from auth.users where id = @ownerId", new { ownerId }));
+            using var response = await DeleteMe(owner, Password);
             Assert.Equal(HttpStatusCode.NoContent, response.StatusCode);
             Assert.Contains(response.Headers.GetValues("Set-Cookie"), c => c.StartsWith("kuta.session=;"));
             foreach (var table in new[] { "auth.users", "users", "activities", "equipment" })
@@ -72,6 +82,8 @@ public class DeleteAccountTests(KutaFactory factory) : IClassFixture<KutaFactory
             await store.DeleteAsync([key, otherKey], ct);
             await conn.ExecuteAsync("delete from auth.users where id = any(@ids)", new { ids = new[] { ownerId, otherId } });
         }
+        Task<HttpResponseMessage> DeleteMe(HttpClient client, string password) => client.SendAsync(
+            new HttpRequestMessage(HttpMethod.Delete, "/api/me") { Content = JsonContent.Create(new { password }) }, ct);
         Task<int> Files(string name) => conn.ExecuteScalarAsync<int>(
             "select count(*) from storage.objects where bucket_id = 'fit-files' and name = @name", new { name });
     }
