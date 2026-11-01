@@ -8,6 +8,7 @@ import { GarminConnect, GarminConnectedAlert } from '@/components/garmin'
 import { HeartRateConsent } from '@/components/heart-rate-consent'
 import { LanguageSelect } from '@/components/language-select'
 import { Recalculation, StravaImport } from '@/components/strava-import'
+import { ReplaceProfileLink } from '@/components/share-profile'
 import { SupporterSection } from '@/components/supporter'
 import {
   Breadcrumb,
@@ -81,6 +82,8 @@ export function SettingsPage() {
       <SupporterSection />
 
       <ActivityPrivacy />
+
+      <ReplaceProfileLink />
 
       <section aria-labelledby="health-heading" className="mt-8 border-t pt-6">
         <h2 id="health-heading" className="text-lg font-semibold">

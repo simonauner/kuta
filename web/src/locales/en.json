@@ -651,7 +651,13 @@
     "profileLinkCopied": "Profile link copied.",
     "profileLinkCopyFailed": "Could not copy the link. You can copy it from the field below.",
     "profileLink": "Profile link",
-    "profileLinksHint": "To follow someone, open their shared profile link. You can copy your own link from your profile."
+    "profileLinksHint": "To follow someone, open their shared profile link. You can copy your own link from your profile.",
+    "profileLinkHint": "Share profile copies a short link to your profile. If you create a new link, the old one stops working.",
+    "newProfileLink": "Create new link",
+    "newProfileLinkCreating": "Creating …",
+    "newProfileLinkConfirm": "The old link stops working, including where you have already shared it. People who have already found your profile, for example through the feed or their follow list, can still reach it. Blocking and activity visibility still decide what others see.",
+    "newProfileLinkDone": "A new link has been created. Copy it with Share profile.",
+    "profileLinkInvalid": "This link no longer works. Ask for a new profile link."
   },
   "goals": {
     "new": "New goal",

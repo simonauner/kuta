@@ -651,7 +651,13 @@
     "profileLinkCopied": "Profillänken är kopierad.",
     "profileLinkCopyFailed": "Kunde inte kopiera länken. Du kan kopiera den från fältet nedan.",
     "profileLink": "Profillänk",
-    "profileLinksHint": "För att följa någon öppnar du personens delade profillänk. Din egen länk kopierar du från din profil."
+    "profileLinksHint": "För att följa någon öppnar du personens delade profillänk. Din egen länk kopierar du från din profil.",
+    "profileLinkHint": "Dela profil kopierar en kort länk till din profil. Skapar du en ny länk slutar den gamla att fungera.",
+    "newProfileLink": "Skapa ny länk",
+    "newProfileLinkCreating": "Skapar …",
+    "newProfileLinkConfirm": "Den gamla länken slutar fungera, även där du redan har delat den. Den som redan hittat din profil, till exempel via flödet eller sin följarlista, kommer fortfarande åt den. Blockering och passens synlighet styr fortfarande vad andra ser.",
+    "newProfileLinkDone": "En ny länk är skapad. Kopiera den med Dela profil.",
+    "profileLinkInvalid": "Länken gäller inte längre. Be om en ny profillänk."
   },
   "goals": {
     "new": "Nytt mål",
