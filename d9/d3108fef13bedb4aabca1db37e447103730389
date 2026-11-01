@@ -1,0 +1,63 @@
+api/Kuta.Api/MeEndpoints.cs
+  s_1d8c41d0c04d95::t_467e721432d24c 8,10,163-165,173
+web/src/locales/en.json
+  s_1d8c41d0c04d95::t_76ff054a7893a1 2-4
+web/src/components/goals.tsx
+  s_1d8c41d0c04d95::t_76ff054a7893a1 95
+  s_1d8c41d0c04d95::t_ca0fafeddc1669 1
+api/Kuta.Api/GarminAttribution.cs
+  s_1d8c41d0c04d95::t_88e233a8f1c97b 1,3-6,8-12
+  s_1d8c41d0c04d95::t_618befbf125515 2,7
+api/Kuta.Api/ActivityList.cs
+  s_1d8c41d0c04d95::t_467e721432d24c 8,36-37,56,81-82
+api/Kuta.Api/Migrations/022_garmin_source.sql
+  s_1d8c41d0c04d95::t_88e233a8f1c97b 1-3
+api/Kuta.Api.Tests/SocialTests.cs
+  s_1d8c41d0c04d95::t_618befbf125515 76-77
+  s_1d8c41d0c04d95::t_8a6efb0ceaa7f5 55-75,78-82
+  s_1d8c41d0c04d95::t_abddeb24a99524 54
+web/src/components/garmin.tsx
+  s_1d8c41d0c04d95::t_ca0fafeddc1669 1-12
+web/src/routes/activity.tsx
+  s_1d8c41d0c04d95::t_f0872b91b534d0 173-176
+  s_1d8c41d0c04d95::t_f67b864c76b2a2 405,485,609,619,629
+  s_1d8c41d0c04d95::t_a8875e5708963e 304-306
+web/src/lib/activity.ts
+  s_1d8c41d0c04d95::t_144e38ff6e3654 37-38
+web/src/routes/activities.tsx
+  s_1d8c41d0c04d95::t_144e38ff6e3654 248-250
+api/Kuta.Api/SocialEndpoints.cs
+  s_1d8c41d0c04d95::t_467e721432d24c 8-9,120,131
+web/src/lib/auth.ts
+  s_1d8c41d0c04d95::t_144e38ff6e3654 20-21
+web/src/routes/equipment.tsx
+  s_1d8c41d0c04d95::t_ca0fafeddc1669 1
+  s_1d8c41d0c04d95::t_76ff054a7893a1 38
+web/src/locales/sv.json
+  s_1d8c41d0c04d95::t_76ff054a7893a1 2-4
+web/src/routes/stats.tsx
+  s_1d8c41d0c04d95::t_76ff054a7893a1 87
+  s_1d8c41d0c04d95::t_ca0fafeddc1669 1
+AGENTS.md
+  s_1d8c41d0c04d95::t_b21cb0738ba555 93-94
+web/src/components/activity-feed.tsx
+  s_1d8c41d0c04d95::t_144e38ff6e3654 27,100-102
+api/Kuta.Api/ActivityEndpoints.cs
+  s_1d8c41d0c04d95::t_467e721432d24c 18,268-269,292
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.7.5",
+  "base_commit_sha": "d9d3108fef13bedb4aabca1db37e447103730389",
+  "prompts": {},
+  "sessions": {
+    "s_1d8c41d0c04d95": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "bdd1f4bc-6213-49a7-8e73-7e9172c83f8c",
+        "model": "claude-opus-5-5"
+      },
+      "human_author": "Simon Aunér <simonauner@gmail.com>"
+    }
+  }
+}
