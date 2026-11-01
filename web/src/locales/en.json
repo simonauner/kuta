@@ -1,4 +1,7 @@
 {
+  "garmin": {
+    "derived": "Insights derived in part from Garmin device-sourced data."
+  },
   "nav": {
     "feed": "Feed",
     "activities": "Activities",

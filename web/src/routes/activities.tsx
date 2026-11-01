@@ -245,6 +245,9 @@ export function ActivitiesPage() {
                           style={{ viewTransitionName: `activity-sport-${a.id}` }}
                         />
                       </Link>
+                      {a.attribution && (
+                        <p className="text-xs text-muted-foreground">{a.attribution}</p>
+                      )}
                       <p className="text-xs text-muted-foreground">
                         {dateFormat.format(new Date(a.startedAt))}
                       </p>

@@ -5,8 +5,9 @@ using Microsoft.AspNetCore.Authentication.Cookies;
 using Npgsql;
 
 public record UpdateMeRequest(string? DisplayName);
+// HasGarminData styr Garmins märkning av statistik och andra vyer härledda ur passen.
 public record Me(Guid Id, string? Email, string? DisplayName, bool HrConsent, string DefaultActivityPrivacy, bool AllActivitiesMatchDefaultPrivacy,
-    Supporter Supporter);
+    Supporter Supporter, bool HasGarminData);
 // Tier är null när supporterskapet saknas eller har gått ut.
 public record Supporter(string? Tier, DateTime? Until, string BadgePrivacy);
 public record Profile(string DisplayName, bool HrConsent, string DefaultActivityPrivacy);
@@ -159,10 +160,9 @@ public static class MeEndpoints
     {
         var profile = await LoadProfileAsync(conn, user.GetUserId());
         var privacy = profile?.DefaultActivityPrivacy ?? "private";
-        var allMatch = await conn.ExecuteScalarAsync<bool>("""
-            select not exists (
-                select 1 from activities where user_id = @id and privacy <> @privacy
-            )
+        var (allMatch, hasGarminData) = await conn.QuerySingleAsync<(bool, bool)>("""
+            select not exists (select 1 from activities where user_id = @id and privacy <> @privacy),
+                exists (select 1 from activities where user_id = @id and source = 'garmin')
             """, new { id = user.GetUserId(), privacy });
         var supporter = await conn.QuerySingleOrDefaultAsync<Supporter>("""
             select case when supporter_until > now() then supporter_tier end as tier, supporter_until as until,
@@ -170,6 +170,6 @@ public static class MeEndpoints
             from users where id = @id
             """, new { id = user.GetUserId() }) ?? new Supporter(null, null, "private");
         return new Me(user.GetUserId(), user.FindFirstValue(ClaimTypes.Email), profile?.DisplayName, profile?.HrConsent ?? false, privacy, allMatch,
-            supporter);
+            supporter, hasGarminData);
     }
 }

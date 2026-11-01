@@ -24,6 +24,7 @@ type FeedItem = {
   distanceM: number
   routeGeoJson: string | null
   supporterTier: SupporterTier | null
+  attribution: string | null
 }
 type FeedPage = { items: FeedItem[]; nextCursor: ActivityCursor | null }
 
@@ -96,6 +97,9 @@ export function ActivityFeed({
                 <SportIcon sport={activity.sport} className="size-6 shrink-0" />
                 <span className="break-words">{activityTitle(activity, t)}</span>
               </Link>
+              {activity.attribution && (
+                <p className="mt-1 text-metadata text-muted-foreground">{activity.attribution}</p>
+              )}
               <p className="mt-2 text-sm text-muted-foreground">
                 {when.format(new Date(activity.startedAt))}
               </p>

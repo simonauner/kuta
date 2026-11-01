@@ -1,4 +1,7 @@
 {
+  "garmin": {
+    "derived": "Insikter delvis baserade på data från Garmin-enheter."
+  },
   "nav": {
     "feed": "Flöde",
     "activities": "Pass",

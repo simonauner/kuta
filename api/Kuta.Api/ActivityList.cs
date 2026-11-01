@@ -5,7 +5,7 @@ public record ActivityCursor(DateTime StartedAt, Guid Id);
 public record ActivityPage(IReadOnlyList<ActivityListItem> Items, ActivityCursor? NextCursor);
 public record ActivityListItem(
     Guid Id, string Sport, string? Title, DateTime StartedAt,
-    int DurationS, double DistanceM, short? AvgHr, string[] Tags, Guid[] EquipmentIds, bool ShowMonth, bool ShowWeek);
+    int DurationS, double DistanceM, short? AvgHr, string[] Tags, Guid[] EquipmentIds, bool ShowMonth, bool ShowWeek, string? Attribution);
 
 public static class ActivityList
 {
@@ -33,7 +33,8 @@ public static class ActivityList
         var otherSportFilter = sport is null ? "" : "and other.sport = @sport";
         await using var command = new NpgsqlCommand($"""
             with page as (
-                select a.id, a.sport, a.title, a.started_at, a.duration_s, coalesce((select sum(p.distance_m) from activity_parts p where p.activity_id = a.id and p.original = not a.parts_edited), a.distance_m) as distance_m, a.avg_hr, a.tags
+                select a.id, a.sport, a.title, a.started_at, a.duration_s, coalesce((select sum(p.distance_m) from activity_parts p where p.activity_id = a.id and p.original = not a.parts_edited), a.distance_m) as distance_m, a.avg_hr, a.tags,
+                    {GarminAttribution.Sql("a")} as attribution
                 from activities a
                 where a.user_id = @userId and a.tags @> @tags::text[] {cursorFilter} {yearFilter} {sportFilter}
                 order by a.started_at desc, a.id desc
@@ -52,7 +53,7 @@ public static class ActivityList
                     where other.user_id = @userId and other.id <> a.id and other.tags @> @tags::text[] {otherSportFilter}
                       and other.started_at >= (period.month_start at time zone @timeZone)
                       and other.started_at < ((period.month_start + interval '1 month') at time zone @timeZone)
-                ) as show_week
+                ) as show_week, a.attribution
             from page a
             cross join lateral (
                 select date_trunc('year', a.started_at at time zone @timeZone) as year_start,
@@ -77,7 +78,8 @@ public static class ActivityList
             rows.Add(new ActivityListItem(reader.GetGuid(0), reader.GetString(1),
                 reader.IsDBNull(2) ? null : reader.GetString(2), reader.GetDateTime(3), reader.GetInt32(4),
                 reader.GetDouble(5), reader.IsDBNull(6) ? null : reader.GetInt16(6),
-                reader.GetFieldValue<string[]>(7), reader.GetFieldValue<Guid[]>(8), reader.GetBoolean(9), reader.GetBoolean(10)));
+                reader.GetFieldValue<string[]>(7), reader.GetFieldValue<Guid[]>(8), reader.GetBoolean(9), reader.GetBoolean(10),
+                reader.IsDBNull(11) ? null : reader.GetString(11)));
         var items = rows.Take(25).ToList();
         var cursor = rows.Count > 25 ? new ActivityCursor(items[^1].StartedAt, items[^1].Id) : null;
         return new ActivityPage(items, cursor);
