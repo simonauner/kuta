@@ -1,0 +1,134 @@
+web/src/components/activity-feed.tsx
+  s_bee2e5fcf7ec11::t_8e9d56c6162484 50
+  s_bee2e5fcf7ec11::t_9ca068ad1e7534 34,37,40,44-45,54,91,126
+web/src/routes/profile.tsx
+  s_bee2e5fcf7ec11::t_9e96b88c39dd34 24
+  s_bee2e5fcf7ec11::t_bbb2785083cbba 57-66
+  s_bee2e5fcf7ec11::t_c4e36dc8c463fd 3-4,6,8-9,12,14-19,22-23,29-37,44,55-56,67-74,76-101
+AGENTS.md
+  s_bee2e5fcf7ec11::t_6a738422167d17 80
+  s_bee2e5fcf7ec11::t_0b36e206f7c780 39,45,70-72,81-82
+web/src/components/records.tsx
+  s_bee2e5fcf7ec11::t_6e4adb5f5781e6 179
+  s_bee2e5fcf7ec11::t_f611deec3b943a 189-197
+  s_bee2e5fcf7ec11::t_985bcf6d8264cc 51,172-174,176-178,180-188,204,207
+web/src/routes/runner.tsx
+  s_bee2e5fcf7ec11::t_bbb2785083cbba 113-121
+  s_bee2e5fcf7ec11::t_5ad6adc6fd94cf 6,21,81-85
+api/Kuta.Api/Program.cs
+  s_bee2e5fcf7ec11::t_6a738422167d17 274
+  s_bee2e5fcf7ec11::t_3341b9490f7565 113-116,261
+api/Kuta.Api/MeEndpoints.cs
+  s_bee2e5fcf7ec11::t_f611deec3b943a 256
+  s_bee2e5fcf7ec11::t_fbeaa2febe9c6e 1,3,13,29-78,91-94,119-120,123-126,131-137,140-141,255,257,266
+web/src/locales/en.json
+  s_bee2e5fcf7ec11::t_13d0310fb92e2d 635,836-875
+  s_bee2e5fcf7ec11::t_b8bff77321355c 638-639
+  s_bee2e5fcf7ec11::t_8a05bbcce2949f 46-49,390-391,419-420,424-425,629-630,636-637,652-654
+web/src/locales/sv.json
+  s_bee2e5fcf7ec11::t_b8bff77321355c 49,634-639,652,846-849,855-856,871,874-875
+  s_bee2e5fcf7ec11::t_13d0310fb92e2d 633,836-845,850-854,857-870,872-873
+  s_bee2e5fcf7ec11::t_a7bc5d5814f873 46-48,390-391,419-420,424-425,653-654
+api/Kuta.Api.Tests/WebRoutingTests.cs
+  s_bee2e5fcf7ec11::t_6a738422167d17 43
+web/src/lib/follows.ts
+  s_bee2e5fcf7ec11::t_9e96b88c39dd34 12-15
+api/Kuta.Api/SocialEndpoints.cs
+  s_bee2e5fcf7ec11::t_464b57975b3980 48
+  s_bee2e5fcf7ec11::t_3f1b821dfa0619 5-8,17-23,25-35,76-77,79-81,85-86,89,93,100-101,109-110,117-120,123-125,129-136,145-146,148,170-175,181,183
+web/src/components/follow-row.tsx
+  s_bee2e5fcf7ec11::t_9e96b88c39dd34 28-32,45-49
+README.md
+  s_bee2e5fcf7ec11::t_eac772afc77691 71
+  s_bee2e5fcf7ec11::t_75d381565eff71 7,72-74,132-134,190-191,243,555-556,633,732
+web/src/components/runner-summary.tsx
+  s_bee2e5fcf7ec11::t_a43aec5f274403 67-81,128-129
+  s_bee2e5fcf7ec11::t_27b67d680b5e9f 2-7,113
+  s_bee2e5fcf7ec11::t_e341d6662b57af 1,8-66,82-112,114-127,130-209
+api/Kuta.Api/DataExport.cs
+  s_bee2e5fcf7ec11::t_ed3788ddfa2a25 9-11,17-35,54,118-119
+web/src/components/activity-privacy.tsx
+  s_bee2e5fcf7ec11::t_75977cd7a04d45 4-5,16-44,112,120,176-179
+web/src/components/strava-import.tsx
+  s_bee2e5fcf7ec11::t_2812411844da3d 5,127-129
+web/src/lib/auth.ts
+  s_bee2e5fcf7ec11::t_34b43fdd4314b4 15
+web/src/router.tsx
+  s_bee2e5fcf7ec11::t_d81d66fe534a7d 18,62-66,116
+api/Kuta.Api.Tests/ActivityPrivacyTests.cs
+  s_bee2e5fcf7ec11::t_455ee28adfda3a 62,75,82-83,101
+api/Kuta.Api.Tests/AuthFailureTests.cs
+  s_bee2e5fcf7ec11::t_f6da11f11ab87c 64,66,98-99
+api/Kuta.Api.Tests/DataExportTests.cs
+  s_bee2e5fcf7ec11::t_c4a3b0d7adada2 170,189-192
+api/Kuta.Api.Tests/DeleteAccountTests.cs
+  s_bee2e5fcf7ec11::t_9496267b61b262 91-110
+api/Kuta.Api.Tests/DisplayNameTests.cs
+  s_bee2e5fcf7ec11::t_13f6aa0560ce11 1-49
+api/Kuta.Api.Tests/FitUploadTests.cs
+  s_bee2e5fcf7ec11::t_de787bcdb897a6 67-71,258-275
+api/Kuta.Api.Tests/RunnerProfileTests.cs
+  s_bee2e5fcf7ec11::t_a02c3c480c16ed 1-177
+api/Kuta.Api.Tests/SocialTests.cs
+  s_bee2e5fcf7ec11::t_8a1af6a8e26efe 271-272,274,280-286,288-289,299-364
+api/Kuta.Api.Tests/StravaImportTests.cs
+  s_bee2e5fcf7ec11::t_b0af51bb0a0ac2 101-110
+api/Kuta.Api/ActivityEndpoints.cs
+  s_bee2e5fcf7ec11::t_8f3fa8ef123601 387,389
+api/Kuta.Api/AuthEndpoints.cs
+  s_bee2e5fcf7ec11::t_aaf856c718ab74 7,62,127,133-136
+api/Kuta.Api/Goals.cs
+  s_bee2e5fcf7ec11::t_2786826cc90f7b 98,107-108,164,166-168
+api/Kuta.Api/Migrations/027_display_name_history.sql
+  s_bee2e5fcf7ec11::t_28559b46cf830c 1-3
+api/Kuta.Api/RunnerProfile.cs
+  s_bee2e5fcf7ec11::t_095457d98673ac 1-91
+api/Kuta.Api/StravaImport.cs
+  s_bee2e5fcf7ec11::t_a2a0f6be2c49df 14-15,23-26,188-189,198-199,201-225,230,232,236-237,240,247
+api/Kuta.Api/StravaImportEndpoint.cs
+  s_bee2e5fcf7ec11::t_840bdda158bc20 10-11,28-29,61-63,65-80
+api/Kuta.Api/Supporters.cs
+  s_bee2e5fcf7ec11::t_f0b8bd6cda6b46 4-6
+api/Kuta.Api/Turnstile.cs
+  s_bee2e5fcf7ec11::t_947e44533cecf8 6-7
+web/features.html
+  s_bee2e5fcf7ec11::t_ee3f69c62cde5b 57,355-402
+web/index.html
+  s_bee2e5fcf7ec11::t_e9f7590cbe03b7 226-270
+web/privacy.html
+  s_bee2e5fcf7ec11::t_d9f7373006ca84 217-221,535-536
+web/src/components/goals.tsx
+  s_bee2e5fcf7ec11::t_123b978ee3be79 70,74,78,81
+web/src/components/training-load.tsx
+  s_bee2e5fcf7ec11::t_236b37f432f92d 51-55
+web/src/features.css
+  s_bee2e5fcf7ec11::t_9288a7ad3273f5 77
+web/src/landing.css
+  s_bee2e5fcf7ec11::t_852217ad420da6 271-273,539-541
+web/src/lib/activity-calendar.ts
+  s_bee2e5fcf7ec11::t_a28e40dc54113a 1-53
+web/src/lib/activity-query.ts
+  s_bee2e5fcf7ec11::t_aeaaf300816910 69-71
+web/src/routes/auth.tsx
+  s_bee2e5fcf7ec11::t_b225dc839bf9d5 32,34,48-49
+web/src/routes/stats.tsx
+  s_bee2e5fcf7ec11::t_7d53efe547fd03 6,9,35-71,115-116,127-128
+web/tests/activity-calendar.test.mjs
+  s_bee2e5fcf7ec11::t_46c9f2060a1618 1-48
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.7.5",
+  "base_commit_sha": "c5f87438bb6c9e964856f4a2f9f9d109e8f2940a",
+  "prompts": {},
+  "sessions": {
+    "s_bee2e5fcf7ec11": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "cd696b42-7e9f-47b1-8f97-a4d814189962",
+        "model": "claude-opus-5-5"
+      },
+      "human_author": "Simon Aunér <simonauner@gmail.com>"
+    }
+  }
+}
