@@ -10,6 +10,7 @@ public sealed class PrivateLogProvider(TextWriter output) : ILoggerProvider
     public static readonly EventId RequestFailed = new(3);
     public static readonly EventId StartupFailed = new(4);
     public static readonly EventId MigrationFailed = new(5);
+    public static readonly EventId JobFailed = new(6);
     static readonly JsonSerializerOptions Json = new(JsonSerializerDefaults.Web)
     {
         DefaultIgnoreCondition = JsonIgnoreCondition.WhenWritingNull,
@@ -40,10 +41,11 @@ public sealed class PrivateLogProvider(TextWriter output) : ILoggerProvider
                 3 => ("request_failed", "request"),
                 4 => ("startup_failed", "startup"),
                 5 => ("migration_failed", "migration"),
+                6 => ("job_failed", "job"),
                 _ => (null, null),
             };
             if (name is null) return;
-            var failure = eventId.Id is 3 or 4 or 5;
+            var failure = eventId.Id is 3 or 4 or 5 or 6;
             var metrics = eventId == RequestFailed ? state as RequestMetrics : null;
             output.WriteLine(JsonSerializer.Serialize(new LogEntry(name, operation!,
                 metrics is { StatusCode: >= 100 and <= 599 } ? metrics.StatusCode : null,

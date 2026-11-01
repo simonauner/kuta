@@ -24,6 +24,8 @@ public sealed class KutaFactory : WebApplicationFactory<Program>
             $"Host=127.0.0.1;Port={Base + 22};Database=postgres;Username=postgres;Password=postgres");
         Environment.SetEnvironmentVariable("Supabase__Url", SupabaseUrl);
         Environment.SetEnvironmentVariable("Storage__ServiceUrl", $"{SupabaseUrl}/storage/v1/s3");
+        // Testerna kör köade jobb själva (JobWorker.RunAllAsync), så att flera testappar inte tar varandras jobb.
+        Environment.SetEnvironmentVariable("Jobs__Enabled", "false");
     }
 }
 

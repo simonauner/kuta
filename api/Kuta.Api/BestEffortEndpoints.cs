@@ -22,16 +22,8 @@ public static class BestEffortEndpoints
         activities.MapPost("/{id:guid}/best-efforts/recalculate", async (Guid id, NpgsqlDataSource db, ClaimsPrincipal user) =>
         {
             await using var conn = await db.OpenConnectionAsync();
-            await using var tx = await conn.BeginTransactionAsync();
-            var userId = user.GetUserId();
-            var activity = await conn.QuerySingleOrDefaultAsync<EffortActivity>(
-                "select sport, started_at from activities where id = @id and user_id = @userId for update", new { id, userId }, tx);
-            if (activity is null) return Results.NotFound();
-            var (t, dist, alt) = await Multisport.ReadStreamAsync(conn, tx, id);
-            await BestEfforts.ReplaceAsync(conn, tx, id, userId, activity.Sport, activity.StartedAt,
-                t, dist, alt, await Multisport.LoadAsync(conn, id, tx));
-            await tx.CommitAsync();
-            return Results.NoContent();
+            return await BestEfforts.RecalculateAsync(conn, id, user.GetUserId())
+                ? Results.NoContent() : Results.NotFound();
         });
 
         api.MapGet("/records", async (int? year, string? tag, NpgsqlDataSource db, ClaimsPrincipal user) =>
@@ -98,5 +90,4 @@ public static class BestEffortEndpoints
         }).RequireAuthorization();
     }
 
-    private sealed record EffortActivity(string Sport, DateTime StartedAt);
 }

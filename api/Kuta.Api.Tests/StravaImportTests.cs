@@ -229,11 +229,9 @@ public class StravaUploadTests(KutaFactory factory) : IClassFixture<KutaFactory>
         await using var conn = await factory.Services.GetRequiredService<NpgsqlDataSource>().OpenConnectionAsync(ct);
         try
         {
-            await CreateRunner(client, conn, runner, ct);
+            var runnerId = await CreateRunner(client, conn, runner, ct);
             var archive = StravaFixture.Archive();
-            var response = await Upload(client, archive, ct);
-            Assert.Equal(HttpStatusCode.OK, response.StatusCode);
-            var result = await ReadResult(response, ct);
+            var result = await Import(client, runnerId, archive, ct);
             Assert.Equal(3, result.Imported);
             Assert.Equal(0, result.Duplicates);
             Assert.Equal(1, result.EquipmentImported);
@@ -270,14 +268,14 @@ public class StravaUploadTests(KutaFactory factory) : IClassFixture<KutaFactory>
                 form.Add(new ByteArrayContent(FitFile.Run(new DateTime(2026, 10, 1, 6, 30, 0, DateTimeKind.Utc), 600)), "file", "run.fit");
                 Assert.Equal(HttpStatusCode.Conflict, (await client.PostAsync("/api/activities", form, ct)).StatusCode);
             }
-            var retry = await ReadResult(await Upload(client, archive, ct), ct);
+            var retry = await Import(client, runnerId, archive, ct);
             Assert.Equal(0, retry.Imported);
             Assert.Equal(3, retry.Duplicates);
             Assert.Equal(0, retry.EquipmentImported);
             Assert.Equal(0, retry.EquipmentLinked);
             // An older import can gain its shoe, even if that shoe has since been retired.
             await conn.ExecuteAsync("delete from activity_equipment where equipment_id=@Id; update equipment set retired=true where id=@Id", new { shoe.Id });
-            var backfill = await ReadResult(await Upload(client, archive, ct), ct);
+            var backfill = await Import(client, runnerId, archive, ct);
             Assert.Equal(1, backfill.EquipmentLinked);
             Assert.Equal(0, backfill.Imported);
             var restored = Assert.Single((await client.GetFromJsonAsync<EquipmentSummary[]>("/api/equipment", ct))!);
@@ -285,13 +283,13 @@ public class StravaUploadTests(KutaFactory factory) : IClassFixture<KutaFactory>
             Assert.Equal((1800d, 600L), (restored.DistanceM, restored.DurationS));
 
             await conn.ExecuteAsync("delete from activities where user_id=(select id from auth.users where email=@runner) and strava_activity_id='3'", new { runner });
-            var historical = await ReadResult(await Upload(client, archive, ct), ct);
+            var historical = await Import(client, runnerId, archive, ct);
             Assert.Equal(1, historical.Imported);
             Assert.Equal(0, historical.EquipmentImported);
             Assert.Equal(1800, Assert.Single((await client.GetFromJsonAsync<EquipmentSummary[]>("/api/equipment", ct))!).DistanceM);
 
             var otherClient = factory.CreateClient();
-            await CreateRunner(otherClient, conn, other, ct);
+            var otherId = await CreateRunner(otherClient, conn, other, ct);
             Assert.Empty((await otherClient.GetFromJsonAsync<ActivityPage>("/api/activities", ct))!.Items);
             foreach (var row in rows)
             {
@@ -300,7 +298,7 @@ public class StravaUploadTests(KutaFactory factory) : IClassFixture<KutaFactory>
             }
             // Samma Strava-ID får importeras till ett annat konto. Puls sparas bara med dess samtycke.
             (await otherClient.PutAsync("/api/me/hr-consent", null, ct)).EnsureSuccessStatusCode();
-            Assert.Equal(3, (await ReadResult(await Upload(otherClient, archive, ct), ct)).Imported);
+            Assert.Equal(3, (await Import(otherClient, otherId, archive, ct)).Imported);
             Assert.Equal(2, await conn.ExecuteScalarAsync<int>(
                 "select count(*) from activities where user_id=(select id from auth.users where email=@other) and raw_file_key is not null and avg_hr=150", new { other }));
             (await otherClient.DeleteAsync("/api/me/hr-consent", ct)).EnsureSuccessStatusCode();
@@ -324,17 +322,34 @@ public class StravaUploadTests(KutaFactory factory) : IClassFixture<KutaFactory>
         await using var conn = await factory.Services.GetRequiredService<NpgsqlDataSource>().OpenConnectionAsync(ct);
         try
         {
-            await CreateRunner(client, conn, email, ct);
+            var userId = await CreateRunner(client, conn, email, ct);
             Assert.Equal(HttpStatusCode.BadRequest, (await Upload(client, "not zip"u8.ToArray(), ct)).StatusCode);
             client.DefaultRequestHeaders.Remove("X-CSRF-TOKEN");
             Assert.Equal(HttpStatusCode.BadRequest, (await Upload(client, StravaFixture.Archive(), ct)).StatusCode);
             Assert.Equal(0, await conn.ExecuteScalarAsync<int>(
                 "select count(*) from activities where user_id=(select id from auth.users where email=@email)", new { email }));
+            Assert.Equal(0, await conn.ExecuteScalarAsync<int>("select count(*) from jobs where user_id=@userId", new { userId }));
+
+            // En import åt gången; ett arkiv som försvunnit (omstart) avslutar jobbet med en kod som ber om ny uppladdning.
+            await UseCsrfToken(client, ct);
+            using var accepted = await Upload(client, StravaFixture.Archive(), ct);
+            var job = (await accepted.Content.ReadFromJsonAsync<JobResponse>(ct))!;
+            using (var second = await Upload(client, StravaFixture.Archive(), ct))
+            {
+                Assert.Equal(HttpStatusCode.Conflict, second.StatusCode);
+                Assert.Contains("importInProgress", await second.Content.ReadAsStringAsync(ct));
+            }
+            File.Delete(factory.Services.GetRequiredService<ImportFiles>().PathFor(job.Id));
+            await JobWorker.RunAllAsync(factory.Services, userId, ct);
+            var failed = (await client.GetFromJsonAsync<JobResponse>($"/api/jobs/{job.Id}", ct))!;
+            Assert.Equal(("failed", "stravaImportInterrupted"), (failed.Status, failed.ErrorCode));
+            Assert.Equal(0, await conn.ExecuteScalarAsync<int>(
+                "select count(*) from activities where user_id=@userId", new { userId }));
         }
         finally { await conn.ExecuteAsync("delete from auth.users where email=@email", new { email }); }
     }
 
-    private async Task CreateRunner(HttpClient client, NpgsqlConnection conn, string email, CancellationToken ct)
+    private async Task<Guid> CreateRunner(HttpClient client, NpgsqlConnection conn, string email, CancellationToken ct)
     {
         var id = await conn.ExecuteScalarAsync<Guid>(
             "insert into auth.users (id,email) values (gen_random_uuid(),@email) returning id", new { email });
@@ -346,32 +361,28 @@ public class StravaUploadTests(KutaFactory factory) : IClassFixture<KutaFactory>
         client.DefaultRequestHeaders.Add("Cookie", string.Join("; ",
             context.Response.Headers.SetCookie.Select(cookie => cookie!.Split(';')[0])));
         await UseCsrfToken(client, ct);
+        return id;
     }
 
-    private static async Task<StravaImportResult> ReadResult(HttpResponseMessage response, CancellationToken ct)
+    // Uppladdningen köar importen; testet kör jobbet och läser resultatet som webben gör.
+    private async Task<StravaImportResult> Import(HttpClient client, Guid userId, byte[] archive, CancellationToken ct)
     {
-        Assert.Equal("application/x-ndjson", response.Content.Headers.ContentType?.MediaType);
-        Assert.True(response.Headers.CacheControl?.NoStore);
-        using var reader = new StreamReader(await response.Content.ReadAsStreamAsync(ct));
+        using var response = await Upload(client, archive, ct);
+        Assert.Equal(HttpStatusCode.Accepted, response.StatusCode);
+        var queued = (await response.Content.ReadFromJsonAsync<JobResponse>(ct))!;
+        Assert.Equal(("strava_import", "queued"), (queued.Kind, queued.Status));
+        Assert.Equal($"/api/jobs/{queued.Id}", response.Headers.Location?.OriginalString);
+        await JobWorker.RunAllAsync(factory.Services, userId, ct);
+        var job = (await client.GetFromJsonAsync<JobResponse>($"/api/jobs/{queued.Id}", ct))!;
+        Assert.Equal("succeeded", job.Status);
         var options = new JsonSerializerOptions(JsonSerializerDefaults.Web);
-        var first = JsonSerializer.Deserialize<StravaImportProgress>((await reader.ReadLineAsync(ct))!, options)!;
-        Assert.Equal(0, first.Processed);
-        Assert.Null(first.Result);
-        var previous = 0;
-        StravaImportProgress last = first;
-        while (await reader.ReadLineAsync(ct) is { } line)
-        {
-            last = JsonSerializer.Deserialize<StravaImportProgress>(line, options)!;
-            Assert.InRange(last.Processed, previous, first.Total);
-            Assert.Equal(first.Total, last.Total);
-            Assert.Equal(last.Processed, last.Imported + last.Duplicates + last.Failed);
-            previous = last.Processed;
-        }
-        Assert.Equal(first.Total, last.Processed);
-        Assert.NotNull(last.Result);
-        Assert.Equal((last.Imported, last.Duplicates, last.Failed),
-            (last.Result.Imported, last.Result.Duplicates, last.Result.FailedActivityIds.Length));
-        return last.Result;
+        var progress = job.Progress!.Value.Deserialize<StravaImportProgress>(options)!;
+        var result = job.Result!.Value.Deserialize<StravaImportResult>(options)!;
+        Assert.Equal(progress.Total, progress.Processed);
+        Assert.Equal((progress.Imported, progress.Duplicates, progress.Failed),
+            (result.Imported, result.Duplicates, result.FailedActivityIds.Length));
+        Assert.False(File.Exists(factory.Services.GetRequiredService<ImportFiles>().PathFor(queued.Id)));
+        return result;
     }
 
     internal static async Task<HttpResponseMessage> Upload(HttpClient client, byte[] bytes, CancellationToken ct)
