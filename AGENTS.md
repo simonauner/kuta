@@ -86,7 +86,7 @@ Kuta är en Strava-liknande löparapp: ladda upp pass från Garmin (FIT) eller l
 ## Designbeslut att hålla fast vid
 - **Tidsserier som arrayer** i `activity_streams` (en rad per pass), inte en rad per sekund.
 - **Importen är en idempotent pipeline:** spara rå fil → parsa → sammanfattning + förenklad rutt (Douglas-Peucker) → bästa insatser per standarddistans (1 km, 1 mile, 5k, 10k, halvmara, mara) → uppdatera personbästa. Ska gå att köra om vid ändrad logik. "Snabbaste 5k i år" är en query över `best_efforts`.
-- **Garmin Connect Developer Program är pausat för nya ansökare** → bygg manuell FIT/GPX-uppladdning först, automatisk Garmin-synk senare via en import-abstraktion. Inga inofficiella Garmin-scrapers.
+- **Garmin Connect:** manuell FIT-uppladdning finns; automatisk synk kräver godkänd officiell anslutning och uppdaterad integritetsinformation före insamling. Garmin beskriver Starter Access med push, högst 1 000 anslutna användare och utan historik i [utvecklarportalen](https://developerportal.garmin.com/developer-programs/connect-developer-api) (kontrollerat 2026-11-01); utgå inte från den tidigare uppgiften om pausade ansökningar. Inga inofficiella Garmin-scrapers.
 - **Ingen anslutning till Stravas API.** Användarens egen arkivexport får importeras via ZIP; det kräver ingen Strava-anslutning.
 - **Integritet/GDPR:** puls är hälsodata → uttryckligt samtycke. Pass privata som standard (`privacy = 'private'`), dolda start-/slutzoner på rutter, export och radering av konto från start. Personuppgiftsansvarig är användarens AB.
 - Segment/topplistor à la Strava: avvakta, inte v1.
