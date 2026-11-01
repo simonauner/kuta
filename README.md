@@ -185,7 +185,8 @@ lämnas till andra mottagare. Ingen ny åtkomst följer av själva klippningen.
 `/app/stats` visar årsstatistik med månadsdiagram och tabell för distans, träningstid,
 snittempo och snittpuls samt antal pass. Välj år och sportgrupp (se [Sportgrupper](#sportgrupper));
 löpning och innevarande år är förval. Årsväljaren innehåller hela den egna historiken. Tomma månader har noll mängd,
-men saknat tempo och puls visas som `–`.
+men saknat tempo och puls visas som `–`. En växel högst upp byter mellan Översikt och Analys
+(`/app/stats/analysis`), som visar läget just nu: träningsbelastning och loppprognos, oberoende av årsvalet.
 
 `GET /api/activities/statistics?year=2026&sportGroup=running&timeZone=Europe%2FStockholm`
 ger tolv månadsrader för den inloggade användaren. År krävs (1–9998), utelämnad sportgrupp
@@ -237,7 +238,7 @@ loggningen, och Wolverine är ett helt meddelanderamverk. Kön är en tabell `jo
 
 ## Träningsbelastning
 
-Statistiksidan visar kondition, trötthet och form för löpning, och Pass visar en varning högst upp när
+Analys (`/app/stats/analysis`) visar kondition, trötthet och form för löpning, och Pass visar en varning högst upp när
 konditionen ökar snabbt. Modellen är TrainingPeaks förenkling av Banisters impuls–respons-modell:
 
 - **Belastning per pass (rTSS):** `∫ v² dt / vT² / 36`, där `vT` är tröskelfarten. En timme i tröskelfart ger 100.
@@ -548,8 +549,8 @@ likvärdiga tider på andra distanser (bisektion över tiden). Underlaget är in
 högst VDOT bland 5 km och längre de senaste 90 dagarna (lika VDOT: den senaste);
 kortare insatser ur intervallpass överskattar uthålligheten. VDOT över 90, över
 världsrekordnivå, behandlas som mätfel. Statistiksidan visar personbästa och årsbästa
-per distans, ett diagram med månadsbästa och rekordtrappa, rekordhistoriken som tabell
-och prognosen. Passidan visar en separat lista över personbästa som sattes på passet,
+per distans, ett diagram med månadsbästa och rekordtrappa, rekordhistoriken som tabell;
+prognosen visas under Analys. Passidan visar en separat lista över personbästa som sattes på passet,
 med en trofé i guld och medaljer i silver med metallisk glans för nuvarande respektive tidigare
 rekord. Status visas i tooltips som öppnas med mus, tangentbord eller tryck. Samma märkning visas
 vid bästa insatser; en ljusgrå rosett i kontur markerar årsbästa när insatsen inte är ett personbästa.
