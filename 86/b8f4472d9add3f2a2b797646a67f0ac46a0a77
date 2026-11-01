@@ -1,0 +1,25 @@
+api/Kuta.Api.Tests/FitImportTests.cs
+  s_18157bd3682cdd::t_22ecf37049c6e0 13-23
+api/Kuta.Api.Tests/FitUploadTests.cs
+  s_18157bd3682cdd::t_22ecf37049c6e0 248,270
+api/Kuta.Api/StravaImportEndpoint.cs
+  s_18157bd3682cdd::t_ccddd2ddc2b6bc 232-234
+api/Kuta.Api/FitImport.cs
+  s_18157bd3682cdd::t_ccddd2ddc2b6bc 151-152
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.7.5",
+  "base_commit_sha": "86b8f4472d9add3f2a2b797646a67f0ac46a0a77",
+  "prompts": {},
+  "sessions": {
+    "s_18157bd3682cdd": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "c8e5873c-f510-4ac1-8363-b864b8cfaff4",
+        "model": "claude-opus-5-5"
+      },
+      "human_author": "Simon Aunér <simonauner@gmail.com>"
+    }
+  }
+}

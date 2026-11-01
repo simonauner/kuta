@@ -1,0 +1,23 @@
+.github/workflows/frontend.yml
+  s_18157bd3682cdd::t_ff3d7a442cd532 26-27
+.github/workflows/api.yml
+  s_18157bd3682cdd::t_ff3d7a442cd532 27-28,31
+.github/workflows/deploy.yml
+  s_18157bd3682cdd::t_ff3d7a442cd532 29
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.7.5",
+  "base_commit_sha": "a807557675ee10c23e0830fec80490eaf0b4d649",
+  "prompts": {},
+  "sessions": {
+    "s_18157bd3682cdd": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "c8e5873c-f510-4ac1-8363-b864b8cfaff4",
+        "model": "claude-opus-5-5"
+      },
+      "human_author": "Simon Aunér <simonauner@gmail.com>"
+    }
+  }
+}
