@@ -1,0 +1,21 @@
+AGENTS.md
+  s_429fa1f9bb91ad::t_7a7c696e5ddf4e 73
+README.md
+  s_429fa1f9bb91ad::t_7a7c696e5ddf4e 613
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.7.5",
+  "base_commit_sha": "8e244da5889b415bcbaf503a72f1f091900cf0e1",
+  "prompts": {},
+  "sessions": {
+    "s_429fa1f9bb91ad": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "067ced1c-a3d3-472c-978b-be144895540d",
+        "model": "claude-opus-5-5"
+      },
+      "human_author": "Simon Aunér <simonauner@gmail.com>"
+    }
+  }
+}
