@@ -134,6 +134,12 @@ const routeTree = rootRoute.addChildren([
 export const router = createRouter({
   routeTree,
   defaultPreload: 'intent',
+  scrollRestoration: true,
+  // The activity page's back link pushes a new entry, so key the list by URL to restore it there too.
+  getScrollRestorationKey: (location) =>
+    location.pathname === '/app/activities'
+      ? location.href
+      : (location.state.__TSR_key ?? location.href),
   defaultViewTransition: {
     types: ({ fromLocation, toLocation }) => {
       const from = fromLocation?.pathname ?? ''
