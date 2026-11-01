@@ -1,0 +1,25 @@
+web/src/components/garmin.tsx
+  s_dc246764298534::t_6e12e355b27817 5-6,38-56,61,98-99
+web/src/routes/settings.tsx
+  s_dc246764298534::t_6e12e355b27817 7,52
+web/src/components/ui/alert.tsx
+  s_dc246764298534::t_4f9da5669d6f89 1-3,6,10,14,18,20,27,38,42,48,53-54
+  s_dc246764298534::t_46caba8332cc60 4-5,7-9,13,15-17,19,21-26,28-37,39-41,43-47,49-52,55-61
+  s_dc246764298534::t_6e12e355b27817 11-12
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.7.5",
+  "base_commit_sha": "10d2992853e698403204c2116b3d03a2a30b2206",
+  "prompts": {},
+  "sessions": {
+    "s_dc246764298534": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "c3253d6e-497f-491b-9db8-46eff345564d",
+        "model": "claude-opus-5-5"
+      },
+      "human_author": "Simon Aunér <simonauner@gmail.com>"
+    }
+  }
+}
