@@ -1,0 +1,37 @@
+web/src/locales/sv.json
+  s_bee2e5fcf7ec11::t_1b2f84e6a5fd20 56-57,74-75,94,97-100,138-139,300-301,412,417,426,431-435,591
+web/src/routes/settings.tsx
+  s_bee2e5fcf7ec11::t_1b2f84e6a5fd20 25,112-119,131-138
+web/src/components/training-load.tsx
+  s_bee2e5fcf7ec11::t_1b2f84e6a5fd20 23,78-83,210-217
+web/src/components/year-comparison.tsx
+  s_bee2e5fcf7ec11::t_1b2f84e6a5fd20 20,83-90
+web/src/components/help-popover.tsx
+  s_bee2e5fcf7ec11::t_1b2f84e6a5fd20 20
+web/src/routes/activity.tsx
+  s_bee2e5fcf7ec11::t_1b2f84e6a5fd20 2,419-423
+web/src/components/records.tsx
+  s_bee2e5fcf7ec11::t_1b2f84e6a5fd20 176-181
+web/src/routes/stats.tsx
+  s_bee2e5fcf7ec11::t_1b2f84e6a5fd20 20,168-171
+web/src/locales/en.json
+  s_bee2e5fcf7ec11::t_1b2f84e6a5fd20 56-57,74-75,94,97-100,138-139,300-301,412,417,426,431-435,591
+web/src/components/strava-import.tsx
+  s_bee2e5fcf7ec11::t_f267828f99cb98 125
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.7.5",
+  "base_commit_sha": "66a96a5a90eef2f6b2152f49f6e3ad274dbe4d3d",
+  "prompts": {},
+  "sessions": {
+    "s_bee2e5fcf7ec11": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "cd696b42-7e9f-47b1-8f97-a4d814189962",
+        "model": "claude-opus-5-5"
+      },
+      "human_author": "Simon Aunér <simonauner@gmail.com>"
+    }
+  }
+}
