@@ -1,0 +1,36 @@
+web/src/components/fit-drop.tsx
+  s_bee2e5fcf7ec11::t_fd01dfd5e682a9 1-69
+web/src/locales/en.json
+  s_bee2e5fcf7ec11::t_7f07792b17e0e0 240-258
+web/src/locales/sv.json
+  s_bee2e5fcf7ec11::t_7f07792b17e0e0 240-258
+web/src/components/ui/card-variants.ts
+  s_bee2e5fcf7ec11::t_fd01dfd5e682a9 18-19,25
+web/src/routes/new-activity.tsx
+  s_bee2e5fcf7ec11::t_e317e36d826844 38,40-44,96-97,194-202,204-206,210-212,214-218,220-247,249-275,277-334,336-445,448-455,458-479,527-535,537-540
+  s_bee2e5fcf7ec11::t_7f07792b17e0e0 39,193,203,536
+web/src/components/bulk-upload.tsx
+  s_bee2e5fcf7ec11::t_fd01dfd5e682a9 1-113
+web/src/components/ui/card.tsx
+  s_bee2e5fcf7ec11::t_fd01dfd5e682a9 9,13
+AGENTS.md
+  s_bee2e5fcf7ec11::t_4bcc9750c789d5 32,56
+README.md
+  s_bee2e5fcf7ec11::t_dde319b8bfc621 17
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.7.5",
+  "base_commit_sha": "9525ebcb92776f0a8b223bd1ef6825f161b0c92d",
+  "prompts": {},
+  "sessions": {
+    "s_bee2e5fcf7ec11": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "cd696b42-7e9f-47b1-8f97-a4d814189962",
+        "model": "claude-opus-5-5"
+      },
+      "human_author": "Simon Aunér <simonauner@gmail.com>"
+    }
+  }
+}
