@@ -138,10 +138,19 @@ public static class SocialEndpoints
         });
     }
 
-    // Moves a point up to maxOffset metres in a direction derived from the owner's secret seed and key. The same key
-    // always gives the same offset, so averaging many activities from the same place does not reveal it.
+    // Moves a point up to maxOffset metres in a direction derived from the owner's secret seed and key, uniformly over the
+    // disc. The same key always gives the same offset, so averaging many activities from the same place does not reveal it.
     static string ZoneShift(string point, string key, string maxOffset) => $"""
-        st_project({point}, {maxOffset} * {SeedFraction(key, 1)}, 2 * pi() * {SeedFraction(key, 9)})
+        st_project({point}, {maxOffset} * sqrt({SeedFraction(key, 1)}), 2 * pi() * {SeedFraction(key, 9)})
+        """;
+
+    // The clip points lie on a circle of known radius, so its centre (the shifted point) can be fitted from a few previews.
+    // The offset therefore spans 500 m, and it is keyed per ~1 km grid cell: one start at a known place (a race) must not
+    // reveal the offset used at home.
+    // shortcut: a home on a cell edge gets two independent offsets, which narrows it down; key on privacy places if needed.
+    static string EndpointZone(string point) => $"""
+        st_buffer({ZoneShift($"{point}::geography",
+            $"round(st_y({point})::numeric, 2) || ':' || round(st_x({point})::numeric, 2)", "500")}, 1010)::geometry
         """;
 
     static string SeedFraction(string key, int start) =>
@@ -151,8 +160,8 @@ public static class SocialEndpoints
         DateTimeOffset? beforeStartedAt = null, Guid? beforeId = null, Guid? runnerId = null)
     {
         // Limit before route processing. Every zone centre is moved by a secret, stable offset (ZoneShift) and the radius
-        // grows by the largest offset, so the true point stays at least 500 m (or the place's radius) inside the zone while
-        // the clip points no longer lie on a circle around it. The extra 10 m allow polygon/rounding error.
+        // grows by the largest offset, so the true point stays at least 500 m (or the place's radius) inside the zone and
+        // can only be located to within the offset (500 m, or the place's radius). The extra 10 m allow polygon/rounding error.
         // Simplify before clipping so simplification cannot reconnect a line through a protected zone.
         var rows = (await conn.QueryAsync<FeedItem>($"""
             with page as materialized (
@@ -174,12 +183,12 @@ public static class SocialEndpoints
             from page
             cross join lateral (
                 select st_unaryunion(st_collect(zone)) as areas from (
-                    select st_buffer({ZoneShift("st_startpoint(route::geometry)::geography", "'route'", "200")}, 710)::geometry as zone
+                    select {EndpointZone("st_startpoint(route::geometry)")} as zone
                     union all
-                    select st_buffer({ZoneShift("st_endpoint(route::geometry)::geography", "'route'", "200")}, 710)::geometry
+                    select {EndpointZone("st_endpoint(route::geometry)")}
                     union all
-                    select st_buffer({ZoneShift("st_setsrid(st_makepoint(longitude, latitude), 4326)::geography", "privacy_places.id::text", "0.4 * radius_m")},
-                        1.4 * radius_m + 10)::geometry
+                    select st_buffer({ZoneShift("st_setsrid(st_makepoint(longitude, latitude), 4326)::geography", "privacy_places.id::text", "radius_m")},
+                        2 * radius_m + 10)::geometry
                     from privacy_places where user_id = page.user_id
                 ) hidden where page.user_id <> @userId
             ) zones

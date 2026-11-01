@@ -81,6 +81,36 @@ public class SocialTests(KutaFactory factory) : IClassFixture<KutaFactory>
         await tx.RollbackAsync(ct);
     }
 
+    // A start at a known place (a race) must not reveal the offset used for the owner's other starts.
+    [Fact]
+    public async Task Map_preview_zones_use_separate_offsets_for_separate_places()
+    {
+        var ct = TestContext.Current.CancellationToken;
+        await using var conn = await factory.Services.GetRequiredService<NpgsqlDataSource>().OpenConnectionAsync(ct);
+        await using var tx = await conn.BeginTransactionAsync(ct);
+        var owner = Guid.NewGuid();
+        var viewer = Guid.NewGuid();
+        await conn.ExecuteAsync("""
+            insert into auth.users (id) values (@owner), (@viewer);
+            insert into users (id, display_name, privacy_seed)
+            values (@owner, 'Owner', '00000000-0000-0000-0000-000000000003'), (@viewer, 'Viewer', gen_random_uuid());
+            insert into activities (user_id, source, started_at, duration_s, distance_m, privacy, route)
+            select @owner, 'manual', now() - make_interval(hours => n), 1800, 5000, 'public',
+                st_geogfromtext(format('LINESTRING(0 %s,0.05 %s)', lat, lat))
+            from (values (1, 0.0), (2, 0.0), (3, 0.1)) starts(n, lat)
+            """, new { owner, viewer }, tx);
+        // Distance from each true start to where its preview begins: equal for the same place, different elsewhere.
+        var items = (await SocialEndpoints.ReadFeedAsync(conn, viewer, runnerId: owner)).Items;
+        var distances = new List<double>();
+        foreach (var (item, latitude) in items.Zip(new[] { 0.0, 0.0, 0.1 }))
+            distances.Add(await conn.ExecuteScalarAsync<double>("""
+                select round(st_distance(st_geomfromgeojson(@json)::geography, st_setsrid(st_makepoint(0, @latitude), 4326)::geography))
+                """, new { json = item.RouteGeoJson, latitude }, tx));
+        Assert.Equal(distances[0], distances[1]);
+        Assert.NotEqual(distances[0], distances[2]);
+        await tx.RollbackAsync(ct);
+    }
+
     [Fact]
     public async Task Map_previews_hide_start_end_zones_and_never_bridge_return_visits()
     {
@@ -115,13 +145,13 @@ public class SocialTests(KutaFactory factory) : IClassFixture<KutaFactory>
                 """, new { id, json = shared.RouteGeoJson }, tx);
             Assert.True(distance >= 500, $"Preview entered protected zone: {distance} m");
         }
-        // The seed moves the zone about 125 m south-east: the clip points are no longer 710 m from the true start,
-        // so they cannot be fitted to a circle around it.
+        // The seed moves the zone: the clip points are no longer 1010 m from the true start, so they cannot be fitted to
+        // a circle around it.
         var startDistance = await conn.ExecuteScalarAsync<double>("""
             select st_distance(st_geomfromgeojson(@json)::geography, st_startpoint(route::geometry)::geography)
             from activities where id = @id
             """, new { id, json = shared.RouteGeoJson }, tx);
-        Assert.True(startDistance > 715, $"Zone is centred on the start: {startDistance} m");
+        Assert.True(Math.Abs(startDistance - 1010) > 20, $"Zone is centred on the start: {startDistance} m");
         await conn.ExecuteAsync("insert into privacy_places (user_id, name, latitude, longitude, radius_m) values (@owner, 'Synthetic private place', 0.002, 0.02, 200)", new { owner }, tx);
         var masked = Assert.Single((await SocialEndpoints.ReadFeedAsync(conn, viewer)).Items);
         var placeDistance = await conn.ExecuteScalarAsync<double>("select st_distance(st_geomfromgeojson(@json)::geography, st_setsrid(st_makepoint(0.02, 0.002), 4326)::geography)", new { json = masked.RouteGeoJson }, tx);

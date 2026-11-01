@@ -12,6 +12,30 @@ using static TestSession;
 
 public class StravaParserTests
 {
+    // The end record is checked before ZipArchive builds an object for every central directory record.
+    [Fact]
+    public void Archives_with_huge_central_directories_are_rejected_before_reading_entries()
+    {
+        static byte[] End(ushort entries, uint size)
+        {
+            var end = new byte[22];
+            System.Buffers.Binary.BinaryPrimitives.WriteUInt32LittleEndian(end, 0x06054b50);
+            System.Buffers.Binary.BinaryPrimitives.WriteUInt16LittleEndian(end.AsSpan(10), entries);
+            System.Buffers.Binary.BinaryPrimitives.WriteUInt32LittleEndian(end.AsSpan(12), size);
+            return end;
+        }
+        Assert.Throws<InvalidDataException>(() => StravaImportJob.CheckCentralDirectory(new MemoryStream(End(10, 17 * 1024 * 1024))));
+        // ZIP64: record (56 bytes) at offset 0, locator pointing at it, then the end record with placeholder values.
+        var zip64 = new byte[56 + 20];
+        System.Buffers.Binary.BinaryPrimitives.WriteUInt32LittleEndian(zip64, 0x06064b50);
+        System.Buffers.Binary.BinaryPrimitives.WriteUInt64LittleEndian(zip64.AsSpan(32), 200000);
+        System.Buffers.Binary.BinaryPrimitives.WriteUInt32LittleEndian(zip64.AsSpan(56), 0x07064b50);
+        Assert.Throws<InvalidDataException>(() => StravaImportJob.CheckCentralDirectory(new MemoryStream([.. zip64, .. End(ushort.MaxValue, uint.MaxValue)])));
+        var small = new MemoryStream(End(10, 1024));
+        StravaImportJob.CheckCentralDirectory(small);
+        Assert.Equal(0, small.Position);
+    }
+
     [Theory]
     [InlineData("Ride", "cycling")]
     [InlineData("Trail Run", "trail run")]

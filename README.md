@@ -162,9 +162,12 @@ Delade kartminiatyrer i flöde och profiler klipps i PostGIS mot ägarens aktuel
 med respektive radie, och minst 500 meter runt start och mål. Förenklingen sker före
 klippningen; separata linjer sammanfogas aldrig över skyddade områden. Det gäller även
 äldre pass. Zonernas mittpunkter flyttas med en hemlig, stabil förskjutning per användare
-(`users.privacy_seed`, migrering 023): högst 200 m för start och mål och 40 % av radien för
-dolda platser, och radien växer lika mycket. Annars ligger klippunkterna på en cirkel runt den
-skyddade punkten, och flera pass räcker för att räkna fram den. Koordinaterna avrundas till
+(`users.privacy_seed`, migrering 023): högst 500 m för start och mål och en radie för dolda
+platser, och radien växer lika mycket (1 010 m respektive 2 × radien + 10 m). Klippunkterna ligger
+på en cirkel med känd radie, så flera pass räcker för att hitta dess mitt; förskjutningen avgör
+hur nära den verkliga punkten det tar en. Start och mål får egen förskjutning per ruta i ett
+rutnät på ungefär 1 km, så att ett pass från en känd plats (ett lopp) inte avslöjar förskjutningen
+hemma. Ett hem precis vid en rutgräns får två oberoende förskjutningar. Koordinaterna avrundas till
 4 decimaler. Ägaren får hela rutten, och delade detaljsvar utelämnar GPS-tidsserier helt.
 Sparade privata platsers namn och mittpunkter skickas aldrig till andra mottagare.
 
