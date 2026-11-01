@@ -6,6 +6,8 @@ using System.Xml;
 using Dapper;
 using Dynastream.Fit;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.AspNetCore.WebUtilities;
+using Microsoft.Net.Http.Headers;
 using Microsoft.VisualBasic.FileIO;
 using Npgsql;
 
@@ -16,47 +18,115 @@ public record StravaImportProgress(int Processed, int Total, int Imported, int D
 public static class StravaImportEndpoint
 {
     private const long MaxArchiveBytes = 500L * 1024 * 1024;
+    // Arkiven ligger på maskinens disk tills arbetaren (ett jobb i taget) hunnit köra dem: högst så här många köade
+    // eller pågående importer plus två samtidiga uppladdningar, alltså några GB.
+    private const int MaxQueuedImports = 4;
+    private static readonly SemaphoreSlim Uploads = new(2);
 
     // Uppladdningen sparar arkivet, kontrollerar manifestet och köar importen. Själva importen körs av JobWorker.
+    // Kroppen läses som ström först efter kontrollerna: med IFormFile buffrar ramverket hela arkivet till disk innan
+    // handlern körs, så att parallella anrop fyllde disken trots att bara en import i taget köas.
     public static void MapStravaImport(this RouteGroupBuilder activities)
     {
-        activities.MapPost("/import/strava", async (IFormFile? file, NpgsqlDataSource db, ImportFiles files,
+        activities.MapPost("/import/strava", async (HttpRequest request, NpgsqlDataSource db, ImportFiles files,
             ClaimsPrincipal user, CancellationToken cancellationToken) =>
         {
-            if (file is null || file.Length == 0 || file.Length > MaxArchiveBytes)
-                return Results.BadRequest(new ApiError("Välj en Strava-export som ZIP (högst 500 MB).", "stravaArchiveRequired"));
+            var archiveRequired = Results.BadRequest(new ApiError("Välj en Strava-export som ZIP (högst 500 MB).", "stravaArchiveRequired"));
+            var inProgress = Results.Conflict(new ApiError("En import pågår redan. Vänta tills den är klar.", "importInProgress"));
+            if (!MediaTypeHeaderValue.TryParse(request.ContentType, out var contentType)
+                || HeaderUtilities.RemoveQuotes(contentType.Boundary).Value is not { Length: > 0 } boundary)
+                return archiveRequired;
             await using var conn = await db.OpenConnectionAsync(cancellationToken);
             var userId = user.GetUserId();
             if (await MeEndpoints.LoadProfileAsync(conn, userId) is null)
                 return Results.Conflict(new ApiError("Välj ett namn först.", "nameRequired"));
-            if (await JobQueue.ActiveAsync(conn, userId, JobKinds.StravaImport, cancellationToken) is not null)
-                return Results.Conflict(new ApiError("En import pågår redan. Vänta tills den är klar.", "importInProgress"));
-
-            var jobId = Guid.NewGuid();
-            await using (var upload = file.OpenReadStream())
-                await files.SaveAsync(jobId, upload, cancellationToken);
+            // Sessionslås per användare under hela uppladdningen; släpps uttryckligen eftersom anslutningen är poolad.
+            if (!await conn.ExecuteScalarAsync<bool>("select pg_try_advisory_lock(hashtext('strava-import:' || @userId))", new { userId }))
+                return inProgress;
+            var uploading = false;
             try
             {
-                await using var stream = System.IO.File.OpenRead(files.PathFor(jobId));
-                using var archive = StravaImportJob.Open(stream, cancellationToken);
+                if (await JobQueue.ActiveAsync(conn, userId, JobKinds.StravaImport, cancellationToken) is not null)
+                    return inProgress;
+                if (await conn.ExecuteScalarAsync<int>("select count(*) from jobs where kind = @kind and status in ('queued', 'running')",
+                        new { kind = JobKinds.StravaImport }) >= MaxQueuedImports || !(uploading = await Uploads.WaitAsync(0, cancellationToken)))
+                    return Results.Json(new ApiError("Många importer pågår just nu. Försök igen om en stund.", "importBusy"),
+                        statusCode: StatusCodes.Status503ServiceUnavailable);
+
+                var jobId = Guid.NewGuid();
+                if (!await SaveArchiveAsync(request.Body, boundary, files, jobId, cancellationToken))
+                {
+                    files.Delete(jobId);
+                    return archiveRequired;
+                }
+                try
+                {
+                    await using var stream = System.IO.File.OpenRead(files.PathFor(jobId));
+                    using var archive = StravaImportJob.Open(stream, cancellationToken);
+                }
+                catch (Exception e) when (StravaImportJob.IsInvalidFile(e) || e is ArgumentException)
+                {
+                    files.Delete(jobId);
+                    return Results.BadRequest(new ApiError("ZIP-filen innehåller inte en giltig Strava-export.", "invalidStravaArchive"));
+                }
+                var job = await JobQueue.EnqueueAsync(conn, userId, JobKinds.StravaImport, jobId, cancellationToken);
+                if (job is null)
+                {
+                    files.Delete(jobId);
+                    return inProgress;
+                }
+                return Results.Accepted($"/api/jobs/{job.Id}", JobResponse.From(job));
             }
-            catch (Exception e) when (StravaImportJob.IsInvalidFile(e) || e is ArgumentException)
+            finally
             {
-                files.Delete(jobId);
-                return Results.BadRequest(new ApiError("ZIP-filen innehåller inte en giltig Strava-export.", "invalidStravaArchive"));
+                if (uploading) Uploads.Release();
+                await conn.ExecuteAsync("select pg_advisory_unlock(hashtext('strava-import:' || @userId))", new { userId });
             }
-            var job = await JobQueue.EnqueueAsync(conn, userId, JobKinds.StravaImport, jobId, cancellationToken);
-            if (job is null)
-            {
-                files.Delete(jobId);
-                return Results.Conflict(new ApiError("En import pågår redan. Vänta tills den är klar.", "importInProgress"));
-            }
-            return Results.Accepted($"/api/jobs/{job.Id}", JobResponse.From(job));
         })
+        // CSRF-token kontrolleras av filtret i AuthEndpoints; kroppen läses som ström i stället för formulär
         .DisableAntiforgery()
         .RequireRateLimiting("uploads")
-        .WithMetadata(new RequestSizeLimitAttribute(MaxArchiveBytes + 1024 * 1024),
-            new RequestFormLimitsAttribute { MultipartBodyLengthLimit = MaxArchiveBytes });
+        .WithMetadata(new RequestSizeLimitAttribute(MaxArchiveBytes + 1024 * 1024));
+    }
+
+    // Sparar fältet "file" ur multipart-kroppen. False när fältet saknas, är tomt eller större än 500 MB.
+    static async Task<bool> SaveArchiveAsync(Stream body, string boundary, ImportFiles files, Guid jobId, CancellationToken ct)
+    {
+        var reader = new MultipartReader(boundary, body);
+        while (await reader.ReadNextSectionAsync(ct) is { } section)
+        {
+            if (!ContentDispositionHeaderValue.TryParse(section.ContentDisposition, out var disposition)
+                || !disposition.IsFileDisposition() || disposition.Name.Value?.Trim('"') != "file")
+                continue;
+            var limited = new LimitedStream(section.Body, MaxArchiveBytes);
+            await files.SaveAsync(jobId, limited, ct);
+            return limited.BytesRead > 0 && !limited.Exceeded;
+        }
+        return false;
+    }
+
+    // Slutar läsa strax efter gränsen, så att ett för stort arkiv aldrig skrivs klart till disk.
+    sealed class LimitedStream(Stream inner, long limit) : Stream
+    {
+        public long BytesRead { get; private set; }
+        public bool Exceeded => BytesRead > limit;
+        public override async ValueTask<int> ReadAsync(Memory<byte> buffer, CancellationToken ct = default)
+        {
+            if (Exceeded) return 0;
+            var read = await inner.ReadAsync(buffer[..(int)Math.Min(buffer.Length, limit + 1 - BytesRead)], ct);
+            BytesRead += read;
+            return read;
+        }
+        public override int Read(byte[] buffer, int offset, int count) => throw new NotSupportedException();
+        public override bool CanRead => true;
+        public override bool CanSeek => false;
+        public override bool CanWrite => false;
+        public override long Length => throw new NotSupportedException();
+        public override long Position { get => BytesRead; set => throw new NotSupportedException(); }
+        public override void Flush() { }
+        public override long Seek(long offset, SeekOrigin origin) => throw new NotSupportedException();
+        public override void SetLength(long value) => throw new NotSupportedException();
+        public override void Write(byte[] buffer, int offset, int count) => throw new NotSupportedException();
     }
 }
 

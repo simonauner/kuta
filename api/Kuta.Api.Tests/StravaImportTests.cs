@@ -349,6 +349,34 @@ public class StravaUploadTests(KutaFactory factory) : IClassFixture<KutaFactory>
         finally { await conn.ExecuteAsync("delete from auth.users where email=@email", new { email }); }
     }
 
+    // Arkiven ligger på disk tills arbetaren kört dem: fler köade importer än taket avvisas innan kroppen läses.
+    [Fact]
+    public async Task Upload_is_refused_when_too_many_imports_are_queued()
+    {
+        var ct = TestContext.Current.CancellationToken;
+        var email = $"strava-busy-{Guid.NewGuid():N}@example.com";
+        var client = factory.CreateClient();
+        await using var conn = await factory.Services.GetRequiredService<NpgsqlDataSource>().OpenConnectionAsync(ct);
+        var queued = Enumerable.Range(0, 4).Select(_ => Guid.NewGuid()).ToArray();
+        try
+        {
+            var userId = await CreateRunner(client, conn, email, ct);
+            await conn.ExecuteAsync("""
+                insert into auth.users (id) select unnest(@queued);
+                insert into users (id, display_name) select unnest(@queued), 'Synthetic runner';
+                insert into jobs (user_id, kind) select unnest(@queued), 'strava_import';
+                """, new { queued });
+            using var busy = await Upload(client, StravaFixture.Archive(), ct);
+            Assert.Equal(HttpStatusCode.ServiceUnavailable, busy.StatusCode);
+            Assert.Contains("importBusy", await busy.Content.ReadAsStringAsync(ct));
+            Assert.Equal(0, await conn.ExecuteScalarAsync<int>("select count(*) from jobs where user_id=@userId", new { userId }));
+        }
+        finally
+        {
+            await conn.ExecuteAsync("delete from auth.users where email=@email or id = any(@queued)", new { email, queued });
+        }
+    }
+
     private async Task<Guid> CreateRunner(HttpClient client, NpgsqlConnection conn, string email, CancellationToken ct)
     {
         var id = await conn.ExecuteScalarAsync<Guid>(

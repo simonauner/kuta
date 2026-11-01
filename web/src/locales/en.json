@@ -376,6 +376,7 @@
     "invalidGoal": "Check the sport, measure, period and goal.",
     "invalidSportGroup": "Choose a valid sport.",
     "importInProgress": "An import is already running. Wait until it has finished.",
+    "importBusy": "Many imports are running right now. Try again in a while.",
     "jobFailed": "The job failed. Please try again later.",
     "jobCancelled": "The job was cancelled.",
     "termsRequired": "Accept the terms of use and privacy policy to create an account."
