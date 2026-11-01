@@ -1,0 +1,19 @@
+api/Kuta.Api/ActivityEndpoints.cs
+  s_1e5bba168c42f0::t_aad02664a66dc2 333-343
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.7.5",
+  "base_commit_sha": "98a5b882db890e8a3a7882c506c3c216777e0b81",
+  "prompts": {},
+  "sessions": {
+    "s_1e5bba168c42f0": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "e266005a-6c5a-4033-8039-e9de7dd84f84",
+        "model": "claude-opus-5-5"
+      },
+      "human_author": "Simon Aunér <simonauner@gmail.com>"
+    }
+  }
+}
