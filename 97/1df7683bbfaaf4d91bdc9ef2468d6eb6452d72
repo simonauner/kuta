@@ -1,0 +1,41 @@
+api/Kuta.Api/SocialEndpoints.cs
+  s_4b41d6b2cbe45c::t_da9318abadf9e7 6-8,34-37,50-51,74-75,82-83,88-90
+api/Kuta.Api/Migrations/027_display_name_history.sql
+  s_4b41d6b2cbe45c::t_da9318abadf9e7 1-3
+api/Kuta.Api/DataExport.cs
+  s_4b41d6b2cbe45c::t_da9318abadf9e7 54,118-119
+web/src/locales/en.json
+  s_4b41d6b2cbe45c::t_da9318abadf9e7 378
+  s_4b41d6b2cbe45c::t_c3466243634133 631
+api/Kuta.Api.Tests/SocialTests.cs
+  s_4b41d6b2cbe45c::t_6fa140dc6f4692 329-364
+web/src/locales/sv.json
+  s_4b41d6b2cbe45c::t_da9318abadf9e7 378
+  s_4b41d6b2cbe45c::t_c3466243634133 631
+api/Kuta.Api/MeEndpoints.cs
+  s_4b41d6b2cbe45c::t_da9318abadf9e7 122-125,130-136,139-140
+web/src/routes/followers.tsx
+  s_4b41d6b2cbe45c::t_c3466243634133 29-30,63-67
+web/src/routes/runner.tsx
+  s_4b41d6b2cbe45c::t_c3466243634133 18,72-76
+AGENTS.md
+  s_4b41d6b2cbe45c::t_0f745af95ef643 39
+README.md
+  s_4b41d6b2cbe45c::t_40d18e22b73ec2 71
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.7.5",
+  "base_commit_sha": "971df7683bbfaaf4d91bdc9ef2468d6eb6452d72",
+  "prompts": {},
+  "sessions": {
+    "s_4b41d6b2cbe45c": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "666b8b83-04cc-4497-9a36-a615f20592fd",
+        "model": "claude-opus-5-5"
+      },
+      "human_author": "Simon Aunér <simonauner@gmail.com>"
+    }
+  }
+}
