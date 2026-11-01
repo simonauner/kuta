@@ -1,0 +1,221 @@
+web/src/components/heart-rate-consent.tsx
+  s_bbd283fa78a4ac::t_3c3a4f7a975ce3 10
+supabase/config.toml
+  s_bbd283fa78a4ac::t_4545ff59f069a3 106,191,231-232
+web/src/lib/training-load.ts
+  s_bbd283fa78a4ac::t_3c3a4f7a975ce3 22,30,37
+api/Kuta.Api/LogException.cs
+  s_bbd283fa78a4ac::t_823f942000bb27 4,7,36,46
+api/Kuta.Api/RecordTrends.cs
+  s_bbd283fa78a4ac::t_f436c6c66befdc 35-36
+web/src/routes/stats.tsx
+  s_bbd283fa78a4ac::t_3c3a4f7a975ce3 35
+api/Kuta.Api.Tests/GoalsTests.cs
+  s_bbd283fa78a4ac::t_4545ff59f069a3 65,71,132,136,138,243
+api/Kuta.Api/StravaEquipment.cs
+  s_bbd283fa78a4ac::t_8f5574c44a1af8 24,32
+web/src/routes/new-activity.tsx
+  s_bbd283fa78a4ac::t_3c3a4f7a975ce3 37,51-52,88,95,103,164,175,192
+api/Kuta.Api/RacePredictor.cs
+  s_bbd283fa78a4ac::t_f436c6c66befdc 5-6,9,12,15,27-28,39,53
+api/Kuta.Api.Tests/SecurityHeadersTests.cs
+  s_bbd283fa78a4ac::t_4545ff59f069a3 8,18
+api/Kuta.Api/PostgresXmlRepository.cs
+  s_bbd283fa78a4ac::t_f436c6c66befdc 8-9
+web/src/theme.css
+  s_bbd283fa78a4ac::t_3c3a4f7a975ce3 1
+web/src/components/goals.tsx
+  s_bbd283fa78a4ac::t_3c3a4f7a975ce3 33,62-63,74,217,225
+api/Kuta.Api/JobEndpoints.cs
+  s_bbd283fa78a4ac::t_823f942000bb27 9,22
+api/Kuta.Api/PasswordRecovery.cs
+  s_bbd283fa78a4ac::t_f436c6c66befdc 9,60,63,79,98
+api/Kuta.Api/AuthEndpoints.cs
+  s_bbd283fa78a4ac::t_823f942000bb27 17,20-21,32-33,47,50,54-55,159-161
+web/src/lib/sport-groups.ts
+  s_bbd283fa78a4ac::t_3c3a4f7a975ce3 5-6,10,21
+web/src/lib/goals.ts
+  s_bbd283fa78a4ac::t_3c3a4f7a975ce3 3,9,31,65,69,80
+api/Kuta.Api/SportGroups.cs
+  s_bbd283fa78a4ac::t_8f5574c44a1af8 3-5,25,35,37-39
+api/Kuta.Api/JobWorker.cs
+  s_bbd283fa78a4ac::t_823f942000bb27 3-5,31,44,70,88,136
+web/src/lib/auth.ts
+  s_bbd283fa78a4ac::t_3c3a4f7a975ce3 6,14,20,24,37
+api/Kuta.Api/RecalculationJob.cs
+  s_bbd283fa78a4ac::t_f436c6c66befdc 7-8,35
+api/Kuta.Api.Tests/JobsTests.cs
+  s_bbd283fa78a4ac::t_4545ff59f069a3 28,43,47,60,67,89,124,153
+api/Kuta.Api.Tests/DailyTotalsTests.cs
+  s_bbd283fa78a4ac::t_4545ff59f069a3 36,42
+api/Kuta.Api/ActivityInput.cs
+  s_bbd283fa78a4ac::t_823f942000bb27 1,6,34
+web/src/components/strava-import.tsx
+  s_bbd283fa78a4ac::t_3c3a4f7a975ce3 28
+web/src/routes/activities.tsx
+  s_bbd283fa78a4ac::t_3c3a4f7a975ce3 73
+api/Kuta.Api/JobQueue.cs
+  s_bbd283fa78a4ac::t_823f942000bb27 24,30-31,44,62,68,81,94,107
+web/src/components/year-comparison.tsx
+  s_bbd283fa78a4ac::t_3c3a4f7a975ce3 22,64
+web/src/components/activity-charts.tsx
+  s_bbd283fa78a4ac::t_3c3a4f7a975ce3 11,16
+api/Kuta.Api/ActivityStorage.cs
+  s_bbd283fa78a4ac::t_823f942000bb27 28,59,130,135
+api/Kuta.Api/SocialEndpoints.cs
+  s_bbd283fa78a4ac::t_8f5574c44a1af8 5,78,87
+api/Kuta.Api.Tests/BestEffortTests.cs
+  s_bbd283fa78a4ac::t_4545ff59f069a3 47,54,96
+api/Kuta.Api/StravaImportEndpoint.cs
+  s_bbd283fa78a4ac::t_13e7586cdb243a 21-22,26-28,43,86,92,108,162
+scripts/run-dev.sh
+  s_bbd283fa78a4ac::t_4545ff59f069a3 2-4,6-7,9,19,23,31,43,53,57,69,81,84,86
+api/Kuta.Api/EquipmentEndpoints.cs
+  s_bbd283fa78a4ac::t_823f942000bb27 56
+api/Kuta.Api/PrivateLogProvider.cs
+  s_bbd283fa78a4ac::t_f436c6c66befdc 4,24
+web/src/components/training-load.tsx
+  s_bbd283fa78a4ac::t_3c3a4f7a975ce3 20,32
+web/src/components/garmin.tsx
+  s_bbd283fa78a4ac::t_3c3a4f7a975ce3 5-6
+fly.toml
+  s_bbd283fa78a4ac::t_4545ff59f069a3 1,4,12,15,18,20,28
+api/Kuta.Api.Tests/CanonicalHostTests.cs
+  s_bbd283fa78a4ac::t_4545ff59f069a3 12
+api/Kuta.Api.Tests/FitUploadTests.cs
+  s_bbd283fa78a4ac::t_4545ff59f069a3 12,29,37,61,66,79,93,121,134,147,195,223,243,272,276
+api/Kuta.Api/TrainingLoads.cs
+  s_bbd283fa78a4ac::t_64807547acc0df 25
+web/src/lib/activity-query.ts
+  s_bbd283fa78a4ac::t_3c3a4f7a975ce3 12,46
+web/src/components/activity-map.tsx
+  s_bbd283fa78a4ac::t_3c3a4f7a975ce3 5-7,33
+web/src/components/record-award.tsx
+  s_bbd283fa78a4ac::t_3c3a4f7a975ce3 14
+api/Kuta.Api/ActivityStatistics.cs
+  s_bbd283fa78a4ac::t_823f942000bb27 13-14
+api/Kuta.Api.Tests/PasswordRecoveryTests.cs
+  s_bbd283fa78a4ac::t_4545ff59f069a3 38,53,208,229
+api/Kuta.Api/DailyTotals.cs
+  s_bbd283fa78a4ac::t_823f942000bb27 8-9
+api/Kuta.Api.Tests/ActivityAccessTests.cs
+  s_bbd283fa78a4ac::t_4545ff59f069a3 127
+web/src/routes/activity.tsx
+  s_bbd283fa78a4ac::t_3c3a4f7a975ce3 41,72,173,185
+api/Kuta.Api/SupabaseAuthClient.cs
+  s_bbd283fa78a4ac::t_13e7586cdb243a 7,20,22-24,27,32,43-44,57,64,85,88,108-109,119-120,140,218
+api/Kuta.Api/TrainingLoad.cs
+  s_bbd283fa78a4ac::t_64807547acc0df 3-5,11-12,16-17,21-22,29-30,72,82,85,102
+web/src/lib/activity.ts
+  s_bbd283fa78a4ac::t_3c3a4f7a975ce3 26,37,61,103,112,129,163,178,189,218-219,253,289,315
+api/Kuta.Api.Tests/StravaImportTests.cs
+  s_bbd283fa78a4ac::t_4545ff59f069a3 127,265,299,333,352,395
+api/Kuta.Api.Tests/RacePredictorTests.cs
+  s_bbd283fa78a4ac::t_4545ff59f069a3 10,16,25-26,28,35
+api/Kuta.Api/Goals.cs
+  s_bbd283fa78a4ac::t_823f942000bb27 5-7,31,53-54,64,79,97,146,159-160,178-179
+api/Kuta.Api/RawFileStore.cs
+  s_bbd283fa78a4ac::t_f436c6c66befdc 6-8,17,26,41
+api/Kuta.Api.Tests/KutaFactory.cs
+  s_bbd283fa78a4ac::t_4545ff59f069a3 11-12,22,27,43
+web/vite.config.ts
+  s_bbd283fa78a4ac::t_3c3a4f7a975ce3 11-13,18,30,93,112,135-136
+api/Kuta.Api/ActivityList.cs
+  s_bbd283fa78a4ac::t_823f942000bb27 26
+scripts/fly-secrets.sh
+  s_bbd283fa78a4ac::t_4545ff59f069a3 2-3,5,7,10,14-15,17
+api/Kuta.Api.Tests/FitImportTests.cs
+  s_bbd283fa78a4ac::t_4545ff59f069a3 5
+api/Kuta.Api/StravaImport.cs
+  s_bbd283fa78a4ac::t_8f5574c44a1af8 10,22,107,154,212
+web/src/lib/api.ts
+  s_bbd283fa78a4ac::t_3c3a4f7a975ce3 1-2,34,70
+api/Kuta.Api/ActivityEndpoints.cs
+  s_bbd283fa78a4ac::t_823f942000bb27 9,14,20,29,47,78,114,123-124,140,154-156,206,250,258-260,291,322
+.gitignore
+  s_bbd283fa78a4ac::t_4545ff59f069a3 11,14,17
+api/Kuta.Api/GarminAttribution.cs
+  s_bbd283fa78a4ac::t_823f942000bb27 1-2
+api/Kuta.Api.Tests/AuthTests.cs
+  s_bbd283fa78a4ac::t_4545ff59f069a3 11-12,42,57,81,95
+web/tests/year-comparison.test.mjs
+  s_bbd283fa78a4ac::t_3c3a4f7a975ce3 33
+api/Kuta.Api/FitImport.cs
+  s_bbd283fa78a4ac::t_823f942000bb27 5-7,14,28,31,35,46,154,193-194,210
+api/Kuta.Api/Program.cs
+  s_bbd283fa78a4ac::t_f436c6c66befdc 19,30,34,36,39,42,45-46,52,60,67-68,72,80,86,98-99,106-107,111,122-123,126,140,156,169-170,182-183,191-192,198,206-207,237,259,267
+api/Kuta.Api/Supporters.cs
+  s_bbd283fa78a4ac::t_64807547acc0df 3
+api/Kuta.Api/SupabaseCookieSession.cs
+  s_bbd283fa78a4ac::t_64807547acc0df 10-11,14,16,18,20,80,106,170-172,182,190
+web/tests/activity.test.mjs
+  s_bbd283fa78a4ac::t_3c3a4f7a975ce3 33
+web/tsconfig.json
+  s_bbd283fa78a4ac::t_3c3a4f7a975ce3 3
+api/Kuta.Api.Tests/TermsVersionTests.cs
+  s_bbd283fa78a4ac::t_4545ff59f069a3 5
+api/Kuta.Api/MeEndpoints.cs
+  s_bbd283fa78a4ac::t_823f942000bb27 8,11,19,32,41,101,112-114,144,151
+web/src/router.tsx
+  s_bbd283fa78a4ac::t_3c3a4f7a975ce3 41,46
+web/src/components/ui/modal.tsx
+  s_bbd283fa78a4ac::t_3c3a4f7a975ce3 45
+api/Kuta.Api.Tests/ActivityStatisticsTests.cs
+  s_bbd283fa78a4ac::t_4545ff59f069a3 48
+api/Kuta.Api.Tests/Kuta.Api.Tests.csproj
+  s_bbd283fa78a4ac::t_4545ff59f069a3 10
+api/Kuta.Api.Tests/SessionRetentionTests.cs
+  s_bbd283fa78a4ac::t_4545ff59f069a3 19
+web/src/lib/records.ts
+  s_bbd283fa78a4ac::t_3c3a4f7a975ce3 29,53,63,83
+web/src/routes/followers.tsx
+  s_bbd283fa78a4ac::t_3c3a4f7a975ce3 25
+Dockerfile
+  s_bbd283fa78a4ac::t_4545ff59f069a3 1,21
+api/Kuta.Api.Tests/TrainingLoadTests.cs
+  s_bbd283fa78a4ac::t_4545ff59f069a3 21,26,31,45,56,74,91
+api/Kuta.Api/DataExport.cs
+  s_bbd283fa78a4ac::t_823f942000bb27 24,35
+web/src/lib/year-comparison.ts
+  s_bbd283fa78a4ac::t_3c3a4f7a975ce3 10,13,30,59,65
+api/Kuta.Api/DataProtectionCertificates.cs
+  s_bbd283fa78a4ac::t_823f942000bb27 4-5,11,19-20,36,41-42
+web/src/components/records.tsx
+  s_bbd283fa78a4ac::t_3c3a4f7a975ce3 49
+api/Kuta.Api.Tests/TrainingLoadsTests.cs
+  s_bbd283fa78a4ac::t_4545ff59f069a3 40,49
+web/src/routes/auth.tsx
+  s_bbd283fa78a4ac::t_3c3a4f7a975ce3 14,26-27,45,250
+api/Kuta.Api.Tests/PrivateLoggingTests.cs
+  s_bbd283fa78a4ac::t_4545ff59f069a3 97,136,150,160
+api/Kuta.Api/BestEfforts.cs
+  s_bbd283fa78a4ac::t_823f942000bb27 26
+api/Kuta.Api.Tests/ActivityListTests.cs
+  s_bbd283fa78a4ac::t_4545ff59f069a3 40,64,70,75,80
+web/src/lib/jobs.ts
+  s_bbd283fa78a4ac::t_3c3a4f7a975ce3 20,32
+api/Kuta.Api.Tests/RecordTrendsTests.cs
+  s_bbd283fa78a4ac::t_4545ff59f069a3 32,34,70
+api/Kuta.Api.Tests/SocialTests.cs
+  s_bbd283fa78a4ac::t_4545ff59f069a3 73
+fly.secrets.tpl
+  s_bbd283fa78a4ac::t_4545ff59f069a3 1-3
+web/src/components/supporter.tsx
+  s_bbd283fa78a4ac::t_3c3a4f7a975ce3 14,31,53
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.7.5",
+  "base_commit_sha": "e24afe2284219ccb9315c1943b4865542209e917",
+  "prompts": {},
+  "sessions": {
+    "s_bbd283fa78a4ac": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "ba02a37a-0928-4d11-8a7d-cdc3dcf22b4f",
+        "model": "claude-opus-5-5"
+      },
+      "human_author": "Simon Aunér <simonauner@gmail.com>"
+    }
+  }
+}
