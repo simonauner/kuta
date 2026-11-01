@@ -4,7 +4,7 @@ using System.Xml;
 using Microsoft.VisualBasic.FileIO;
 
 public sealed record StravaActivity(string Id, string? Title, string Filename, ParsedActivity Summary,
-    string? GearId = null, string? GearName = null, string? Description = null);
+    string? GearId = null, string? GearName = null, string? Description = null, string[]? Tags = null);
 
 // Reads only activity data, never the export's profile, contacts, private notes or media.
 public static class StravaImport
@@ -67,7 +67,9 @@ public static class StravaImport
                     HeartRate("Average Heart Rate"), HeartRate("Max Heart Rate"), Single("Average Speed"), Single("Elevation Gain"),
                     null, [], null, null, null, null, null, null),
                 ShoeId(Field("Gear")), string.IsNullOrWhiteSpace(Field("Activity Gear")) ? null : Field("Activity Gear").Trim(),
-                ActivityInput.NormalizeDescription(description)));
+                ActivityInput.NormalizeDescription(description),
+                // Strava's other tags (running, riding, offroad, commute) describe the sport or have no Kuta tag.
+                [.. Field("Tag").Split('|').Intersect(["race", "long_run"])]));
         }
         if (result.Select(r => r.Id).Distinct().Count() != result.Count) throw new InvalidDataException("Duplicate activity IDs.");
         return result;
