@@ -292,8 +292,9 @@ export function ActivityPage() {
           <span className="wrap-anywhere" style={{ viewTransitionName: `activity-title-${a.id}` }}>
             {activityTitle(original, t)}
           </span>
+          {/* The activity's own sport, also while a part is selected */}
           <SportIcon
-            sport={a.sport}
+            sport={original.sport}
             className="size-9 shrink-0"
             style={{ viewTransitionName: `activity-sport-${a.id}` }}
           />
