@@ -47,3 +47,15 @@ export function statisticsRanges(
 export function change(current: number, previous: number) {
   return previous > 0 ? ((current - previous) / previous) * 100 : null
 }
+
+// Indexes of consecutive values, split where a value is missing, so a line breaks instead of dropping to zero.
+export function lineRuns(values: (number | null)[]) {
+  const runs: number[][] = []
+  values.forEach((value, index) => {
+    if (value === null) return
+    const last = runs[runs.length - 1]
+    if (last && last[last.length - 1] === index - 1) last.push(index)
+    else runs.push([index])
+  })
+  return runs
+}

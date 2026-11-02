@@ -1,6 +1,6 @@
 import assert from 'node:assert/strict'
 import { test } from 'node:test'
-import { change, statisticsRanges } from '../src/lib/statistics-period.ts'
+import { change, lineRuns, statisticsRanges } from '../src/lib/statistics-period.ts'
 
 // Sunday 8 November 2026.
 const today = { year: 2026, month: 11, day: 8 }
@@ -36,4 +36,9 @@ test('months and years compare with the same span a year earlier', () => {
 test('change needs something to compare with', () => {
   assert.equal(change(197.8, 78.1).toFixed(0), '153')
   assert.equal(change(5, 0), null)
+})
+
+test('lines break at missing values', () => {
+  assert.deepEqual(lineRuns([1, 0, null, 3, null, null, 4, 5]), [[0, 1], [3], [6, 7]])
+  assert.deepEqual(lineRuns([null]), [])
 })

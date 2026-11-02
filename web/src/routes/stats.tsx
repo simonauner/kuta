@@ -23,6 +23,7 @@ import { Select } from '@/components/ui/select'
 import { HelpPopover } from '@/components/help-popover'
 import {
   change,
+  lineRuns,
   rollingPeriods,
   statisticsRanges,
   type StatisticsPeriod,
@@ -173,6 +174,8 @@ export function StatsPage() {
     return value === null ? null : `${percent.format(Math.round(value))} %`
   }
   const step = (n: number) => Math.max(1, Math.ceil(buckets.length / n))
+  const pointX = (index: number) => ((index + 0.5) * 600) / buckets.length
+  const pointY = (index: number) => 180 - ((buckets[index][metric] ?? 0) / maximum) * 160
   const format = (value: number | null, key: Metric) => {
     if (value === null) return '–'
     if (key === 'distanceM') return `${number.format(value / 1000)} km`
@@ -351,37 +354,52 @@ export function StatsPage() {
                     aria-label={`${t(bucket === 'week' ? 'stats.weekly' : 'stats.monthly')}: ${t(`stats.${metric}`)} · ${formatRange(ranges.current)}`}
                   >
                     <line x1="0" x2="600" y1="180" y2="180" stroke="currentColor" opacity="0.2" />
-                    {buckets.map((m, index) => {
-                      const value = m[metric]
-                      const height = ((value ?? 0) / maximum) * 160
-                      const slot = 600 / buckets.length
+                    {lineRuns(buckets.map((m) => m[metric])).map((run) => {
+                      const points = run.map((index) => `${pointX(index)},${pointY(index)}`)
                       return (
-                        <g key={m.start}>
-                          <title>{`${fullBucketFormat.format(parseDate(m.start))}: ${format(value, metric)}`}</title>
-                          <rect
-                            x={index * slot + slot * 0.24}
-                            y={180 - height}
-                            width={slot * 0.52}
-                            height={height}
-                            rx="3"
+                        <g key={run[0]}>
+                          <polygon
+                            points={`${pointX(run[0])},180 ${points.join(' ')} ${pointX(run[run.length - 1])},180`}
                             fill="currentColor"
-                            className="transition-[y,height] duration-400 ease-out motion-reduce:transition-none"
+                            opacity="0.15"
                           />
-                          {index % step(12) === 0 && (
-                            <text
-                              // The first label starts at the edge so narrow week slots don't clip it.
-                              x={index ? index * slot + slot / 2 : 0}
-                              y="202"
-                              textAnchor={index ? 'middle' : 'start'}
-                              fill="currentColor"
-                              className={`text-[20px] text-muted-foreground sm:text-xs ${index % step(4) ? 'hidden sm:block' : ''}`}
-                            >
-                              {bucketFormat.format(parseDate(m.start))}
-                            </text>
-                          )}
+                          <polyline
+                            points={points.join(' ')}
+                            fill="none"
+                            stroke="currentColor"
+                            strokeWidth="3"
+                            strokeLinejoin="round"
+                          />
                         </g>
                       )
                     })}
+                    {buckets.map((m, index) => (
+                      <g key={m.start}>
+                        <title>{`${fullBucketFormat.format(parseDate(m.start))}: ${format(m[metric], metric)}`}</title>
+                        {m[metric] !== null && (
+                          <circle
+                            cx={pointX(index)}
+                            cy={pointY(index)}
+                            r="4"
+                            className="fill-card"
+                            stroke="currentColor"
+                            strokeWidth="2.5"
+                          />
+                        )}
+                        {index % step(12) === 0 && (
+                          <text
+                            // The first label starts at the edge so narrow week slots don't clip it.
+                            x={index ? pointX(index) : 0}
+                            y="202"
+                            textAnchor={index ? 'middle' : 'start'}
+                            fill="currentColor"
+                            className={`text-[20px] text-muted-foreground sm:text-xs ${index % step(4) ? 'hidden sm:block' : ''}`}
+                          >
+                            {bucketFormat.format(parseDate(m.start))}
+                          </text>
+                        )}
+                      </g>
+                    ))}
                   </svg>
                   {metric === 'avgHr' && !buckets.some((m) => m.avgHr !== null) && (
                     <p className="text-sm text-muted-foreground">{t('stats.noHeartRate')}</p>
