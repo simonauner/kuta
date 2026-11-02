@@ -44,6 +44,26 @@ export function ProfilePage() {
           <SupporterBadge tier={tier} />
         </Heading>
         <div className="flex max-w-full items-start gap-2">
+          <FormField
+            layout="inline"
+            label={t('profile.viewAs.label')}
+            hideLabel
+            className="min-w-0 flex-1"
+          >
+            {(id) => (
+              <Select
+                id={id}
+                size="sm"
+                className="w-fit max-w-full"
+                value={viewAs ?? ''}
+                onChange={(e) => setViewAs((e.target.value || undefined) as ViewAs | undefined)}
+              >
+                <option value="">{t('profile.viewAs.me')}</option>
+                <option value="followers">{t('profile.viewAs.followers')}</option>
+                <option value="public">{t('profile.viewAs.public')}</option>
+              </Select>
+            )}
+          </FormField>
           <ShareProfile />
           <Button asChild variant="ghost" size="icon">
             <Link to="/app/settings" aria-label={t('settings.title')}>
@@ -52,20 +72,6 @@ export function ProfilePage() {
           </Button>
         </div>
       </div>
-      <FormField layout="inline" label={t('profile.viewAs.label')} className="text-sm">
-        {(id) => (
-          <Select
-            id={id}
-            className="w-fit"
-            value={viewAs ?? ''}
-            onChange={(e) => setViewAs((e.target.value || undefined) as ViewAs | undefined)}
-          >
-            <option value="">{t('profile.viewAs.me')}</option>
-            <option value="followers">{t('profile.viewAs.followers')}</option>
-            <option value="public">{t('profile.viewAs.public')}</option>
-          </Select>
-        )}
-      </FormField>
       {viewAs && (
         <Alert>
           <Eye aria-hidden="true" />
