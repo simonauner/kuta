@@ -1,0 +1,37 @@
+web/en/index.html
+  s_66f40369dce7cc::t_d8808bfb26285b 48
+  s_66f40369dce7cc::t_426ba3dc93fb48 47,49
+web/public/flags/se.svg
+  s_66f40369dce7cc::t_426ba3dc93fb48 1
+web/features.html
+  s_66f40369dce7cc::t_d8808bfb26285b 45
+  s_66f40369dce7cc::t_426ba3dc93fb48 44,46
+web/src/landing.css
+  s_66f40369dce7cc::t_426ba3dc93fb48 164-172
+README.md
+  s_66f40369dce7cc::t_a46b73c8d349b2 7
+web/public/flags/gb.svg
+  s_66f40369dce7cc::t_426ba3dc93fb48 1
+web/en/features.html
+  s_66f40369dce7cc::t_426ba3dc93fb48 44,46
+  s_66f40369dce7cc::t_d8808bfb26285b 45
+web/index.html
+  s_66f40369dce7cc::t_426ba3dc93fb48 47,49
+  s_66f40369dce7cc::t_d8808bfb26285b 48
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.7.5",
+  "base_commit_sha": "279c7d5ed944edc5d97a0f49fa81c24d9298c0fd",
+  "prompts": {},
+  "sessions": {
+    "s_66f40369dce7cc": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "e3ec9f4c-3251-4526-b512-15583ec2b664",
+        "model": "unknown"
+      },
+      "human_author": "Simon Aunér <simonauner@gmail.com>"
+    }
+  }
+}
