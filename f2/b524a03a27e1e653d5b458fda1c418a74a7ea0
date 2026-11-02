@@ -1,0 +1,39 @@
+web/src/locales/en.json
+  s_441d6af28513ce::t_9069f4e8cf8c6f 583
+web/src/components/activity-map.tsx
+  s_441d6af28513ce::t_828dec7b18a209 1-3,5-8
+  s_441d6af28513ce::t_f1c1e0c5010d73 30-35
+  s_441d6af28513ce::t_30cc9be63d0357 4,21,29,52-53,89-90,99-132
+  s_441d6af28513ce::t_f4923d862b16cf 9,54-56
+  s_441d6af28513ce::t_a006573c5ede4a 20,27-28,38-39,41-51,58,60,71,87-88,91-98,133-143
+  s_441d6af28513ce::t_d869b11727ea1d 40
+web/src/components/multisport-preview.tsx
+  s_441d6af28513ce::t_30cc9be63d0357 7,13,18,60-82,90
+  s_441d6af28513ce::t_a006573c5ede4a 89
+web/tests/multisport.test.mjs
+  s_441d6af28513ce::t_6e99b1148ca5a3 4,81-91
+  s_441d6af28513ce::t_4e64217c50ec96 92
+web/src/locales/sv.json
+  s_441d6af28513ce::t_9069f4e8cf8c6f 583
+web/src/lib/multisport.ts
+  s_441d6af28513ce::t_6e99b1148ca5a3 105-127
+web/src/components/multisport-editor.tsx
+  s_441d6af28513ce::t_9069f4e8cf8c6f 63,69,228,360-365
+  s_441d6af28513ce::t_840cf356a4a438 64-68,253
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.7.5",
+  "base_commit_sha": "f2b524a03a27e1e653d5b458fda1c418a74a7ea0",
+  "prompts": {},
+  "sessions": {
+    "s_441d6af28513ce": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "67e2ec22-4763-43e4-8bc1-dd10e10450e6",
+        "model": "claude-opus-5-5"
+      },
+      "human_author": "Simon Aunér <simonauner@gmail.com>"
+    }
+  }
+}
