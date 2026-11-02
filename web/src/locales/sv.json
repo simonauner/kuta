@@ -907,9 +907,9 @@
     },
     "viewAs": {
       "label": "Visa som",
-      "me": "Jag",
-      "followers": "Godkänd följare",
-      "public": "Någon med ett Kuta-konto",
+      "me": "Visa som jag",
+      "followers": "Visa som följare",
+      "public": "Visa som Kuta-användare",
       "followersHint": "Så här ser dina godkända följare din profil. Privata aktiviteter och mål visas inte, och kartorna döljer start, mål och dina dolda platser.",
       "publicHint": "Så här ser alla med ett Kuta-konto och länken profilen. Bara det du delar med alla visas, och kartorna döljer start, mål och dina dolda platser."
     },
