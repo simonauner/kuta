@@ -96,7 +96,7 @@ export default function MultisportPreview({
               onClick={() => setLarge((v) => !v)}
             >
               {large ? <Minimize2 /> : <Maximize2 />}
-              {large ? t('multisport.mapSmaller') : t('multisport.mapLarger')}
+              {large ? t('activity.mapSmaller') : t('activity.mapLarger')}
             </Button>
           ) : null}
           <ActivityMap

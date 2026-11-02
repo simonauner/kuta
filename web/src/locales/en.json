@@ -353,6 +353,8 @@
       "laps": "Laps"
     },
     "map": "Route map",
+    "mapLarger": "Enlarge map",
+    "mapSmaller": "Shrink map",
     "routeColoring": "Color the route by",
     "routeColoringNone": "Route",
     "routeColoringHr": "Heart rate",
@@ -632,8 +634,6 @@
   },
   "breadcrumbs": "Breadcrumbs",
   "multisport": {
-    "mapLarger": "Enlarge map",
-    "mapSmaller": "Shrink map",
     "title": "Sport legs",
     "split": "Split into sports",
     "edit": "Edit legs",
