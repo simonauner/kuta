@@ -143,7 +143,8 @@ static async Task<int> RunAsync(string[] args)
             var api = context.Request.Path.StartsWithSegments("/api");
             var headers = context.Response.Headers;
             headers.ContentSecurityPolicy = api ? "default-src 'none'; frame-ancestors 'none'" : "frame-ancestors 'none'";
-            if (api) headers.CacheControl = "no-store";
+            // Endpoints that set their own caching (avatars) keep it; everything else is never cached.
+            if (api && !headers.ContainsKey("Cache-Control")) headers.CacheControl = "no-store";
             headers.XContentTypeOptions = "nosniff";
             headers.XFrameOptions = "DENY";
             headers["Referrer-Policy"] = api ? "no-referrer" : "strict-origin-when-cross-origin";
@@ -256,6 +257,7 @@ static async Task<int> RunAsync(string[] args)
     api.MapAntiforgery();
     api.MapAuth();
     api.MapMe();
+    api.MapAvatars();
     api.MapPrivacyPlaces();
     api.MapDataExport();
 

@@ -23,7 +23,11 @@ public class DataExportTests(KutaFactory factory) : IClassFixture<KutaFactory>
             {
                 await CreateProfileAsync(conn, userId);
                 var shareCode = ShareCodes.Generate();
-                await conn.ExecuteAsync("update users set share_code = @shareCode where id = @userId", new { shareCode, userId });
+                var avatarId = Guid.NewGuid();
+                await conn.ExecuteAsync("update users set share_code = @shareCode, avatar_id = @avatarId where id = @userId",
+                    new { shareCode, userId, avatarId });
+                await store.PutAsync(Avatars.Key(avatarId), [0xFF, 0xD8, 0xFF, (byte)users.ToList().IndexOf(userId)], ct);
+                files.Add(Avatars.Key(avatarId));
                 var place = await PrivacyPlaces.CreateAsync(conn, userId, new PrivacyPlaceRequest("Synthetic home", 59, 18), ct);
                 var goalId = await Goals.CreateAsync(conn, userId, new GoalRequest("running", "distance", "week", 10_000, true),
                     "UTC", DateTimeOffset.UtcNow, ct);
@@ -48,7 +52,7 @@ public class DataExportTests(KutaFactory factory) : IClassFixture<KutaFactory>
 
                 await using var archive = await DataExport.CreateAsync(conn, store, userId, ct);
                 using var zip = new ZipArchive(archive, ZipArchiveMode.Read, leaveOpen: true);
-                Assert.Equal(9, zip.Entries.Count);
+                Assert.Equal(10, zip.Entries.Count);
                 var places = await ReadJsonAsync(zip, "privacy-places.json", ct);
                 Assert.Equal(place.Id, Assert.Single(places.EnumerateArray()).GetProperty("id").GetGuid());
                 var goals = await ReadJsonAsync(zip, "goals.json", ct);
@@ -59,6 +63,12 @@ public class DataExportTests(KutaFactory factory) : IClassFixture<KutaFactory>
                 Assert.Equal("private", profile.GetProperty("defaultActivityPrivacy").GetString());
                 Assert.Equal(shareCode, profile.GetProperty("shareCode").GetString());
                 Assert.False(profile.TryGetProperty("password", out _));
+                await using (var avatar = zip.GetEntry("avatar.jpg")!.Open())
+                {
+                    using var avatarCopy = new MemoryStream();
+                    await avatar.CopyToAsync(avatarCopy, ct);
+                    Assert.Equal([0xFF, 0xD8, 0xFF, (byte)users.ToList().IndexOf(userId)], avatarCopy.ToArray());
+                }
                 var equipment = await ReadJsonAsync(zip, "equipment.json", ct);
                 Assert.Equal(shoeId, Assert.Single(equipment.EnumerateArray()).GetProperty("id").GetGuid());
                 var exported = await ReadJsonAsync(zip, $"activities/{id}.json", ct);

@@ -454,7 +454,8 @@
     "jobCancelled": "The job was cancelled.",
     "termsRequired": "Accept the terms of use and privacy policy to create an account.",
     "garminUnavailable": "Garmin Connect is not available right now.",
-    "invalidViewAs": "The preview only applies to your own profile."
+    "invalidViewAs": "The preview only applies to your own profile.",
+    "invalidAvatar": "Choose a picture (at most 200 kB)."
   },
   "home": "Kuta – home",
   "footer": {
@@ -914,5 +915,15 @@
     },
     "latestActivities": "Latest activities",
     "allActivities": "All activities"
+  },
+  "avatar": {
+    "title": "Profile picture",
+    "help": "Shown next to your name to everyone who can see the name. The picture is cropped to a square, and location data in it is removed before upload.",
+    "choose": "Choose picture",
+    "uploading": "Uploading …",
+    "unreadable": "The picture could not be read. Choose a JPEG or PNG picture.",
+    "delete": "Delete picture",
+    "deleteTitle": "Delete the profile picture?",
+    "deleteText": "The picture is deleted, and your initials are shown instead."
   }
 }

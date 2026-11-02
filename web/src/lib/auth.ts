@@ -21,6 +21,7 @@ export type Me = {
   }
   // Controls Garmin attribution on views derived from activities (statistics, records, goals)
   hasGarminData: boolean
+  avatarId: string | null
 }
 
 // null = not signed in

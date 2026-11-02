@@ -166,6 +166,16 @@ Frivilligt årligt supporterskap (brons 50 kr, silver 150 kr, guld 300 kr, valfr
 - `supporterTier` finns i `/api/runners/{id}`, flödet och `/api/follows`, beräknat med `Supporters.VisibleTier` (samma regel som passens synlighet). Ingår i export och raderas med kontot.
 - Lokalt: `update users set supporter_tier = 'gold', supporter_until = now() + interval '1 year' where id = '…'`.
 
+## Profilbild
+
+Inställningar → Profilbild laddar upp en egen bild; utan bild visas initialerna. Ingen Gravatar: hashen av e-postadressen skulle låta andra koppla en känd adress till profilen, och Gravatar skulle se vem som tittar på vilken profil.
+
+- Webben beskär till en kvadrat och skalar till 256 px JPEG i webbläsaren innan uppladdningen. Omkodningen tar bort EXIF, även GPS.
+- `POST /api/me/avatar` (multipart, fältet `file`, högst 200 kB, måste vara JPEG; rate limiten `uploads`) och `DELETE /api/me/avatar` svarar `{ avatarId }`. Varje uppladdning får ett nytt slumpat `users.avatar_id` (migrering 030); den gamla filen raderas först, under profillåset.
+- Bilden ligger i samma bucket som råfilerna (`avatars/<avatarId>.jpg`) och visas via `GET /api/avatars/{avatarId}` utan inloggning, med ett års webbläsarcache (rate limiten `public`). Bara den aktuella bilden svarar; en ersatt eller raderad ger 404.
+- Bilden visas där namnet visas och har ingen egen synlighet: `avatarId` finns i `/api/me`, `/api/runners/{id}` (även publikt), flödet och `/api/follows`. Det slumpade id:t går inte att gissa.
+- Bilden ingår i exporten som `avatar.jpg` och raderas med kontot.
+
 ## Dolda platser
 
 Passens läsåtkomst följer synligheten och godkända följrelationer enligt ovan.
@@ -596,6 +606,7 @@ till fältet; redan importerade dubbletter hoppas fortfarande över vid Strava-i
 
 Öppna **Profil → Inställningar → Exportera data → Ladda ner ZIP**. Låt sidan vara öppen medan arkivet förbereds. `GET /api/me/export` kräver inloggning och hämtar bara det egna kontots data, oberoende av filter och sidindelning i passlistan. Svaret är en nedladdningsbar `kuta-export.zip` med `Cache-Control: no-store`.
 
+- `avatar.jpg`: profilbilden, om en finns.
 - `profile.json`: id, e-postadress, visningsnamn, profilens skapandetid, tidpunkt för pulssamtycke och för godkända villkor.
 - `equipment.json`: all egen utrustning, även pensionerad, med startvärden och total användning.
 - `privacy-places.json`: egna dolda platser med namn, mittpunkt och radie. Listan ingår även utan pass.

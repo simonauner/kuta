@@ -27,6 +27,8 @@ public class DeleteAccountTests(KutaFactory factory) : IClassFixture<KutaFactory
         var store = factory.Services.GetRequiredService<RawFileStore>();
         var key = $"fit/{ownerId}/synthetic.fit";
         var otherKey = $"fit/{otherId}/synthetic.fit";
+        var avatarId = Guid.NewGuid();
+        var avatarKey = Avatars.Key(avatarId);
         try
         {
             foreach (var (id, fileKey) in new[] { (ownerId, key), (otherId, otherKey) })
@@ -46,6 +48,8 @@ public class DeleteAccountTests(KutaFactory factory) : IClassFixture<KutaFactory
                     """, new { id, fileKey });
                 await store.PutAsync(fileKey, "synthetic file"u8.ToArray(), ct);
             }
+            await conn.ExecuteAsync("update users set avatar_id = @avatarId where id = @ownerId", new { avatarId, ownerId });
+            await store.PutAsync(avatarKey, [0xFF, 0xD8, 0xFF], ct);
             using var oldSession = factory.CreateClient();
             oldSession.DefaultRequestHeaders.Add("Cookie", owner.DefaultRequestHeaders.GetValues("Cookie"));
             Assert.Equal(HttpStatusCode.NotFound, (await other.GetAsync($"/api/activities/{ownerId}", ct)).StatusCode);
@@ -73,13 +77,14 @@ public class DeleteAccountTests(KutaFactory factory) : IClassFixture<KutaFactory
             foreach (var table in new[] { "activity_streams", "activity_laps", "activity_parts" })
                 Assert.Equal(0, await conn.ExecuteScalarAsync<int>($"select count(*) from {table} where activity_id = @ownerId", new { ownerId }));
             Assert.Equal(0, await Files(key));
+            Assert.Equal(0, await Files(avatarKey));
             Assert.Equal(1, await Files(otherKey));
             Assert.Equal(HttpStatusCode.Unauthorized, (await oldSession.GetAsync("/api/me", ct)).StatusCode);
             Assert.Equal(HttpStatusCode.OK, (await other.GetAsync($"/api/activities/{otherId}", ct)).StatusCode);
         }
         finally
         {
-            await store.DeleteAsync([key, otherKey], ct);
+            await store.DeleteAsync([key, otherKey, avatarKey], ct);
             await conn.ExecuteAsync("delete from auth.users where id = any(@ids)", new { ids = new[] { ownerId, otherId } });
         }
         Task<HttpResponseMessage> DeleteMe(HttpClient client, string password) => client.SendAsync(

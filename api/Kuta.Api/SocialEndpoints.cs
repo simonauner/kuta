@@ -5,11 +5,11 @@ using Npgsql;
 // JoinedAt and SimilarTo are shown only for someone asking to follow: names are free, so account age and a warning about
 // a look-alike of an existing contact's name help against impersonation. PreviousName is set for 30 days after a change.
 public record Runner(Guid Id, string DisplayName, string Status, string? SupporterTier, DateTime? JoinedAt, string? SimilarTo,
-    string? PreviousName);
+    string? PreviousName, Guid? AvatarId);
 public record FollowLists(IEnumerable<Runner> Following, IEnumerable<Runner> Followers, IEnumerable<Runner> Blocked);
 public record FeedItem(Guid Id, Guid UserId, string DisplayName, string Sport, string? Title,
     DateTime StartedAt, int DurationS, double DistanceM, string Privacy, string? RouteGeoJson, string? SupporterTier,
-    string? Attribution);
+    string? Attribution, Guid? AvatarId);
 public record FeedPage(IReadOnlyList<FeedItem> Items, ActivityCursor? NextCursor);
 
 public static class SocialEndpoints
@@ -45,7 +45,7 @@ public static class SocialEndpoints
             await using var conn = await db.OpenConnectionAsync();
             var runner = await conn.QuerySingleOrDefaultAsync<Runner>($"""
                 select u.id, u.display_name, 'none' as status, {Supporters.VisibleTier} as supporter_tier,
-                    null::timestamptz as joined_at, null::text as similar_to, {PreviousName}
+                    null::timestamptz as joined_at, null::text as similar_to, {PreviousName}, u.avatar_id
                 from users u where u.id = @id and u.public_profile
                 """, new { id, userId = Guid.Empty });
             return runner is null ? Results.NotFound() : Results.Ok(runner);
@@ -93,7 +93,7 @@ public static class SocialEndpoints
                 select u.id, u.display_name, case when f.follower_id is null then 'none'
                     when f.accepted_at is null then 'pending' else 'accepted' end as status,
                     {Supporters.VisibleTier} as supporter_tier, null::timestamptz as joined_at, null::text as similar_to,
-                    {PreviousName}
+                    {PreviousName}, u.avatar_id
                 from users u left join follows f on f.following_id = u.id and f.follower_id = @userId
                 where u.id = @id
                 """, new { id, userId });
@@ -117,7 +117,7 @@ public static class SocialEndpoints
             var following = await conn.QueryAsync<Runner>($"""
                 select u.id, u.display_name, case when f.accepted_at is null then 'pending' else 'accepted' end as status,
                     {Supporters.VisibleTier} as supporter_tier, null::timestamptz as joined_at, null::text as similar_to,
-                    {PreviousName}
+                    {PreviousName}, u.avatar_id
                 from follows f join users u on u.id = f.following_id where f.follower_id = @userId
                 order by u.display_name, u.id
                 """, new { userId });
@@ -125,14 +125,14 @@ public static class SocialEndpoints
                 select u.id, u.display_name, case when f.accepted_at is null then 'pending' else 'accepted' end as status,
                     {Supporters.VisibleTier} as supporter_tier,
                     case when f.accepted_at is null then u.created_at end as joined_at, null::text as similar_to,
-                    {PreviousName}
+                    {PreviousName}, u.avatar_id
                 from follows f join users u on u.id = f.follower_id
                 where f.following_id = @userId and {NotBlocked("@userId", "f.follower_id")}
                 order by f.accepted_at nulls first, u.display_name, u.id
                 """, new { userId });
             var blocked = await conn.QueryAsync<Runner>($"""
                 select u.id, u.display_name, 'blocked' as status, null as supporter_tier, null::timestamptz as joined_at, null::text as similar_to,
-                    {PreviousName}
+                    {PreviousName}, u.avatar_id
                 from follow_blocks b join users u on u.id = b.blocked_id where b.blocker_id = @userId
                 order by u.display_name, u.id
                 """, new { userId });
@@ -248,7 +248,7 @@ public static class SocialEndpoints
                 select a.id, a.user_id, u.display_name, a.sport, a.title, a.started_at, a.duration_s,
                     coalesce((select sum(p.distance_m) from activity_parts p where p.activity_id = a.id
                         and p.original = not a.parts_edited), a.distance_m) as distance_m, a.privacy, a.route, u.privacy_seed,
-                    {Supporters.VisibleTier} as supporter_tier, {GarminAttribution.Sql("a")} as attribution
+                    {Supporters.VisibleTier} as supporter_tier, {GarminAttribution.Sql("a")} as attribution, u.avatar_id
                 from activities a join users u on u.id = a.user_id
                 where {CanRead} and (
                     (@runnerId::uuid is not null and a.user_id = @runnerId) or
@@ -259,7 +259,7 @@ public static class SocialEndpoints
             )
             select id, user_id, display_name, sport, title, started_at, duration_s, distance_m, privacy,
                 case when st_isempty(preview.route) then null else st_asgeojson(preview.route, 4) end as route_geo_json,
-                supporter_tier, attribution
+                supporter_tier, attribution, avatar_id
             from page
             cross join lateral (
                 select st_unaryunion(st_collect(zone)) as areas from (

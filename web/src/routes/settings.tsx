@@ -2,6 +2,7 @@ import { useMutation, useQuery } from '@tanstack/react-query'
 import { Link } from '@tanstack/react-router'
 import { useTranslation } from 'react-i18next'
 import { ActivityPrivacy } from '@/components/activity-privacy'
+import { AvatarSection } from '@/components/avatar'
 import { DangerZone } from '@/components/danger-zone'
 import { ErrorMessage } from '@/components/error-message'
 import { HeartRateConsent } from '@/components/heart-rate-consent'
@@ -59,6 +60,8 @@ export function SettingsPage() {
           </Link>
         ))}
       </nav>
+
+      <AvatarSection />
 
       <ActivityPrivacy />
 
