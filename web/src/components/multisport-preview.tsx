@@ -4,16 +4,18 @@ import { useTranslation } from 'react-i18next'
 import { ActivityMap } from './activity-map'
 import { ActivityCharts, type ChartSeries } from './activity-charts'
 import { chartAxis, routeSegments, type ActivityStreams } from '@/lib/activity'
-import { partStreams, sportColors, type ActivityPart } from '@/lib/multisport'
+import { nearestTime, partStreams, sportColors, type ActivityPart } from '@/lib/multisport'
 
 export default function MultisportPreview({
   streams,
   parts,
   selected,
+  onMoveBoundary,
 }: {
   streams: ActivityStreams
   parts: ActivityPart[]
   selected: number | null
+  onMoveBoundary?: (index: number, endS: number) => void
 }) {
   const { t } = useTranslation()
   const view = useMemo(() => {
@@ -55,12 +57,37 @@ export default function MultisportPreview({
       axis: chartAxis(data),
     }
   }, [streams, parts, selected, t])
+  const handles = useMemo(
+    () =>
+      onMoveBoundary &&
+      parts.slice(0, -1).flatMap((p, i) => {
+        // A zero-length part interpolates the position at the boundary; no GPS there means no handle
+        const at = partStreams(streams, { startS: p.endS, endS: p.endS })
+        const lat = at.lat?.[0]
+        const lon = at.lon?.[0]
+        if (lat == null || lon == null) return []
+        return [
+          {
+            position: [lon, lat] as [number, number],
+            color: sportColors[parts[i + 1].sport] ?? '#ae3ec9',
+            label: t('multisport.boundary', { number: i + 1 }),
+            onMove: (to: [number, number]) => {
+              const time = nearestTime(streams, to, p.startS, parts[i + 1].endS)
+              if (time !== null && time !== p.endS) onMoveBoundary(i, time)
+            },
+          },
+        ]
+      }),
+    [streams, parts, onMoveBoundary, t],
+  )
   return (
     <div className="space-y-4">
       {view.coordinates.length > 1 ? (
         <ActivityMap
           coordinates={view.coordinates}
           routes={view.routes}
+          fitKey={selected}
+          handles={handles}
           label={t('activity.map')}
         />
       ) : (

@@ -102,3 +102,26 @@ export function partStreams(
     temp: channel(streams.temp),
   }
 }
+
+// The recorded time between `after` and `before` (exclusive) whose GPS point is closest to [lon, lat]
+export function nearestTime(
+  streams: ActivityStreams,
+  [lon, lat]: [number, number],
+  after: number,
+  before: number,
+): number | null {
+  const scale = Math.cos((lat * Math.PI) / 180) ** 2
+  let best: number | null = null
+  let bestDistance = Infinity
+  streams.t.forEach((time, i) => {
+    const pLat = streams.lat?.[i]
+    const pLon = streams.lon?.[i]
+    if (time <= after || time >= before || pLat == null || pLon == null) return
+    const distance = (pLat - lat) ** 2 + (pLon - lon) ** 2 * scale
+    if (distance < bestDistance) {
+      bestDistance = distance
+      best = time
+    }
+  })
+  return best
+}
