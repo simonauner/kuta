@@ -115,7 +115,7 @@
   }
 }
 @media (max-width: 600px) {
-  .site-header nav a:not(.login-link) {
+  .site-header nav a:not(.login-link, [hreflang]) {
     display: none;
   }
   .site-header .login-link {

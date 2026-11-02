@@ -13,6 +13,9 @@ public class WebRoutingTests
         var ct = TestContext.Current.CancellationToken;
         await File.WriteAllTextAsync(Path.Combine(webRoot, "index.html"), "<h1>Public landing</h1>", ct);
         await File.WriteAllTextAsync(Path.Combine(webRoot, "features.html"), "<h1>Available features</h1>", ct);
+        Directory.CreateDirectory(Path.Combine(webRoot, "en"));
+        await File.WriteAllTextAsync(Path.Combine(webRoot, "en", "index.html"), "<h1>English landing</h1>", ct);
+        await File.WriteAllTextAsync(Path.Combine(webRoot, "en", "features.html"), "<h1>English features</h1>", ct);
         await File.WriteAllTextAsync(Path.Combine(webRoot, "privacy.html"), "<h1>Privacy policy</h1>", ct);
         await File.WriteAllTextAsync(Path.Combine(webRoot, "terms.html"), "<h1>Terms of use</h1>", ct);
         await File.WriteAllTextAsync(Path.Combine(webRoot, "app.html"), "<meta name=\"robots\" content=\"noindex\"><div>App shell</div>", ct);
@@ -40,6 +43,10 @@ public class WebRoutingTests
                 Assert.Contains("Available features", html);
                 Assert.DoesNotContain("App shell", html);
             }
+            foreach (var path in new[] { "/en", "/en/" })
+                Assert.Contains("English landing", await client.GetStringAsync(path, ct));
+            foreach (var path in new[] { "/en/features", "/en/features/" })
+                Assert.Contains("English features", await client.GetStringAsync(path, ct));
             foreach (var path in new[] { "/app", "/app/", "/app/activities", "/app/activities/new", $"/app/activities/{Guid.NewGuid()}", $"/app/activities/{Guid.NewGuid()}/edit", "/app/stats", "/app/stats/analysis", "/app/profile", "/app/settings/equipment", "/app/settings/followers", $"/app/runners/{Guid.NewGuid()}", "/app/r/k7m2qx9p", "/app/settings", "/app/settings/privacy-places", "/app/settings/import", "/app?confirm=failed", "/app?confirm=ok", "/app?reset=password", "/app?reset=failed" })
             {
                 var html = await client.GetStringAsync(path, ct);

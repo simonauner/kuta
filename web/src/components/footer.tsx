@@ -12,7 +12,10 @@ export function Footer(props: FooterProps) {
     <footer className={`site-footer footer--${variant}`}>
       <div className="footer-inner">
         <div className="footer-brand">
-          <a className="footer-logo" href={variant === 'public' ? '/' : '/app'}>
+          <a
+            className="footer-logo"
+            href={variant === 'app' ? '/app' : language === 'en' ? '/en' : '/'}
+          >
             <picture>
               <source media="(prefers-color-scheme: dark)" srcSet="/brand/logo-light.svg" />
               <img src="/brand/logo.svg" alt="Kuta" width="120" height="40" />

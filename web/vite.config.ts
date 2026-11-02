@@ -1,6 +1,7 @@
 import { createElement } from 'react'
 import { renderToStaticMarkup } from 'react-dom/server'
 import { Footer } from './src/components/footer.tsx'
+import en from './src/locales/en.json' with { type: 'json' }
 import sv from './src/locales/sv.json' with { type: 'json' }
 import tailwindcss from '@tailwindcss/vite'
 import react from '@vitejs/plugin-react'
@@ -42,6 +43,10 @@ function configureHtmlRoutes(server: ViteDevServer | PreviewServer) {
       req.url = `/terms.html${url.search}`
     else if (url.pathname === '/features' || url.pathname === '/features/')
       req.url = `/features.html${url.search}`
+    else if (url.pathname === '/en' || url.pathname === '/en/')
+      req.url = `/en/index.html${url.search}`
+    else if (url.pathname === '/en/features' || url.pathname === '/en/features/')
+      req.url = `/en/features.html${url.search}`
     next()
   })
 }
@@ -55,6 +60,8 @@ export default defineConfig({
         privacy: path.resolve(import.meta.dirname, 'privacy.html'),
         terms: path.resolve(import.meta.dirname, 'terms.html'),
         features: path.resolve(import.meta.dirname, 'features.html'),
+        'en/landing': path.resolve(import.meta.dirname, 'en/index.html'),
+        'en/features': path.resolve(import.meta.dirname, 'en/features.html'),
         app: path.resolve(import.meta.dirname, 'app.html'),
       },
     },
@@ -68,11 +75,14 @@ export default defineConfig({
     react(),
     {
       name: 'public-footer',
-      transformIndexHtml: (html) =>
-        html.replace(
+      transformIndexHtml: (html, { path }) => {
+        const language = path.startsWith('/en/') ? 'en' : 'sv'
+        const labels = language === 'en' ? en.footer : sv.footer
+        return html.replace(
           '<!--kuta-footer-->',
-          renderToStaticMarkup(createElement(Footer, { variant: 'public', labels: sv.footer })),
-        ),
+          renderToStaticMarkup(createElement(Footer, { variant: 'public', labels, language })),
+        )
+      },
     },
     {
       name: 'app-html-routes',
