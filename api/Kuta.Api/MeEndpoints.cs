@@ -11,7 +11,7 @@ using Npgsql;
 public record UpdateMeRequest(string? DisplayName);
 // HasGarminData controls Garmin attribution on statistics and other views derived from the activities.
 public record Me(Guid Id, string? Email, string? DisplayName, bool HrConsent, string DefaultActivityPrivacy, int ActivitiesWithOtherPrivacy,
-    Supporter Supporter, bool HasGarminData, bool PublicProfile);
+    Supporter Supporter, bool HasGarminData, bool PublicProfile, Guid? AvatarId);
 // Tier is null when there is no supporter membership or it has expired.
 public record Supporter(string? Tier, DateTime? Until, string BadgePrivacy);
 public record Profile(string DisplayName, bool HrConsent, string DefaultActivityPrivacy);
@@ -234,9 +234,12 @@ public static class MeEndpoints
         // Same lock as the import: no new raw files may be stored between listing and cascade deletion.
         await conn.ExecuteAsync(new CommandDefinition("select id from users where id = @id for update",
             new { id }, tx, cancellationToken: ct));
-        var keys = await conn.QueryAsync<string>(new CommandDefinition(
+        var keys = (await conn.QueryAsync<string>(new CommandDefinition(
             "select raw_file_key from activities where user_id = @id and raw_file_key is not null for update",
-            new { id }, tx, cancellationToken: ct));
+            new { id }, tx, cancellationToken: ct))).ToList();
+        if (await conn.ExecuteScalarAsync<Guid?>(new CommandDefinition("select avatar_id from users where id = @id",
+                new { id }, tx, cancellationToken: ct)) is { } avatarId)
+            keys.Add(Avatars.Key(avatarId));
         await store.DeleteAsync(keys, ct);
         // One transaction also deletes the profile, activities, equipment and both Supabase and Kuta sessions.
         await conn.ExecuteAsync(new CommandDefinition("delete from auth.users where id = @id",
@@ -253,10 +256,11 @@ public static class MeEndpoints
         var profile = await LoadProfileAsync(conn, user.GetUserId());
         var privacy = profile?.DefaultActivityPrivacy ?? "private";
         // How many activities "apply to all" would change; Garmin activities stay private.
-        var (otherPrivacy, hasGarminData, publicProfile) = await conn.QuerySingleAsync<(int, bool, bool)>("""
+        var (otherPrivacy, hasGarminData, publicProfile, avatarId) = await conn.QuerySingleAsync<(int, bool, bool, Guid?)>("""
             select (select count(*)::int from activities where user_id = @id and privacy <> @privacy and source <> 'garmin'),
                 exists (select 1 from activities where user_id = @id and source = 'garmin'),
-                coalesce((select public_profile from users where id = @id), false)
+                coalesce((select public_profile from users where id = @id), false),
+                (select avatar_id from users where id = @id)
             """, new { id = user.GetUserId(), privacy });
         var supporter = await conn.QuerySingleOrDefaultAsync<Supporter>("""
             select case when supporter_until > now() then supporter_tier end as tier, supporter_until as until,
@@ -264,6 +268,6 @@ public static class MeEndpoints
             from users where id = @id
             """, new { id = user.GetUserId() }) ?? new Supporter(null, null, "private");
         return new Me(user.GetUserId(), user.FindFirstValue(ClaimTypes.Email), profile?.DisplayName, profile?.HrConsent ?? false, privacy, otherPrivacy,
-            supporter, hasGarminData, publicProfile);
+            supporter, hasGarminData, publicProfile, avatarId);
     }
 }

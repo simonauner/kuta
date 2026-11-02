@@ -53,7 +53,7 @@ public static class DataExport
             var profile = await conn.QuerySingleOrDefaultAsync<ExportProfile>(new CommandDefinition("""
                 select u.id, a.email, u.display_name, u.previous_display_name, u.display_name_changed_at, u.created_at, u.hr_consent_at, u.default_activity_privacy,
                     u.threshold_speed_m_s, u.supporter_tier, u.supporter_until, u.supporter_badge_privacy, u.public_profile,
-                    u.terms_version, u.terms_accepted_at, u.share_code
+                    u.terms_version, u.terms_accepted_at, u.share_code, u.avatar_id
                 from users u join auth.users a on a.id = u.id where u.id = @userId for share of u
                 """, new { userId }, tx, cancellationToken: ct));
             var activities = await conn.QueryAsync<ExportActivity>(new CommandDefinition("""
@@ -63,6 +63,11 @@ public static class DataExport
             using (var zip = new ZipArchive(file, ZipArchiveMode.Create, leaveOpen: true))
             {
                 await WriteJsonAsync(zip, "profile.json", profile, ct);
+                if (profile?.AvatarId is { } avatarId)
+                {
+                    await using var avatar = zip.CreateEntry("avatar.jpg").Open();
+                    await store.CopyToAsync(Avatars.Key(avatarId), avatar, ct);
+                }
                 await WriteJsonAsync(zip, "equipment.json", await EquipmentEndpoints.LoadAsync(conn, userId), ct);
                 await WriteJsonAsync(zip, "follows.json", await conn.QueryAsync<ExportFollow>(new CommandDefinition("""
                     select follower_id, following_id, accepted_at, created_at from follows
@@ -118,7 +123,7 @@ public static class DataExport
     private record ExportProfile(Guid Id, string? Email, string DisplayName, string? PreviousDisplayName,
         DateTime? DisplayNameChangedAt, DateTime CreatedAt, DateTime? HrConsentAt, string DefaultActivityPrivacy,
         double? ThresholdSpeedMS, string? SupporterTier, DateTime? SupporterUntil, string SupporterBadgePrivacy, bool PublicProfile,
-        string? TermsVersion, DateTime? TermsAcceptedAt, string? ShareCode);
+        string? TermsVersion, DateTime? TermsAcceptedAt, string? ShareCode, Guid? AvatarId);
     private record ExportActivity(Guid Id, string Source, DateTime CreatedAt, string Privacy,
         string? StravaActivityId, string? RawFileKey);
 }
