@@ -19,6 +19,11 @@ file="$(basename "${tiles[0]}")"
 # The bucket is in the EU jurisdiction, which has its own S3 endpoint. A token limited to one bucket may not check
 # or create buckets, hence --s3-no-check-bucket.
 op run --env-file=scripts/map-upload.env.tpl -- sh -c '
+  for name in KUTA_MAP_ACCOUNT_ID KUTA_MAP_BUCKET RCLONE_CONFIG_R2_ACCESS_KEY_ID RCLONE_CONFIG_R2_SECRET_ACCESS_KEY; do
+    eval "value=\${$name:-}"
+    [ -n "$value" ] || { echo "[upload-map] $name is empty: check the field in kuta-map-r2" >&2; exit 1; }
+  done
+  echo "[upload-map] Copying to r2:$KUTA_MAP_BUCKET"
   export RCLONE_CONFIG_R2_TYPE=s3 RCLONE_CONFIG_R2_PROVIDER=Cloudflare
   export RCLONE_CONFIG_R2_ENDPOINT="https://$KUTA_MAP_ACCOUNT_ID.eu.r2.cloudflarestorage.com"
   rclone copy "$1" "r2:$KUTA_MAP_BUCKET" --s3-no-check-bucket --transfers 16 --progress
