@@ -1,5 +1,6 @@
 import { Link } from '@tanstack/react-router'
 import { useTranslation } from 'react-i18next'
+import { Avatar } from '@/components/avatar'
 import { SupporterBadge } from '@/components/supporter'
 import { Button } from '@/components/ui/button'
 import type { Runner, useFollowChange } from '@/lib/follows'
@@ -17,6 +18,7 @@ export function FollowRow({
   return (
     <li className="flex flex-wrap items-center justify-between gap-3 px-4 py-3">
       <span className="flex min-w-0 items-center gap-1.5">
+        <Avatar name={runner.displayName} avatarId={runner.avatarId} />
         <Link
           to="/app/runners/$runnerId"
           params={{ runnerId: runner.id }}

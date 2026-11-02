@@ -431,7 +431,8 @@
     "jobCancelled": "Jobbet avbröts.",
     "termsRequired": "Godkänn användarvillkoren och integritetspolicyn för att skapa ett konto.",
     "garminUnavailable": "Garmin Connect är inte tillgängligt just nu.",
-    "invalidViewAs": "Förhandsvisningen gäller bara din egen profil."
+    "invalidViewAs": "Förhandsvisningen gäller bara din egen profil.",
+    "invalidAvatar": "Välj en bild (högst 200 kB)."
   },
   "home": "Kuta – startsida",
   "footer": {
@@ -891,5 +892,15 @@
     },
     "latestActivities": "Senaste aktiviteterna",
     "allActivities": "Alla aktiviteter"
+  },
+  "avatar": {
+    "title": "Profilbild",
+    "help": "Visas bredvid ditt namn för alla som ser namnet. Bilden beskärs till en kvadrat, och platsuppgifter i bilden tas bort innan den laddas upp.",
+    "choose": "Välj bild",
+    "uploading": "Laddar upp …",
+    "unreadable": "Bilden kunde inte läsas. Välj en JPEG- eller PNG-bild.",
+    "delete": "Radera bild",
+    "deleteTitle": "Radera profilbilden?",
+    "deleteText": "Bilden raderas, och dina initialer visas i stället."
   }
 }

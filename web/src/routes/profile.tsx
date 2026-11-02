@@ -18,6 +18,7 @@ import {
   type ViewAs,
 } from '@/components/runner-summary'
 import { ShareProfile } from '@/components/share-profile'
+import { Avatar } from '@/components/avatar'
 import { SupporterBadge } from '@/components/supporter'
 import { api } from '@/lib/api'
 import { meQuery, type SupporterTier } from '@/lib/auth'
@@ -39,7 +40,8 @@ export function ProfilePage() {
   return (
     <section className="space-y-6">
       <div className="flex flex-wrap items-start justify-between gap-4">
-        <Heading level={1} className="flex min-w-0 items-center gap-2 break-words">
+        <Heading level={1} className="flex min-w-0 items-center gap-3 break-words">
+          {me?.displayName && <Avatar name={me.displayName} avatarId={me.avatarId} size="lg" />}
           {me?.displayName}
           <SupporterBadge tier={tier} />
         </Heading>

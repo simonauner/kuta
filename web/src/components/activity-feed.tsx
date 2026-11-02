@@ -7,6 +7,7 @@ import { Link, useRouterState } from '@tanstack/react-router'
 import { useTranslation } from 'react-i18next'
 import { ErrorMessage } from '@/components/error-message'
 import { SportIcon } from '@/components/sport-icon'
+import { Avatar } from '@/components/avatar'
 import { SupporterBadge } from '@/components/supporter'
 import { Button } from '@/components/ui/button'
 import { api } from '@/lib/api'
@@ -26,6 +27,7 @@ type FeedItem = {
   routeGeoJson: string | null
   supporterTier: SupporterTier | null
   attribution: string | null
+  avatarId: string | null
 }
 type FeedPage = { items: FeedItem[]; nextCursor: ActivityCursor | null }
 
@@ -92,6 +94,7 @@ export function ActivityFeed({
           .map((activity) => (
             <li key={activity.id} className={card()}>
               <div className="flex items-center gap-1.5 text-sm text-muted-foreground">
+                <Avatar name={activity.displayName} avatarId={activity.avatarId} />
                 <Link
                   to="/app/runners/$runnerId"
                   params={{ runnerId: activity.userId }}

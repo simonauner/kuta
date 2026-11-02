@@ -13,6 +13,7 @@ export type Runner = {
   similarTo: string | null
   // Set for 30 days after a name change, so nobody can take a friend's name unnoticed.
   previousName: string | null
+  avatarId: string | null
 }
 
 export type FollowLists = { following: Runner[]; followers: Runner[]; blocked: Runner[] }

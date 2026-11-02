@@ -5,6 +5,7 @@ import { useTranslation } from 'react-i18next'
 import { ActivityFeed } from '@/components/activity-feed'
 import { ActivityCalendar, ProfileStats, RecordShelf } from '@/components/runner-summary'
 import { GoalList } from '@/components/goals'
+import { Avatar } from '@/components/avatar'
 import { SupporterBadge } from '@/components/supporter'
 import { ErrorMessage } from '@/components/error-message'
 import { Button } from '@/components/ui/button'
@@ -21,6 +22,7 @@ type Runner = {
   previousName: string | null
   status: 'none' | 'pending' | 'accepted'
   supporterTier: SupporterTier | null
+  avatarId: string | null
 }
 
 export function RunnerPage() {
@@ -74,7 +76,8 @@ export function RunnerPage() {
         {runner.data && !runner.isError && (
           <>
             <div className="flex flex-wrap items-center justify-between gap-3">
-              <Heading level={1} className="flex min-w-0 items-center gap-2 break-words">
+              <Heading level={1} className="flex min-w-0 items-center gap-3 break-words">
+                <Avatar name={runner.data.displayName} avatarId={runner.data.avatarId} size="lg" />
                 {runner.data.displayName}
                 <SupporterBadge tier={runner.data.supporterTier} />
               </Heading>
