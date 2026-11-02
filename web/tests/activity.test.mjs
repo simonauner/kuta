@@ -8,6 +8,7 @@ import {
   formatPace,
   groupActivities,
   parseDuration,
+  relativeDay,
   splits,
   routeSegments,
   toDateTimeLocal,
@@ -264,4 +265,14 @@ test('activity search preserves supported sports with year and tag', () => {
   assert.deepEqual(activitySearch({ sport: 'trail run' }), { sport: 'trail run' })
   for (const sport of ['', 'unknown', '__proto__', ['cycling'], null])
     assert.deepEqual(activitySearch({ sport }), {})
+})
+
+test('feed times say today and yesterday by calendar day, not by 24 hours', () => {
+  const now = new Date(2026, 10, 2, 0, 30)
+  assert.equal(relativeDay(new Date(2026, 10, 2, 0, 5), now), 'today')
+  assert.equal(relativeDay(new Date(2026, 10, 1, 23, 50), now), 'yesterday')
+  assert.equal(relativeDay(new Date(2026, 10, 1, 0, 0), now), 'yesterday')
+  assert.equal(relativeDay(new Date(2026, 9, 31, 23, 59), now), null)
+  // Across the end of daylight saving time (Europe), a day is 25 hours
+  assert.equal(relativeDay(new Date(2026, 9, 24, 12), new Date(2026, 9, 25, 23)), 'yesterday')
 })

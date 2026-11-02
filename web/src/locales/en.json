@@ -64,7 +64,16 @@
         "less": "Last week you ran easier than the average of the three weeks before.",
         "steady": "Last week matched the three weeks before. Nice and consistent."
       }
-    }
+    },
+    "today": "Today at {{time}}",
+    "yesterday": "Yesterday at {{time}}",
+    "record": {
+      "current": "Personal best for {{distance}}",
+      "previous": "Personal best for {{distance}} at the time",
+      "year": "Best {{distance}} of {{year}}"
+    },
+    "moreRecords_one": "+{{count}} more record",
+    "moreRecords_other": "+{{count}} more records"
   },
   "stats": {
     "views": "Statistics views",

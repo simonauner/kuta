@@ -27,7 +27,8 @@ export function ActivityMapPreview({ geoJson }: { geoJson: string }) {
 
   if (lines.length === 0) return null
   return (
-    <div ref={container} className="mt-4 h-52 rounded-lg bg-muted sm:h-60">
+    // Edge to edge in the feed card: the negative margins cancel the card's padding, the card clips the corners
+    <div ref={container} className="-mx-4 -mb-4 mt-4 h-60 bg-muted sm:-mx-5 sm:-mb-5 sm:h-72">
       {visible && (
         <Suspense fallback={null}>
           <ActivityMap

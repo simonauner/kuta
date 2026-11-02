@@ -11,7 +11,7 @@ import { api, ApiError } from '@/lib/api'
 import { meQuery, type Me } from '@/lib/auth'
 import { cn } from '@/lib/utils'
 
-const sizes = { sm: 'size-8 text-xs', lg: 'size-16 text-xl' }
+const sizes = { sm: 'size-8 text-xs', md: 'size-10 text-sm', lg: 'size-16 text-xl' }
 
 export function initials(name: string) {
   return name

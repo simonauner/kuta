@@ -31,35 +31,53 @@ export function MetalGradient({ id, metal }: { id: string; metal: keyof typeof m
 type RecordAwardProps =
   { status: NonNullable<ActivityBestEffort['recordStatus']> } | { status: 'year'; year: number }
 
+function RecordIcon({ status }: { status: RecordAwardProps['status'] }) {
+  const gradientId = useId()
+  const metal = status === 'current' ? 'gold' : 'silver'
+  const Icon = status === 'current' ? Trophy : status === 'year' ? Award : Medal
+  return (
+    <Icon
+      className="size-6"
+      fill={status === 'year' ? 'none' : `url(#${gradientId})`}
+      strokeWidth={1.6}
+      aria-hidden="true"
+    >
+      {status !== 'year' && <MetalGradient id={gradientId} metal={metal} />}
+    </Icon>
+  )
+}
+
+const tone = (status: RecordAwardProps['status']) =>
+  `record-award--${status === 'year' ? 'outline' : status === 'current' ? 'gold' : 'silver'}`
+
+// The same award without a tooltip, next to text that already names it (the feed)
+export function RecordMedal({ status }: { status: RecordAwardProps['status'] }) {
+  return (
+    <span aria-hidden="true" className={`record-medal ${tone(status)}`}>
+      <RecordIcon status={status} />
+    </span>
+  )
+}
+
 export function RecordAward(props: RecordAwardProps) {
   const { status } = props
   const { t } = useTranslation()
-  const gradientId = useId()
   const [open, setOpen] = useState(false)
   const label =
     props.status === 'year'
       ? t('records.yearBest', { year: props.year })
       : t(status === 'current' ? 'records.currentBest' : 'records.previousBest')
-  const metal = status === 'current' ? 'gold' : 'silver'
-  const Icon = status === 'current' ? Trophy : status === 'year' ? Award : Medal
   return (
     <Tooltip.Root open={open} onOpenChange={setOpen}>
       <Tooltip.Trigger
         type="button"
         aria-label={label}
-        className={`record-award record-award--${status === 'year' ? 'outline' : metal}`}
+        className={`record-award ${tone(status)}`}
         delay={150}
         closeOnClick={false}
         onClick={() => setOpen(true)}
       >
-        <Icon
-          className="size-6"
-          fill={status === 'year' ? 'none' : `url(#${gradientId})`}
-          strokeWidth={1.6}
-          aria-hidden="true"
-        >
-          {status !== 'year' && <MetalGradient id={gradientId} metal={metal} />}
-        </Icon>
+        <RecordIcon status={status} />
       </Tooltip.Trigger>
       <Tooltip.Portal>
         <Tooltip.Positioner sideOffset={8} className="z-50">
