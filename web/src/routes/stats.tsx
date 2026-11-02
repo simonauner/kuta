@@ -23,6 +23,7 @@ import { Select } from '@/components/ui/select'
 import { HelpPopover } from '@/components/help-popover'
 import {
   change,
+  axisTicks,
   lineRuns,
   rollingPeriods,
   statisticsRanges,
@@ -167,15 +168,33 @@ export function StatsPage() {
       ? `${bucketFormat.format(parseDate(b.start))} (${t('stats.inProgress')})`
       : bucketFormat.format(parseDate(b.start))
   const count = total?.count ?? 0
-  const maximum = Math.max(1, ...buckets.map((m) => m[metric] ?? 0))
   const changeText = (key: 'count' | 'distanceM' | 'durationS') => {
     if (!total || !statistics.data) return null
     const value = change(total[key], statistics.data.previous.total[key])
     return value === null ? null : `${percent.format(Math.round(value))} %`
   }
   const step = (n: number) => Math.max(1, Math.ceil(buckets.length / n))
-  const pointX = (index: number) => ((index + 0.5) * 600) / buckets.length
-  const pointY = (index: number) => 180 - ((buckets[index][metric] ?? 0) / maximum) * 160
+  // The plot leaves room on the right for the gridline labels.
+  const plotWidth = 520
+  const ticks = axisTicks(
+    metric,
+    buckets.map((m) => m[metric]),
+  )
+  const [lower, upper] = [ticks[0], ticks[ticks.length - 1]]
+  const zeroBased = metric === 'distanceM' || metric === 'durationS'
+  // A faster pace is drawn higher, as runners read it.
+  const valueY = (value: number) => {
+    const share = (value - lower) / (upper - lower)
+    return metric === 'paceSPerKm' ? 20 + share * 160 : 180 - share * 160
+  }
+  const pointX = (index: number) => ((index + 0.5) * plotWidth) / buckets.length
+  const pointY = (index: number) => valueY(buckets[index][metric] ?? lower)
+  const tickLabel = (value: number) => {
+    if (metric === 'distanceM') return `${number.format(value / 1000)} km`
+    if (metric === 'durationS') return `${number.format(value / 3600)} h`
+    if (metric === 'paceSPerKm') return formatDuration(value)
+    return number.format(value)
+  }
   const format = (value: number | null, key: Metric) => {
     if (value === null) return '–'
     if (key === 'distanceM') return `${number.format(value / 1000)} km`
@@ -344,16 +363,34 @@ export function StatsPage() {
                       </Select>
                     )}
                   </FormField>
-                  <p className="mt-3 text-xs text-muted-foreground">
-                    {t('stats.chartScale', { max: format(maximum, metric) })}
-                  </p>
+                  <p className="mt-3 text-xs text-muted-foreground">{t('stats.tableNote')}</p>
                   <svg
                     viewBox="0 0 600 210"
                     className="mt-2 w-full text-primary"
                     role="img"
                     aria-label={`${t(bucket === 'week' ? 'stats.weekly' : 'stats.monthly')}: ${t(`stats.${metric}`)} · ${formatRange(ranges.current)}`}
                   >
-                    <line x1="0" x2="600" y1="180" y2="180" stroke="currentColor" opacity="0.2" />
+                    {ticks.map((tick) => (
+                      <g key={tick} className="text-muted-foreground">
+                        <line
+                          x1="0"
+                          x2={plotWidth}
+                          y1={valueY(tick)}
+                          y2={valueY(tick)}
+                          stroke="currentColor"
+                          opacity="0.3"
+                        />
+                        <text
+                          x="600"
+                          y={valueY(tick) + 6}
+                          textAnchor="end"
+                          fill="currentColor"
+                          className="text-[20px] sm:text-xs"
+                        >
+                          {tickLabel(tick)}
+                        </text>
+                      </g>
+                    ))}
                     {lineRuns(buckets.map((m) => m[metric])).map((run, runIndex, runs) => {
                       const points = run.map((index) => `${pointX(index)},${pointY(index)}`)
                       // Only averages (pace, heart rate) can be missing: a dashed line without area bridges the gap.
@@ -372,11 +409,14 @@ export function StatsPage() {
                               opacity="0.6"
                             />
                           )}
-                          <polygon
-                            points={`${pointX(run[0])},180 ${points.join(' ')} ${pointX(run[run.length - 1])},180`}
-                            fill="currentColor"
-                            opacity="0.15"
-                          />
+                          {/* Area only under sums; under an average it would suggest an amount. */}
+                          {zeroBased && (
+                            <polygon
+                              points={`${pointX(run[0])},180 ${points.join(' ')} ${pointX(run[run.length - 1])},180`}
+                              fill="currentColor"
+                              opacity="0.15"
+                            />
+                          )}
                           <polyline
                             points={points.join(' ')}
                             fill="none"

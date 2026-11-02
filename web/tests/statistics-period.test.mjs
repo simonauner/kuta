@@ -1,6 +1,6 @@
 import assert from 'node:assert/strict'
 import { test } from 'node:test'
-import { change, lineRuns, statisticsRanges } from '../src/lib/statistics-period.ts'
+import { axisTicks, change, lineRuns, statisticsRanges } from '../src/lib/statistics-period.ts'
 
 // Sunday 8 November 2026.
 const today = { year: 2026, month: 11, day: 8 }
@@ -41,4 +41,13 @@ test('change needs something to compare with', () => {
 test('lines break at missing values', () => {
   assert.deepEqual(lineRuns([1, 0, null, 3, null, null, 4, 5]), [[0, 1], [3], [6, 7]])
   assert.deepEqual(lineRuns([null]), [])
+})
+
+test('gridlines use round steps with little headroom, from zero only for sums', () => {
+  assert.deepEqual(axisTicks('distanceM', [24600, 44800, 0]), [0, 25000, 50000])
+  // Averages start below the lowest value; missing values are ignored.
+  assert.deepEqual(axisTicks('paceSPerKm', [293, 226, null, 159]), [120, 180, 240, 300])
+  assert.deepEqual(axisTicks('avgHr', [157.1, 143.1]), [140, 145, 150, 155, 160])
+  // Even a flat series gets two intervals.
+  assert.deepEqual(axisTicks('avgHr', [150, 150]), [150, 151, 152])
 })

@@ -98,7 +98,7 @@
     "empty": "Inga aktiviteter för vald sport och period.",
     "noHeartRate": "Inga sparade pulsdata under perioden.",
     "chartScale": "Skala: 0–{{max}}. Alla värden finns i tabellen nedan.",
-    "method": "Tid inkluderar pauser. Tempo beräknas som total tid per kilometer för aktiviteter med distans och tid. Lägre tempo betyder snabbare fart. Snittpuls vägs med aktiviteternas tid, endast för aktiviteter med sparad puls. Saknade värden visas som –. Alla sporter kombinerar även tempo och puls mellan sporter. Veckor börjar på måndag, och veckor och månader följer din enhets tidszon. Förändringen jämförs med lika lång tid närmast före perioden, för kalenderår samma del av föregående år.",
+    "method": "Tid inkluderar pauser. Tempo beräknas som total tid per kilometer för aktiviteter med distans och tid. Lägre tempo betyder snabbare fart. Snittpuls vägs med aktiviteternas tid, endast för aktiviteter med sparad puls. Saknade värden visas som –. Alla sporter kombinerar även tempo och puls mellan sporter. Veckor börjar på måndag, och veckor och månader följer din enhets tidszon. Tempo och puls ritas från ett jämnt värde under det lägsta, och snabbare tempo ritas högre. Förändringen jämförs med lika lång tid närmast före perioden, för kalenderår samma del av föregående år.",
     "methodLabel": "Så räknas statistiken",
     "period": "Period",
     "periods": {
@@ -110,7 +110,8 @@
     "weekly": "Vecka för vecka",
     "week": "Vecka",
     "inProgress": "pågår",
-    "comparedWith": "Förändring jämfört med {{range}}."
+    "comparedWith": "Förändring jämfört med {{range}}.",
+    "tableNote": "Alla värden finns i tabellen nedan."
   },
   "yearComparison": {
     "title": "År för år",

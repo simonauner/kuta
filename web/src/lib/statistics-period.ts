@@ -59,3 +59,29 @@ export function lineRuns(values: (number | null)[]) {
   })
   return runs
 }
+
+// Round steps per metric in its stored unit (meters, seconds, seconds per km, bpm).
+const axisSteps: Record<'distanceM' | 'durationS' | 'paceSPerKm' | 'avgHr', number[]> = {
+  distanceM: [1, 2, 2.5, 5, 10, 20, 25, 50, 100, 200, 250, 500, 1000].map((km) => km * 1000),
+  durationS: [0.25, 0.5, 1, 2, 5, 10, 20, 50, 100].map((h) => h * 3600),
+  paceSPerKm: [5, 10, 15, 30, 60, 120, 300, 600],
+  avgHr: [1, 2, 5, 10, 20, 50],
+}
+
+// Gridlines for a chart: sums start at zero, averages at a round value below the lowest one so their variation shows.
+export function axisTicks(metric: keyof typeof axisSteps, values: (number | null)[], lines = 4) {
+  const present = values.filter((v): v is number => v !== null)
+  const zeroBased = metric === 'distanceM' || metric === 'durationS'
+  const low = zeroBased || present.length === 0 ? 0 : Math.min(...present)
+  const high = Math.max(low, ...present)
+  // The step with the least headroom above the data, at most `lines` intervals; on a tie the finer one.
+  let best = { lower: 0, upper: Infinity, step: 1 }
+  for (const step of axisSteps[metric]) {
+    const lower = Math.floor(low / step) * step
+    const upper = Math.max(lower + 2 * step, Math.ceil(high / step) * step)
+    if ((upper - lower) / step <= lines && upper - lower < best.upper - best.lower)
+      best = { lower, upper, step }
+  }
+  const { lower, upper, step } = best
+  return Array.from({ length: Math.round((upper - lower) / step) + 1 }, (_, i) => lower + i * step)
+}

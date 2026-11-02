@@ -98,7 +98,7 @@
     "empty": "No activities for the selected sport and period.",
     "noHeartRate": "No saved heart rate data during this period.",
     "chartScale": "Scale: 0–{{max}}. All values are in the table below.",
-    "method": "Time includes pauses. Pace is total time per kilometre for activities with distance and time. Lower pace means faster speed. Heart rate is weighted by activity duration, using only activities with saved heart rate. Missing values appear as –. All sports also combines pace and heart rate across sports. Weeks start on Monday, and weeks and months follow your device’s time zone. The change compares with an equally long span just before the period, or for calendar years the same part of the previous year.",
+    "method": "Time includes pauses. Pace is total time per kilometre for activities with distance and time. Lower pace means faster speed. Heart rate is weighted by activity duration, using only activities with saved heart rate. Missing values appear as –. All sports also combines pace and heart rate across sports. Weeks start on Monday, and weeks and months follow your device’s time zone. Pace and heart rate are drawn from a round value below the lowest one, and faster pace is drawn higher. The change compares with an equally long span just before the period, or for calendar years the same part of the previous year.",
     "methodLabel": "How statistics are calculated",
     "period": "Period",
     "periods": {
@@ -110,7 +110,8 @@
     "weekly": "Week by week",
     "week": "Week",
     "inProgress": "in progress",
-    "comparedWith": "Change compared with {{range}}."
+    "comparedWith": "Change compared with {{range}}.",
+    "tableNote": "All values are in the table below."
   },
   "yearComparison": {
     "title": "Year over year",
