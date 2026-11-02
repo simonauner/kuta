@@ -1,0 +1,23 @@
+web/src/components/year-comparison.tsx
+  s_0408ba024a4028::t_ba9d0cbd123b5d 4,19-20,30,63-64,66-71,74-78,108-134,152-158,167-205,236
+web/src/lib/statistics-period.ts
+  s_0408ba024a4028::t_ba9d0cbd123b5d 64,69,75
+web/tests/statistics-period.test.mjs
+  s_0408ba024a4028::t_ba9d0cbd123b5d 48
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.7.5",
+  "base_commit_sha": "94282de4d5309cd1a72458728f57653f650f90cb",
+  "prompts": {},
+  "sessions": {
+    "s_0408ba024a4028": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "97ed879e-a09f-4bf6-a46b-1095b8ce07de",
+        "model": "claude-opus-5-5"
+      },
+      "human_author": "Simon Aunér <simonauner@gmail.com>"
+    }
+  }
+}
