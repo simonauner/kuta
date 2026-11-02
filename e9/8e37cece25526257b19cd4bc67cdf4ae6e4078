@@ -1,0 +1,37 @@
+web/src/locales/en.json
+  s_91d2a0b4a23811::t_68ca63a799db9e 345-348
+web/tests/activity.test.mjs
+  s_91d2a0b4a23811::t_b85058703fba47 7,15,36-52
+  s_91d2a0b4a23811::t_126de0d6d91b35 53-59
+  s_91d2a0b4a23811::t_9f45a667987333 60-61
+web/src/locales/sv.json
+  s_91d2a0b4a23811::t_68ca63a799db9e 345-348
+web/src/lib/activity.ts
+  s_91d2a0b4a23811::t_126de0d6d91b35 27-35,42-44
+  s_91d2a0b4a23811::t_6dadac90b1d5c4 54-55
+  s_91d2a0b4a23811::t_1180d08138dc13 26,36-41,45-46,48-53,56-75
+  s_91d2a0b4a23811::t_1b220622b9f862 47
+AGENTS.md
+  s_91d2a0b4a23811::t_7b7f0eba179c89 59
+web/src/routes/activity.tsx
+  s_91d2a0b4a23811::t_8076b5eb6dc994 225
+  s_91d2a0b4a23811::t_8aa7752d0c989d 39-40,58-113,149,194-204,208,216-224,687-709
+web/src/components/ui/button.tsx
+  s_91d2a0b4a23811::t_68ca63a799db9e 18-20
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.7.5",
+  "base_commit_sha": "e98e37cece25526257b19cd4bc67cdf4ae6e4078",
+  "prompts": {},
+  "sessions": {
+    "s_91d2a0b4a23811": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "a47938ab-4af1-4325-9278-149f5b9a8da5",
+        "model": "unknown"
+      },
+      "human_author": "Simon Aunér <simonauner@gmail.com>"
+    }
+  }
+}
