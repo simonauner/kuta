@@ -1,0 +1,22 @@
+web/src/lib/sports.ts
+  s_784b551f724188::t_a1e2f6905809b3 2-3
+web/src/components/sport-icon.tsx
+  s_784b551f724188::t_a1e2f6905809b3 44-62,64-67,81,88,90-94
+  s_784b551f724188::t_c33835209e1b2b 1,63
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.7.5",
+  "base_commit_sha": "0733ab2197eb3c1efebf3cf9924361a90674b9be",
+  "prompts": {},
+  "sessions": {
+    "s_784b551f724188": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "e4beec11-b76f-4428-a9ef-32fc72d0747b",
+        "model": "claude-opus-5-5"
+      },
+      "human_author": "Simon Aunér <simonauner@gmail.com>"
+    }
+  }
+}
