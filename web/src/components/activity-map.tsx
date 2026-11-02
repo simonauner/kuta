@@ -152,10 +152,13 @@ export function ActivityMap({
       className={
         thumbnail
           ? 'h-52 w-full overflow-hidden rounded-lg border sm:h-60'
-          : large
-            ? // Negative margins widen the map past the form column, centred and kept inside the viewport
-              'mx-[calc(50%-min(50vw-1rem,48rem))] h-[60svh] overflow-hidden rounded-lg border'
-            : 'h-72 max-h-[45svh] w-full overflow-hidden rounded-lg border sm:h-96'
+          : // Negative margins widen the map past the form column, centred and kept inside the viewport.
+            // Width follows the margins (no w-full) so the size change can animate.
+            `overflow-hidden rounded-lg border transition-[height,max-height,margin] duration-300 motion-reduce:transition-none ${
+              large
+                ? 'mx-[calc(50%-min(50vw-1rem,48rem))] h-[60svh] max-h-[60svh]'
+                : 'mx-0 h-72 max-h-[45svh] sm:h-96'
+            }`
       }
     >
       {/* MapLibre adds its own classes here, so this element's className must never change */}
