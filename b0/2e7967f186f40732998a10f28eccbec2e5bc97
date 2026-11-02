@@ -1,0 +1,22 @@
+web/tests/training-load.test.mjs
+  s_a4b9a088d200ea::t_3e01d077a8ed9c 3-9,40-42,49-62
+  s_a4b9a088d200ea::t_1f1d32b88cbb2f 43-48
+web/src/lib/training-load.ts
+  s_a4b9a088d200ea::t_3e01d077a8ed9c 63-85
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.7.5",
+  "base_commit_sha": "b02e7967f186f40732998a10f28eccbec2e5bc97",
+  "prompts": {},
+  "sessions": {
+    "s_a4b9a088d200ea": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "df23a20a-ee7e-4a97-b0b1-e93322a70839",
+        "model": "claude-opus-5-5"
+      },
+      "human_author": "Simon Aunér <simonauner@gmail.com>"
+    }
+  }
+}
