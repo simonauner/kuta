@@ -1,0 +1,28 @@
+web/src/components/garmin.tsx
+  s_21cd1eb5dd7698::t_d4c34f4af12516 29
+web/src/locales/sv.json
+  s_21cd1eb5dd7698::t_d4c34f4af12516 39-47
+web/src/locales/en.json
+  s_21cd1eb5dd7698::t_d4c34f4af12516 39-47
+web/src/components/feed-empty-state.tsx
+  s_21cd1eb5dd7698::t_57754659cd427e 3-4,8,46-52,54,61-66,68,70-71,73-104
+  s_21cd1eb5dd7698::t_9dcdec8eab94ca 53
+  s_21cd1eb5dd7698::t_f5e777227a7f3f 67,69,72
+  s_21cd1eb5dd7698::t_d7c588151d033f 105-106
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.7.5",
+  "base_commit_sha": "78deb5de534c27e787f11e1f4aa0b1a3bdfa2feb",
+  "prompts": {},
+  "sessions": {
+    "s_21cd1eb5dd7698": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "3f504746-ca5f-4753-ad27-1c6afa7302bd",
+        "model": "claude-opus-5-5"
+      },
+      "human_author": "Simon Aunér <simonauner@gmail.com>"
+    }
+  }
+}
