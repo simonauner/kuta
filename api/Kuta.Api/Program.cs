@@ -201,7 +201,8 @@ static async Task<int> RunAsync(string[] args)
         OnPrepareResponse = ctx => ctx.Context.Response.Headers.CacheControl =
             ctx.Context.Request.Path.StartsWithSegments("/assets") ? "public, max-age=31536000, immutable" : "no-cache",
     };
-    app.UseDefaultFiles();
+    // No /en -> /en/ redirect: /en is the canonical URL and is mapped below.
+    app.UseDefaultFiles(new DefaultFilesOptions { RedirectToAppendTrailingSlash = false });
     app.UseStaticFiles(staticFiles);
     // Explicitly in this order: otherwise WebApplication puts routing and auth first, so 401/403 lack
     // headers and the fallback route takes sw.js etc. before the static files are found.
@@ -276,6 +277,8 @@ static async Task<int> RunAsync(string[] args)
     app.MapFallbackToFile("/privacy", "privacy.html", staticFiles);
     app.MapFallbackToFile("/terms", "terms.html", staticFiles);
     app.MapFallbackToFile("/features", "features.html", staticFiles);
+    app.MapFallbackToFile("/en", "en/index.html", staticFiles);
+    app.MapFallbackToFile("/en/features", "en/features.html", staticFiles);
 
     // The public pages are static; only the app's known paths get the React shell.
     foreach (var path in new[] { "/app", "/app/activities", "/app/activities/new", "/app/activities/{activityId:guid}", "/app/activities/{activityId:guid}/edit", "/app/stats", "/app/stats/analysis", "/app/profile", "/app/settings/equipment", "/app/settings/followers", "/app/settings/privacy-places", "/app/settings/import", "/app/runners/{runnerId:guid}", "/app/r/{code:length(8)}", "/app/settings" })

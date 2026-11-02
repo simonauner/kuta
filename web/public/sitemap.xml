@@ -2,5 +2,7 @@
 <urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">
   <url><loc>https://kutaapp.com/</loc></url>
   <url><loc>https://kutaapp.com/features</loc></url>
+  <url><loc>https://kutaapp.com/en</loc></url>
+  <url><loc>https://kutaapp.com/en/features</loc></url>
   <url><loc>https://kutaapp.com/privacy</loc></url>
 </urlset>

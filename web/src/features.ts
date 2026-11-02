@@ -1,3 +1,8 @@
+const labels =
+  document.documentElement.lang === 'en'
+    ? { pause: 'Pause slideshow', play: 'Play slideshow' }
+    : { pause: 'Pausa bildspel', play: 'Starta bildspel' }
+
 for (const carousel of document.querySelectorAll<HTMLElement>('.statistics-carousel')) {
   const slides = [...carousel.querySelectorAll<HTMLImageElement>('.statistics-slide')]
   const controls = carousel.querySelector<HTMLElement>('.statistics-controls')!
@@ -18,7 +23,7 @@ for (const carousel of document.querySelectorAll<HTMLElement>('.statistics-carou
 
   function updateRotation() {
     window.clearInterval(timer)
-    rotation.textContent = playing ? 'Pausa bildspel' : 'Starta bildspel'
+    rotation.textContent = playing ? labels.pause : labels.play
     if (playing && visible && !hovered && !document.hidden) {
       timer = window.setInterval(() => show((current + 1) % slides.length), 6500)
     }

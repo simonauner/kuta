@@ -11,6 +11,8 @@
       content="Samla dina löppass, följ din utveckling och träna med vänner. Rekord, prognos och analys utan betalvägg, med din data lagrad i Sverige. Ta med dig hela ditt Strava-arkiv."
     />
     <link rel="canonical" href="https://kutaapp.com/" />
+    <link rel="alternate" hreflang="sv" href="https://kutaapp.com/" />
+    <link rel="alternate" hreflang="en" href="https://kutaapp.com/en" />
     <meta property="og:type" content="website" />
     <meta property="og:locale" content="sv_SE" />
     <meta property="og:site_name" content="Kuta" />
@@ -30,6 +32,7 @@
     <link rel="preload" as="image" href="/images/forest-trail.webp" fetchpriority="high" />
     <link rel="stylesheet" href="/src/landing.css" />
     <script type="module" src="/src/landing.ts"></script>
+    <script type="module" src="/src/public-language.ts"></script>
   </head>
   <body>
     <a class="skip-link" href="#innehall">Hoppa till innehållet</a>
@@ -42,6 +45,9 @@
       <nav aria-label="Huvudnavigation">
         <a class="about-link" href="#pa-vag">Funktioner</a>
         <a class="data-link" href="#dina-data">Data i Sverige</a>
+        <a class="language-link" href="/en" lang="en" hreflang="en"
+          ><img src="/flags/gb.svg" alt="English" width="32" height="16"
+        /></a>
         <a class="login-link" href="/app">Logga in</a>
       </nav>
     </header>

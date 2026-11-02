@@ -11,6 +11,8 @@
       content="Importera FIT-filer, följ löprekord och utveckling, se din lopp-prognos, sätt träningsmål och håll koll på skorna. Se vad du kan göra i Kuta i dag."
     />
     <link rel="canonical" href="https://kutaapp.com/features" />
+    <link rel="alternate" hreflang="sv" href="https://kutaapp.com/features" />
+    <link rel="alternate" hreflang="en" href="https://kutaapp.com/en/features" />
     <meta property="og:type" content="website" />
     <meta property="og:locale" content="sv_SE" />
     <meta property="og:site_name" content="Kuta" />
@@ -27,6 +29,7 @@
     <link rel="apple-touch-icon" href="/apple-touch-icon.png" />
     <link rel="stylesheet" href="/src/landing.css" />
     <link rel="stylesheet" href="/src/features.css" />
+    <script type="module" src="/src/public-language.ts"></script>
   </head>
   <body>
     <a class="skip-link" href="#innehall">Hoppa till innehållet</a>
@@ -39,6 +42,9 @@
       <nav aria-label="Huvudnavigation">
         <a href="/">Startsida</a>
         <a href="/features" aria-current="page">Funktioner</a>
+        <a class="language-link" href="/en/features" lang="en" hreflang="en"
+          ><img src="/flags/gb.svg" alt="English" width="32" height="16"
+        /></a>
         <a class="login-link" href="/app">Logga in</a>
       </nav>
     </header>
