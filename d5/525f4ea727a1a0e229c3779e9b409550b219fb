@@ -1,0 +1,19 @@
+web/src/components/year-comparison.tsx
+  s_0408ba024a4028::t_fae0e4ade0cdf7 108-119,144-157
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.7.5",
+  "base_commit_sha": "d5525f4ea727a1a0e229c3779e9b409550b219fb",
+  "prompts": {},
+  "sessions": {
+    "s_0408ba024a4028": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "97ed879e-a09f-4bf6-a46b-1095b8ce07de",
+        "model": "claude-opus-5-5"
+      },
+      "human_author": "Simon Aunér <simonauner@gmail.com>"
+    }
+  }
+}
