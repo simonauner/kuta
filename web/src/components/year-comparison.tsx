@@ -1,6 +1,7 @@
 import { FormField } from '@/components/ui/form-field'
 import { Heading } from '@/components/ui/heading'
 import { useState } from 'react'
+import { Maximize2, Minimize2 } from 'lucide-react'
 import { useQuery } from '@tanstack/react-query'
 import { useTranslation } from 'react-i18next'
 import { ErrorMessage } from '@/components/error-message'
@@ -15,7 +16,8 @@ import {
   type DailyTotal,
   type YearMetric,
 } from '@/lib/year-comparison'
-import { Card } from '@/components/ui/card'
+import { card } from '@/components/ui/card-variants'
+import { axisTicks } from '@/lib/statistics-period'
 import { Select } from '@/components/ui/select'
 import { HelpPopover } from '@/components/help-popover'
 
@@ -25,6 +27,7 @@ const shownYears = 5
 export function YearComparison({ year, sportGroup }: { year: number; sportGroup: string }) {
   const { t, i18n } = useTranslation()
   const [metric, setMetric] = useState<YearMetric>('distanceM')
+  const [large, setLarge] = useState(false)
   const timeZone = Intl.DateTimeFormat().resolvedOptions().timeZone
   const days = useQuery({
     queryKey: ['activities', 'statistics', 'days', timeZone, sportGroup],
@@ -57,12 +60,22 @@ export function YearComparison({ year, sportGroup }: { year: number; sportGroup:
 
   const series = days.data ? yearComparison(days.data, metric, today) : []
   const shown = series.filter((s, i) => i < shownYears || s.year === year)
-  const width = 600
-  const height = 220
+  // The enlarged chart is wider and taller, with more gridlines and month labels.
+  const [width, height] = large ? [1000, 420] : [600, 220]
   const pad = { top: 8, right: 44, bottom: 22, left: 4 }
-  const maximum = Math.max(1, ...shown.map((s) => s.total))
+  const ticks = axisTicks(
+    metric,
+    shown.map((s) => s.total),
+    large ? 8 : 4,
+  )
+  const maximum = ticks[ticks.length - 1]
   const x = (day: number) => pad.left + (day / 366) * (width - pad.left - pad.right)
   const y = (value: number) => pad.top + (1 - value / maximum) * (height - pad.top - pad.bottom)
+  const tickLabel = (value: number) => {
+    if (metric === 'distanceM') return `${number.format(value / 1000)} km`
+    if (metric === 'durationS') return `${number.format(value / 3600)} h`
+    return number.format(value)
+  }
   // The selected year is drawn last so it ends up on top; other years fade by age.
   const drawOrder = [...shown].sort((a, b) =>
     a.year === year ? 1 : b.year === year ? -1 : a.year - b.year,
@@ -92,18 +105,33 @@ export function YearComparison({ year, sportGroup }: { year: number; sportGroup:
         </div>
         <FormField label={t('yearComparison.metric')} className="text-sm font-medium">
           {(id) => (
-            <Select
-              id={id}
-              className="w-fit"
-              value={metric}
-              onChange={(e) => setMetric(e.target.value as YearMetric)}
-            >
-              {yearMetrics.map((key) => (
-                <option key={key} value={key}>
-                  {t(`yearComparison.metrics.${key}`)}
-                </option>
-              ))}
-            </Select>
+            <div className="flex items-center gap-2">
+              <Select
+                id={id}
+                className="w-fit"
+                value={metric}
+                onChange={(e) => setMetric(e.target.value as YearMetric)}
+              >
+                {yearMetrics.map((key) => (
+                  <option key={key} value={key}>
+                    {t(`yearComparison.metrics.${key}`)}
+                  </option>
+                ))}
+              </Select>
+              {/* On a small screen the chart already fills the width. */}
+              <Button
+                type="button"
+                variant="secondary-outline"
+                size="icon"
+                className="hidden lg:inline-flex"
+                aria-label={t(large ? 'stats.chartSmaller' : 'stats.chartLarger')}
+                title={t(large ? 'stats.chartSmaller' : 'stats.chartLarger')}
+                aria-pressed={large}
+                onClick={() => setLarge((v) => !v)}
+              >
+                {large ? <Minimize2 /> : <Maximize2 />}
+              </Button>
+            </div>
           )}
         </FormField>
       </div>
@@ -121,10 +149,13 @@ export function YearComparison({ year, sportGroup }: { year: number; sportGroup:
             <p className="mt-4 text-muted-foreground">{t('yearComparison.empty')}</p>
           ) : (
             <>
-              <Card className="mt-4">
-                <p className="text-xs text-muted-foreground">
-                  {t('stats.chartScale', { max: format(maximum) })}
-                </p>
+              <div
+                className={card({
+                  // Like the enlarged map: wider than the column, centred and kept inside the viewport.
+                  className: `mt-4 transition-[margin] duration-300 motion-reduce:transition-none ${large ? 'lg:mx-[calc(50%-min(50vw-1rem,40rem))]' : ''}`,
+                })}
+              >
+                <p className="sr-only">{t('stats.tableNote')}</p>
                 <svg
                   viewBox={`0 0 ${width} ${height}`}
                   className="mt-2 w-full overflow-visible"
@@ -133,29 +164,45 @@ export function YearComparison({ year, sportGroup }: { year: number; sportGroup:
                     metric: t(`yearComparison.metrics.${metric}`),
                   })}
                 >
-                  <line
-                    x1={pad.left}
-                    x2={width - pad.right}
-                    y1={y(0)}
-                    y2={y(0)}
-                    stroke="currentColor"
-                    className="text-muted-foreground"
-                    opacity="0.3"
-                  />
-                  {[1, 4, 7, 10].map((month) => {
-                    const day = (Date.UTC(2001, month - 1, 1) - Date.UTC(2001, 0, 1)) / 86_400_000
-                    return (
-                      <text
-                        key={month}
-                        x={x(day)}
-                        y={height - 4}
-                        fill="currentColor"
-                        className="text-[20px] text-muted-foreground sm:text-xs"
-                      >
-                        {monthFormat.format(new Date(2001, month - 1, 1))}
-                      </text>
-                    )
-                  })}
+                  {/* Year labels sit at the right end of the lines, so gridline labels go on the left. */}
+                  {ticks.map((tick) => (
+                    <g key={tick} className="text-muted-foreground">
+                      <line
+                        x1={pad.left}
+                        x2={width - pad.right}
+                        y1={y(tick)}
+                        y2={y(tick)}
+                        stroke="currentColor"
+                        opacity="0.3"
+                      />
+                      {tick > 0 && (
+                        <text
+                          x={pad.left}
+                          y={y(tick) - 4}
+                          fill="currentColor"
+                          className="text-[20px] sm:text-xs"
+                        >
+                          {tickLabel(tick)}
+                        </text>
+                      )}
+                    </g>
+                  ))}
+                  {(large ? [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12] : [1, 4, 7, 10]).map(
+                    (month) => {
+                      const day = (Date.UTC(2001, month - 1, 1) - Date.UTC(2001, 0, 1)) / 86_400_000
+                      return (
+                        <text
+                          key={month}
+                          x={x(day)}
+                          y={height - 4}
+                          fill="currentColor"
+                          className="text-[20px] text-muted-foreground sm:text-xs"
+                        >
+                          {monthFormat.format(new Date(2001, month - 1, 1))}
+                        </text>
+                      )
+                    },
+                  )}
                   {drawOrder.map((s, index) => {
                     const selected = s.year === year
                     const age = series.findIndex((other) => other.year === s.year)
@@ -186,7 +233,7 @@ export function YearComparison({ year, sportGroup }: { year: number; sportGroup:
                     )
                   })}
                 </svg>
-              </Card>
+              </div>
               <div className="mt-4 overflow-x-auto">
                 <table className="w-full text-right text-sm tabular-nums">
                   <caption className="pb-3 text-left font-medium">

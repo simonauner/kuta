@@ -45,6 +45,7 @@ test('lines break at missing values', () => {
 
 test('gridlines use round steps with little headroom, from zero only for sums', () => {
   assert.deepEqual(axisTicks('distanceM', [24600, 44800, 0]), [0, 25000, 50000])
+  assert.deepEqual(axisTicks('count', [3, 7]), [0, 2, 4, 6, 8])
   // Averages start below the lowest value; missing values are ignored.
   assert.deepEqual(axisTicks('paceSPerKm', [293, 226, null, 159]), [120, 180, 240, 300])
   assert.deepEqual(axisTicks('avgHr', [157.1, 143.1]), [140, 145, 150, 155, 160])

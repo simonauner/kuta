@@ -61,17 +61,18 @@ export function lineRuns(values: (number | null)[]) {
 }
 
 // Round steps per metric in its stored unit (meters, seconds, seconds per km, bpm).
-const axisSteps: Record<'distanceM' | 'durationS' | 'paceSPerKm' | 'avgHr', number[]> = {
+const axisSteps: Record<'distanceM' | 'durationS' | 'paceSPerKm' | 'avgHr' | 'count', number[]> = {
   distanceM: [1, 2, 2.5, 5, 10, 20, 25, 50, 100, 200, 250, 500, 1000].map((km) => km * 1000),
   durationS: [0.25, 0.5, 1, 2, 5, 10, 20, 50, 100].map((h) => h * 3600),
   paceSPerKm: [5, 10, 15, 30, 60, 120, 300, 600],
   avgHr: [1, 2, 5, 10, 20, 50],
+  count: [1, 2, 5, 10, 20, 25, 50, 100, 200, 250, 500, 1000],
 }
 
 // Gridlines for a chart: sums start at zero, averages at a round value below the lowest one so their variation shows.
 export function axisTicks(metric: keyof typeof axisSteps, values: (number | null)[], lines = 4) {
   const present = values.filter((v): v is number => v !== null)
-  const zeroBased = metric === 'distanceM' || metric === 'durationS'
+  const zeroBased = metric === 'distanceM' || metric === 'durationS' || metric === 'count'
   const low = zeroBased || present.length === 0 ? 0 : Math.min(...present)
   const high = Math.max(low, ...present)
   // The step with the least headroom above the data, at most `lines` intervals; on a tie the finer one.
