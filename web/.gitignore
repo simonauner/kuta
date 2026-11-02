@@ -22,3 +22,6 @@ dist-ssr
 *.njsproj
 *.sln
 *.sw?
+
+# Local basemap (scripts/fetch-map.sh)
+.map-dev

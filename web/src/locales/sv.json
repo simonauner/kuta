@@ -659,7 +659,7 @@
     "map": "Välj en dold plats på kartan",
     "mapHelp": "Klicka på kartan för att välja en plats, eller panorera med piltangenterna och använd kartans mittpunkt. Du kan också ange koordinater nedan.",
     "useCenter": "Använd kartans mittpunkt",
-    "mapPrivacy": "Platserna är privata. Kartleverantören OpenFreeMap kan se området du tittar på.",
+    "mapPrivacy": "Platserna är privata och kartan hämtas från Kutas egen kartfil.",
     "save": "Spara plats",
     "saving": "Sparar…",
     "cancel": "Avbryt",

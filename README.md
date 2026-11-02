@@ -69,7 +69,7 @@ höjdprofilen inte kan matchas mot en höjdmodell för att hitta startpunkten. F
 förenklade rutten. För andra än ägaren klipper PostGIS bort minst 500 meter runt originalets
 start- och slutpunkt samt ägarens sparade dolda platser med respektive radie, även vid återbesök; förenkling sker före klippning och separata delar
 förblir separata. Helt dolda eller saknade rutter ger ingen karta. Ägaren ser hela rutten.
-Kartorna använder samma OpenFreeMap-leverantör som passsidan och laddas bara nära skärmen;
+Kartorna använder samma egna kartfil som passsidan (se Karta) och laddas bara nära skärmen;
 rullning och beröring styr sidan, inte miniatyrkartan. Titel och beskrivning är
 användartext; användaren behöver själv välja vad den delar där.
 
@@ -207,8 +207,8 @@ Sparade privata platsers namn och mittpunkter skickas aldrig till andra mottagar
 Projektionen ändrar bara svarets koordinater. Sparad rutt, råfil, tidsserier, rekord,
 splits och totalsiffror behålls. Dolda platser är inte en garanti för anonymitet.
 Namn och mittpunkter lämnas aldrig till andra användare. Kartbilderna kommer från
-OpenFreeMap, som ser vilket område användaren tittar på; namn och sparade platser
-skickas inte dit som data. Ingen extern adressökning eller automatisk platsåtkomst används; platsåtkomst kräver
+Kutas egen kartfil i R2 (se Karta), där Cloudflare ser vilket område som visas; namn och
+sparade platser skickas inte dit som data. Ingen extern adressökning eller automatisk platsåtkomst används; platsåtkomst kräver
 användarens knapptryck och webbläsarens behörighet.
 Alla nya rutt-/export-/kartändpunkter måste använda samma skydd; originalrutt och råfil får inte
 lämnas till andra mottagare. Ingen ny åtkomst följer av själva klippningen.
@@ -647,6 +647,16 @@ Anslutningen följer Garmin Connect Developer Program (OAuth2 PKCE, push). Dokum
 - **Drift:** Lägg fälten `Garmin__ClientId` och `Garmin__ClientSecret` i 1Password-objektet `fly-kuta-new` innan `scripts/fly-secrets.sh` körs (`fly.secrets.tpl` refererar till dem). Utan dem visar Inställningar att anslutningen inte är tillgänglig.
 - **Spärr före lansering:** även med nycklar kan bara konton i `Garmin__AllowedUserIds` (kommaseparerade användar-id i `fly.toml` under `[env]`) ansluta. `Garmin__OpenToAll = 'true'` öppnar för alla; sätt det först när integritetspolicyn beskriver anslutningen som tillgänglig och Garmins 30-dagarsfrist gått ut. Befintliga anslutningar fortsätter ta emot data och kan alltid kopplas från. Fly sätter `Fly-Client-IP`, som IP-kontrollen kräver via `ForwardedHeaders`.
 
+## Karta
+
+Bakgrundskartan är en egen [PMTiles](https://docs.protomaps.com/pmtiles/)-fil, utklippt ur Protomaps dagliga bygge av OpenStreetMap (ODbL; attributionen visas i kartan), med Protomaps stil `light` (`@protomaps/basemaps`) och kartetiketter på appens språk. Webbläsaren läser filen med range-anrop via `pmtiles`-protokollet i `web/src/lib/map.ts`, så ingen kartleverantör ser vilket område som visas. Typsnitt och ikoner (Protomaps `basemaps-assets`) ligger bredvid filen.
+
+- **Inställning:** `VITE_MAP_URL` (bas-URL) och `VITE_MAP_TILES` (filnamn) sätts i `web/vite.config.ts` (lokalt `/map-dev`, i bygget R2) och kan åsidosättas med miljövariabler eller `web/.env.[mode].local`. CSP:n i `vite.config.ts` tillåter originet i `VITE_MAP_URL` för `img-src` och `connect-src`; en relativ URL behöver inget tillägg.
+- **Lokalt:** `scripts/fetch-map.sh` hämtar Uppsala–Stockholm (~100 MB) till `web/.map-dev` (ignoreras av git), som Vite servar under `/map-dev` med range-stöd i både dev och preview. Kräver `pmtiles` på PATH (`brew install pmtiles`, eller binären från [go-pmtiles releases](https://github.com/protomaps/go-pmtiles/releases)) eller Go. Utanför området blir kartan tom. För att prova ett bygge lokalt: lägg `VITE_MAP_URL=/map-dev` och `VITE_MAP_TILES=basemap.pmtiles` i `web/.env.production.local` och kör `npm run build && npx vite preview`.
+- **Drift:** R2-bucket med jurisdiktionen EU (ingen platshint) och egen domän `tiles.kutaapp.com` (Cloudflare). EU-buckets nås via S3-endpointen `https://<konto-id>.eu.r2.cloudflarestorage.com` vid uppladdning. Filen och tillgångarna tas fram med `scripts/fetch-map.sh --region sweden --out DIR` (Sveriges omslutande rektangel till zoom 15, ~5 GB; `--region nordics` ger Norden med Island, Färöarna och Svalbard, ~10 GB) och laddas upp till bucketens rot med `scripts/upload-map.sh DIR`, som kör `rclone copy` med nyckeln från 1Password via `op run` (referenser i [scripts/map-upload.env.tpl](scripts/map-upload.env.tpl)) och sedan kontrollerar range-läsning via `tiles.kutaapp.com`. Kräver inloggad 1Password CLI och rclone. Objektet `kuta-map-r2` i valvet `Development` har fälten `account-id`, `bucket`, `access-key-id` och `secret-access-key`; nyckeln är en R2-token med bara Object Read & Write på kartbucketen och hålls skild från appens hemligheter i `fly-kuta-new`, eftersom appen inte behöver den. CORS-regel på bucketen: `AllowedOrigins` `https://kutaapp.com`, `AllowedMethods` `GET`/`HEAD`, `AllowedHeaders` `Range`, `ExposeHeaders` `ETag`, `Content-Range`, `Content-Length`. Kartfilens namn innehåller byggdatum, så ett nytt bygge laddas upp under nytt namn och standardvärdet för `VITE_MAP_TILES` i `web/vite.config.ts` byts; ta bort den gamla filen efter driftsättningen.
+- **Kostnad:** lagring i R2 ~0,015 USD/GB och månad (Sverige ~0,08 USD), ingen avgift för utgående trafik; varje kartbild är en läsning (de första 10 miljonerna per månad ingår).
+- **Täckning:** utanför Sverige (och gränstrakterna i rektangeln) visas ingen bakgrundskarta, bara rutten. Utöka genom att ändra regionen i skriptet eller hämta hela jorden (~140 GB).
+
 ## Driftsättning (Fly.io)
 
 En egen Fly-app (`kuta`, region `arn`). `Dockerfile` bygger webben och API:t till en image där API:t servar webben, så att de delar origin. Migreringarna körs när appen startar.
@@ -824,7 +834,7 @@ Förfrågan är förberedd men **inte skickad**. Till `privacy@supabase.io` ([an
 
 När underlaget kommer: jämför med aktuell behandling och befintliga skydd, dokumentera slutsatsen och eventuella nödvändiga åtgärder. Fråga vidare endast om en väsentlig lucka återstår. Exakta tider för varje intern Supabase-logg ingår inte i denna generella begäran; relevanta lagringsfrågor hanteras enligt samma behovsprincip som för övriga leverantörer.
 
-[OpenFreeMaps policy](https://openfreemap.org/privacy/) omfattar karttjänsten även i andra appar. Dokumenterade fel-/incidentloggar och eventuell Cloudflare-CDN är beskrivna i Kutas policy; ingen särskild leverantörsförfrågan behövs för dessa redan publicerade uppgifter.
+Kartbilderna kommer från Kutas egen kartfil i Cloudflare R2 (se Karta); ingen separat kartleverantör anlitas.
 
 ### Rättighetsbegäranden: arbetsrutin
 

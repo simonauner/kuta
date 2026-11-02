@@ -659,7 +659,7 @@
     "map": "Choose a hidden place on the map",
     "mapHelp": "Click the map to choose a place, or pan with the arrow keys and use the map center. You can also enter coordinates below.",
     "useCenter": "Use map center",
-    "mapPrivacy": "Places are private. The map provider OpenFreeMap can see the area you view.",
+    "mapPrivacy": "Places are private, and the map is loaded from Kuta's own map file.",
     "save": "Save place",
     "saving": "Saving…",
     "cancel": "Cancel",

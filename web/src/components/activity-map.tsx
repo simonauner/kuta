@@ -9,9 +9,7 @@ import {
 import { useEffect, useLayoutEffect, useMemo, useRef } from 'react'
 import { mapStyle } from '@/lib/map'
 
-// Map tiles from OpenFreeMap (OpenStreetMap data, no key). The provider sees which tiles are fetched,
-// i.e. roughly where the activity went. shortcut: switch to our own PMTiles file (AGENTS.md) when it must stay with Kuta.
-// Origins for style, tiles, fonts and icons are in the CSP in vite.config.ts.
+// Basemap from our own PMTiles file (src/lib/map.ts), so no map provider sees where the activity went.
 export function ActivityMap({
   coordinates,
   label,
@@ -63,7 +61,7 @@ export function ActivityMap({
     if (!container.current) return
     const map = new Map({
       container: container.current,
-      style: mapStyle,
+      style: mapStyle(),
       attributionControl: { compact: true },
       // Scroll and one finger move the page, not the map; zoom with Ctrl/Cmd + scroll or two fingers
       cooperativeGestures: !thumbnail,

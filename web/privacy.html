@@ -38,7 +38,7 @@
       <article id="svenska" lang="sv" aria-labelledby="sv-title">
         <h2 id="sv-title">Dina personuppgifter i Kuta</h2>
         <p class="policy-date">
-          Senast uppdaterad: <time datetime="2026-11-01">1 november 2026</time>
+          Senast uppdaterad: <time datetime="2026-11-02">2 november 2026</time>
         </p>
         <p>
           Kuta hjälper dig att samla och analysera dina löppass. Här beskriver vi hur
@@ -164,8 +164,8 @@
           </li>
           <li>
             <strong>Leverantörer:</strong> uppgifterna hanteras av Fly.io (appserver), Supabase
-            (databas och fillagring) och Cloudflare R2 (fillagring), och kartbilder hämtas från
-            OpenFreeMap när du öppnar en karta (se avsnitt 5).
+            (databas och fillagring) och Cloudflare R2 (fillagring och Kutas egna kartbilder, se
+            avsnitt 5).
           </li>
         </ul>
 
@@ -221,11 +221,11 @@
             svar och din IP-adress till Cloudflare för verifiering. Vi sparar inte resultatet.
           </li>
           <li>
-            <strong>OpenFreeMap:</strong> levererar kartbilder när du öppnar en passkarta. Din
-            webbläsare skickar IP-adress och förfrågningar om kartområden direkt till leverantören.
-            Det kan avslöja ungefär var passet gick; själva rutten ritas i din webbläsare. Tjänsten
-            drivs av Hyperknot Software Kft. i Ungern och kan använda Cloudflare för kartleverans.
-            OpenFreeMap ansvarar för sin egen drift- och säkerhetsloggning.
+            <strong>Kartor (Cloudflare R2):</strong> Kutas kartbilder bygger på OpenStreetMap och
+            ligger i en egen kartfil hos Cloudflare R2. När du öppnar en karta hämtar din webbläsare
+            delar av filen därifrån och skickar IP-adress och vilka kartområden som visas. Det kan
+            avslöja ungefär var passet gick; själva rutten ritas i din webbläsare och skickas inte.
+            Ingen annan kartleverantör anlitas.
           </li>
         </ul>
         <p>
@@ -234,10 +234,9 @@
           <a
             href="https://www.scaleway.com/en/docs/transactional-email/reference-content/data-privacy/"
             >Scaleway</a
-          >, <a href="https://proton.me/legal/privacy">Proton</a>,
-          <a href="https://www.cloudflare.com/privacypolicy/">Cloudflare</a>
-          och <a href="https://openfreemap.org/privacy/">OpenFreeMap</a>. Uppgifter kan också lämnas
-          till en myndighet om lag kräver det.
+          >, <a href="https://proton.me/legal/privacy">Proton</a> och
+          <a href="https://www.cloudflare.com/privacypolicy/">Cloudflare</a>. Uppgifter kan också
+          lämnas till en myndighet om lag kräver det.
         </p>
         <p>
           Placering i Sverige innebär inte att all behandling sker enbart i Sverige. Leverantörerna
@@ -248,12 +247,13 @@
           enligt EU–US Data Privacy Framework stöds av EU-kommissionens adekvansbeslut. Flys och
           Supabases biträdesavtal innehåller EU:s standardavtalsklausuler som skydd för de
           överföringar där klausulerna är tillämpliga. Cloudflare, Inc. finns i USA; överföringen
-          vid Turnstile stöds av Cloudflares certifiering enligt EU–US Data Privacy Framework och av
-          standardavtalsklausulerna i Cloudflares personuppgiftsbiträdesavtal för det som ramverket
-          inte täcker. Överföring till Proton i Schweiz stöds av EU-kommissionens beslut om adekvat
-          skyddsnivå. Vidareöverföringar omfattas av respektive leverantörs avtalsvillkor och
-          tillämpliga överföringsskydd. Kontakta privacy@kutaapp.com för information om de skydd som
-          gäller dina uppgifter och hur du kan få en kopia av relevanta avtalsvillkor.
+          vid Turnstile och kartleveransen stöds av Cloudflares certifiering enligt EU–US Data
+          Privacy Framework och av standardavtalsklausulerna i Cloudflares
+          personuppgiftsbiträdesavtal för det som ramverket inte täcker. Överföring till Proton i
+          Schweiz stöds av EU-kommissionens beslut om adekvat skyddsnivå. Vidareöverföringar
+          omfattas av respektive leverantörs avtalsvillkor och tillämpliga överföringsskydd.
+          Kontakta privacy@kutaapp.com för information om de skydd som gäller dina uppgifter och hur
+          du kan få en kopia av relevanta avtalsvillkor.
         </p>
 
         <h3>6. Hur länge sparas uppgifterna?</h3>
@@ -310,8 +310,6 @@
           lagring för API- och databasloggar. Automatiska databasbackuper och återställning till
           valfri tidpunkt ingår inte i planen. Dessa uppgifter fastställer inte en gemensam
           tidsgräns för alla interna säkerhetsloggar eller driftkopior hos leverantörerna.
-          OpenFreeMap anger sju dagar för felloggar, som kan innehålla IP-adress och begärd URL, och
-          högst 30 dagar för tillfälliga IP-loggar vid säkerhetsincidenter.
         </p>
 
         <h3>7. Kakor och lokal lagring</h3>
@@ -355,7 +353,7 @@
       </article>
       <article id="english" lang="en" aria-labelledby="en-title">
         <h2 id="en-title">Your personal data in Kuta</h2>
-        <p class="policy-date">Last updated: <time datetime="2026-11-01">1 November 2026</time></p>
+        <p class="policy-date">Last updated: <time datetime="2026-11-02">2 November 2026</time></p>
         <p>
           Kuta helps you collect and analyse your running activities. This policy explains how
           personal data is processed when you visit our website, use the app or contact us.
@@ -480,8 +478,8 @@
           </li>
           <li>
             <strong>Providers:</strong> the data is handled by Fly.io (application server), Supabase
-            (database and file storage) and Cloudflare R2 (file storage), and map tiles are loaded
-            from OpenFreeMap when you open a map (see section 5).
+            (database and file storage) and Cloudflare R2 (file storage and Kuta's own map tiles,
+            see section 5).
           </li>
         </ul>
 
@@ -539,11 +537,11 @@
             to Cloudflare for verification. We do not keep the result.
           </li>
           <li>
-            <strong>OpenFreeMap:</strong> provides map tiles when you open an activity map. Your
-            browser sends your IP address and requests for map areas directly to the provider. This
-            may reveal the approximate activity location; the route itself is drawn in your browser.
-            The service is operated by Hyperknot Software Kft. in Hungary and may use Cloudflare for
-            map delivery. OpenFreeMap is responsible for its own operational and security logging.
+            <strong>Maps (Cloudflare R2):</strong> Kuta's map tiles are built from OpenStreetMap and
+            stored in Kuta's own map file at Cloudflare R2. When you open a map, your browser loads
+            parts of the file from there and sends your IP address and which map areas are shown.
+            This may reveal the approximate activity location; the route itself is drawn in your
+            browser and is not sent. No other map provider is used.
           </li>
         </ul>
         <p>
@@ -552,9 +550,8 @@
           <a
             href="https://www.scaleway.com/en/docs/transactional-email/reference-content/data-privacy/"
             >Scaleway</a
-          >, <a href="https://proton.me/legal/privacy">Proton</a>,
-          <a href="https://www.cloudflare.com/privacypolicy/">Cloudflare</a>
-          and <a href="https://openfreemap.org/privacy/">OpenFreeMap</a>. We may also disclose
+          >, <a href="https://proton.me/legal/privacy">Proton</a> and
+          <a href="https://www.cloudflare.com/privacypolicy/">Cloudflare</a>. We may also disclose
           information to authorities when required by law.
         </p>
         <p>
@@ -566,13 +563,13 @@
           by Fly's active EU–US Data Privacy Framework certification rely on the European
           Commission's adequacy decision. Fly's and Supabase's data processing agreements include EU
           Standard Contractual Clauses as safeguards for transfers to which those clauses apply.
-          Cloudflare, Inc. is in the United States; transfers for Turnstile rely on Cloudflare's
-          EU–US Data Privacy Framework certification and, for anything the framework does not cover,
-          the Standard Contractual Clauses in Cloudflare's data processing agreement. Transfers to
-          Proton in Switzerland rely on the European Commission's adequacy decision. Onward
-          transfers are subject to each provider's contractual terms and applicable transfer
-          safeguards. Contact privacy@kutaapp.com for information about safeguards applicable to
-          your data and how to obtain a copy of relevant contractual terms.
+          Cloudflare, Inc. is in the United States; transfers for Turnstile and map delivery rely on
+          Cloudflare's EU–US Data Privacy Framework certification and, for anything the framework
+          does not cover, the Standard Contractual Clauses in Cloudflare's data processing
+          agreement. Transfers to Proton in Switzerland rely on the European Commission's adequacy
+          decision. Onward transfers are subject to each provider's contractual terms and applicable
+          transfer safeguards. Contact privacy@kutaapp.com for information about safeguards
+          applicable to your data and how to obtain a copy of relevant contractual terms.
         </p>
 
         <h3>6. How long do we keep data?</h3>
@@ -628,9 +625,7 @@
           operate its own backups. Kuta uses Supabase's Free plan, for which the provider specifies
           one-day retention for API and database logs. Automatic database backups and point-in-time
           recovery are not included in this plan. These details do not establish a common retention
-          limit for all internal security logs or operational copies held by providers. OpenFreeMap
-          specifies seven days for error logs, which may contain IP addresses and requested URLs,
-          and up to 30 days for temporary IP logs during security incidents.
+          limit for all internal security logs or operational copies held by providers.
         </p>
 
         <h3>7. Cookies and local storage</h3>
