@@ -29,10 +29,11 @@ test('only an empty home feed offers onboarding, with different copy when follow
     const { ActivityFeed } = await server.ssrLoadModule('/src/components/activity-feed.tsx')
     const i18n = createInstance()
     await i18n.init({ lng: 'sv', resources: { sv: { translation: sv } } })
-    const render = async ({ following = [], items = [], runnerId, emptyState } = {}) => {
+    const render = async ({ following = [], items = [], runnerId, emptyState, garmin } = {}) => {
       const client = new QueryClient({ defaultOptions: { queries: { staleTime: Infinity } } })
       client.setQueryData(['me'], { id: 'me' })
       client.setQueryData(['follows'], { following, followers: [] })
+      if (garmin) client.setQueryData(['garmin'], garmin)
       client.setQueryData(runnerId ? ['feed', runnerId, false] : ['feed'], {
         pages: [{ items, nextCursor: null }],
         pageParams: [null],
@@ -62,6 +63,17 @@ test('only an empty home feed offers onboarding, with different copy when follow
     assert.match(welcome, /href="\/app\/activities\/new"/)
     assert.match(welcome, /href="\/app\/settings\/import"/)
     assert.match(welcome, /Kopiera min profillänk/)
+    assert.doesNotMatch(welcome, new RegExp(sv.feed.onboarding.garminTitle))
+    // The Garmin step is only for accounts that may connect and have not yet.
+    for (const [available, connected] of [
+      [true, false],
+      [true, true],
+      [false, false],
+    ]) {
+      const html = await render({ garmin: { available, connected } })
+      assert.equal(html.includes(sv.feed.onboarding.garminTitle), available && !connected)
+      assert.match(html, new RegExp(sv.feed.onboarding.stravaTitle))
+    }
     const following = await render({ following: [{ id: 'friend' }] })
     assert.match(following, /Ingen du följer har delat någon aktivitet ännu/)
     assert.doesNotMatch(following, /Dags för din första aktivitet/)

@@ -3,6 +3,7 @@ import { test } from 'node:test'
 import { createServer } from 'vite'
 import { createElement } from 'react'
 import { renderToString } from 'react-dom/server'
+import { QueryClient, QueryClientProvider } from '@tanstack/react-query'
 import {
   createRootRoute,
   createRouter,
@@ -31,7 +32,12 @@ test('each empty page says what will appear there and keeps the same first actio
     const contexts = ['activities', 'stats', 'profile']
     for (const [language, translations] of Object.entries({ sv, en })) {
       await i18n.changeLanguage(language)
-      for (const context of contexts) {
+      for (const [context, garminAvailable] of contexts.flatMap((c) => [
+        [c, true],
+        [c, false],
+      ])) {
+        const client = new QueryClient({ defaultOptions: { queries: { staleTime: Infinity } } })
+        client.setQueryData(['garmin'], { available: garminAvailable, connected: false })
         const route = createRootRoute({
           component: () => createElement(ActivitiesEmptyState, { context }),
         })
@@ -41,12 +47,19 @@ test('each empty page says what will appear there and keeps the same first actio
         })
         await router.load()
         const html = renderToString(
-          createElement(I18nextProvider, { i18n }, createElement(RouterProvider, { router })),
+          createElement(
+            QueryClientProvider,
+            { client },
+            createElement(I18nextProvider, { i18n }, createElement(RouterProvider, { router })),
+          ),
         )
+        client.clear()
         for (const other of contexts)
           assert.equal(html.includes(translations.emptyState[other].title), other === context)
         assert.ok(html.includes(translations.onboarding.addActivity))
-        assert.ok(html.includes(translations.settings.importLink))
+        // Garmin is only mentioned to accounts that can connect it.
+        assert.equal(html.includes(translations.settings.importLink), garminAvailable)
+        assert.equal(html.includes(translations.settings.strava), !garminAvailable)
         assert.match(html, /href="\/app\/activities\/new"/)
         assert.match(html, /href="\/app\/settings\/import"/)
       }
