@@ -92,7 +92,7 @@ export default defineConfig(({ mode }) => {
   const production = mode === 'production'
   const mapUrl = mapEnv.VITE_MAP_URL ?? (production ? 'https://tiles.kutaapp.com' : '/map-dev')
   const mapTiles =
-    mapEnv.VITE_MAP_TILES ?? (production ? 'nordics-20261102.pmtiles' : 'basemap.pmtiles')
+    mapEnv.VITE_MAP_TILES ?? (production ? 'sweden-20261102.pmtiles' : 'basemap.pmtiles')
   // A relative VITE_MAP_URL is the same origin, which 'self' already allows
   const mapOrigin = URL.canParse(mapUrl) ? new URL(mapUrl).origin : ''
   return {

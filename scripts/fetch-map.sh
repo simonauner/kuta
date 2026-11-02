@@ -3,8 +3,9 @@
 # the style uses (web/src/lib/map.ts). See README (Karta).
 #
 #   scripts/fetch-map.sh                       small area (Uppsala–Stockholm, ~100 MB) to web/.map-dev for local dev
-#   scripts/fetch-map.sh --region nordics --out DIR
-#                                              the Nordic countries for the R2 bucket (~10 GB)
+#   scripts/fetch-map.sh --region sweden --out DIR
+#                                              Sweden for the R2 bucket (~5 GB); --region nordics (~10 GB) adds
+#                                              Norway, Finland, Denmark, Iceland, the Faroe Islands and Svalbard
 #
 # Needs the pmtiles CLI on PATH, or Go (then it runs github.com/protomaps/go-pmtiles). Reruns skip existing assets.
 set -eo pipefail
@@ -35,6 +36,10 @@ case "$region" in
   dev)
     file=basemap.pmtiles
     region_args=(--bbox=17.4,59.2,18.4,59.95) ;;
+  sweden)
+    file="sweden-${build}"
+    # Sweden's bounding box, which also covers border areas of Norway, Finland and Denmark
+    region_args=(--bbox=10.5,55.0,24.5,69.2) ;;
   nordics)
     file="nordics-${build}"
     # Sweden, Norway, Finland, Denmark with the Baltic and North Sea coasts, Iceland, the Faroe Islands and Svalbard
@@ -49,7 +54,7 @@ case "$region" in
 ]}
 EOF
     region_args=(--region="$region_file") ;;
-  *) echo "[fetch-map] Unknown region: $region (dev or nordics)" >&2; exit 1 ;;
+  *) echo "[fetch-map] Unknown region: $region (dev, sweden or nordics)" >&2; exit 1 ;;
 esac
 
 echo "[fetch-map] Extracting $region from $build to $out/$file"
