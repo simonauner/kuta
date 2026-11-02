@@ -2,7 +2,7 @@ import { GarminDerivedNote } from '@/components/garmin'
 import { FormField } from '@/components/ui/form-field'
 import { Heading } from '@/components/ui/heading'
 import { useEffect, useState } from 'react'
-import { LoaderCircle } from 'lucide-react'
+import { LoaderCircle, Maximize2, Minimize2 } from 'lucide-react'
 import { keepPreviousData, useQuery } from '@tanstack/react-query'
 import { Link } from '@tanstack/react-router'
 import { useTranslation } from 'react-i18next'
@@ -23,6 +23,7 @@ import { Select } from '@/components/ui/select'
 import { HelpPopover } from '@/components/help-popover'
 import {
   change,
+  axisTicks,
   lineRuns,
   rollingPeriods,
   statisticsRanges,
@@ -122,6 +123,7 @@ export function StatsPage() {
   const [sportGroup, setSportGroup] = useState('running')
   const sportGroups = useQuery(sportGroupsQuery)
   const [metric, setMetric] = useState<Metric>('distanceM')
+  const [large, setLarge] = useState(false)
   const timeZone = Intl.DateTimeFormat().resolvedOptions().timeZone
   const years = useQuery(activityYearsQuery(timeZone))
   const hasNoActivities = years.isSuccess && years.data.length === 0
@@ -167,15 +169,36 @@ export function StatsPage() {
       ? `${bucketFormat.format(parseDate(b.start))} (${t('stats.inProgress')})`
       : bucketFormat.format(parseDate(b.start))
   const count = total?.count ?? 0
-  const maximum = Math.max(1, ...buckets.map((m) => m[metric] ?? 0))
   const changeText = (key: 'count' | 'distanceM' | 'durationS') => {
     if (!total || !statistics.data) return null
     const value = change(total[key], statistics.data.previous.total[key])
     return value === null ? null : `${percent.format(Math.round(value))} %`
   }
   const step = (n: number) => Math.max(1, Math.ceil(buckets.length / n))
-  const pointX = (index: number) => ((index + 0.5) * 600) / buckets.length
-  const pointY = (index: number) => 180 - ((buckets[index][metric] ?? 0) / maximum) * 160
+  // The enlarged chart is wider and taller, with more gridlines and labels.
+  const [width, bottom] = large ? [1000, 380] : [600, 180]
+  // The plot leaves room on the right for the gridline labels.
+  const plotWidth = width - 80
+  const ticks = axisTicks(
+    metric,
+    buckets.map((m) => m[metric]),
+    large ? 8 : 4,
+  )
+  const [lower, upper] = [ticks[0], ticks[ticks.length - 1]]
+  const zeroBased = metric === 'distanceM' || metric === 'durationS'
+  // A faster pace is drawn higher, as runners read it.
+  const valueY = (value: number) => {
+    const share = (value - lower) / (upper - lower)
+    return metric === 'paceSPerKm' ? 20 + share * (bottom - 20) : bottom - share * (bottom - 20)
+  }
+  const pointX = (index: number) => ((index + 0.5) * plotWidth) / buckets.length
+  const pointY = (index: number) => valueY(buckets[index][metric] ?? lower)
+  const tickLabel = (value: number) => {
+    if (metric === 'distanceM') return `${number.format(value / 1000)} km`
+    if (metric === 'durationS') return `${number.format(value / 3600)} h`
+    if (metric === 'paceSPerKm') return formatDuration(value)
+    return number.format(value)
+  }
   const format = (value: number | null, key: Metric) => {
     if (value === null) return '–'
     if (key === 'distanceM') return `${number.format(value / 1000)} km`
@@ -323,37 +346,75 @@ export function StatsPage() {
                   </Heading>
                   <HelpPopover label={t('stats.methodLabel')}>{t('stats.method')}</HelpPopover>
                 </div>
-                <div className={card({ className: 'mt-4' })}>
+                <div
+                  className={card({
+                    // Like the enlarged map: wider than the column, centred and kept inside the viewport.
+                    className: `mt-4 transition-[margin] duration-300 motion-reduce:transition-none ${large ? 'lg:mx-[calc(50%-min(50vw-1rem,40rem))]' : ''}`,
+                  })}
+                >
                   <FormField
                     layout="inline"
                     label={t('yearComparison.metric')}
                     className="justify-between text-sm font-medium"
                   >
                     {(id) => (
-                      <Select
-                        id={id}
-                        className="w-fit"
-                        value={metric}
-                        onChange={(e) => setMetric(e.target.value as Metric)}
-                      >
-                        {metrics.map((key) => (
-                          <option key={key} value={key}>
-                            {t(`stats.${key}`)}
-                          </option>
-                        ))}
-                      </Select>
+                      <div className="flex items-center gap-2">
+                        <Select
+                          id={id}
+                          className="w-fit"
+                          value={metric}
+                          onChange={(e) => setMetric(e.target.value as Metric)}
+                        >
+                          {metrics.map((key) => (
+                            <option key={key} value={key}>
+                              {t(`stats.${key}`)}
+                            </option>
+                          ))}
+                        </Select>
+                        {/* On a small screen the chart already fills the width. */}
+                        <Button
+                          type="button"
+                          variant="secondary-outline"
+                          size="icon"
+                          className="hidden lg:inline-flex"
+                          aria-label={t(large ? 'stats.chartSmaller' : 'stats.chartLarger')}
+                          title={t(large ? 'stats.chartSmaller' : 'stats.chartLarger')}
+                          aria-pressed={large}
+                          onClick={() => setLarge((v) => !v)}
+                        >
+                          {large ? <Minimize2 /> : <Maximize2 />}
+                        </Button>
+                      </div>
                     )}
                   </FormField>
-                  <p className="mt-3 text-xs text-muted-foreground">
-                    {t('stats.chartScale', { max: format(maximum, metric) })}
-                  </p>
+                  <p className="sr-only">{t('stats.tableNote')}</p>
                   <svg
-                    viewBox="0 0 600 210"
+                    viewBox={`0 0 ${width} ${bottom + 30}`}
                     className="mt-2 w-full text-primary"
                     role="img"
                     aria-label={`${t(bucket === 'week' ? 'stats.weekly' : 'stats.monthly')}: ${t(`stats.${metric}`)} · ${formatRange(ranges.current)}`}
                   >
-                    <line x1="0" x2="600" y1="180" y2="180" stroke="currentColor" opacity="0.2" />
+                    {ticks.map((tick) => (
+                      <g key={tick} className="text-muted-foreground">
+                        <line
+                          x1="0"
+                          x2={plotWidth}
+                          y1={valueY(tick)}
+                          y2={valueY(tick)}
+                          stroke="currentColor"
+                          opacity="0.3"
+                        />
+                        <text
+                          x={width}
+                          y={valueY(tick) + 6}
+                          textAnchor="end"
+                          fill="currentColor"
+                          className="text-[20px] sm:text-xs"
+                        >
+                          {tickLabel(tick)}
+                        </text>
+                      </g>
+                    ))}
                     {lineRuns(buckets.map((m) => m[metric])).map((run, runIndex, runs) => {
                       const points = run.map((index) => `${pointX(index)},${pointY(index)}`)
                       // Only averages (pace, heart rate) can be missing: a dashed line without area bridges the gap.
@@ -372,11 +433,14 @@ export function StatsPage() {
                               opacity="0.6"
                             />
                           )}
-                          <polygon
-                            points={`${pointX(run[0])},180 ${points.join(' ')} ${pointX(run[run.length - 1])},180`}
-                            fill="currentColor"
-                            opacity="0.15"
-                          />
+                          {/* Area only under sums; under an average it would suggest an amount. */}
+                          {zeroBased && (
+                            <polygon
+                              points={`${pointX(run[0])},${bottom} ${points.join(' ')} ${pointX(run[run.length - 1])},${bottom}`}
+                              fill="currentColor"
+                              opacity="0.15"
+                            />
+                          )}
                           <polyline
                             points={points.join(' ')}
                             fill="none"
@@ -400,11 +464,11 @@ export function StatsPage() {
                             strokeWidth="2.5"
                           />
                         )}
-                        {index % step(12) === 0 && (
+                        {index % step(large ? 24 : 12) === 0 && (
                           <text
                             // The first label starts at the edge so narrow week slots don't clip it.
                             x={index ? pointX(index) : 0}
-                            y="202"
+                            y={bottom + 22}
                             textAnchor={index ? 'middle' : 'start'}
                             fill="currentColor"
                             className={`text-[20px] text-muted-foreground sm:text-xs ${index % step(4) ? 'hidden sm:block' : ''}`}
