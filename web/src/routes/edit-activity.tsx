@@ -76,11 +76,34 @@ function EditActivityForm({ activity }: { activity: ActivityDetail }) {
       await navigate(destination)
     },
   })
+  // The header copy sits outside the form, so its submit button targets the form by id
+  const actions = (
+    <div className="flex gap-3">
+      <Button type="submit" form="edit-activity-form" disabled={save.isPending}>
+        {save.isPending ? t('newActivity.saving') : t('activity.save')}
+      </Button>
+      {save.isPending ? (
+        <Button type="button" variant="secondary-outline" disabled>
+          {t('activity.cancel')}
+        </Button>
+      ) : (
+        <Button asChild variant="secondary-outline">
+          <Link {...destination}>{t('activity.cancel')}</Link>
+        </Button>
+      )}
+    </div>
+  )
   return (
     <section>
-      <Heading level={1}>{t('activity.edit')}</Heading>
-      <p className="mt-2 text-sm text-muted-foreground">{activityTitle(activity, t)}</p>
+      <div className="flex flex-wrap items-start justify-between gap-3">
+        <div>
+          <Heading level={1}>{t('activity.edit')}</Heading>
+          <p className="mt-2 text-sm text-muted-foreground">{activityTitle(activity, t)}</p>
+        </div>
+        {actions}
+      </div>
       <form
+        id="edit-activity-form"
         className="mt-6 space-y-6"
         onSubmit={(event) => {
           event.preventDefault()
@@ -169,20 +192,7 @@ function EditActivityForm({ activity }: { activity: ActivityDetail }) {
             <ErrorMessage error={save.error} />
           </p>
         )}
-        <div className="flex gap-3">
-          <Button type="submit" disabled={save.isPending}>
-            {save.isPending ? t('newActivity.saving') : t('activity.save')}
-          </Button>
-          {save.isPending ? (
-            <Button type="button" variant="secondary-outline" disabled>
-              {t('activity.cancel')}
-            </Button>
-          ) : (
-            <Button asChild variant="secondary-outline">
-              <Link {...destination}>{t('activity.cancel')}</Link>
-            </Button>
-          )}
-        </div>
+        {actions}
       </form>
     </section>
   )
