@@ -84,6 +84,10 @@ export function ActivityPage() {
   })
   const holds = (records: StoredBestEffort[] | undefined, e: StoredBestEffort) =>
     !!records?.some((r) => r.activityId === e.activityId && r.distanceM === e.distanceM)
+  // Personal and year bests, matching the record the feed card highlights.
+  const awarded = ownEfforts
+    ? bestEfforts.data!.filter((e) => e.recordStatus || holds(yearBests.data, e))
+    : []
   const [selection, setSelection] = useState<{ id: string; part: ActivityPart | null } | null>(null)
   const selectedPart = selection?.id === activityId ? selection.part : null
   const selectedSport = selectedPart?.sport ?? activity.data?.sport
@@ -404,27 +408,29 @@ export function ActivityPage() {
         ))}
       </dl>
 
-      {ownEfforts && bestEfforts.data?.some((e) => e.recordStatus) && (
+      {awarded.length > 0 && (
         <section className={card({ className: 'mt-6' })} aria-labelledby="activity-records-title">
           <Heading level={2} id="activity-records-title">
             {t('records.activityRecords')}
           </Heading>
           {sourceNote}
           <ul className="mt-3 grid gap-3 sm:grid-cols-2">
-            {bestEfforts.data
-              .filter((e) => e.recordStatus)
-              .map((e) => (
-                <li
-                  key={e.distanceM}
-                  className="flex flex-wrap items-center justify-between gap-x-4 gap-y-1 rounded-lg bg-muted/50 px-3 py-2"
-                >
-                  <span className="text-sm font-medium">
-                    {t(`records.distances.${e.distanceM as RecordDistance}`)}
-                    <span className="ml-3 tabular-nums">{formatDuration(e.elapsedS)}</span>
-                  </span>
-                  <RecordAward status={e.recordStatus!} />
-                </li>
-              ))}
+            {awarded.map((e) => (
+              <li
+                key={e.distanceM}
+                className="flex flex-wrap items-center justify-between gap-x-4 gap-y-1 rounded-lg bg-muted/50 px-3 py-2"
+              >
+                <span className="text-sm font-medium">
+                  {t(`records.distances.${e.distanceM as RecordDistance}`)}
+                  <span className="ml-3 tabular-nums">{formatDuration(e.elapsedS)}</span>
+                </span>
+                {e.recordStatus ? (
+                  <RecordAward status={e.recordStatus} />
+                ) : (
+                  <RecordAward status="year" year={recordYear!} />
+                )}
+              </li>
+            ))}
           </ul>
         </section>
       )}
