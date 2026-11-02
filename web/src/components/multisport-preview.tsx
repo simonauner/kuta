@@ -1,5 +1,7 @@
 import { isCyclingSport } from '@/lib/sports'
-import { useMemo } from 'react'
+import { useMemo, useState } from 'react'
+import { Maximize2, Minimize2 } from 'lucide-react'
+import { Button } from './ui/button'
 import { useTranslation } from 'react-i18next'
 import { ActivityMap } from './activity-map'
 import { ActivityCharts, type ChartSeries } from './activity-charts'
@@ -18,6 +20,7 @@ export default function MultisportPreview({
   onMoveBoundary?: (index: number, endS: number) => void
 }) {
   const { t } = useTranslation()
+  const [large, setLarge] = useState(false)
   const view = useMemo(() => {
     const part = selected === null ? null : parts[selected]
     const data = part ? partStreams(streams, part) : streams
@@ -83,13 +86,28 @@ export default function MultisportPreview({
   return (
     <div className="space-y-4">
       {view.coordinates.length > 1 ? (
-        <ActivityMap
-          coordinates={view.coordinates}
-          routes={view.routes}
-          fitKey={selected}
-          handles={handles}
-          label={t('activity.map')}
-        />
+        <div className="space-y-2">
+          {handles?.length ? (
+            <Button
+              type="button"
+              variant="secondary-outline"
+              size="sm"
+              aria-pressed={large}
+              onClick={() => setLarge((v) => !v)}
+            >
+              {large ? <Minimize2 /> : <Maximize2 />}
+              {large ? t('multisport.mapSmaller') : t('multisport.mapLarger')}
+            </Button>
+          ) : null}
+          <ActivityMap
+            coordinates={view.coordinates}
+            routes={view.routes}
+            fitKey={selected}
+            handles={handles}
+            large={large}
+            label={t('activity.map')}
+          />
+        </div>
       ) : (
         <p className="text-sm text-muted-foreground">{t('activity.noRoute')}</p>
       )}

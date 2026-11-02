@@ -599,6 +599,8 @@
   },
   "breadcrumbs": "Breadcrumbs",
   "multisport": {
+    "mapLarger": "Enlarge map",
+    "mapSmaller": "Shrink map",
     "title": "Sport legs",
     "split": "Split into sports",
     "edit": "Edit legs",

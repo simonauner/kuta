@@ -599,6 +599,8 @@
   },
   "breadcrumbs": "Brödsmulor",
   "multisport": {
+    "mapLarger": "Förstora kartan",
+    "mapSmaller": "Förminska kartan",
     "title": "Sportdelar",
     "split": "Dela upp i sporter",
     "edit": "Ändra uppdelning",

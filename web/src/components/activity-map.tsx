@@ -17,12 +17,15 @@ export function ActivityMap({
   label,
   routes,
   thumbnail = false,
+  large = false,
   fitKey,
   handles,
 }: {
   coordinates: [number, number][]
   label: string
   thumbnail?: boolean
+  // Wider and taller map for precise dragging of handles; MapLibre follows the container size itself
+  large?: boolean
   routes?: { coordinates: [number, number][]; color: string }[]
   // Refit to the route only when this changes (default: when coordinates change), so editing keeps the zoom
   fitKey?: unknown
@@ -144,14 +147,19 @@ export function ActivityMap({
 
   return (
     <div
-      ref={container}
       role="img"
       aria-label={label}
       className={
         thumbnail
           ? 'h-52 w-full overflow-hidden rounded-lg border sm:h-60'
-          : 'h-72 max-h-[45svh] w-full overflow-hidden rounded-lg border sm:h-96'
+          : large
+            ? // Negative margins widen the map past the form column, centred and kept inside the viewport
+              'mx-[calc(50%-min(50vw-1rem,48rem))] h-[60svh] overflow-hidden rounded-lg border'
+            : 'h-72 max-h-[45svh] w-full overflow-hidden rounded-lg border sm:h-96'
       }
-    />
+    >
+      {/* MapLibre adds its own classes here, so this element's className must never change */}
+      <div ref={container} className="size-full" />
+    </div>
   )
 }
