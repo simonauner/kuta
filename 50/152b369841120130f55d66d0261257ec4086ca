@@ -1,0 +1,38 @@
+web/src/components/training-load.tsx
+  s_a4b9a088d200ea::t_486cb91895edac 28
+web/src/components/layout.tsx
+  s_a4b9a088d200ea::t_59792b306145b8 112-117
+AGENTS.md
+  s_a4b9a088d200ea::t_0c7c8c841803b8 80
+web/src/locales/en.json
+  s_a4b9a088d200ea::t_59792b306145b8 44-54,67
+  s_a4b9a088d200ea::t_486cb91895edac 55-66
+web/src/components/feed-summary.tsx
+  s_a4b9a088d200ea::t_27e0f77fba6590 1-3,5-11,14-99,101-109,182-183
+  s_a4b9a088d200ea::t_cc55667d7c1425 4,117-118,132-135
+  s_a4b9a088d200ea::t_486cb91895edac 12-13,100,110-116,119-131,136-181
+web/src/routes/feed.tsx
+  s_a4b9a088d200ea::t_59792b306145b8 3,11-12,14-22
+  s_a4b9a088d200ea::t_d5436890750bf4 13
+web/src/locales/sv.json
+  s_a4b9a088d200ea::t_486cb91895edac 55-66
+  s_a4b9a088d200ea::t_59792b306145b8 44-54,67
+README.md
+  s_a4b9a088d200ea::t_0c7c8c841803b8 31-32
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.7.5",
+  "base_commit_sha": "50152b369841120130f55d66d0261257ec4086ca",
+  "prompts": {},
+  "sessions": {
+    "s_a4b9a088d200ea": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "df23a20a-ee7e-4a97-b0b1-e93322a70839",
+        "model": "claude-opus-5-5"
+      },
+      "human_author": "Simon Aunér <simonauner@gmail.com>"
+    }
+  }
+}
