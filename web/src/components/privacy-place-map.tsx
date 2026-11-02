@@ -56,7 +56,7 @@ export default function PrivacyPlaceMap({
     const initial = initialPoint.current
     const instance = new Map({
       container: container.current,
-      style: mapStyle,
+      style: mapStyle(),
       center: initial ? [initial.longitude, initial.latitude] : [18.06, 59.33],
       zoom: initial ? 14 : 10,
       attributionControl: { compact: true },
