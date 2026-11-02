@@ -19,6 +19,9 @@ import { card } from '@/components/ui/card-variants'
 import { Select } from '@/components/ui/select'
 import { Heading } from '@/components/ui/heading'
 
+// Longer lists start collapsed so the map and charts stay near the top
+const collapsedCount = 5
+
 const MultisportPreview = lazy(() => import('./multisport-preview'))
 
 export function MultisportEditor({
@@ -45,8 +48,11 @@ export function MultisportEditor({
   const nextPartKey = useRef(Math.max(2, a.parts.length))
   const reduceMotion = useReducedMotion()
   const [selected, setSelected] = useState<number | null>(null)
+  const [expanded, setExpanded] = useState(false)
   const number = new Intl.NumberFormat(i18n.resolvedLanguage, { maximumFractionDigits: 2 })
   const shown = editing ? parts : a.parts
+  const collapsible = !editing && shown.length > collapsedCount
+  const listed = collapsible && !expanded ? shown.slice(0, collapsedCount) : shown
   const pace = (p: ActivityPart) =>
     formatSportPace(p.sport, p.endS - p.startS, p.distanceM, i18n.resolvedLanguage)
   function preview(part: ActivityPart | null) {
@@ -120,6 +126,11 @@ export function MultisportEditor({
       />
       <div className="flex flex-wrap items-center justify-between gap-2">
         <Heading level={2}>{t('multisport.title')}</Heading>
+        {selected !== null && (
+          <Button type="button" size="sm" variant="secondary-outline" onClick={() => preview(null)}>
+            {t('multisport.whole')}
+          </Button>
+        )}
         {onChange && !editing && a.canSplit && (
           <Button type="button" size="sm" variant="secondary-outline" onClick={begin}>
             {t(a.parts.length ? 'multisport.edit' : 'multisport.split')}
@@ -150,20 +161,13 @@ export function MultisportEditor({
           </FormField>
         </>
       )}
-      {shown.length > 0 && (
-        <Button
-          type="button"
-          size="sm"
-          variant={selected === null ? 'secondary-filled' : 'ghost'}
-          onClick={() => preview(null)}
-        >
-          {t('multisport.whole')}
-        </Button>
+      {!editing && shown.length > 1 && (
+        <p className="text-sm text-muted-foreground">{t('multisport.selectHint')}</p>
       )}
       {shown.length > 0 && (
         <fieldset disabled={disabled} className="space-y-3">
           <AnimatePresence initial={false}>
-            {shown.map((p, i) => (
+            {listed.map((p, i) => (
               <motion.div
                 key={partKeys[i] ?? i}
                 initial={reduceMotion ? false : { height: 0, opacity: 0, overflow: 'hidden' }}
@@ -350,6 +354,17 @@ export function MultisportEditor({
             ))}
           </AnimatePresence>
         </fieldset>
+      )}
+      {collapsible && (
+        <Button
+          type="button"
+          size="sm"
+          variant="ghost"
+          aria-expanded={expanded}
+          onClick={() => setExpanded(!expanded)}
+        >
+          {expanded ? t('multisport.showFewer') : t('multisport.showAll', { count: shown.length })}
+        </Button>
       )}
       {onChange && a.partsEdited && !editing && (
         <Button
