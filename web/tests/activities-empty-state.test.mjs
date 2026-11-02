@@ -67,16 +67,33 @@ test('statistics only offers onboarding after confirming the entire activity his
   })
   try {
     const { StatsPage } = await server.ssrLoadModule('/src/routes/stats.tsx')
+    const { statisticsRanges } = await server.ssrLoadModule('/src/lib/statistics-period.ts')
     const i18n = createInstance()
     await i18n.init({ lng: 'sv', resources: { sv: { translation: sv } } })
     const timeZone = Intl.DateTimeFormat().resolvedOptions().timeZone
     for (const years of [undefined, [], [new Date().getFullYear() - 1]]) {
       const client = new QueryClient({ defaultOptions: { queries: { staleTime: Infinity } } })
       if (years !== undefined) client.setQueryData(['activities', 'years', timeZone], years)
-      client.setQueryData(
-        ['activities', 'statistics', timeZone, new Date().getFullYear(), 'running'],
-        [],
-      )
+      const now = new Date()
+      const ranges = statisticsRanges('12w', {
+        year: now.getFullYear(),
+        month: now.getMonth() + 1,
+        day: now.getDate(),
+      })
+      const empty = {
+        start: '',
+        count: 0,
+        durationS: 0,
+        distanceM: 0,
+        paceSPerKm: null,
+        avgHr: null,
+      }
+      const result = { buckets: [], total: empty }
+      client.setQueryData(['activities', 'statistics', timeZone, ranges, 'running'], {
+        ranges,
+        current: result,
+        previous: result,
+      })
       const route = createRootRoute({ component: StatsPage })
       const router = createRouter({
         routeTree: route,

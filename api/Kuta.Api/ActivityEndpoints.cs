@@ -126,18 +126,21 @@ public static class ActivityEndpoints
                 "select distinct privacy from activities where user_id = @userId order by privacy",
                 new { userId = user.GetUserId() }, cancellationToken: cancellationToken)));
         });
-        activities.MapGet("/statistics", async (NpgsqlDataSource db, ClaimsPrincipal user, int year,
-            string? timeZone, string? sportGroup, CancellationToken cancellationToken) =>
+        activities.MapGet("/statistics", async (NpgsqlDataSource db, ClaimsPrincipal user, DateOnly from, DateOnly to,
+            string bucket, string? timeZone, string? sportGroup, CancellationToken cancellationToken) =>
         {
-            if (year is < 1 or > 9998)
-                return Results.BadRequest(new ApiError("Ange ett år mellan 1 och 9998.", "invalidActivityYear"));
+            // About a year in weeks at most, so one request stays small.
+            if (to <= from || to.DayNumber - from.DayNumber > 400)
+                return Results.BadRequest(new ApiError("Välj en period på högst ett år.", "invalidStatisticsPeriod"));
+            if (!ActivityStatistics.Buckets.Contains(bucket))
+                return Results.BadRequest(new ApiError("Välj vecka eller månad.", "invalidStatisticsBucket"));
             if (sportGroup is not null && !SportGroups.IsValid(sportGroup))
                 return Results.BadRequest(new ApiError("Välj en giltig sport.", "invalidSportGroup"));
             timeZone ??= "UTC";
             await using var conn = await db.OpenConnectionAsync(cancellationToken);
             if (!await ActivityList.IsValidTimeZoneAsync(conn, timeZone, cancellationToken))
                 return Results.BadRequest(new ApiError("Tidszonen är ogiltig. Kontrollera enhetens inställningar.", "invalidTimeZone"));
-            return Results.Ok(await ActivityStatistics.ReadAsync(conn, user.GetUserId(), year, timeZone,
+            return Results.Ok(await ActivityStatistics.ReadAsync(conn, user.GetUserId(), from, to, bucket, timeZone,
                 sportGroup, cancellationToken));
         });
 

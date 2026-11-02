@@ -36,7 +36,7 @@ public class ActivityAccessTests(KutaFactory factory) : IClassFixture<KutaFactor
             using var anonymous = factory.CreateClient();
             Assert.Equal(HttpStatusCode.Unauthorized, (await anonymous.GetAsync("/api/activities", ct)).StatusCode);
             Assert.Equal(HttpStatusCode.Unauthorized, (await anonymous.GetAsync("/api/activities/years", ct)).StatusCode);
-            Assert.Equal(HttpStatusCode.Unauthorized, (await anonymous.GetAsync("/api/activities/statistics?year=2026", ct)).StatusCode);
+            Assert.Equal(HttpStatusCode.Unauthorized, (await anonymous.GetAsync("/api/activities/statistics?from=2026-01-01&to=2027-01-01&bucket=month", ct)).StatusCode);
             Assert.Equal(HttpStatusCode.Unauthorized, (await anonymous.GetAsync("/api/activities/statistics/days", ct)).StatusCode);
             for (var i = 0; i < userIds.Length; i++)
             {
@@ -78,17 +78,19 @@ public class ActivityAccessTests(KutaFactory factory) : IClassFixture<KutaFactor
                     $"/api/activities/{activity.Id}", new { title = activity.Title, tags = Array.Empty<string>(), equipmentIds = Array.Empty<Guid>() }, ct)).StatusCode);
                 Assert.Empty((await client.GetFromJsonAsync<ActivityDetail>($"/api/activities/{activity.Id}", ct))!.Tags);
 
-                var statistics = await client.GetFromJsonAsync<ActivityStatisticsMonth[]>(
-                    $"/api/activities/statistics?year={activity.StartedAt.Year}&sportGroup=running&timeZone=UTC", ct);
-                Assert.Equal(12, statistics!.Length);
-                Assert.Equal(1, statistics.Sum(m => m.Count));
-                Assert.Equal(5000, statistics.Sum(m => m.DistanceM));
+                var statistics = await client.GetFromJsonAsync<ActivityStatisticsPeriod>(
+                    $"/api/activities/statistics?from={activity.StartedAt.Year}-01-01&to={activity.StartedAt.Year + 1}-01-01&bucket=month&sportGroup=running&timeZone=UTC", ct);
+                Assert.Equal(12, statistics!.Buckets.Count);
+                Assert.Equal(1, statistics.Buckets.Sum(m => m.Count));
+                Assert.Equal((1, 5000d), (statistics.Total.Count, statistics.Total.DistanceM));
                 var day = Assert.Single((await client.GetFromJsonAsync<DailyTotal[]>(
                     "/api/activities/statistics/days?sportGroup=running&timeZone=UTC", ct))!);
                 Assert.Equal((DateOnly.FromDateTime(activity.StartedAt.ToUniversalTime()), 1, 5000d), (day.Day, day.Count, day.DistanceM));
                 if (i == 0)
                 {
-                    foreach (var query in new[] { "year=0", "year=2026&sportGroup=trail%20run", "year=2026&timeZone=NotAZone" })
+                    foreach (var query in new[] { "from=2026-01-01&to=2026-01-01&bucket=week", "from=2025-01-01&to=2026-03-01&bucket=month",
+                        "from=2026-01-01&to=2027-01-01&bucket=day", "from=2026-01-01&to=2027-01-01&bucket=month&sportGroup=trail%20run",
+                        "from=2026-01-01&to=2027-01-01&bucket=month&timeZone=NotAZone" })
                         Assert.Equal(HttpStatusCode.BadRequest, (await client.GetAsync($"/api/activities/statistics?{query}", ct)).StatusCode);
                     foreach (var query in new[] { "sportGroup=trail%20run", "timeZone=NotAZone" })
                         Assert.Equal(HttpStatusCode.BadRequest, (await client.GetAsync($"/api/activities/statistics/days?{query}", ct)).StatusCode);
