@@ -15,10 +15,48 @@ for (const carousel of document.querySelectorAll<HTMLElement>('.statistics-carou
   let hovered = false
   let timer: number | undefined
 
+  let request = 0
+
+  // Keeps the previous slide visible while the next one loads, then cross-fades to it.
   function show(index: number) {
+    if (index === current) return
     current = index
-    slides.forEach((slide, i) => (slide.hidden = i !== index))
     choices.forEach((button, i) => button.setAttribute('aria-pressed', String(i === index)))
+    const token = ++request
+    const next = slides[index]
+    next.loading = 'eager'
+    const loaded =
+      next.complete && next.naturalWidth > 0
+        ? Promise.resolve()
+        : next.decode().catch(() => undefined)
+    void loaded.then(() => {
+      if (token !== request) return
+      const previous = slides.filter((slide) => slide !== next && !slide.hidden)
+      const duration = motion.matches ? 0 : 300
+      // An interrupted fade restarts from the slide's current opacity.
+      const from = new Map(previous.map((slide) => [slide, getComputedStyle(slide).opacity]))
+      next.getAnimations().forEach((animation) => animation.cancel())
+      next.hidden = false
+      next.classList.add('is-current')
+      previous.forEach((slide) => slide.classList.remove('is-current'))
+      const fadeIn = next.animate([{ opacity: 0 }, { opacity: 1 }], { duration, easing: 'ease' })
+      previous.forEach((slide) =>
+        slide.animate([{ opacity: from.get(slide) }, { opacity: 0 }], {
+          duration,
+          easing: 'ease',
+          fill: 'forwards',
+        }),
+      )
+      void fadeIn.finished
+        .catch(() => undefined)
+        .then(() => {
+          if (token !== request) return
+          previous.forEach((slide) => {
+            slide.hidden = true
+            slide.getAnimations().forEach((animation) => animation.cancel())
+          })
+        })
+    })
   }
 
   function updateRotation() {
