@@ -130,7 +130,7 @@ h1 {
   font-size: clamp(68px, 7.8vw, 110px);
   line-height: 0.98;
   font-weight: 800;
-  letter-spacing: -6px;
+  letter-spacing: -4.5px;
   margin-top: 32px;
 }
 h1 em {
@@ -485,7 +485,7 @@ h3 {
   }
   h1 {
     font-size: clamp(40px, 12.4vw, 86px);
-    letter-spacing: -2.5px;
+    letter-spacing: -2px;
     margin-top: 24px;
   }
   .intro {
