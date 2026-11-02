@@ -580,7 +580,7 @@
     "split": "Dela upp i sporter",
     "edit": "Ändra uppdelning",
     "kind": "Typ av aktivitet",
-    "instructions": "Dra i reglaget eller skriv tiden från start (h:mm:ss) där sporten byts. Avståndet vid bytet visas under, och kartan och diagrammen nedanför visar vald del. Originalets mätpunkter sparas, och uppdelningen går att återställa.",
+    "instructions": "Dra i reglaget eller markören på kartan, eller skriv tiden från start (h:mm:ss) där sporten byts. Avståndet vid bytet visas under, och kartan och diagrammen nedanför visar vald del. Originalets mätpunkter sparas, och uppdelningen går att återställa.",
     "whole": "Hela aktiviteten",
     "partSport": "Sport för del {{number}}",
     "boundary": "Byte efter del {{number}} (tid från start)",

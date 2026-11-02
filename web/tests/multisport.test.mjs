@@ -1,7 +1,7 @@
 import assert from 'node:assert/strict'
 import { test } from 'node:test'
 import { isCyclingSport } from '../src/lib/sports.ts'
-import { partStreams } from '../src/lib/multisport.ts'
+import { nearestTime, partStreams } from '../src/lib/multisport.ts'
 import { formatSportPace, routeSegments } from '../src/lib/activity.ts'
 
 test('selecting a sport part preserves hidden GPS gaps at interpolated boundaries', () => {
@@ -77,4 +77,16 @@ test('draft sport legs are previewed locally and restoring uses the imported ver
   assert.deepEqual(restored.parts, [])
   assert.equal(restored.partsEdited, false)
   assert.equal(original.sport, 'swimrun')
+})
+
+test('a map handle snaps to the closest GPS point within its neighbouring boundaries', () => {
+  // Out and back: the same place is passed at t=100 and t=300
+  const streams = {
+    t: [0, 100, 200, 300, 400],
+    lat: [59, 59.001, null, 59.001, 59],
+    lon: [18, 18.001, null, 18.001, 18],
+  }
+  assert.equal(nearestTime(streams, [18.001, 59.001], 0, 400), 100)
+  assert.equal(nearestTime(streams, [18.001, 59.001], 200, 400), 300)
+  assert.equal(nearestTime(streams, [18.001, 59.001], 100, 300), null)
 })

@@ -580,7 +580,7 @@
     "split": "Split into sports",
     "edit": "Edit legs",
     "kind": "Activity type",
-    "instructions": "Drag the slider or type the time from the start (h:mm:ss) where the sport changes. The distance at the change is shown below, and the map and charts underneath show the selected part. The original data points are kept, and the split can be restored.",
+    "instructions": "Drag the slider or the marker on the map, or type the time from the start (h:mm:ss) where the sport changes. The distance at the change is shown below, and the map and charts underneath show the selected part. The original data points are kept, and the split can be restored.",
     "whole": "Whole activity",
     "partSport": "Sport for leg {{number}}",
     "boundary": "Change after part {{number}} (time from start)",

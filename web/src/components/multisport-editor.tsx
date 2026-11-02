@@ -60,6 +60,13 @@ export function MultisportEditor({
     onChange?.({ kind, parts: measured })
     if (selected !== null) onPreview?.(measured[selected] ?? null)
   }
+  function moveBoundary(i: number, end: number) {
+    update(
+      parts.map((v, j) =>
+        j === i ? { ...v, endS: end } : j === i + 1 ? { ...v, startS: end } : v,
+      ),
+    )
+  }
   function begin() {
     const from = a.streams!.t[0],
       until = a.streams!.t.at(-1)!
@@ -218,15 +225,7 @@ export function MultisportEditor({
                                 const end = parseDuration(e.target.value)
                                 if (end === null || end <= p.startS || end >= parts[i + 1].endS)
                                   return
-                                update(
-                                  parts.map((v, j) =>
-                                    j === i
-                                      ? { ...v, endS: end }
-                                      : j === i + 1
-                                        ? { ...v, startS: end }
-                                        : v,
-                                  ),
-                                )
+                                moveBoundary(i, end)
                               }}
                             />
                           )}
@@ -251,16 +250,7 @@ export function MultisportEditor({
                               step="1"
                               value={p.endS}
                               onChange={(e) => {
-                                const end = Number(e.target.value)
-                                update(
-                                  parts.map((v, j) =>
-                                    j === i
-                                      ? { ...v, endS: end }
-                                      : j === i + 1
-                                        ? { ...v, startS: end }
-                                        : v,
-                                  ),
-                                )
+                                moveBoundary(i, Number(e.target.value))
                               }}
                             />
                           )}
@@ -367,7 +357,12 @@ export function MultisportEditor({
       />
       {onChange && editing && a.streams && (
         <Suspense fallback={null}>
-          <MultisportPreview streams={a.streams} parts={shown} selected={selected} />
+          <MultisportPreview
+            streams={a.streams}
+            parts={shown}
+            selected={selected}
+            onMoveBoundary={disabled ? undefined : moveBoundary}
+          />
         </Suspense>
       )}
     </section>
