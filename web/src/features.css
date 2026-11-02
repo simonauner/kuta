@@ -215,12 +215,6 @@
 .goals-shots figcaption strong {
   color: var(--foreground);
 }
-.goals-example-note {
-  margin-top: 24px;
-  text-align: center;
-  font-size: 11px;
-  color: var(--muted-foreground);
-}
 @media (max-width: 800px) {
   .goals-feature {
     padding-block: 48px;
