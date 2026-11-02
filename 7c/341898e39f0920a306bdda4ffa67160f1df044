@@ -1,0 +1,27 @@
+web/src/components/activity-map.tsx
+  s_46d14a8383f266::t_4a9503c601ca00 9-12,22,31-32,44,46-54,86-90,129,190-192,199-213
+web/src/components/multisport-preview.tsx
+  s_46d14a8383f266::t_bc535ca9da4d77 99
+web/src/locales/en.json
+  s_46d14a8383f266::t_475b3a61a0d57a 356-357
+web/src/locales/sv.json
+  s_46d14a8383f266::t_a9fc2d0ae70d09 356-357
+web/src/routes/activity.tsx
+  s_46d14a8383f266::t_d2ff007d988d36 698
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.7.5",
+  "base_commit_sha": "7c341898e39f0920a306bdda4ffa67160f1df044",
+  "prompts": {},
+  "sessions": {
+    "s_46d14a8383f266": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "599621d0-3c61-4b1a-82e3-077321f195d2",
+        "model": "claude-opus-5-5"
+      },
+      "human_author": "Simon Aunér <simonauner@gmail.com>"
+    }
+  }
+}
