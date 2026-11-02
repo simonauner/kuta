@@ -1,0 +1,44 @@
+web/vite.config.ts
+  s_66f40369dce7cc::t_733609e72c5206 4,46-49,63-64,78-81,83-85
+api/Kuta.Api.Tests/WebRoutingTests.cs
+  s_66f40369dce7cc::t_733609e72c5206 16-18,46-49
+web/public/sitemap.xml
+  s_66f40369dce7cc::t_733609e72c5206 5-6
+web/src/features.ts
+  s_66f40369dce7cc::t_733609e72c5206 1-5,26
+web/src/features.css
+  s_66f40369dce7cc::t_895c134f3d64fc 118
+web/en/features.html
+  s_66f40369dce7cc::t_05d8f6301b7591 68-69,225-227,458-459
+  s_66f40369dce7cc::t_1c4e95985578d7 1-67,70-224,228-457,460-493
+web/en/index.html
+  s_66f40369dce7cc::t_05d8f6301b7591 124-125,189-190
+  s_66f40369dce7cc::t_1c4e95985578d7 1-123,126-188,191-309
+web/features.html
+  s_66f40369dce7cc::t_733609e72c5206 14-15,44
+web/index.html
+  s_66f40369dce7cc::t_733609e72c5206 14-15,47
+api/Kuta.Api/Program.cs
+  s_66f40369dce7cc::t_48b5c4b078d540 203-204
+  s_66f40369dce7cc::t_733609e72c5206 278-279
+web/src/components/footer.tsx
+  s_66f40369dce7cc::t_ab1b907400848e 15-18
+README.md
+  s_66f40369dce7cc::t_b188f5364985e7 7
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.7.5",
+  "base_commit_sha": "b783eff69269d1fca4e576543ee1a523fabdbcca",
+  "prompts": {},
+  "sessions": {
+    "s_66f40369dce7cc": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "e3ec9f4c-3251-4526-b512-15583ec2b664",
+        "model": "claude-opus-5-5"
+      },
+      "human_author": "Simon Aunér <simonauner@gmail.com>"
+    }
+  }
+}
