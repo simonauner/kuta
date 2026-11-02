@@ -5,7 +5,7 @@ import { AnimatePresence, motion, useReducedMotion } from 'motion/react'
 import { Button } from '@/components/ui/button'
 import { ConfirmationModal } from '@/components/ui/confirmation-modal'
 import { Input } from '@/components/ui/input'
-import { formatDuration, parseDuration, type ActivityDetail } from '@/lib/activity'
+import { formatDuration, formatSportPace, parseDuration, type ActivityDetail } from '@/lib/activity'
 import {
   multisportKinds,
   partSports,
@@ -47,6 +47,8 @@ export function MultisportEditor({
   const [selected, setSelected] = useState<number | null>(null)
   const number = new Intl.NumberFormat(i18n.resolvedLanguage, { maximumFractionDigits: 2 })
   const shown = editing ? parts : a.parts
+  const pace = (p: ActivityPart) =>
+    formatSportPace(p.sport, p.endS - p.startS, p.distanceM, i18n.resolvedLanguage)
   function preview(part: ActivityPart | null) {
     setSelected(part?.partIndex ?? null)
     onPreview?.(part)
@@ -161,6 +163,7 @@ export function MultisportEditor({
                     </span>
                     {i + 1}. {t(sportNameKey(p.sport))} · {number.format(p.distanceM / 1000)} km ·{' '}
                     {formatDuration(p.endS - p.startS)}
+                    {pace(p) !== '–' && ` · ${pace(p)}`}
                   </button>
                   {editing && (
                     <FormField
