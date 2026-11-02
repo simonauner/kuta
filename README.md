@@ -28,6 +28,8 @@ Appens URL:er är `/app` (flöde), `/app/activities`, `/app/stats`, `/app/profil
 
 När flödet är tomt visas genvägar till ett första pass, en guide till Import och anslutningar (koppla Garmin, importera från Strava) och kopiering av den egna profillänken. Den som redan följer någon får en text om att inga pass har delats ännu. Välkomstvyn försvinner när flödet får innehåll. Aktiviteter, Statistik och den egna profilen har ett gemensamt, kort tomläge med en rad om vad som visas där när användaren saknar pass. Bara flödet har en välkomstvy; båda använder samma knappar till nytt pass och Strava-import. Tomma filterresultat och andra löpares profiler visar fortsatt sina vanliga tomlägen.
 
+På breda skärmar (från `lg`) har flödet en sammanfattningskolumn till vänster (`components/feed-summary.tsx`): namn, antal följda, följare och aktiviteter samt veckans dagar med veckosvit, från samma `GET /api/runners/{id}/summary` som profilen. Därunder visas löpbelastning per vecka för de fem senaste veckorna ur `GET /api/training-load`, där förra veckan jämförs med snittet av de tre före (mer än 30 % över eller under ger Mer än vanligt respektive Lugnare än vanligt, annars Jämn nivå; `weekTrend` i `lib/training-load.ts`). Belastningsdelen döljs utan tröskeltempo eller löpning och tonas in om den laddas efter kortet. På smala skärmar visas inte kolumnen; samma siffror finns på Profil.
+
 Flödet på `/app` visar egna pass och pass från löpare du följer efter deras godkännande,
 nyaste först, 25 åt gången. **Inställningar → Följare** innehåller inkommande förfrågningar
 och listor över följare/följda. Det finns ingen användarkatalog eller namnsökning, varken i

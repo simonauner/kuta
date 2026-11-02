@@ -60,3 +60,26 @@ export function loadChart(
     baseline: y(0),
   }
 }
+
+// Daily load summed per Monday-first week, oldest first; the last entry is the week so far.
+export function weeklyLoads(days: TrainingLoadDay[], weeks: number) {
+  const totals = new Map<string, number>()
+  for (const d of days) {
+    const date = new Date(`${d.day}T00:00:00Z`)
+    date.setUTCDate(date.getUTCDate() - ((date.getUTCDay() + 6) % 7))
+    const monday = date.toISOString().slice(0, 10)
+    totals.set(monday, (totals.get(monday) ?? 0) + d.load)
+  }
+  return [...totals].slice(-weeks).map(([start, load]) => ({ start, load }))
+}
+
+// Last full week against the average of the three before it, like a usual range.
+export function weekTrend(loads: number[]): 'more' | 'less' | 'steady' | null {
+  if (loads.length < 5) return null
+  const [last] = loads.slice(-2, -1)
+  const usual = loads.slice(-5, -2).reduce((sum, load) => sum + load, 0) / 3
+  if (usual === 0 && last === 0) return null
+  if (last > usual * 1.3) return 'more'
+  if (last < usual * 0.7) return 'less'
+  return 'steady'
+}

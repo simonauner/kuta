@@ -41,7 +41,30 @@
     "stravaDescription": "Börja med att koppla din Garmin och föra över gamla aktiviteter från Strava.",
     "socialTitle": "Träna tillsammans",
     "socialDescription": "Be en kompis dela sin profillänk för att börja följa dem, eller dela din egen.",
-    "copyProfileLink": "Kopiera min profillänk"
+    "copyProfileLink": "Kopiera min profillänk",
+    "summary": {
+      "following": "Följer",
+      "followers": "Följare",
+      "activities": "Aktiviteter",
+      "thisWeek": "Den här veckan",
+      "activeDay_one": "{{count}} aktivitet",
+      "activeDay_other": "{{count}} aktiviteter",
+      "restDay": "ingen aktivitet",
+      "links": "Genvägar",
+      "yourActivities": "Dina aktiviteter",
+      "yourStats": "Din statistik",
+      "load": "Löpbelastning per vecka",
+      "trend": {
+        "more": "Mer än vanligt",
+        "less": "Lugnare än vanligt",
+        "steady": "Jämn nivå"
+      },
+      "trendText": {
+        "more": "Förra veckan sprang du hårdare än snittet för de tre veckorna innan.",
+        "less": "Förra veckan sprang du lättare än snittet för de tre veckorna innan.",
+        "steady": "Förra veckan låg i nivå med de tre veckorna innan. Fint jobbat med kontinuiteten."
+      }
+    }
   },
   "stats": {
     "views": "Vyer i statistiken",

@@ -25,7 +25,7 @@ import { HelpPopover } from '@/components/help-popover'
 // "2026-05-03" is a local day; new Date() would parse it as UTC and could show the day before.
 const localDay = (day: string) => new Date(`${day}T00:00`)
 
-function useTrainingLoad() {
+export function useTrainingLoad() {
   const timeZone = Intl.DateTimeFormat().resolvedOptions().timeZone
   return useQuery({
     queryKey: trainingLoadQueryKey(timeZone),
