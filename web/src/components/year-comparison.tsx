@@ -105,33 +105,18 @@ export function YearComparison({ year, sportGroup }: { year: number; sportGroup:
         </div>
         <FormField label={t('yearComparison.metric')} className="text-sm font-medium">
           {(id) => (
-            <div className="flex items-center gap-2">
-              <Select
-                id={id}
-                className="w-fit"
-                value={metric}
-                onChange={(e) => setMetric(e.target.value as YearMetric)}
-              >
-                {yearMetrics.map((key) => (
-                  <option key={key} value={key}>
-                    {t(`yearComparison.metrics.${key}`)}
-                  </option>
-                ))}
-              </Select>
-              {/* On a small screen the chart already fills the width. */}
-              <Button
-                type="button"
-                variant="secondary-outline"
-                size="icon"
-                className="hidden lg:inline-flex"
-                aria-label={t(large ? 'stats.chartSmaller' : 'stats.chartLarger')}
-                title={t(large ? 'stats.chartSmaller' : 'stats.chartLarger')}
-                aria-pressed={large}
-                onClick={() => setLarge((v) => !v)}
-              >
-                {large ? <Minimize2 /> : <Maximize2 />}
-              </Button>
-            </div>
+            <Select
+              id={id}
+              className="w-fit"
+              value={metric}
+              onChange={(e) => setMetric(e.target.value as YearMetric)}
+            >
+              {yearMetrics.map((key) => (
+                <option key={key} value={key}>
+                  {t(`yearComparison.metrics.${key}`)}
+                </option>
+              ))}
+            </Select>
           )}
         </FormField>
       </div>
@@ -156,6 +141,20 @@ export function YearComparison({ year, sportGroup }: { year: number; sportGroup:
                 })}
               >
                 <p className="sr-only">{t('stats.tableNote')}</p>
+                {/* On a small screen the chart already fills the width. */}
+                <div className="hidden justify-end lg:flex">
+                  <Button
+                    type="button"
+                    variant="secondary-outline"
+                    size="icon"
+                    aria-label={t(large ? 'stats.chartSmaller' : 'stats.chartLarger')}
+                    title={t(large ? 'stats.chartSmaller' : 'stats.chartLarger')}
+                    aria-pressed={large}
+                    onClick={() => setLarge((v) => !v)}
+                  >
+                    {large ? <Minimize2 /> : <Maximize2 />}
+                  </Button>
+                </div>
                 <svg
                   viewBox={`0 0 ${width} ${height}`}
                   className="mt-2 w-full overflow-visible"
