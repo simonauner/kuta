@@ -111,7 +111,9 @@
     "week": "Vecka",
     "inProgress": "pågår",
     "comparedWith": "Förändring jämfört med {{range}}.",
-    "tableNote": "Alla värden finns i tabellen nedan."
+    "tableNote": "Alla värden finns i tabellen nedan.",
+    "chartLarger": "Förstora diagrammet",
+    "chartSmaller": "Förminska diagrammet"
   },
   "yearComparison": {
     "title": "År för år",

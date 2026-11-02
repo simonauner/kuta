@@ -2,7 +2,7 @@ import { GarminDerivedNote } from '@/components/garmin'
 import { FormField } from '@/components/ui/form-field'
 import { Heading } from '@/components/ui/heading'
 import { useEffect, useState } from 'react'
-import { LoaderCircle } from 'lucide-react'
+import { LoaderCircle, Maximize2, Minimize2 } from 'lucide-react'
 import { keepPreviousData, useQuery } from '@tanstack/react-query'
 import { Link } from '@tanstack/react-router'
 import { useTranslation } from 'react-i18next'
@@ -123,6 +123,7 @@ export function StatsPage() {
   const [sportGroup, setSportGroup] = useState('running')
   const sportGroups = useQuery(sportGroupsQuery)
   const [metric, setMetric] = useState<Metric>('distanceM')
+  const [large, setLarge] = useState(false)
   const timeZone = Intl.DateTimeFormat().resolvedOptions().timeZone
   const years = useQuery(activityYearsQuery(timeZone))
   const hasNoActivities = years.isSuccess && years.data.length === 0
@@ -174,18 +175,21 @@ export function StatsPage() {
     return value === null ? null : `${percent.format(Math.round(value))} %`
   }
   const step = (n: number) => Math.max(1, Math.ceil(buckets.length / n))
+  // The enlarged chart is wider and taller, with more gridlines and labels.
+  const [width, bottom] = large ? [1000, 380] : [600, 180]
   // The plot leaves room on the right for the gridline labels.
-  const plotWidth = 520
+  const plotWidth = width - 80
   const ticks = axisTicks(
     metric,
     buckets.map((m) => m[metric]),
+    large ? 8 : 4,
   )
   const [lower, upper] = [ticks[0], ticks[ticks.length - 1]]
   const zeroBased = metric === 'distanceM' || metric === 'durationS'
   // A faster pace is drawn higher, as runners read it.
   const valueY = (value: number) => {
     const share = (value - lower) / (upper - lower)
-    return metric === 'paceSPerKm' ? 20 + share * 160 : 180 - share * 160
+    return metric === 'paceSPerKm' ? 20 + share * (bottom - 20) : bottom - share * (bottom - 20)
   }
   const pointX = (index: number) => ((index + 0.5) * plotWidth) / buckets.length
   const pointY = (index: number) => valueY(buckets[index][metric] ?? lower)
@@ -340,9 +344,28 @@ export function StatsPage() {
                   <Heading level={2}>
                     {t(bucket === 'week' ? 'stats.weekly' : 'stats.monthly')}
                   </Heading>
-                  <HelpPopover label={t('stats.methodLabel')}>{t('stats.method')}</HelpPopover>
+                  <div className="flex items-center gap-2">
+                    {/* On a small screen the chart already fills the width. */}
+                    <Button
+                      type="button"
+                      variant="secondary-outline"
+                      size="sm"
+                      className="hidden lg:inline-flex"
+                      aria-pressed={large}
+                      onClick={() => setLarge((v) => !v)}
+                    >
+                      {large ? <Minimize2 /> : <Maximize2 />}
+                      {large ? t('stats.chartSmaller') : t('stats.chartLarger')}
+                    </Button>
+                    <HelpPopover label={t('stats.methodLabel')}>{t('stats.method')}</HelpPopover>
+                  </div>
                 </div>
-                <div className={card({ className: 'mt-4' })}>
+                <div
+                  className={card({
+                    // Like the enlarged map: wider than the column, centred and kept inside the viewport.
+                    className: `mt-4 transition-[margin] duration-300 motion-reduce:transition-none ${large ? 'lg:mx-[calc(50%-min(50vw-1rem,40rem))]' : ''}`,
+                  })}
+                >
                   <FormField
                     layout="inline"
                     label={t('yearComparison.metric')}
@@ -363,9 +386,9 @@ export function StatsPage() {
                       </Select>
                     )}
                   </FormField>
-                  <p className="mt-3 text-xs text-muted-foreground">{t('stats.tableNote')}</p>
+                  <p className="sr-only">{t('stats.tableNote')}</p>
                   <svg
-                    viewBox="0 0 600 210"
+                    viewBox={`0 0 ${width} ${bottom + 30}`}
                     className="mt-2 w-full text-primary"
                     role="img"
                     aria-label={`${t(bucket === 'week' ? 'stats.weekly' : 'stats.monthly')}: ${t(`stats.${metric}`)} · ${formatRange(ranges.current)}`}
@@ -381,7 +404,7 @@ export function StatsPage() {
                           opacity="0.3"
                         />
                         <text
-                          x="600"
+                          x={width}
                           y={valueY(tick) + 6}
                           textAnchor="end"
                           fill="currentColor"
@@ -412,7 +435,7 @@ export function StatsPage() {
                           {/* Area only under sums; under an average it would suggest an amount. */}
                           {zeroBased && (
                             <polygon
-                              points={`${pointX(run[0])},180 ${points.join(' ')} ${pointX(run[run.length - 1])},180`}
+                              points={`${pointX(run[0])},${bottom} ${points.join(' ')} ${pointX(run[run.length - 1])},${bottom}`}
                               fill="currentColor"
                               opacity="0.15"
                             />
@@ -440,11 +463,11 @@ export function StatsPage() {
                             strokeWidth="2.5"
                           />
                         )}
-                        {index % step(12) === 0 && (
+                        {index % step(large ? 24 : 12) === 0 && (
                           <text
                             // The first label starts at the edge so narrow week slots don't clip it.
                             x={index ? pointX(index) : 0}
-                            y="202"
+                            y={bottom + 22}
                             textAnchor={index ? 'middle' : 'start'}
                             fill="currentColor"
                             className={`text-[20px] text-muted-foreground sm:text-xs ${index % step(4) ? 'hidden sm:block' : ''}`}

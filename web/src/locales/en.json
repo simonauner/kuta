@@ -111,7 +111,9 @@
     "week": "Week",
     "inProgress": "in progress",
     "comparedWith": "Change compared with {{range}}.",
-    "tableNote": "All values are in the table below."
+    "tableNote": "All values are in the table below.",
+    "chartLarger": "Enlarge chart",
+    "chartSmaller": "Shrink chart"
   },
   "yearComparison": {
     "title": "Year over year",
