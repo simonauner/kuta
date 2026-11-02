@@ -1,0 +1,19 @@
+web/index.html
+  s_b9d51eb234ad4d::t_5b4d5b1263daea 134,178,221,266
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.7.5",
+  "base_commit_sha": "8f9e681742c27264346b59ccff403e8b880ffd41",
+  "prompts": {},
+  "sessions": {
+    "s_b9d51eb234ad4d": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "29fdd4ed-c1a3-4d58-9415-1238a6437d96",
+        "model": "claude-opus-5-5"
+      },
+      "human_author": "Simon Aunér <simonauner@gmail.com>"
+    }
+  }
+}
