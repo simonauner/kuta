@@ -109,7 +109,12 @@ export function Layout() {
         </div>
       </header>
 
-      <main className="mx-auto w-full max-w-2xl flex-1 px-4 pb-8 pt-6">
+      <main
+        className={`mx-auto w-full flex-1 px-4 pb-8 pt-6 ${
+          // The feed gets a summary column beside it on wide screens.
+          pathname === '/app' || pathname === '/app/' ? 'max-w-2xl lg:max-w-5xl' : 'max-w-2xl'
+        }`}
+      >
         <motion.div
           key={pathname}
           initial={pathname.startsWith('/app/activities/') ? false : { opacity: 0, y: 8 }}

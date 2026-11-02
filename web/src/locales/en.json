@@ -41,7 +41,30 @@
     "stravaDescription": "Start by connecting your Garmin and bringing over your old activities from Strava.",
     "socialTitle": "Train together",
     "socialDescription": "Ask a friend to share their profile link so you can follow them, or share your own.",
-    "copyProfileLink": "Copy my profile link"
+    "copyProfileLink": "Copy my profile link",
+    "summary": {
+      "following": "Following",
+      "followers": "Followers",
+      "activities": "Activities",
+      "thisWeek": "This week",
+      "activeDay_one": "{{count}} activity",
+      "activeDay_other": "{{count}} activities",
+      "restDay": "no activity",
+      "links": "Shortcuts",
+      "yourActivities": "Your activities",
+      "yourStats": "Your statistics",
+      "load": "Running load per week",
+      "trend": {
+        "more": "More than usual",
+        "less": "Easier than usual",
+        "steady": "Holding steady"
+      },
+      "trendText": {
+        "more": "Last week you ran harder than the average of the three weeks before.",
+        "less": "Last week you ran easier than the average of the three weeks before.",
+        "steady": "Last week matched the three weeks before. Nice and consistent."
+      }
+    }
   },
   "stats": {
     "views": "Statistics views",
