@@ -1,0 +1,24 @@
+web/src/routes/stats.tsx
+  s_0408ba024a4028::t_369242af066aef 26,177-178,357-358,360-362,364-371,376-402
+web/tests/statistics-period.test.mjs
+  s_0408ba024a4028::t_369242af066aef 3,40-43
+  s_0408ba024a4028::t_12e34dfa2eddb5 44
+web/src/lib/statistics-period.ts
+  s_0408ba024a4028::t_369242af066aef 50-61
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.7.5",
+  "base_commit_sha": "a1064af85cd05dd39943f432ed3afeb5cbcc2b95",
+  "prompts": {},
+  "sessions": {
+    "s_0408ba024a4028": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "97ed879e-a09f-4bf6-a46b-1095b8ce07de",
+        "model": "claude-opus-5-5"
+      },
+      "human_author": "Simon Aunér <simonauner@gmail.com>"
+    }
+  }
+}
