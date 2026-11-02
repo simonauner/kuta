@@ -93,6 +93,7 @@ API (alla kräver inloggning; skrivningar kräver CSRF):
   (LineString/MultiLineString) för kartminiatyren, eller null. Delade rutter är klippta enligt
   start-/slutzonerna ovan; egna rutter är fullständiga.
 - `PUT /api/activities/{id}` tar även `privacy`; utelämnat fält behåller synligheten.
+- `PUT /api/activities/{id}` tar även `sport` (samma värden som vid skapande); utelämnat fält behåller sporten. Ett byte räknar om rekord och träningsbelastning i samma transaktion. Pass med sportdelar byter sport via uppdelningen och ger 400 för `sport`.
   Passdetaljer innehåller även `userId`, `displayName` och `privacy`.
 
 Migrering 014 skapar `follows` med unik riktad relation, förbud mot självföljning,

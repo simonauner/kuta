@@ -35,7 +35,7 @@ public record ActivityLap(
 public record UnreviewedActivities(int Count, UnreviewedActivity? Latest);
 public record UnreviewedActivity(Guid Id, string? Title, string Sport, System.DateTime StartedAt);
 
-public record ActivityUpdateRequest(string? Title, string? Description, string[] Tags, Guid[] EquipmentIds, MultisportRequest? Multisport = null, bool RestoreParts = false, string? Privacy = null, bool? ExcludeFromRecords = null);
+public record ActivityUpdateRequest(string? Title, string? Description, string[] Tags, Guid[] EquipmentIds, MultisportRequest? Multisport = null, bool RestoreParts = false, string? Privacy = null, bool? ExcludeFromRecords = null, string? Sport = null);
 
 public static class ActivityEndpoints
 {
@@ -261,13 +261,24 @@ public static class ActivityEndpoints
             if (req.Tags is null) return Results.BadRequest(new ApiError("Välj giltiga taggar.", "invalidTags"));
             if ((ActivityInput.ValidateTitle(req.Title) ?? ActivityInput.ValidateDescription(req.Description) ?? ActivityInput.ValidateTags(req.Tags)) is { } invalid) return Results.BadRequest(invalid);
             if (req.EquipmentIds is null) return Results.BadRequest(EquipmentEndpoints.InvalidEquipment);
+            if (ActivityInput.ValidateSport(req.Sport) is { } invalidSport) return Results.BadRequest(invalidSport);
             await using var conn = await db.OpenConnectionAsync();
             await using var tx = await conn.BeginTransactionAsync();
             var userId = user.GetUserId();
-            var owned = await conn.QuerySingleOrDefaultAsync<Guid?>(
-                "select id from activities where id = @id and user_id = @userId for update", new { id, userId }, tx);
+            var owned = await conn.QuerySingleOrDefaultAsync<EditedActivity>(
+                "select sport, started_at, exists (select 1 from activity_parts p where p.activity_id = a.id) as has_parts from activities a where id = @id and user_id = @userId for update", new { id, userId }, tx);
             if (owned is null) return Results.NotFound();
             if (req.RestoreParts && req.Multisport is not null) return Results.BadRequest(Multisport.InvalidParts);
+            // A split activity takes its sport from the parts, so the sport changes through the split instead
+            var sportChanged = req.Sport is not null && req.Sport != owned.Sport;
+            if (sportChanged && (owned.HasParts || req.RestoreParts || req.Multisport is not null))
+                return Results.BadRequest(Multisport.InvalidParts);
+            if (sportChanged)
+            {
+                await conn.ExecuteAsync("update activities set sport = @Sport where id = @id", new { id, req.Sport }, tx);
+                var (t, dist, alt) = await Multisport.ReadStreamAsync(conn, tx, id);
+                await BestEfforts.ReplaceAsync(conn, tx, id, userId, req.Sport!, owned.StartedAt, t, dist, alt);
+            }
             if (req.RestoreParts || req.Multisport is not null)
             {
                 var result = await Multisport.ApplyAsync(conn, tx, userId, id, req.Multisport);
@@ -364,6 +375,7 @@ public static class ActivityEndpoints
     }
 
     private record OwnedActivity(Guid Id, string? RawFileKey);
+    private record EditedActivity(string Sport, System.DateTime StartedAt, bool HasParts);
 
     // A parsed FIT file; without heart rate consent the heart rate is already removed
     private record FitUpload(byte[] Bytes, byte[] Sha256, ParsedActivity Parsed, bool HrConsent);

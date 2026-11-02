@@ -184,6 +184,39 @@ public class BestEffortTests(KutaFactory factory) : IClassFixture<KutaFactory>
         }
     }
 
+    [Fact]
+    public async Task Changing_the_sport_recalculates_records_and_is_refused_for_split_activities()
+    {
+        var ct = TestContext.Current.CancellationToken;
+        var ownerId = Guid.NewGuid();
+        var id = Guid.NewGuid();
+        var splitId = Guid.NewGuid();
+        await using var conn = await factory.Services.GetRequiredService<NpgsqlDataSource>().OpenConnectionAsync(ct);
+        try
+        {
+            using var owner = await CreateRunner(conn, ownerId, ct);
+            await conn.ExecuteAsync("""
+                insert into activities (id, user_id, source, sport, started_at, duration_s, distance_m)
+                values (@id, @ownerId, 'fit', 'cycling', now(), 600, 2000), (@splitId, @ownerId, 'fit', 'swimrun', now(), 600, 2000);
+                insert into activity_streams (activity_id, t, dist) values (@id, array[0,300,600], array[0,1000,2000]::real[]);
+                insert into activity_parts (activity_id, original, part_index, sport, start_s, end_s, distance_m)
+                values (@splitId, true, 0, 'running', 0, 600, 2000)
+                """, new { id, splitId, ownerId });
+            var request = new { title = "", description = "", tags = Array.Empty<string>(), equipmentIds = Array.Empty<Guid>(), sport = "running" };
+            Assert.Equal(HttpStatusCode.NoContent, (await owner.PutAsJsonAsync($"/api/activities/{id}", request, ct)).StatusCode);
+            Assert.Equal("running", (await owner.GetFromJsonAsync<ActivityDetail>($"/api/activities/{id}", ct))!.Sport);
+            Assert.NotEmpty((await owner.GetFromJsonAsync<StoredBestEffort[]>("/api/records", ct))!);
+            Assert.Equal(HttpStatusCode.NoContent, (await owner.PutAsJsonAsync($"/api/activities/{id}", request with { sport = "cycling" }, ct)).StatusCode);
+            Assert.Empty((await owner.GetFromJsonAsync<StoredBestEffort[]>("/api/records", ct))!);
+            Assert.Equal(HttpStatusCode.BadRequest, (await owner.PutAsJsonAsync($"/api/activities/{id}", request with { sport = "curling" }, ct)).StatusCode);
+            Assert.Equal(HttpStatusCode.BadRequest, (await owner.PutAsJsonAsync($"/api/activities/{splitId}", request, ct)).StatusCode);
+        }
+        finally
+        {
+            await conn.ExecuteAsync("delete from auth.users where id = @ownerId", new { ownerId });
+        }
+    }
+
     private async Task<HttpClient> CreateRunner(NpgsqlConnection conn, Guid id, CancellationToken ct)
     {
         var email = $"best-effort-{id:N}@example.com";
