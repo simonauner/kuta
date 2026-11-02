@@ -342,6 +342,10 @@
       "laps": "Varv"
     },
     "map": "Karta över rutten",
+    "routeColoring": "Färga rutten efter",
+    "routeColoringNone": "Rutt",
+    "routeColoringHr": "Puls",
+    "routeColoringAlt": "Höjd",
     "noRoute": "Aktiviteten har ingen GPS-rutt.",
     "defaultTitle": "{{sport}} {{timeOfDay}}",
     "sport": {

@@ -23,6 +23,56 @@ export function routeSegments(streams: ActivityStreams): [number, number][][] {
   return segments
 }
 
+// Low to high value; the route map's legend draws the same steps
+export const routeRamp = [
+  '#1c7ed6',
+  '#15aabf',
+  '#40c057',
+  '#fab005',
+  '#fd7e14',
+  '#e8590c',
+  '#c92a2a',
+]
+const missingColor = '#adb5bd'
+
+// The route split where its color changes, colored relative to this activity: the 5th–95th percentile spans the
+// ramp so a single GPS or sensor spike doesn't flatten the rest. Gaps in the coordinates break the line as in
+// routeSegments; points without a value are grey.
+export function coloredRoute(streams: ActivityStreams, values: (number | null)[]) {
+  const sorted = values
+    .filter((v): v is number => v !== null && Number.isFinite(v))
+    .sort((a, b) => a - b)
+  if (sorted.length < 2) return null
+  const min = sorted[Math.floor((sorted.length - 1) * 0.05)]
+  const max = sorted[Math.floor((sorted.length - 1) * 0.95)]
+  const colorOf = (v: number | null) => {
+    if (v === null || !Number.isFinite(v)) return missingColor
+    const step = max > min ? Math.floor(((v - min) / (max - min)) * routeRamp.length) : 0
+    return routeRamp[Math.min(routeRamp.length - 1, Math.max(0, step))]
+  }
+  const routes: { coordinates: [number, number][]; color: string }[] = []
+  let current = null as (typeof routes)[number] | null
+  let previous = null as [number, number] | null
+  for (let i = 0; i < streams.t.length; i++) {
+    const lat = streams.lat?.[i]
+    const lon = streams.lon?.[i]
+    if (lat == null || lon == null || !Number.isFinite(lat) || !Number.isFinite(lon)) {
+      current = previous = null
+      continue
+    }
+    const point: [number, number] = [lon, lat]
+    const color = colorOf(values[i] ?? null)
+    if (current?.color === color) current.coordinates.push(point)
+    else {
+      // A new color starts at the previous point so the line stays continuous
+      current = { color, coordinates: previous ? [previous, point] : [point] }
+      routes.push(current)
+    }
+    previous = point
+  }
+  return { routes, min, max }
+}
+
 // Like the API: SI units (meters, seconds, m/s). Metric here; imperial becomes a per-user choice later.
 export type Activity = {
   id: string
