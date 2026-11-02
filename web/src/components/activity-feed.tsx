@@ -129,7 +129,7 @@ export function ActivityFeed({
           ) : (
             <FeedEmptyState />
           )))}
-      <ul className="space-y-2 sm:space-y-4">
+      <ul className="space-y-4">
         {feed.data?.pages
           .flatMap((page) => page.items)
           .slice(0, limit)
