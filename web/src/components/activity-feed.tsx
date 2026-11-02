@@ -142,7 +142,7 @@ export function ActivityFeed({
                     <Link
                       to="/app/runners/$runnerId"
                       params={{ runnerId: activity.userId }}
-                      className="break-words font-medium underline-offset-4 underline"
+                      className="break-words font-medium"
                     >
                       {activity.displayName}
                     </Link>
@@ -157,7 +157,7 @@ export function ActivityFeed({
                 to="/app/activities/$activityId"
                 params={{ activityId: activity.id }}
                 search={{ returnTo }}
-                className="mt-4 flex items-center gap-3 text-xl font-semibold underline-offset-4 underline"
+                className="mt-4 flex items-center gap-3 text-xl font-semibold"
               >
                 <SportIcon sport={activity.sport} className="size-6 shrink-0" />
                 <span className="break-words">{activityTitle(activity, t)}</span>
@@ -191,7 +191,19 @@ export function ActivityFeed({
                   </div>
                 </div>
               )}
-              {activity.routeGeoJson && <ActivityMapPreview geoJson={activity.routeGeoJson} />}
+              {activity.routeGeoJson && (
+                // Same target as the title, so keep it out of the tab order and the accessibility tree
+                <Link
+                  to="/app/activities/$activityId"
+                  params={{ activityId: activity.id }}
+                  search={{ returnTo }}
+                  tabIndex={-1}
+                  aria-hidden
+                  className="block"
+                >
+                  <ActivityMapPreview geoJson={activity.routeGeoJson} />
+                </Link>
+              )}
             </li>
           ))}
       </ul>
