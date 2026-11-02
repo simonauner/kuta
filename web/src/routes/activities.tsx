@@ -128,7 +128,7 @@ export function ActivitiesPage() {
           ))}
         </nav>
       )}
-      {!showOnboarding && (availableYears.length > 1 || year !== undefined || calendar) && (
+      {!showOnboarding && (availableYears.length > 1 || year !== undefined) && (
         <Reveal>
           <FormField layout="inline" label={t('activities.year')} className="mt-6">
             {(id) => (
