@@ -67,19 +67,41 @@
           </p>
           <ul>
             <li>FIT-import från exempelvis Garmin.</li>
+            <li>Hela ditt Strava-arkiv som ZIP, med beskrivningar, taggar och skor.</li>
             <li>Manuell registrering för pass utan fil.</li>
             <li>Egna beskrivningar och taggar, som lopp eller långpass.</li>
             <li>Puls sparas bara om du uttryckligen samtycker.</li>
           </ul>
         </div>
-        <figure class="product-shot import-shot">
-          <img
-            src="/images/features/fit-import.webp"
-            alt="Kutas filuppladdning med val av FIT-fil och checkbox för pulssamtycke"
-            width="1347"
-            height="1080"
-          />
-          <figcaption>FIT-uppladdning i Kuta.</figcaption>
+        <figure class="statistics-carousel import-carousel" aria-label="Import i Kuta">
+          <div class="product-shot">
+            <div class="statistics-slides" aria-live="off">
+              <img
+                class="statistics-slide"
+                src="/images/features/fit-import.webp"
+                alt="Kutas filuppladdning med val av FIT-fil och checkbox för pulssamtycke"
+                width="1347"
+                height="1080"
+              />
+              <img
+                class="statistics-slide"
+                src="/images/features/strava-import.webp"
+                alt="Strava-import i Kuta som pågår: 453 av 1578 aktiviteter bearbetade, 441 importerade och 12 dubbletter"
+                width="2064"
+                height="1263"
+                loading="lazy"
+                hidden
+              />
+            </div>
+          </div>
+          <div class="statistics-controls" hidden>
+            <div class="statistics-choices" role="group" aria-label="Välj appbild">
+              <button type="button" aria-pressed="true">FIT-fil</button>
+              <button type="button" aria-pressed="false">Strava-arkiv</button>
+            </div>
+            <button class="statistics-rotation" type="button">Pausa bildspel</button>
+          </div>
+          <figcaption>Import i Kuta · syntetiska exempeldata.</figcaption>
         </figure>
       </section>
       <section class="feature-detail" id="statistik" aria-labelledby="statistics-title">
