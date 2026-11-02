@@ -1,4 +1,4 @@
-import type { CSSProperties } from 'react'
+import type { ComponentType, CSSProperties } from 'react'
 import { useTranslation } from 'react-i18next'
 import {
   Activity,
@@ -41,6 +41,30 @@ const icons = {
   wheelchair: Accessibility,
 }
 
+function Run({ className }: { className?: string }) {
+  return (
+    <svg
+      className={className}
+      viewBox="0 0 24 24"
+      fill="none"
+      stroke="currentColor"
+      strokeWidth="2"
+      strokeLinecap="round"
+      strokeLinejoin="round"
+      aria-hidden="true"
+    >
+      <circle cx="15" cy="4" r="2" />
+      <path d="m12 8 4 4 4 1M12 8l-4 3-3-1m7-2-2 7 5 3 1 4m-6-7-4 5H2" />
+    </svg>
+  )
+}
+
+// Multisport kinds show their legs in race order.
+const combos: Partial<Record<string, ComponentType<{ className?: string }>[]>> = {
+  triathlon: [Waves, Bike, Run],
+  swimrun: [Run, Waves],
+}
+
 export function SportIcon({
   sport,
   className = 'size-6',
@@ -54,32 +78,20 @@ export function SportIcon({
   const known = knownSport(sport)
   const label = known === 'other' && sport !== 'other' ? sport : t(`newActivity.sports.${known}`)
   const kind = sportIcons[known]
-  const Icon = kind === 'run' ? null : icons[kind]
+  const parts = combos[kind] ?? [kind === 'run' ? Run : icons[kind as keyof typeof icons]]
   return (
     <span
       style={style}
       role="img"
       aria-label={label}
       title={label}
-      className={`inline-flex shrink-0 align-middle text-muted-foreground ${className}`}
+      className="inline-flex shrink-0 align-middle text-muted-foreground"
     >
-      {Icon ? (
-        <Icon className="size-full" aria-hidden="true" />
-      ) : (
-        <svg
-          className="size-full"
-          viewBox="0 0 24 24"
-          fill="none"
-          stroke="currentColor"
-          strokeWidth="2"
-          strokeLinecap="round"
-          strokeLinejoin="round"
-          aria-hidden="true"
-        >
-          <circle cx="15" cy="4" r="2" />
-          <path d="m12 8 4 4 4 1M12 8l-4 3-3-1m7-2-2 7 5 3 1 4m-6-7-4 5H2" />
-        </svg>
-      )}
+      {parts.map((Icon, i) => (
+        <span key={i} className={`inline-flex shrink-0 ${className}`}>
+          <Icon className="size-full" aria-hidden="true" />
+        </span>
+      ))}
     </span>
   )
 }
