@@ -344,21 +344,7 @@ export function StatsPage() {
                   <Heading level={2}>
                     {t(bucket === 'week' ? 'stats.weekly' : 'stats.monthly')}
                   </Heading>
-                  <div className="flex items-center gap-2">
-                    {/* On a small screen the chart already fills the width. */}
-                    <Button
-                      type="button"
-                      variant="secondary-outline"
-                      size="sm"
-                      className="hidden lg:inline-flex"
-                      aria-pressed={large}
-                      onClick={() => setLarge((v) => !v)}
-                    >
-                      {large ? <Minimize2 /> : <Maximize2 />}
-                      {large ? t('stats.chartSmaller') : t('stats.chartLarger')}
-                    </Button>
-                    <HelpPopover label={t('stats.methodLabel')}>{t('stats.method')}</HelpPopover>
-                  </div>
+                  <HelpPopover label={t('stats.methodLabel')}>{t('stats.method')}</HelpPopover>
                 </div>
                 <div
                   className={card({
@@ -372,18 +358,33 @@ export function StatsPage() {
                     className="justify-between text-sm font-medium"
                   >
                     {(id) => (
-                      <Select
-                        id={id}
-                        className="w-fit"
-                        value={metric}
-                        onChange={(e) => setMetric(e.target.value as Metric)}
-                      >
-                        {metrics.map((key) => (
-                          <option key={key} value={key}>
-                            {t(`stats.${key}`)}
-                          </option>
-                        ))}
-                      </Select>
+                      <div className="flex items-center gap-2">
+                        <Select
+                          id={id}
+                          className="w-fit"
+                          value={metric}
+                          onChange={(e) => setMetric(e.target.value as Metric)}
+                        >
+                          {metrics.map((key) => (
+                            <option key={key} value={key}>
+                              {t(`stats.${key}`)}
+                            </option>
+                          ))}
+                        </Select>
+                        {/* On a small screen the chart already fills the width. */}
+                        <Button
+                          type="button"
+                          variant="secondary-outline"
+                          size="icon"
+                          className="hidden lg:inline-flex"
+                          aria-label={t(large ? 'stats.chartSmaller' : 'stats.chartLarger')}
+                          title={t(large ? 'stats.chartSmaller' : 'stats.chartLarger')}
+                          aria-pressed={large}
+                          onClick={() => setLarge((v) => !v)}
+                        >
+                          {large ? <Minimize2 /> : <Maximize2 />}
+                        </Button>
+                      </div>
                     )}
                   </FormField>
                   <p className="sr-only">{t('stats.tableNote')}</p>
