@@ -1,0 +1,28 @@
+web/src/locales/sv.json
+  s_b475681e91a608::t_e08b3110e256ec 909
+  s_b475681e91a608::t_f722480ed25ffa 910-911
+web/src/routes/profile.tsx
+  s_b475681e91a608::t_e08b3110e256ec 53-55,58-66
+  s_b475681e91a608::t_80a54cb46cc6c3 57
+  s_b475681e91a608::t_f722480ed25ffa 56
+  s_b475681e91a608::t_90682b0718d3d8 47-52
+web/src/locales/en.json
+  s_b475681e91a608::t_c4e20d146f1c71 909
+  s_b475681e91a608::t_f722480ed25ffa 910-911
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.7.5",
+  "base_commit_sha": "f3a8c7774f210203c39bd7ddae07d1df971d445c",
+  "prompts": {},
+  "sessions": {
+    "s_b475681e91a608": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "a7c072af-d40d-4926-b90d-49777449ac63",
+        "model": "claude-opus-5-5"
+      },
+      "human_author": "Simon Aunér <simonauner@gmail.com>"
+    }
+  }
+}
