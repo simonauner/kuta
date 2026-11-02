@@ -36,9 +36,15 @@
     "welcomeDescription": "Lägg till en aktivitet eller ta med din träningshistorik. Här samlas sedan aktiviteter från dig och löpare du följer.",
     "waitingTitle": "Här börjar ditt flöde",
     "waitingDescription": "Ingen du följer har delat någon aktivitet ännu. Lägg till en egen aktivitet medan du väntar.",
-    "addActivityHelp": "Registrera manuellt eller ladda upp en FIT-fil från din klocka.",
-    "stravaTitle": "Ny på Kuta?",
-    "stravaDescription": "Börja med att koppla din Garmin och föra över gamla aktiviteter från Strava.",
+    "onboarding": {
+      "stepsLabel": "Kom igång",
+      "garminTitle": "Koppla Garmin",
+      "garminDescription": "Nya aktiviteter från klockan kommer in automatiskt, från och med nu.",
+      "stravaTitle": "Ta med din historik från Strava",
+      "stravaDescription": "Exportera ditt Strava-arkiv och ladda upp ZIP-filen, så följer gamla aktiviteter och skor med.",
+      "stravaAction": "Importera från Strava",
+      "manual": "Eller lägg till en aktivitet manuellt eller med en FIT-fil."
+    },
     "socialTitle": "Träna tillsammans",
     "socialDescription": "Be en kompis dela sin profillänk för att börja följa dem, eller dela din egen.",
     "copyProfileLink": "Kopiera min profillänk",

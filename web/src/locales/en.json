@@ -36,9 +36,15 @@
     "welcomeDescription": "Add an activity or bring your training history. This is where activities from you and runners you follow will appear.",
     "waitingTitle": "Your feed starts here",
     "waitingDescription": "No one you follow has shared an activity yet. Add one of your own while you wait.",
-    "addActivityHelp": "Log it manually or upload a FIT file from your watch.",
-    "stravaTitle": "New to Kuta?",
-    "stravaDescription": "Start by connecting your Garmin and bringing over your old activities from Strava.",
+    "onboarding": {
+      "stepsLabel": "Get started",
+      "garminTitle": "Connect Garmin",
+      "garminDescription": "New activities from your watch arrive automatically from now on.",
+      "stravaTitle": "Bring your history from Strava",
+      "stravaDescription": "Export your Strava archive and upload the ZIP file to bring over old activities and shoes.",
+      "stravaAction": "Import from Strava",
+      "manual": "Or add an activity manually or with a FIT file."
+    },
     "socialTitle": "Train together",
     "socialDescription": "Ask a friend to share their profile link so you can follow them, or share your own.",
     "copyProfileLink": "Copy my profile link",

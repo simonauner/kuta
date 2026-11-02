@@ -26,7 +26,7 @@ type GarminStatus = {
   connectedAt: string | null
 }
 
-const garminStatusQuery = queryOptions({
+export const garminStatusQuery = queryOptions({
   queryKey: ['garmin'],
   queryFn: () => api.get<GarminStatus>('/api/garmin'),
 })

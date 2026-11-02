@@ -1,10 +1,11 @@
 import { SlowLoading } from '@/components/slow-loading'
 import { useQuery } from '@tanstack/react-query'
-import { FileArchive, Plus, Users } from 'lucide-react'
+import { Link } from '@tanstack/react-router'
+import { Plus, Users } from 'lucide-react'
 import { useTranslation } from 'react-i18next'
 import { ErrorMessage } from '@/components/error-message'
 import { ShareProfile } from '@/components/share-profile'
-import { AddActivityButton, ImportLink } from '@/components/onboarding-actions'
+import { garminStatusQuery } from '@/components/garmin'
 import { Button } from '@/components/ui/button'
 import { followsQuery } from '@/lib/follows'
 import { card } from '@/components/ui/card-variants'
@@ -42,33 +43,64 @@ export function FeedEmptyState() {
                   : 'feed.welcomeDescription',
               )}
             </p>
-            <AddActivityButton className="mt-6" />
-            <p className="mt-3 text-sm text-muted-foreground">{t('feed.addActivityHelp')}</p>
+            <OnboardingSteps />
           </section>
-          <div className="grid gap-4 sm:grid-cols-2">
-            <section aria-labelledby="strava-start-heading" className={card()}>
-              <FileArchive aria-hidden="true" className="mb-4 size-5 text-muted-foreground" />
-              <Heading level={3} id="strava-start-heading">
-                {t('feed.stravaTitle')}
-              </Heading>
-              <p className="mb-4 mt-2 text-sm text-muted-foreground">
-                {t('feed.stravaDescription')}
-              </p>
-              <ImportLink />
-            </section>
-            <section aria-labelledby="social-start-heading" className={card()}>
-              <Users aria-hidden="true" className="mb-4 size-5 text-muted-foreground" />
-              <Heading level={3} id="social-start-heading">
-                {t('feed.socialTitle')}
-              </Heading>
-              <p className="mb-4 mt-2 text-sm text-muted-foreground">
-                {t('feed.socialDescription')}
-              </p>
-              <ShareProfile label={t('feed.copyProfileLink')} />
-            </section>
-          </div>
+          <section aria-labelledby="social-start-heading" className={card()}>
+            <Users aria-hidden="true" className="mb-4 size-5 text-muted-foreground" />
+            <Heading level={3} id="social-start-heading">
+              {t('feed.socialTitle')}
+            </Heading>
+            <p className="mb-4 mt-2 text-sm text-muted-foreground">{t('feed.socialDescription')}</p>
+            <ShareProfile label={t('feed.copyProfileLink')} />
+          </section>
         </div>
       ) : null}
     </SlowLoading>
+  )
+}
+
+// Garmin first since it keeps activities coming, then Strava for the history Garmin does not fetch. The Garmin
+// step only shows while the account can connect, so it appears for everyone once the connection opens.
+function OnboardingSteps() {
+  const { t } = useTranslation()
+  const garmin = useQuery(garminStatusQuery)
+  const steps: { key: 'garmin' | 'strava'; action: string }[] = [
+    ...(garmin.data?.available && !garmin.data.connected
+      ? [{ key: 'garmin' as const, action: t('garmin.connect') }]
+      : []),
+    { key: 'strava', action: t('feed.onboarding.stravaAction') },
+  ]
+
+  return (
+    <>
+      <ol aria-label={t('feed.onboarding.stepsLabel')} className="mt-6 space-y-5">
+        {steps.map((step, index) => (
+          <li key={step.key} className="flex gap-4">
+            <span
+              aria-hidden="true"
+              className="flex size-8 shrink-0 items-center justify-center rounded-full bg-primary text-sm font-semibold text-primary-foreground"
+            >
+              {index + 1}
+            </span>
+            <div>
+              <Heading level={3}>{t(`feed.onboarding.${step.key}Title`)}</Heading>
+              <p className="mt-1 max-w-prose text-body text-muted-foreground">
+                {t(`feed.onboarding.${step.key}Description`)}
+              </p>
+              <Button
+                asChild
+                variant={index === 0 ? 'primary-filled' : 'secondary-outline'}
+                className="mt-3"
+              >
+                <Link to="/app/settings/import">{step.action}</Link>
+              </Button>
+            </div>
+          </li>
+        ))}
+      </ol>
+      <Button asChild variant="link" className="mt-6">
+        <Link to="/app/activities/new">{t('feed.onboarding.manual')}</Link>
+      </Button>
+    </>
   )
 }
