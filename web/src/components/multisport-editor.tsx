@@ -102,6 +102,22 @@ export function MultisportEditor({
   if (!a.canSplit && !a.parts.length) return null
   return (
     <section className={card({ className: 'mt-6 space-y-3' })} aria-label={t('multisport.title')}>
+      {/* First: space-y gives every child but the last a bottom margin, and the hidden dialog is still a child */}
+      <ConfirmationModal
+        open={confirmingRestore}
+        title={t('multisport.restore')}
+        description={t('multisport.confirmRestore')}
+        confirmLabel={t('multisport.restoreConfirm')}
+        cancelLabel={t('common.cancel')}
+        pending={disabled}
+        onConfirm={() => {
+          setEditing(false)
+          preview(null)
+          onChange?.(null)
+          setConfirmingRestore(false)
+        }}
+        onClose={() => setConfirmingRestore(false)}
+      />
       <div className="flex flex-wrap items-center justify-between gap-2">
         <Heading level={2}>{t('multisport.title')}</Heading>
         {onChange && !editing && a.canSplit && (
@@ -144,192 +160,197 @@ export function MultisportEditor({
           {t('multisport.whole')}
         </Button>
       )}
-      <fieldset disabled={disabled} className="space-y-3">
-        <AnimatePresence initial={false}>
-          {shown.map((p, i) => (
-            <motion.div
-              key={partKeys[i] ?? i}
-              initial={reduceMotion ? false : { height: 0, opacity: 0, overflow: 'hidden' }}
-              animate={{ height: 'auto', opacity: 1, transitionEnd: { overflow: 'visible' } }}
-              exit={{ height: 0, opacity: 0, overflow: 'hidden' }}
-              transition={{ duration: reduceMotion ? 0 : 0.25, ease: 'easeOut' }}
-            >
-              <div
-                className={`relative cursor-pointer space-y-2 rounded-md border p-3 ${selected === i ? 'bg-secondary' : 'hover:bg-accent/50'}`}
+      {shown.length > 0 && (
+        <fieldset disabled={disabled} className="space-y-3">
+          <AnimatePresence initial={false}>
+            {shown.map((p, i) => (
+              <motion.div
+                key={partKeys[i] ?? i}
+                initial={reduceMotion ? false : { height: 0, opacity: 0, overflow: 'hidden' }}
+                animate={{ height: 'auto', opacity: 1, transitionEnd: { overflow: 'visible' } }}
+                exit={{ height: 0, opacity: 0, overflow: 'hidden' }}
+                transition={{ duration: reduceMotion ? 0 : 0.25, ease: 'easeOut' }}
               >
-                <div className="flex flex-wrap items-center justify-between gap-2">
-                  {/* The whole card selects the part, so this is a plain button stretched over the card */}
-                  <button
-                    type="button"
-                    aria-pressed={selected === i}
-                    className="text-left text-sm font-medium outline-none after:absolute after:inset-0 after:rounded-md after:content-[''] focus-visible:after:ring-2 focus-visible:after:ring-ring"
-                    onClick={() => preview(p)}
-                  >
-                    <span aria-hidden="true" style={{ color: sportColors[p.sport] ?? '#ae3ec9' }}>
-                      ●{' '}
-                    </span>
-                    {i + 1}. {t(sportNameKey(p.sport))} · {number.format(p.distanceM / 1000)} km ·{' '}
-                    {formatDuration(p.endS - p.startS)}
-                    {pace(p) !== '–' && ` · ${pace(p)}`}
-                  </button>
-                  {editing && (
-                    <FormField
-                      label={t('multisport.partSport', { number: i + 1 })}
-                      hideLabel
-                      className="relative z-10"
+                <div
+                  className={`relative cursor-pointer space-y-2 rounded-md border p-3 ${selected === i ? 'bg-secondary' : 'hover:bg-accent/50'}`}
+                >
+                  <div className="flex flex-wrap items-center justify-between gap-2">
+                    {/* The whole card selects the part, so this is a plain button stretched over the card */}
+                    <button
+                      type="button"
+                      aria-pressed={selected === i}
+                      className="text-left text-sm font-medium outline-none after:absolute after:inset-0 after:rounded-md after:content-[''] focus-visible:after:ring-2 focus-visible:after:ring-ring"
+                      onClick={() => preview(p)}
                     >
-                      {(id) => (
-                        <Select
-                          id={id}
-                          className="relative z-10 w-fit"
-                          value={p.sport}
-                          onChange={(e) =>
-                            update(
-                              parts.map((v, j) => (j === i ? { ...v, sport: e.target.value } : v)),
-                            )
-                          }
-                        >
-                          {partSports.map((s) => (
-                            <option key={s} value={s}>
-                              {t(sportNameKey(s))}
-                            </option>
-                          ))}
-                        </Select>
-                      )}
-                    </FormField>
-                  )}
-                </div>
-                <p className="text-xs text-muted-foreground">
-                  {formatDuration(p.startS)} → {formatDuration(p.endS)}
-                </p>
-                {editing && (
-                  <div className="pointer-events-none relative z-10 space-y-2 [&_button]:pointer-events-auto [&_input]:pointer-events-auto [&_label]:pointer-events-auto">
-                    {i < parts.length - 1 && (
-                      <div className="space-y-2">
-                        <FormField
-                          layout="inline"
-                          label={t('multisport.boundary', { number: i + 1 })}
-                          className="text-sm"
-                        >
-                          {(id) => (
-                            <Input
-                              id={id}
-                              className="w-28"
-                              inputMode="numeric"
-                              pattern="\d+(:[0-5]\d){0,2}"
-                              placeholder="0:45:00"
-                              required
-                              key={p.endS}
-                              name={`endS-${i}`}
-                              defaultValue={formatDuration(p.endS)}
-                              aria-describedby={`${distanceId}-${i}`}
-                              onBlur={(e) => {
-                                if (!e.currentTarget.checkValidity()) return
-                                const end = parseDuration(e.target.value)
-                                if (end === null || end <= p.startS || end >= parts[i + 1].endS)
-                                  return
-                                moveBoundary(i, end)
-                              }}
-                            />
-                          )}
-                        </FormField>
-                        <p id={`${distanceId}-${i}`} className="text-xs text-muted-foreground">
-                          {t('multisport.atDistance', {
-                            km: number.format(
-                              shown.slice(0, i + 1).reduce((sum, part) => sum + part.distanceM, 0) /
-                                1000,
-                            ),
-                          })}
-                        </p>
-                        <FormField label={t('multisport.boundary', { number: i + 1 })} hideLabel>
-                          {(id) => (
-                            <input
-                              className="w-full"
-                              style={{ accentColor: sportColors[p.sport] ?? '#ae3ec9' }}
-                              type="range"
-                              id={id}
-                              min={p.startS + 1}
-                              max={parts[i + 1].endS - 1}
-                              step="1"
-                              value={p.endS}
-                              onChange={(e) => {
-                                moveBoundary(i, Number(e.target.value))
-                              }}
-                            />
-                          )}
-                        </FormField>
-                      </div>
-                    )}
-                    <FormField layout="choice" label={t('multisport.useEquipment')}>
-                      {(id) => (
-                        <input
-                          id={id}
-                          type="checkbox"
-                          checked={p.useEquipment}
-                          onChange={(e) =>
-                            update(
-                              parts.map((v, j) =>
-                                j === i ? { ...v, useEquipment: e.target.checked } : v,
-                              ),
-                            )
-                          }
-                        />
-                      )}
-                    </FormField>
-                    <div className="flex flex-wrap gap-2">
-                      <Button
-                        type="button"
-                        size="sm"
-                        variant="ghost"
-                        disabled={p.endS - p.startS < 2 || parts.length >= 200}
-                        onClick={() => {
-                          const middle = Math.floor((p.startS + p.endS) / 2)
-                          const sport =
-                            kind === 'swimrun'
-                              ? p.sport === 'running'
-                                ? 'swimming'
-                                : 'running'
-                              : 'transition'
-                          setPartKeys([
-                            ...partKeys.slice(0, i + 1),
-                            nextPartKey.current++,
-                            ...partKeys.slice(i + 1),
-                          ])
-                          update([
-                            ...parts.slice(0, i),
-                            { ...p, endS: middle },
-                            { ...p, sport, startS: middle },
-                            ...parts.slice(i + 1),
-                          ])
-                        }}
+                      <span aria-hidden="true" style={{ color: sportColors[p.sport] ?? '#ae3ec9' }}>
+                        ●{' '}
+                      </span>
+                      {i + 1}. {t(sportNameKey(p.sport))} · {number.format(p.distanceM / 1000)} km ·{' '}
+                      {formatDuration(p.endS - p.startS)}
+                      {pace(p) !== '–' && ` · ${pace(p)}`}
+                    </button>
+                    {editing && (
+                      <FormField
+                        label={t('multisport.partSport', { number: i + 1 })}
+                        hideLabel
+                        className="relative z-10"
                       >
-                        {t('multisport.addBoundary')}
-                      </Button>
-                      {i > 0 && parts.length > 2 && (
+                        {(id) => (
+                          <Select
+                            id={id}
+                            className="relative z-10 w-fit"
+                            value={p.sport}
+                            onChange={(e) =>
+                              update(
+                                parts.map((v, j) =>
+                                  j === i ? { ...v, sport: e.target.value } : v,
+                                ),
+                              )
+                            }
+                          >
+                            {partSports.map((s) => (
+                              <option key={s} value={s}>
+                                {t(sportNameKey(s))}
+                              </option>
+                            ))}
+                          </Select>
+                        )}
+                      </FormField>
+                    )}
+                  </div>
+                  <p className="text-xs text-muted-foreground">
+                    {formatDuration(p.startS)} → {formatDuration(p.endS)}
+                  </p>
+                  {editing && (
+                    <div className="pointer-events-none relative z-10 space-y-2 [&_button]:pointer-events-auto [&_input]:pointer-events-auto [&_label]:pointer-events-auto">
+                      {i < parts.length - 1 && (
+                        <div className="space-y-2">
+                          <FormField
+                            layout="inline"
+                            label={t('multisport.boundary', { number: i + 1 })}
+                            className="text-sm"
+                          >
+                            {(id) => (
+                              <Input
+                                id={id}
+                                className="w-28"
+                                inputMode="numeric"
+                                pattern="\d+(:[0-5]\d){0,2}"
+                                placeholder="0:45:00"
+                                required
+                                key={p.endS}
+                                name={`endS-${i}`}
+                                defaultValue={formatDuration(p.endS)}
+                                aria-describedby={`${distanceId}-${i}`}
+                                onBlur={(e) => {
+                                  if (!e.currentTarget.checkValidity()) return
+                                  const end = parseDuration(e.target.value)
+                                  if (end === null || end <= p.startS || end >= parts[i + 1].endS)
+                                    return
+                                  moveBoundary(i, end)
+                                }}
+                              />
+                            )}
+                          </FormField>
+                          <p id={`${distanceId}-${i}`} className="text-xs text-muted-foreground">
+                            {t('multisport.atDistance', {
+                              km: number.format(
+                                shown
+                                  .slice(0, i + 1)
+                                  .reduce((sum, part) => sum + part.distanceM, 0) / 1000,
+                              ),
+                            })}
+                          </p>
+                          <FormField label={t('multisport.boundary', { number: i + 1 })} hideLabel>
+                            {(id) => (
+                              <input
+                                className="w-full"
+                                style={{ accentColor: sportColors[p.sport] ?? '#ae3ec9' }}
+                                type="range"
+                                id={id}
+                                min={p.startS + 1}
+                                max={parts[i + 1].endS - 1}
+                                step="1"
+                                value={p.endS}
+                                onChange={(e) => {
+                                  moveBoundary(i, Number(e.target.value))
+                                }}
+                              />
+                            )}
+                          </FormField>
+                        </div>
+                      )}
+                      <FormField layout="choice" label={t('multisport.useEquipment')}>
+                        {(id) => (
+                          <input
+                            id={id}
+                            type="checkbox"
+                            checked={p.useEquipment}
+                            onChange={(e) =>
+                              update(
+                                parts.map((v, j) =>
+                                  j === i ? { ...v, useEquipment: e.target.checked } : v,
+                                ),
+                              )
+                            }
+                          />
+                        )}
+                      </FormField>
+                      <div className="flex flex-wrap gap-2">
                         <Button
                           type="button"
                           size="sm"
                           variant="ghost"
+                          disabled={p.endS - p.startS < 2 || parts.length >= 200}
                           onClick={() => {
-                            setPartKeys(partKeys.filter((_, j) => j !== i))
-                            update(
-                              parts
-                                .filter((_, j) => j !== i)
-                                .map((v, j) => (j === i - 1 ? { ...v, endS: p.endS } : v)),
-                            )
+                            const middle = Math.floor((p.startS + p.endS) / 2)
+                            const sport =
+                              kind === 'swimrun'
+                                ? p.sport === 'running'
+                                  ? 'swimming'
+                                  : 'running'
+                                : 'transition'
+                            setPartKeys([
+                              ...partKeys.slice(0, i + 1),
+                              nextPartKey.current++,
+                              ...partKeys.slice(i + 1),
+                            ])
+                            update([
+                              ...parts.slice(0, i),
+                              { ...p, endS: middle },
+                              { ...p, sport, startS: middle },
+                              ...parts.slice(i + 1),
+                            ])
                           }}
                         >
-                          {t('multisport.removeBoundary')}
+                          {t('multisport.addBoundary')}
                         </Button>
-                      )}
+                        {i > 0 && parts.length > 2 && (
+                          <Button
+                            type="button"
+                            size="sm"
+                            variant="ghost"
+                            onClick={() => {
+                              setPartKeys(partKeys.filter((_, j) => j !== i))
+                              update(
+                                parts
+                                  .filter((_, j) => j !== i)
+                                  .map((v, j) => (j === i - 1 ? { ...v, endS: p.endS } : v)),
+                              )
+                            }}
+                          >
+                            {t('multisport.removeBoundary')}
+                          </Button>
+                        )}
+                      </div>
                     </div>
-                  </div>
-                )}
-              </div>
-            </motion.div>
-          ))}
-        </AnimatePresence>
-      </fieldset>
+                  )}
+                </div>
+              </motion.div>
+            ))}
+          </AnimatePresence>
+        </fieldset>
+      )}
       {onChange && a.partsEdited && !editing && (
         <Button
           type="button"
@@ -343,21 +364,6 @@ export function MultisportEditor({
           {t('multisport.restore')}
         </Button>
       )}
-      <ConfirmationModal
-        open={confirmingRestore}
-        title={t('multisport.restore')}
-        description={t('multisport.confirmRestore')}
-        confirmLabel={t('multisport.restoreConfirm')}
-        cancelLabel={t('common.cancel')}
-        pending={disabled}
-        onConfirm={() => {
-          setEditing(false)
-          preview(null)
-          onChange?.(null)
-          setConfirmingRestore(false)
-        }}
-        onClose={() => setConfirmingRestore(false)}
-      />
       {onChange && editing && a.streams && (
         <Suspense fallback={null}>
           <MultisportPreview

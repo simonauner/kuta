@@ -16,6 +16,8 @@ import { activityQuery, refreshActivityQueries } from '@/lib/activity-query'
 import { VisibilityField } from '@/components/activity-visibility'
 import { activityTitle, type ActivityDetail } from '@/lib/activity'
 import { Heading } from '@/components/ui/heading'
+import { Select } from '@/components/ui/select'
+import { sports as sportOptions } from '@/lib/sports'
 
 export function EditActivityPage() {
   const { activityId } = useParams({ from: '/app/activities/$activityId/edit' })
@@ -48,6 +50,7 @@ function EditActivityForm({ activity }: { activity: ActivityDetail }) {
   const [tags, setTags] = useState(activity.tags)
   const [excludeFromRecords, setExcludeFromRecords] = useState(activity.excludeFromRecords)
   const [privacy, setPrivacy] = useState(activity.privacy)
+  const [sport, setSport] = useState(activity.sport)
   const [equipmentIds, setEquipmentIds] = useState(activity.equipmentIds)
   const destination = {
     to: '/app/activities/$activityId' as const,
@@ -58,6 +61,8 @@ function EditActivityForm({ activity }: { activity: ActivityDetail }) {
     mutationFn: (draft: MultisportDraft) =>
       api.send('PUT', `/api/activities/${activity.id}`, {
         privacy,
+        // A split activity takes its sport from the parts
+        sport: sport !== activity.sport && draft === undefined ? sport : undefined,
         excludeFromRecords,
         title,
         description,
@@ -107,6 +112,25 @@ function EditActivityForm({ activity }: { activity: ActivityDetail }) {
             />
           )}
         </FormField>
+        <FormField label={t('newActivity.sport')}>
+          {(id) => (
+            <Select
+              id={id}
+              value={sport}
+              disabled={save.isPending || activity.parts.length > 0 || split !== undefined}
+              onChange={(event) => setSport(event.currentTarget.value)}
+            >
+              {!(sportOptions as readonly string[]).includes(activity.sport) && (
+                <option value={activity.sport}>{activity.sport}</option>
+              )}
+              {sportOptions.map((s) => (
+                <option key={s} value={s}>
+                  {t(`newActivity.sports.${s}`)}
+                </option>
+              ))}
+            </Select>
+          )}
+        </FormField>
         <VisibilityField value={privacy} onChange={setPrivacy} disabled={save.isPending} />
         {activity.streams && (
           <div className="space-y-2">
@@ -127,7 +151,10 @@ function EditActivityForm({ activity }: { activity: ActivityDetail }) {
         )}
         <MultisportEditor
           activity={multisportView(activity, split)}
-          onChange={setSplit}
+          onChange={(draft) => {
+            setSplit(draft)
+            setSport(activity.sport)
+          }}
           disabled={save.isPending}
         />
         <EquipmentPicker
