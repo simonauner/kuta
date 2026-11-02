@@ -129,12 +129,12 @@ export function ActivityFeed({
           ) : (
             <FeedEmptyState />
           )))}
-      <ul className="space-y-4">
+      <ul className="space-y-2 sm:space-y-4">
         {feed.data?.pages
           .flatMap((page) => page.items)
           .slice(0, limit)
           .map((activity) => (
-            <li key={activity.id} className={card({ className: 'overflow-hidden' })}>
+            <li key={activity.id} className={card({ bleed: true, className: 'overflow-hidden' })}>
               <div className="flex items-center gap-3">
                 <Avatar name={activity.displayName} avatarId={activity.avatarId} size="md" />
                 <div className="min-w-0">

@@ -15,6 +15,11 @@ export const card = cva('rounded-xl border bg-card text-card-foreground', {
       spacious: 'p-6 sm:p-8',
       none: '',
     },
+    // Edge to edge on phones (cancels main's 16 px padding), a regular card from sm up
+    bleed: {
+      true: 'max-sm:-mx-4 max-sm:rounded-none max-sm:border-x-0',
+      false: '',
+    },
     // A drop target for files
     dashed: { true: 'border-2 border-dashed', false: '' },
     interactive: {
@@ -22,5 +27,11 @@ export const card = cva('rounded-xl border bg-card text-card-foreground', {
       false: '',
     },
   },
-  defaultVariants: { tone: 'default', padding: 'default', interactive: false, dashed: false },
+  defaultVariants: {
+    tone: 'default',
+    padding: 'default',
+    interactive: false,
+    dashed: false,
+    bleed: false,
+  },
 })
