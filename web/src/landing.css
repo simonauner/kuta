@@ -161,6 +161,15 @@ h1 em {
   white-space: nowrap;
   transition: background 0.2s;
 }
+.language-link {
+  display: inline-flex;
+  align-items: center;
+  min-height: 36px;
+}
+.language-link img {
+  border-radius: 2px;
+  box-shadow: 0 0 0 1px oklch(0.5 0 0 / 0.3);
+}
 .button:hover,
 .login-link:hover {
   background: color-mix(in oklch, var(--primary) 90%, transparent);
