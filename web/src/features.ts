@@ -1,6 +1,4 @@
-const carousel = document.querySelector<HTMLElement>('.statistics-carousel')
-
-if (carousel) {
+for (const carousel of document.querySelectorAll<HTMLElement>('.statistics-carousel')) {
   const slides = [...carousel.querySelectorAll<HTMLImageElement>('.statistics-slide')]
   const controls = carousel.querySelector<HTMLElement>('.statistics-controls')!
   const choices = [...controls.querySelectorAll<HTMLButtonElement>('.statistics-choices button')]

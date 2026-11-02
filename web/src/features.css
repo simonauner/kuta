@@ -140,6 +140,15 @@
   height: 100%;
   object-fit: contain;
 }
+.import-carousel .statistics-slides {
+  aspect-ratio: 1347 / 1080;
+}
+.import-carousel figcaption {
+  color: var(--muted-foreground);
+  font-size: 11px;
+  text-align: center;
+  padding-top: 14px;
+}
 .statistics-slide[hidden] {
   display: none;
 }
@@ -205,12 +214,6 @@
 }
 .goals-shots figcaption strong {
   color: var(--foreground);
-}
-.goals-example-note {
-  margin-top: 24px;
-  text-align: center;
-  font-size: 11px;
-  color: var(--muted-foreground);
 }
 @media (max-width: 800px) {
   .goals-feature {
