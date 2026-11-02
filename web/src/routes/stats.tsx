@@ -354,10 +354,24 @@ export function StatsPage() {
                     aria-label={`${t(bucket === 'week' ? 'stats.weekly' : 'stats.monthly')}: ${t(`stats.${metric}`)} · ${formatRange(ranges.current)}`}
                   >
                     <line x1="0" x2="600" y1="180" y2="180" stroke="currentColor" opacity="0.2" />
-                    {lineRuns(buckets.map((m) => m[metric])).map((run) => {
+                    {lineRuns(buckets.map((m) => m[metric])).map((run, runIndex, runs) => {
                       const points = run.map((index) => `${pointX(index)},${pointY(index)}`)
+                      // Only averages (pace, heart rate) can be missing: a dashed line without area bridges the gap.
+                      const before = runs[runIndex - 1]?.at(-1)
                       return (
                         <g key={run[0]}>
+                          {before !== undefined && (
+                            <line
+                              x1={pointX(before)}
+                              y1={pointY(before)}
+                              x2={pointX(run[0])}
+                              y2={pointY(run[0])}
+                              stroke="currentColor"
+                              strokeWidth="2"
+                              strokeDasharray="6 6"
+                              opacity="0.6"
+                            />
+                          )}
                           <polygon
                             points={`${pointX(run[0])},180 ${points.join(' ')} ${pointX(run[run.length - 1])},180`}
                             fill="currentColor"
