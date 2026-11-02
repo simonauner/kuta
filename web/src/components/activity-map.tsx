@@ -70,6 +70,19 @@ export function ActivityMap({
       interactive: !thumbnail,
     })
     if (!thumbnail) map.addControl(new NavigationControl({ showCompass: false }))
+    // Thumbnails can't be dragged, which is what collapses the attribution otherwise. OSM's attribution guidelines
+    // allow collapsing behind the (i) button once it has been shown for five seconds.
+    let collapse: ReturnType<typeof setTimeout> | undefined
+    if (thumbnail)
+      map.once('load', () => {
+        collapse = setTimeout(
+          () =>
+            container.current
+              ?.querySelector('.maplibregl-ctrl-attrib')
+              ?.classList.remove('maplibregl-compact-show'),
+          5000,
+        )
+      })
     map.on('load', () => {
       map.addSource('route', { type: 'geojson', data: latest.current.data })
       map.addLayer({
@@ -89,6 +102,7 @@ export function ActivityMap({
     })
     mapRef.current = map
     return () => {
+      clearTimeout(collapse)
       markers.current.forEach((m) => m.remove())
       markers.current = []
       map.remove()
@@ -151,7 +165,7 @@ export function ActivityMap({
       aria-label={label}
       className={
         thumbnail
-          ? 'h-52 w-full overflow-hidden rounded-lg border sm:h-60'
+          ? 'h-full w-full overflow-hidden'
           : // Negative margins widen the map past the form column, centred and kept inside the viewport.
             // Width follows the margins (no w-full) so the size change can animate.
             `overflow-hidden rounded-lg border transition-[height,max-height,margin] duration-300 motion-reduce:transition-none ${

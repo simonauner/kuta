@@ -64,7 +64,16 @@
         "less": "Förra veckan sprang du lättare än snittet för de tre veckorna innan.",
         "steady": "Förra veckan låg i nivå med de tre veckorna innan. Fint jobbat med kontinuiteten."
       }
-    }
+    },
+    "today": "I dag {{time}}",
+    "yesterday": "I går {{time}}",
+    "record": {
+      "current": "Personbästa på {{distance}}",
+      "previous": "Dåvarande personbästa på {{distance}}",
+      "year": "Bästa {{distance}} {{year}}"
+    },
+    "moreRecords_one": "+{{count}} rekord till",
+    "moreRecords_other": "+{{count}} rekord till"
   },
   "stats": {
     "views": "Vyer i statistiken",

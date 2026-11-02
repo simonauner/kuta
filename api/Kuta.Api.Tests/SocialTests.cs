@@ -81,6 +81,42 @@ public class SocialTests(KutaFactory factory) : IClassFixture<KutaFactory>
         await tx.RollbackAsync(ct);
     }
 
+    [Fact]
+    public async Task Feed_shows_the_most_notable_record_only_to_the_owner()
+    {
+        var ct = TestContext.Current.CancellationToken;
+        await using var conn = await factory.Services.GetRequiredService<NpgsqlDataSource>().OpenConnectionAsync(ct);
+        await using var tx = await conn.BeginTransactionAsync(ct);
+        var owner = Guid.NewGuid();
+        var viewer = Guid.NewGuid();
+        Guid older = Guid.NewGuid(), newer = Guid.NewGuid(), slower = Guid.NewGuid(), excluded = Guid.NewGuid();
+        await conn.ExecuteAsync("""
+            insert into auth.users (id) values (@owner), (@viewer);
+            insert into users (id, display_name) values (@owner, 'Owner'), (@viewer, 'Viewer');
+            insert into activities (id, user_id, source, started_at, duration_s, moving_s, distance_m, privacy, exclude_from_records)
+            values (@older, @owner, 'manual', '2025-06-01T08:00Z', 1800, 1700, 6000, 'public', false),
+                (@newer, @owner, 'manual', '2026-06-01T08:00Z', 1800, null, 6000, 'public', false),
+                (@slower, @owner, 'manual', '2026-07-01T08:00Z', 1800, null, 6000, 'public', false),
+                (@excluded, @owner, 'manual', '2026-08-01T08:00Z', 1800, null, 6000, 'public', true);
+            insert into best_efforts (activity_id, user_id, distance_m, elapsed_s, start_offset_s, achieved_at)
+            select e.id, @owner, e.distance_m, e.elapsed_s, 0, a.started_at
+            from (values (@older, 5000, 1500), (@older, 1000, 280), (@newer, 5000, 1400), (@newer, 1000, 290),
+                (@slower, 1000, 300), (@excluded, 5000, 1000)) e(id, distance_m, elapsed_s)
+            join activities a using (id)
+            """, new { owner, viewer, older, newer, slower, excluded }, tx);
+        var own = (await SocialEndpoints.ReadFeedAsync(conn, owner)).Items.ToDictionary(i => i.Id);
+        // A personal best wins over a year best; among equals, the longest distance.
+        Assert.Equal(("current", 5000, 2), (own[newer].RecordStatus, own[newer].RecordDistanceM, own[newer].RecordCount));
+        // A record beaten later stays a previous record; the year follows the UTC year of the effort.
+        Assert.Equal(("current", 1000, 2), (own[older].RecordStatus, own[older].RecordDistanceM, own[older].RecordCount));
+        Assert.Equal((null, 0), (own[slower].RecordStatus, own[slower].RecordCount));
+        Assert.Equal((null, 0), (own[excluded].RecordStatus, own[excluded].RecordCount));
+        Assert.Equal(1700, own[older].MovingS);
+        Assert.All((await SocialEndpoints.ReadFeedAsync(conn, viewer, runnerId: owner)).Items,
+            item => Assert.Equal((null, 0), (item.RecordStatus, item.RecordCount)));
+        await tx.RollbackAsync(ct);
+    }
+
     // A start at a known place (a race) must not reveal the offset used for the owner's other starts.
     [Fact]
     public async Task Map_preview_zones_use_separate_offsets_for_separate_places()

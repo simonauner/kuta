@@ -183,6 +183,13 @@ export function average(values: (number | null)[] | null) {
   return measured.length ? Math.round(measured.reduce((a, b) => a + b, 0) / measured.length) : null
 }
 
+// "today" or "yesterday" in the viewer's own calendar (rounding absorbs daylight saving), otherwise null
+export function relativeDay(date: Date, now: Date): 'today' | 'yesterday' | null {
+  const day = (d: Date) => new Date(d.getFullYear(), d.getMonth(), d.getDate()).getTime()
+  const days = Math.round((day(now) - day(date)) / 86_400_000)
+  return days === 0 ? 'today' : days === 1 ? 'yesterday' : null
+}
+
 export function formatDuration(seconds: number) {
   seconds = Math.round(seconds)
   const h = Math.floor(seconds / 3600)

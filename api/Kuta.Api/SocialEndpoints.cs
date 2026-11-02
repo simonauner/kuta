@@ -9,7 +9,8 @@ public record Runner(Guid Id, string DisplayName, string Status, string? Support
 public record FollowLists(IEnumerable<Runner> Following, IEnumerable<Runner> Followers, IEnumerable<Runner> Blocked);
 public record FeedItem(Guid Id, Guid UserId, string DisplayName, string Sport, string? Title,
     DateTime StartedAt, int DurationS, double DistanceM, string Privacy, string? RouteGeoJson, string? SupporterTier,
-    string? Attribution, Guid? AvatarId);
+    string? Attribution, Guid? AvatarId, int? MovingS, string? RecordStatus, int? RecordDistanceM, double? RecordElapsedS,
+    int? RecordYear, int RecordCount);
 public record FeedPage(IReadOnlyList<FeedItem> Items, ActivityCursor? NextCursor);
 
 public static class SocialEndpoints
@@ -245,7 +246,7 @@ public static class SocialEndpoints
         // Simplify before clipping so simplification cannot reconnect a line through a protected zone.
         var rows = (await conn.QueryAsync<FeedItem>($"""
             with page as materialized (
-                select a.id, a.user_id, u.display_name, a.sport, a.title, a.started_at, a.duration_s,
+                select a.id, a.user_id, u.display_name, a.sport, a.title, a.started_at, a.duration_s, a.moving_s,
                     coalesce((select sum(p.distance_m) from activity_parts p where p.activity_id = a.id
                         and p.original = not a.parts_edited), a.distance_m) as distance_m, a.privacy, a.route, u.privacy_seed,
                     {Supporters.VisibleTier} as supporter_tier, {GarminAttribution.Sql("a")} as attribution, u.avatar_id
@@ -256,11 +257,43 @@ public static class SocialEndpoints
                         where f.follower_id = @userId and f.following_id = a.user_id and f.accepted_at is not null))))
                   and (@beforeStartedAt::timestamptz is null or (a.started_at, a.id) < (@beforeStartedAt, @beforeId))
                 order by a.started_at desc, a.id desc limit 26
+            ),
+            -- Records only on the viewer's own activities, as on the activity page: whether an effort is a record depends
+            -- on all of the owner's activities, including private ones. Same rules as RecordTrends.ReadActivityAsync and
+            -- the year bests of /api/records (UTC year, ties kept by the earlier effort).
+            efforts as (
+                select activity_id, distance_m, elapsed_s, year,
+                    case when previous_best is null or elapsed_s < previous_best
+                        then case when elapsed_s = personal_best then 'current' else 'previous' end
+                    when year_holder = activity_id then 'year' end as record_status
+                from (
+                    select b.activity_id, b.distance_m, b.elapsed_s,
+                        extract(year from b.achieved_at at time zone 'UTC')::int as year,
+                        min(b.elapsed_s) over (partition by b.distance_m order by b.achieved_at, b.activity_id
+                            rows between unbounded preceding and 1 preceding) as previous_best,
+                        min(b.elapsed_s) over (partition by b.distance_m) as personal_best,
+                        first_value(b.activity_id) over (partition by b.distance_m, extract(year from b.achieved_at at time zone 'UTC')
+                            order by b.elapsed_s, b.achieved_at, b.activity_id) as year_holder
+                    from best_efforts b join activities a on a.id = b.activity_id
+                    where b.user_id = @userId and not a.exclude_from_records
+                      and exists (select 1 from page where page.user_id = @userId)
+                ) e
+                where activity_id in (select id from page) and (previous_best is null or elapsed_s < previous_best
+                    or year_holder = activity_id)
             )
             select id, user_id, display_name, sport, title, started_at, duration_s, distance_m, privacy,
                 case when st_isempty(preview.route) then null else st_asgeojson(preview.route, 4) end as route_geo_json,
-                supporter_tier, attribution, avatar_id
+                supporter_tier, attribution, avatar_id, moving_s, record.record_status, record.record_distance_m,
+                record.record_elapsed_s, record.record_year, coalesce(record.record_count, 0) as record_count
             from page
+            -- The most notable record (personal best before year best, then the longest distance) and how many there are
+            left join lateral (
+                select record_status, distance_m as record_distance_m, elapsed_s as record_elapsed_s, year as record_year,
+                    (count(*) over ())::int as record_count
+                from efforts where efforts.activity_id = page.id
+                order by case record_status when 'current' then 0 when 'previous' then 1 else 2 end, distance_m desc
+                limit 1
+            ) record on true
             cross join lateral (
                 select st_unaryunion(st_collect(zone)) as areas from (
                     select {EndpointZone("st_startpoint(route::geometry)")} as zone
