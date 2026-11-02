@@ -149,6 +149,9 @@
   text-align: center;
   padding-top: 14px;
 }
+.statistics-slides .statistics-slide.is-current {
+  z-index: 1;
+}
 .statistics-slide[hidden] {
   display: none;
 }
