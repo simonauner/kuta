@@ -4,6 +4,7 @@ import {
   activitySearch,
   activityTitle,
   chartAxis,
+  coloredRoute,
   formatDuration,
   formatPace,
   groupActivities,
@@ -11,6 +12,7 @@ import {
   relativeDay,
   splits,
   routeSegments,
+  routeRamp,
   toDateTimeLocal,
 } from '../src/lib/activity.ts'
 
@@ -29,6 +31,32 @@ test('route lines stop at hidden, missing or invalid coordinates', () => {
     [[22, 63]],
   ])
   assert.deepEqual(routeSegments({ t: [0], lat: null, lon: null }), [])
+})
+
+test('colored route spans the ramp relative to the activity, joins color changes and breaks at gaps', () => {
+  // 21 points: values 0..19 then a spike, so the percentile range ignores the spike; a coordinate gap at index 10
+  const t = Array.from({ length: 21 }, (_, i) => i)
+  const streams = { t, lat: t.map((i) => (i === 10 ? null : 59)), lon: t.map((i) => i) }
+  const values = t.map((i) => (i === 20 ? 1000 : i === 5 ? null : i))
+  const { routes, min, max } = coloredRoute(streams, values)
+  assert.equal(min, 0)
+  assert.equal(max, 19)
+  assert.equal(routes[0].color, routeRamp[0])
+  assert.equal(routes.at(-1).color, routeRamp.at(-1))
+  assert.ok(routes.some((r) => r.color === '#adb5bd'))
+  // Each new color starts at the previous point, except right after the gap
+  for (let i = 1; i < routes.length; i++) {
+    const [lon] = routes[i].coordinates[0]
+    assert.ok(lon === 11 || routes[i - 1].coordinates.at(-1)[0] === lon)
+  }
+  assert.ok(!routes.flatMap((r) => r.coordinates).some(([lon]) => lon === 10))
+  assert.equal(
+    coloredRoute(
+      streams,
+      t.map(() => null),
+    ),
+    null,
+  )
 })
 
 // 2.502 km in 834 s: 3 m/s, one sample per second, elevation rises 1 m per 100 m, heart rate 150.

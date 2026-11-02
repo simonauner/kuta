@@ -15,6 +15,9 @@ const buttonVariants = cva(
         ghost: 'hover:bg-accent hover:text-accent-foreground dark:hover:bg-accent/50',
         'destructive-outline':
           'border border-destructive/50 bg-background text-destructive shadow-xs hover:bg-destructive/10 focus-visible:ring-destructive/20 dark:bg-input/30 dark:hover:bg-destructive/20',
+        // One choice in a segmented control (a group of buttons with aria-pressed on a muted background)
+        segment:
+          'text-muted-foreground hover:text-foreground aria-pressed:bg-background aria-pressed:text-foreground aria-pressed:shadow-sm',
         // Text only: no padding or height, always underlined so it reads as a link
         link: 'h-auto p-0 text-left whitespace-normal text-primary underline underline-offset-4 hover:text-primary/80',
       },

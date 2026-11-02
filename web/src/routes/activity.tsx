@@ -36,6 +36,8 @@ import {
   formatSportPace,
   splits,
   routeSegments,
+  coloredRoute,
+  routeRamp,
 } from '@/lib/activity'
 import { card } from '@/components/ui/card-variants'
 import { VisitorNotice } from '@/components/visitor-notice'
@@ -51,6 +53,62 @@ function paceSeries(speed: (number | null)[], minSpeed = 0.5) {
     const avg = values.length ? values.reduce((a, b) => a + b, 0) / values.length : 0
     return avg > minSpeed ? 1000 / avg : null
   })
+}
+
+type RouteMetric = 'pace' | 'hr' | 'alt'
+
+function RouteColoring({
+  value,
+  options,
+  onChange,
+  pace,
+}: {
+  value: 'route' | RouteMetric
+  options: RouteMetric[]
+  onChange: (value: 'route' | RouteMetric) => void
+  pace: boolean
+}) {
+  const { t } = useTranslation()
+  const labels = {
+    route: t('activity.routeColoringNone'),
+    pace: pace ? t('activity.pace') : t('activity.speed'),
+    hr: t('activity.routeColoringHr'),
+    alt: t('activity.routeColoringAlt'),
+  }
+  return (
+    <div
+      role="group"
+      aria-label={t('activity.routeColoring')}
+      className="inline-flex rounded-lg bg-muted p-1"
+    >
+      {(['route', ...options] as const).map((option) => (
+        <Button
+          key={option}
+          variant="segment"
+          size="sm"
+          aria-pressed={value === option}
+          onClick={() => onChange(option)}
+        >
+          {labels[option]}
+        </Button>
+      ))}
+    </div>
+  )
+}
+
+// Relative to this activity: the ends are its 5th and 95th percentile (coloredRoute)
+function RouteLegend({ low, high }: { low: string; high: string }) {
+  return (
+    <div className="flex items-center gap-2 text-metadata text-muted-foreground">
+      <span>{low}</span>
+      <span aria-hidden="true" className="flex h-2 w-32 overflow-hidden rounded-full">
+        {routeRamp.map((color) => (
+          <span key={color} className="flex-1" style={{ backgroundColor: color }} />
+        ))}
+      </span>
+      <span>{high}</span>
+    </div>
+  )
 }
 
 export function ActivityPage() {
@@ -92,6 +150,7 @@ export function ActivityPage() {
   const selectedPart = selection?.id === activityId ? selection.part : null
   const selectedSport = selectedPart?.sport ?? activity.data?.sport
   const mixed = (activity.data?.parts.length ?? 0) > 0 && !selectedPart
+  const [routeColoring, setRouteColoring] = useState<'route' | RouteMetric>('route')
 
   const view = useMemo(() => {
     const original = activity.data?.streams
@@ -136,15 +195,37 @@ export function ActivityPage() {
             }))
           })
         : segments.map((coordinates) => ({ coordinates, color: '#e8590c' }))
+    // Values to color the route by, higher = warmer; pace uses the smoothed speed so it matches the chart
+    const minSpeed = selectedSport === 'swimming' ? 0.05 : 0.5
+    const metrics: Partial<Record<RouteMetric, (number | null)[]>> = mixed
+      ? {}
+      : {
+          pace: streams.speed
+            ? paceSeries(streams.speed, minSpeed).map((v) => (v === null ? null : 1000 / v))
+            : undefined,
+          hr: streams.hr ?? undefined,
+          alt: streams.alt ?? undefined,
+        }
     return {
       coordinates,
       routes,
+      metrics,
       streams,
       series,
       axis: chartAxis(streams),
       splits: mixed ? [] : splits(streams),
     }
   }, [activity.data, selectedPart, selectedSport, mixed, t])
+
+  const metric = routeColoring !== 'route' && view?.metrics[routeColoring] ? routeColoring : null
+  const colored = useMemo(
+    () => (metric && view ? coloredRoute(view.streams, view.metrics[metric]!) : null),
+    [metric, view],
+  )
+  const formatMetric = (m: RouteMetric, v: number) =>
+    m === 'pace'
+      ? formatSportPace(selectedSport ?? '', 1, v, i18n.resolvedLanguage)
+      : `${Math.round(v)} ${m === 'hr' ? 'bpm' : 'm'}`
 
   if (activity.isPending) return null
   if (visitor && activity.error instanceof ApiError && activity.error.status === 404)
@@ -609,11 +690,29 @@ export function ActivityPage() {
 
       <div className="mt-8">
         {view && view.coordinates.length > 1 ? (
-          <ActivityMap
-            coordinates={view.coordinates}
-            routes={view.routes}
-            label={t('activity.map')}
-          />
+          <>
+            <ActivityMap
+              coordinates={view.coordinates}
+              routes={colored?.routes ?? view.routes}
+              label={t('activity.map')}
+            />
+            {Object.values(view.metrics).some(Boolean) && (
+              <div className="mt-2 flex flex-wrap items-center gap-x-4 gap-y-2">
+                <RouteColoring
+                  value={metric ?? 'route'}
+                  options={(['pace', 'hr', 'alt'] as const).filter((m) => view.metrics[m])}
+                  onChange={setRouteColoring}
+                  pace={!isCyclingSport(selectedSport ?? '')}
+                />
+                {metric && colored && (
+                  <RouteLegend
+                    low={formatMetric(metric, colored.min)}
+                    high={formatMetric(metric, colored.max)}
+                  />
+                )}
+              </div>
+            )}
+          </>
         ) : (
           <p className="text-sm text-muted-foreground">{t('activity.noRoute')}</p>
         )}
