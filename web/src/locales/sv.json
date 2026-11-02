@@ -355,6 +355,8 @@
       "laps": "Varv"
     },
     "map": "Karta över rutten",
+    "mapLarger": "Förstora kartan",
+    "mapSmaller": "Förminska kartan",
     "routeColoring": "Färga rutten efter",
     "routeColoringNone": "Rutt",
     "routeColoringHr": "Puls",
@@ -634,8 +636,6 @@
   },
   "breadcrumbs": "Brödsmulor",
   "multisport": {
-    "mapLarger": "Förstora kartan",
-    "mapSmaller": "Förminska kartan",
     "title": "Sportdelar",
     "split": "Dela upp i sporter",
     "edit": "Ändra uppdelning",

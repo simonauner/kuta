@@ -695,6 +695,7 @@ export function ActivityPage() {
               coordinates={view.coordinates}
               routes={colored?.routes ?? view.routes}
               label={t('activity.map')}
+              expandable
             />
             {Object.values(view.metrics).some(Boolean) && (
               <div className="mt-2 flex flex-wrap items-center gap-x-4 gap-y-2">

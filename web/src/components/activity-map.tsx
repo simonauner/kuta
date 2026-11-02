@@ -6,7 +6,10 @@ import {
   type GeoJSONSource,
   type GeoJSONSourceSpecification,
 } from 'maplibre-gl'
-import { useEffect, useLayoutEffect, useMemo, useRef } from 'react'
+import { Maximize2, Minimize2 } from 'lucide-react'
+import { useEffect, useLayoutEffect, useMemo, useRef, useState } from 'react'
+import { createPortal } from 'react-dom'
+import { useTranslation } from 'react-i18next'
 import { mapStyle } from '@/lib/map'
 
 // Basemap from our own PMTiles file (src/lib/map.ts), so no map provider sees where the activity went.
@@ -16,6 +19,7 @@ export function ActivityMap({
   routes,
   thumbnail = false,
   large = false,
+  expandable = false,
   fitKey,
   handles,
 }: {
@@ -24,6 +28,8 @@ export function ActivityMap({
   thumbnail?: boolean
   // Wider and taller map for precise dragging of handles; MapLibre follows the container size itself
   large?: boolean
+  // Adds a button next to zoom that toggles the large size
+  expandable?: boolean
   routes?: { coordinates: [number, number][]; color: string }[]
   // Refit to the route only when this changes (default: when coordinates change), so editing keeps the zoom
   fitKey?: unknown
@@ -35,7 +41,17 @@ export function ActivityMap({
     onMove: (to: [number, number]) => void
   }[]
 }) {
+  const { t } = useTranslation()
   const container = useRef<HTMLDivElement>(null)
+  const [expanded, setExpanded] = useState(false)
+  // MapLibre control element that React renders the size button into (see the portal below)
+  const [sizeControl] = useState(() => {
+    const element = document.createElement('div')
+    // On a small screen the map already fills the width
+    element.className = 'maplibregl-ctrl maplibregl-ctrl-group hidden! lg:block!'
+    return element
+  })
+  const enlarged = large || expanded
   const mapRef = useRef<Map | null>(null)
   const data = useMemo(
     (): GeoJSONSourceSpecification['data'] => ({
@@ -67,7 +83,11 @@ export function ActivityMap({
       cooperativeGestures: !thumbnail,
       interactive: !thumbnail,
     })
-    if (!thumbnail) map.addControl(new NavigationControl({ showCompass: false }))
+    if (!thumbnail) {
+      map.addControl(new NavigationControl({ showCompass: false }))
+      if (expandable)
+        map.addControl({ onAdd: () => sizeControl, onRemove: () => sizeControl.remove() })
+    }
     // Thumbnails can't be dragged, which is what collapses the attribution otherwise. OSM's attribution guidelines
     // allow collapsing behind the (i) button once it has been shown for five seconds.
     let collapse: ReturnType<typeof setTimeout> | undefined
@@ -106,7 +126,7 @@ export function ActivityMap({
       map.remove()
       mapRef.current = null
     }
-  }, [thumbnail])
+  }, [thumbnail, expandable, sizeControl])
 
   useEffect(() => {
     mapRef.current?.getSource<GeoJSONSource>('route')?.setData(data)
@@ -167,14 +187,30 @@ export function ActivityMap({
           : // Negative margins widen the map past the form column, centred and kept inside the viewport.
             // Width follows the margins (no w-full) so the size change can animate.
             `overflow-hidden rounded-lg border transition-[height,max-height,margin] duration-300 motion-reduce:transition-none ${
-              large
-                ? 'mx-[calc(50%-min(50vw-1rem,48rem))] h-[60svh] max-h-[60svh]'
+              enlarged
+                ? // The editor keeps room for the sport legs below the map
+                  `mx-[calc(50%-min(50vw-1rem,48rem))] ${large ? 'h-[60svh] max-h-[60svh]' : 'h-[80svh] max-h-[80svh]'}`
                 : 'mx-0 h-72 max-h-[45svh] sm:h-96'
             }`
       }
     >
       {/* MapLibre adds its own classes here, so this element's className must never change */}
       <div ref={container} className="size-full" />
+      {expandable &&
+        createPortal(
+          <button
+            type="button"
+            // MapLibre's white buttons, so use its icon colour instead of the theme text colour
+            className="flex! items-center justify-center text-[#333]"
+            aria-pressed={expanded}
+            aria-label={expanded ? t('activity.mapSmaller') : t('activity.mapLarger')}
+            title={expanded ? t('activity.mapSmaller') : t('activity.mapLarger')}
+            onClick={() => setExpanded((v) => !v)}
+          >
+            {expanded ? <Minimize2 className="size-4" /> : <Maximize2 className="size-4" />}
+          </button>,
+          sizeControl,
+        )}
     </div>
   )
 }
