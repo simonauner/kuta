@@ -215,20 +215,26 @@ lämnas till andra mottagare. Ingen ny åtkomst följer av själva klippningen.
 
 ## Statistik över tid
 
-`/app/stats` visar årsstatistik med månadsdiagram och tabell för distans, träningstid,
-snittempo och snittpuls samt antal pass. Välj år och sportgrupp (se [Sportgrupper](#sportgrupper));
-löpning och innevarande år är förval. Årsväljaren innehåller hela den egna historiken. Tomma månader har noll mängd,
+`/app/stats` visar statistik med diagram och tabell för distans, träningstid,
+snittempo och snittpuls samt antal pass. Perioden är rullande (senaste 4, 12 eller 26 veckorna, eller senaste 12 månaderna)
+eller ett kalenderår; senaste 12 veckorna och löpning är förval (se [Sportgrupper](#sportgrupper)). Veckoperioder delas
+i veckor som börjar på måndag, och månader och år delas i kalendermånader; den pågående veckan eller månaden markeras.
+Summorna visar förändringen mot lika lång tid närmast före perioden (för kalenderår samma del av föregående år), så att
+en påbörjad vecka jämförs rättvist. Årsväljaren innehåller hela den egna historiken. Tomma veckor och månader har noll mängd,
 men saknat tempo och puls visas som `–`. En växel högst upp byter mellan Översikt och Analys
-(`/app/stats/analysis`), som visar läget just nu: träningsbelastning och loppprognos, oberoende av årsvalet.
+(`/app/stats/analysis`), som visar läget just nu: träningsbelastning och loppprognos, oberoende av periodvalet.
 
-`GET /api/activities/statistics?year=2026&sportGroup=running&timeZone=Europe%2FStockholm`
-ger tolv månadsrader för den inloggade användaren. År krävs (1–9998), utelämnad sportgrupp
+`GET /api/activities/statistics?from=2026-08-17&to=2026-11-09&bucket=week&sportGroup=running&timeZone=Europe%2FStockholm`
+ger `{ buckets, total }` för den inloggade användaren: en rad per ISO-vecka eller kalendermånad (`bucket=week|month`,
+`start` är periodens första dag) och summan för hela intervallet. `from` och `to` är lokala datum, `to` exklusivt, högst
+400 dagar (annars `invalidStatisticsPeriod`; okänd indelning ger `invalidStatisticsBucket`). Börjar `from` mitt i en vecka
+eller månad börjar första raden ändå där, men räknar bara pass från `from`. Utelämnad sportgrupp
 betyder alla sporter (okänd grupp ger `invalidSportGroup`) och utelämnad tidszon UTC. Summeringen sker i Postgres över hela
-året, oberoende av passlistans sidindelning, utan att skicka tidsserier eller rutter till webben.
+intervallet, oberoende av passlistans sidindelning, utan att skicka tidsserier eller rutter till webben.
 Tid inkluderar pauser. Tempo är summan av tid delad med summan av distans för pass med
 positiv tid och distans (sekunder per kilometer). Snittpuls tidsvägs bara över pass med
 positiv tid och sparad puls. Alla sporter kombinerar även tempo och puls mellan sporter; samlade multisportpass ingår inte i snittempot. Vid gruppfilter räknas hela pass i gruppen och motsvarande delar av multisportpass i andra grupper, med puls från delens mätpunkter. Totalvyn räknar varje pass en gång.
-Månader och årsgränser följer webbläsarens tidszon, och hela passet tillhör startmånaden.
+Veckor, månader och periodgränser följer webbläsarens tidszon, och hela passet tillhör startveckan eller startmånaden.
 Statistikcachen uppdateras vid skapande, import och radering av pass och rensas när
 pulssamtycke återkallas.
 

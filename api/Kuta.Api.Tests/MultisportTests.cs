@@ -128,12 +128,12 @@ public class MultisportStorageTests(KutaFactory factory) : IClassFixture<KutaFac
             Assert.Equal(1500, (await EquipmentEndpoints.LoadAsync(conn, userId)).Single().DistanceM);
             Assert.Equal(150, (await EquipmentEndpoints.LoadAsync(conn, userId)).Single().DurationS);
             Assert.Equal(150, await conn.QuerySingleAsync<double>("select start_offset_s from best_efforts where activity_id = @id", new { id }));
-            var allSports = (await ActivityStatistics.ReadAsync(conn, userId, 2026, "UTC", null, ct))[0];
+            var allSports = (await ActivityStatistics.ReadAsync(conn, userId, new(2026, 1, 1), new(2027, 1, 1), "month", "UTC", null, ct)).Buckets[0];
             Assert.Equal(1, allSports.Count);
             Assert.Equal(3000, allSports.DistanceM);
             Assert.Equal(300, allSports.DurationS);
             Assert.Null(allSports.PaceSPerKm);
-            var running = (await ActivityStatistics.ReadAsync(conn, userId, 2026, "UTC", "running", ct))[0];
+            var running = (await ActivityStatistics.ReadAsync(conn, userId, new(2026, 1, 1), new(2027, 1, 1), "month", "UTC", "running", ct)).Buckets[0];
             Assert.Equal(1, running.Count);
             Assert.Equal(1500, running.DistanceM);
             Assert.Equal(150, running.DurationS);
