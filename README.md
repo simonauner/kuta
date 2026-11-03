@@ -568,7 +568,7 @@ passets bästa insatser följer passets läsregel:
 
 | Anrop | Resultat |
 |---|---|
-| `GET /api/activities/{id}/best-efforts` | Passets bästa insatser, sorterade på distans; 404 för okänt eller oläsbart pass. `recordStatus` är `current` (nuvarande personbästa), `previous` (tidigare personbästa) eller `null`. För andra än ägaren är status alltid `null`, så privata pass inte kan påverka synlig rekordstatus. |
+| `GET /api/activities/{id}/best-efforts` | Passets bästa insatser, sorterade på distans; 404 för okänt eller oläsbart pass. `recordStatus` är `current` (nuvarande personbästa), `second`/`third` (näst/tredje bästa tid hittills; lika tid behåller den äldre insatsen före), `previous` (tidigare personbästa utanför topp tre), `year`/`yearSecond`/`yearThird` (placering inom insatsens UTC-år för övriga) eller `null`. Flödet visar samma status. För andra än ägaren är status alltid `null`, så privata pass inte kan påverka synlig rekordstatus. |
 | `GET /api/records` | Snabbaste insatsen per distans; vid lika tid väljs den tidigaste. |
 | `GET /api/records?year=2026` | Samma urval inom UTC-kalenderåret då insatsen började. |
 | `GET /api/records/trend?distanceM=5000&timeZone=Europe/Stockholm` | `months`: bästa insatsen per lokal kalendermånad (bara månader med insatser). `progression`: rekordhistoriken, varje insats som var strikt snabbare än alla tidigare; lika tid behåller det äldre rekordet. 400 för annan distans än etiketterna ovan eller ogiltig tidszon. |

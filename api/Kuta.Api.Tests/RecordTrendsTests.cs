@@ -53,16 +53,27 @@ public class RecordTrendsTests(KutaFactory factory) : IClassFixture<KutaFactory>
             var statuses = new List<string?>();
             foreach (var effort in efforts)
                 statuses.Add(Assert.Single(await RecordTrends.ReadActivityAsync(conn, effort.ActivityId, userId)).RecordStatus);
-            Assert.Equal(new string?[] { "previous", "previous", null, null, "current" }, statuses);
+            Assert.Equal(new string?[] { "previous", "second", null, "third", "current" }, statuses);
             Assert.Null(Assert.Single(await RecordTrends.ReadActivityAsync(conn, efforts[^1].ActivityId, otherId)).RecordStatus);
             var excludedId = await conn.QuerySingleAsync<Guid>(
                 "select id from activities where user_id = @userId and exclude_from_records", new { userId });
             Assert.Null(Assert.Single(await RecordTrends.ReadActivityAsync(conn, excludedId, userId)).RecordStatus);
 
+            // Below the all-time top three, the place within the UTC year of the effort.
+            foreach (var (at, elapsed) in new[] { ("2026-05-01T12:00:00Z", 300d), ("2026-05-02T12:00:00Z", 310d),
+                ("2026-05-03T12:00:00Z", 320d), ("2027-01-01T12:00:00Z", 330d), ("2027-01-02T12:00:00Z", 340d),
+                ("2027-01-03T12:00:00Z", 350d), ("2027-01-04T12:00:00Z", 360d) })
+                await Effort(userId, at, 1000, elapsed);
+            var places = new List<string?>();
+            foreach (var id in await conn.QueryAsync<Guid>(
+                "select activity_id from best_efforts where user_id = @userId and distance_m = 1000 order by achieved_at", new { userId }))
+                places.Add(Assert.Single(await RecordTrends.ReadActivityAsync(conn, id, userId)).RecordStatus);
+            Assert.Equal(new string?[] { "current", "second", "third", "year", "yearSecond", "yearThird", null }, places);
+
             // Deleting the latest record promotes its predecessor, retaining the older equal-time effort.
             await conn.ExecuteAsync("delete from activities where id = @id", new { id = efforts[^1].ActivityId });
             Assert.Equal("current", Assert.Single(await RecordTrends.ReadActivityAsync(conn, efforts[1].ActivityId, userId)).RecordStatus);
-            Assert.Null(Assert.Single(await RecordTrends.ReadActivityAsync(conn, efforts[3].ActivityId, userId)).RecordStatus);
+            Assert.Equal("second", Assert.Single(await RecordTrends.ReadActivityAsync(conn, efforts[3].ActivityId, userId)).RecordStatus);
             await Effort(userId, "2026-04-10T12:00:00Z", 5000, 1390);
             var utc = await RecordTrends.ReadAsync(conn, userId, 5000, "UTC", ct);
             Assert.Equal((1, 1400d), (utc.Months[0].Month, utc.Months[0].ElapsedS));

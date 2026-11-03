@@ -75,8 +75,12 @@
     "yesterday": "Yesterday at {{time}}",
     "record": {
       "current": "Personal best for {{distance}}",
+      "second": "Second-best {{distance}} ever",
+      "third": "Third-best {{distance}} ever",
       "previous": "Personal best for {{distance}} at the time",
-      "year": "Best {{distance}} of {{year}}"
+      "year": "Best {{distance}} of {{year}}",
+      "yearSecond": "Second-best {{distance}} of {{year}}",
+      "yearThird": "Third-best {{distance}} of {{year}}"
     },
     "moreRecords_one": "+{{count}} more record",
     "moreRecords_other": "+{{count}} more records"
@@ -166,8 +170,12 @@
     "personalBest": "Personal best",
     "activityRecords": "Records set on this activity",
     "currentBest": "Current personal best",
+    "secondBest": "Second-best time ever",
+    "thirdBest": "Third-best time ever",
     "previousBest": "Previous personal best",
     "yearBest": "Best {{year}}",
+    "yearSecondBest": "Second-best of {{year}}",
+    "yearThirdBest": "Third-best of {{year}}",
     "distances": {
       "1000": "1 km",
       "1609": "1 mile",

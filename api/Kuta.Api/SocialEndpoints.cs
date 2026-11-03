@@ -263,35 +263,36 @@ public static class SocialEndpoints
             -- the year bests of /api/records (UTC year, ties kept by the earlier effort).
             efforts as (
                 select activity_id, distance_m, elapsed_s, year,
-                    case when previous_best is null or elapsed_s < previous_best
-                        then case when elapsed_s = personal_best then 'current' else 'previous' end
-                    when year_holder = activity_id then 'year' end as record_status
+                    case place when 1 then 'current' when 2 then 'second' when 3 then 'third'
+                    else case when previous_best is null or elapsed_s < previous_best then 'previous'
+                        else case year_place when 1 then 'year' when 2 then 'yearSecond' when 3 then 'yearThird' end
+                    end end as record_status
                 from (
                     select b.activity_id, b.distance_m, b.elapsed_s,
                         extract(year from b.achieved_at at time zone 'UTC')::int as year,
                         min(b.elapsed_s) over (partition by b.distance_m order by b.achieved_at, b.activity_id
                             rows between unbounded preceding and 1 preceding) as previous_best,
-                        min(b.elapsed_s) over (partition by b.distance_m) as personal_best,
-                        first_value(b.activity_id) over (partition by b.distance_m, extract(year from b.achieved_at at time zone 'UTC')
-                            order by b.elapsed_s, b.achieved_at, b.activity_id) as year_holder
+                        row_number() over (partition by b.distance_m order by b.elapsed_s, b.achieved_at, b.activity_id) as place,
+                        row_number() over (partition by b.distance_m, extract(year from b.achieved_at at time zone 'UTC')
+                            order by b.elapsed_s, b.achieved_at, b.activity_id) as year_place
                     from best_efforts b join activities a on a.id = b.activity_id
                     where b.user_id = @userId and not a.exclude_from_records
                       and exists (select 1 from page where page.user_id = @userId)
                 ) e
-                where activity_id in (select id from page) and (previous_best is null or elapsed_s < previous_best
-                    or year_holder = activity_id)
+                where activity_id in (select id from page) and (place <= 3 or previous_best is null
+                    or elapsed_s < previous_best or year_place <= 3)
             )
             select id, user_id, display_name, sport, title, started_at, duration_s, distance_m, privacy,
                 case when st_isempty(preview.route) then null else st_asgeojson(preview.route, 4) end as route_geo_json,
                 supporter_tier, attribution, avatar_id, moving_s, record.record_status, record.record_distance_m,
                 record.record_elapsed_s, record.record_year, coalesce(record.record_count, 0) as record_count
             from page
-            -- The most notable record (personal best before year best, then the longest distance) and how many there are
+            -- The most notable record (by place, then previous personal best, then place in the year; then the longest distance) and how many there are
             left join lateral (
                 select record_status, distance_m as record_distance_m, elapsed_s as record_elapsed_s, year as record_year,
                     (count(*) over ())::int as record_count
                 from efforts where efforts.activity_id = page.id
-                order by case record_status when 'current' then 0 when 'previous' then 1 else 2 end, distance_m desc
+                order by array_position(array['current', 'second', 'third', 'previous', 'year', 'yearSecond', 'yearThird'], record_status), distance_m desc
                 limit 1
             ) record on true
             cross join lateral (

@@ -21,12 +21,7 @@ import { RecordAward } from '@/components/record-award'
 import { ApiError } from '@/lib/api'
 import { activityQuery, refreshActivityQueries } from '@/lib/activity-query'
 import { api } from '@/lib/api'
-import {
-  recordMeters,
-  type RecordDistance,
-  type StoredBestEffort,
-  type ActivityBestEffort,
-} from '@/lib/records'
+import { recordMeters, type RecordDistance, utcYear, type ActivityBestEffort } from '@/lib/records'
 import {
   activityTitle,
   chartAxis,
@@ -131,21 +126,9 @@ export function ActivityPage() {
     queryFn: () => api.get<ActivityBestEffort[]>(`/api/activities/${activityId}/best-efforts`),
     enabled: activity.isSuccess && !visitor,
   })
-  // Record badges only for own activities: /api/records covers the signed-in user's records.
-  const recordYear = activity.data && new Date(activity.data.startedAt).getUTCFullYear()
   const hasEfforts = !!bestEfforts.data?.length
-  const ownEfforts = hasEfforts && activity.data?.userId === me?.id
-  const yearBests = useQuery({
-    queryKey: ['records', 'year', recordYear],
-    queryFn: () => api.get<StoredBestEffort[]>(`/api/records?year=${recordYear}`),
-    enabled: ownEfforts,
-  })
-  const holds = (records: StoredBestEffort[] | undefined, e: StoredBestEffort) =>
-    !!records?.some((r) => r.activityId === e.activityId && r.distanceM === e.distanceM)
-  // Personal and year bests, matching the record the feed card highlights.
-  const awarded = ownEfforts
-    ? bestEfforts.data!.filter((e) => e.recordStatus || holds(yearBests.data, e))
-    : []
+  // Places of all time and in the year (only the owner gets a status), as the feed card highlights.
+  const awarded = bestEfforts.data?.filter((e) => e.recordStatus) ?? []
   const [selection, setSelection] = useState<{ id: string; part: ActivityPart | null } | null>(null)
   const selectedPart = selection?.id === activityId ? selection.part : null
   const selectedSport = selectedPart?.sport ?? activity.data?.sport
@@ -335,19 +318,13 @@ export function ActivityPage() {
       </thead>
       <tbody className="divide-y">
         {bestEfforts.data!.map((e) => {
-          const yearBest = holds(yearBests.data, e)
           return (
             <tr key={e.distanceM}>
               <td className="py-1.5">{t(`records.distances.${e.distanceM as RecordDistance}`)}</td>
               <td className="py-1.5">{formatDuration(Math.round(e.elapsedS))}</td>
               <td className="py-1.5">{formatPace(e.elapsedS, recordMeters(e.distanceM))}</td>
               <td className="py-1.5 text-right">
-                {e.recordStatus ? (
-                  <RecordAward status={e.recordStatus} />
-                ) : (
-                  yearBest &&
-                  recordYear !== undefined && <RecordAward status="year" year={recordYear} />
-                )}
+                {e.recordStatus && <RecordAward status={e.recordStatus} year={utcYear(e)} />}
               </td>
             </tr>
           )
@@ -505,11 +482,7 @@ export function ActivityPage() {
                   {t(`records.distances.${e.distanceM as RecordDistance}`)}
                   <span className="ml-3 tabular-nums">{formatDuration(e.elapsedS)}</span>
                 </span>
-                {e.recordStatus ? (
-                  <RecordAward status={e.recordStatus} />
-                ) : (
-                  <RecordAward status="year" year={recordYear!} />
-                )}
+                <RecordAward status={e.recordStatus!} year={utcYear(e)} />
               </li>
             ))}
           </ul>

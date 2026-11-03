@@ -19,8 +19,8 @@
   color: #879aaf;
 }
 
-.record-award--outline {
-  color: var(--muted-foreground);
+.record-award--bronze {
+  color: #9a5a2a;
 }
 
 .record-award:hover,

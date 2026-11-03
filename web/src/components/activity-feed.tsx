@@ -20,7 +20,7 @@ import {
 } from '@/lib/activity'
 import { isCyclingSport } from '@/lib/sports'
 import { RecordMedal } from '@/components/record-award'
-import type { RecordDistance } from '@/lib/records'
+import type { ActivityBestEffort, RecordDistance } from '@/lib/records'
 import type { SupporterTier } from '@/lib/auth'
 import { card } from '@/components/ui/card-variants'
 
@@ -39,7 +39,7 @@ type FeedItem = {
   avatarId: string | null
   movingS: number | null
   // The most notable record, only on the viewer's own activities
-  recordStatus: 'current' | 'previous' | 'year' | null
+  recordStatus: ActivityBestEffort['recordStatus']
   recordDistanceM: RecordDistance | null
   recordElapsedS: number | null
   recordYear: number | null

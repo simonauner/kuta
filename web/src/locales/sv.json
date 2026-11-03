@@ -75,8 +75,12 @@
     "yesterday": "I går {{time}}",
     "record": {
       "current": "Personbästa på {{distance}}",
+      "second": "Näst bästa {{distance}} hittills",
+      "third": "Tredje bästa {{distance}} hittills",
       "previous": "Dåvarande personbästa på {{distance}}",
-      "year": "Bästa {{distance}} {{year}}"
+      "year": "Bästa {{distance}} {{year}}",
+      "yearSecond": "Näst bästa {{distance}} {{year}}",
+      "yearThird": "Tredje bästa {{distance}} {{year}}"
     },
     "moreRecords_one": "+{{count}} rekord till",
     "moreRecords_other": "+{{count}} rekord till"
@@ -166,8 +170,12 @@
     "personalBest": "Personbästa",
     "activityRecords": "Rekord i aktiviteten",
     "currentBest": "Nuvarande personbäst",
+    "secondBest": "Näst bästa tid hittills",
+    "thirdBest": "Tredje bästa tid hittills",
     "previousBest": "Tidigare personbäst",
     "yearBest": "Bästa {{year}}",
+    "yearSecondBest": "Näst bästa {{year}}",
+    "yearThirdBest": "Tredje bästa {{year}}",
     "distances": {
       "1000": "1 km",
       "1609": "1 mile",

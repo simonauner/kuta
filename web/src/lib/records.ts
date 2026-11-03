@@ -7,8 +7,12 @@ export type StoredBestEffort = {
 }
 
 export type ActivityBestEffort = StoredBestEffort & {
-  recordStatus: 'current' | 'previous' | null
+  recordStatus:
+    'current' | 'second' | 'third' | 'previous' | 'year' | 'yearSecond' | 'yearThird' | null
 }
+
+// The year of the year places, which the API counts in UTC
+export const utcYear = (e: StoredBestEffort) => new Date(e.achievedAt).getUTCFullYear()
 
 export type RecordMonth = {
   year: number

@@ -1,4 +1,4 @@
-import { Award, Medal, Trophy } from 'lucide-react'
+import { Medal, Trophy, type LucideIcon } from 'lucide-react'
 import { useId, useState } from 'react'
 import { Tooltip } from '@base-ui/react/tooltip'
 import { useTranslation } from 'react-i18next'
@@ -28,30 +28,42 @@ export function MetalGradient({ id, metal }: { id: string; metal: keyof typeof m
   )
 }
 
-type RecordAwardProps =
-  { status: NonNullable<ActivityBestEffort['recordStatus']> } | { status: 'year'; year: number }
+type RecordStatus = NonNullable<ActivityBestEffort['recordStatus']>
 
-function RecordIcon({ status }: { status: RecordAwardProps['status'] }) {
+// The top three get filled trophies in their metal, the year's top three medals; a previous personal best keeps the
+// gold trophy as an outline.
+const looks = {
+  current: { Icon: Trophy, metal: 'gold', filled: true },
+  second: { Icon: Trophy, metal: 'silver', filled: true },
+  third: { Icon: Trophy, metal: 'bronze', filled: true },
+  previous: { Icon: Trophy, metal: 'gold', filled: false },
+  year: { Icon: Medal, metal: 'gold', filled: true },
+  yearSecond: { Icon: Medal, metal: 'silver', filled: true },
+  yearThird: { Icon: Medal, metal: 'bronze', filled: true },
+} as const satisfies Record<
+  RecordStatus,
+  { Icon: LucideIcon; metal: keyof typeof metals; filled: boolean }
+>
+
+function RecordIcon({ status }: { status: RecordStatus }) {
   const gradientId = useId()
-  const metal = status === 'current' ? 'gold' : 'silver'
-  const Icon = status === 'current' ? Trophy : status === 'year' ? Award : Medal
+  const { Icon, metal, filled } = looks[status]
   return (
     <Icon
       className="size-6"
-      fill={status === 'year' ? 'none' : `url(#${gradientId})`}
-      strokeWidth={1.6}
+      fill={filled ? `url(#${gradientId})` : 'none'}
+      strokeWidth={filled ? 1.6 : 2}
       aria-hidden="true"
     >
-      {status !== 'year' && <MetalGradient id={gradientId} metal={metal} />}
+      {filled && <MetalGradient id={gradientId} metal={metal} />}
     </Icon>
   )
 }
 
-const tone = (status: RecordAwardProps['status']) =>
-  `record-award--${status === 'year' ? 'outline' : status === 'current' ? 'gold' : 'silver'}`
+const tone = (status: RecordStatus) => `record-award--${looks[status].metal}`
 
 // The same award without a tooltip, next to text that already names it (the feed)
-export function RecordMedal({ status }: { status: RecordAwardProps['status'] }) {
+export function RecordMedal({ status }: { status: RecordStatus }) {
   return (
     <span aria-hidden="true" className={`record-medal ${tone(status)}`}>
       <RecordIcon status={status} />
@@ -59,14 +71,11 @@ export function RecordMedal({ status }: { status: RecordAwardProps['status'] }) 
   )
 }
 
-export function RecordAward(props: RecordAwardProps) {
-  const { status } = props
+// year: the UTC year of the activity, named by the year places' labels
+export function RecordAward({ status, year }: { status: RecordStatus; year: number }) {
   const { t } = useTranslation()
   const [open, setOpen] = useState(false)
-  const label =
-    props.status === 'year'
-      ? t('records.yearBest', { year: props.year })
-      : t(status === 'current' ? 'records.currentBest' : 'records.previousBest')
+  const label = t(`records.${status}Best`, { year })
   return (
     <Tooltip.Root open={open} onOpenChange={setOpen}>
       <Tooltip.Trigger
