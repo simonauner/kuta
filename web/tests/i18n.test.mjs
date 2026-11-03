@@ -51,3 +51,13 @@ test('every API error has a stable code translated in both languages', () => {
     }
   }
 })
+
+test('texts use one ellipsis character directly after the word', () => {
+  for (const [language, texts] of [
+    ['sv', sv],
+    ['en', en],
+  ]) {
+    const values = JSON.stringify(texts)
+    assert.doesNotMatch(values, /\.\.\.| …/, language)
+  }
+})
