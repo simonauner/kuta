@@ -37,14 +37,13 @@
     "waitingTitle": "Här börjar ditt flöde",
     "waitingDescription": "Ingen du följer har delat någon aktivitet ännu. Lägg till en egen aktivitet medan du väntar.",
     "onboarding": {
-      "stepsLabel": "Kom igång",
+      "stepsLabel": "Ta med träning från andra appar",
       "garminTitle": "Koppla Garmin",
       "garminDescription": "Nya aktiviteter från klockan kommer in automatiskt, från och med nu.",
       "stravaTitle": "Ta med din historik från Strava",
       "stravaDescription": "Beställ ditt arkiv hos Strava. Det kommer som en ZIP-fil via mejl, ofta inom några timmar. Ladda sedan upp filen här, så följer gamla aktiviteter och skor med.",
       "stravaAction": "Importera från Strava",
-      "stravaRequest": "Beställ arkivet hos Strava",
-      "manual": "Eller lägg till en aktivitet manuellt eller med en FIT-fil."
+      "stravaRequest": "Beställ arkivet hos Strava"
     },
     "socialTitle": "Träna tillsammans",
     "socialDescription": "Be en kompis dela sin profillänk för att börja följa dem, eller dela din egen.",

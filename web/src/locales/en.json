@@ -37,14 +37,13 @@
     "waitingTitle": "Your feed starts here",
     "waitingDescription": "No one you follow has shared an activity yet. Add one of your own while you wait.",
     "onboarding": {
-      "stepsLabel": "Get started",
+      "stepsLabel": "Bring training from other apps",
       "garminTitle": "Connect Garmin",
       "garminDescription": "New activities from your watch arrive automatically from now on.",
       "stravaTitle": "Bring your history from Strava",
       "stravaDescription": "Request your archive from Strava. It arrives as a ZIP file by email, often within a few hours. Then upload the file here to bring over old activities and shoes.",
       "stravaAction": "Import from Strava",
-      "stravaRequest": "Request the archive from Strava",
-      "manual": "Or add an activity manually or with a FIT file."
+      "stravaRequest": "Request the archive from Strava"
     },
     "socialTitle": "Train together",
     "socialDescription": "Ask a friend to share their profile link so you can follow them, or share your own.",
