@@ -357,6 +357,8 @@
     "map": "Route map",
     "mapLarger": "Enlarge map",
     "mapSmaller": "Shrink map",
+    "mapPanelHide": "Hide tables",
+    "mapPanelShow": "Show tables",
     "routeColoring": "Color the route by",
     "routeColoringNone": "Route",
     "routeColoringHr": "Heart rate",

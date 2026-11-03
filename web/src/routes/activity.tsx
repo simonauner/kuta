@@ -119,6 +119,9 @@ export function ActivityPage() {
   const visitor = me === null
   const equipment = useQuery({ ...equipmentQuery, enabled: !visitor })
   const [openPanel, setOpenPanel] = useState<'laps' | 'splits' | 'efforts' | null>(null)
+  // The enlarged map shows the tables in its side panel instead of above it
+  const [mapExpanded, setMapExpanded] = useState(false)
+  const tableHeight = mapExpanded ? 'max-h-[calc(80svh-9rem)]' : 'max-h-[min(16rem,25svh)]'
   const lapsOpen = openPanel === 'laps'
   const splitsOpen = openPanel === 'splits'
   const effortsOpen = openPanel === 'efforts'
@@ -356,6 +359,167 @@ export function ActivityPage() {
     </table>
   )
 
+  const tablePanels = ((!mixed && a.laps.length > 0) ||
+    (view && view.splits.length > 0) ||
+    hasEfforts) && (
+    <div>
+      <div className="flex flex-wrap gap-2">
+        {!mixed && a.laps.length > 0 && (
+          <Button
+            id={`${lapsId}-toggle`}
+            type="button"
+            variant="secondary-outline"
+            aria-expanded={lapsOpen}
+            aria-controls={lapsId}
+            onClick={() => setOpenPanel((open) => (open === 'laps' ? null : 'laps'))}
+          >
+            {t('activity.tab.laps')}
+            <ChevronDown
+              aria-hidden="true"
+              className={`transition-transform duration-250 motion-reduce:transition-none ${lapsOpen ? 'rotate-180' : ''}`}
+            />
+          </Button>
+        )}
+        {view && view.splits.length > 0 && (
+          <Button
+            id={`${splitsId}-toggle`}
+            type="button"
+            variant="secondary-outline"
+            aria-expanded={splitsOpen}
+            aria-controls={splitsId}
+            onClick={() => setOpenPanel((open) => (open === 'splits' ? null : 'splits'))}
+          >
+            {t('activity.splits')}
+            <ChevronDown
+              aria-hidden="true"
+              className={`transition-transform duration-250 motion-reduce:transition-none ${splitsOpen ? 'rotate-180' : ''}`}
+            />
+          </Button>
+        )}
+        {hasEfforts && (
+          <Button
+            id={`${effortsId}-toggle`}
+            type="button"
+            variant="secondary-outline"
+            aria-expanded={effortsOpen}
+            aria-controls={effortsId}
+            onClick={() => setOpenPanel((open) => (open === 'efforts' ? null : 'efforts'))}
+          >
+            {t('records.bestEfforts')}
+            <ChevronDown
+              aria-hidden="true"
+              className={`transition-transform duration-250 motion-reduce:transition-none ${effortsOpen ? 'rotate-180' : ''}`}
+            />
+          </Button>
+        )}
+      </div>
+      {openPanel && sourceNote}
+      {!mixed && a.laps.length > 0 && (
+        <div
+          id={lapsId}
+          aria-hidden={!lapsOpen}
+          inert={!lapsOpen}
+          className={`grid transition-[grid-template-rows] duration-250 ease-out motion-reduce:transition-none ${lapsOpen ? 'grid-rows-[1fr]' : 'grid-rows-[0fr]'}`}
+        >
+          <div className="min-h-0 overflow-hidden">
+            <div
+              role="region"
+              aria-labelledby={`${lapsId}-toggle`}
+              tabIndex={lapsOpen ? 0 : -1}
+              className={`mt-3 ${tableHeight} overflow-auto overscroll-contain rounded-lg border px-3 focus-visible:outline-2 focus-visible:outline-ring`}
+            >
+              <table className="w-full text-sm whitespace-nowrap tabular-nums [&_td]:pr-4 [&_th]:pr-4">
+                <thead className="sticky top-0 bg-background text-left text-xs text-muted-foreground">
+                  <tr>
+                    <th className="py-1 font-normal">{t('activity.lap')}</th>
+                    <th className="py-1 font-normal">{t('activity.distance')}</th>
+                    <th className="py-1 font-normal">{t('activity.time')}</th>
+                    <th className="py-1 font-normal">{t('activity.pace')}</th>
+                    <th className="py-1 font-normal">{t('activity.splitElevation')}</th>
+                    {a.laps.some((l) => l.avgHr !== null) && (
+                      <th className="py-1 font-normal">{t('activity.splitHr')}</th>
+                    )}
+                    {a.laps.some((l) => l.avgCadence !== null) && (
+                      <th className="py-1 font-normal">{t('activity.cadence')}</th>
+                    )}
+                  </tr>
+                </thead>
+                <tbody className="divide-y">
+                  {a.laps.map((l) => (
+                    <tr key={l.lapIndex}>
+                      <td className="py-1.5">{l.lapIndex + 1}</td>
+                      <td className="py-1.5">{number.format(l.distanceM / 1000)} km</td>
+                      <td className="py-1.5">{formatDuration(l.movingS ?? l.durationS)}</td>
+                      <td className="py-1.5">
+                        {formatSportPace(
+                          a.sport,
+                          l.movingS ?? l.durationS,
+                          l.distanceM,
+                          i18n.resolvedLanguage,
+                        )}
+                      </td>
+                      <td className="py-1.5">
+                        {l.ascentM === null && l.descentM === null
+                          ? '–'
+                          : `${Math.round((l.ascentM ?? 0) - (l.descentM ?? 0))} m`}
+                      </td>
+                      {a.laps.some((x) => x.avgHr !== null) && (
+                        <td className="py-1.5">{l.avgHr ?? '–'}</td>
+                      )}
+                      {a.laps.some((x) => x.avgCadence !== null) && (
+                        <td className="py-1.5">{l.avgCadence ?? '–'}</td>
+                      )}
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {view && view.splits.length > 0 && (
+        <div
+          id={splitsId}
+          aria-hidden={!splitsOpen}
+          inert={!splitsOpen}
+          className={`grid transition-[grid-template-rows] duration-250 ease-out motion-reduce:transition-none ${splitsOpen ? 'grid-rows-[1fr]' : 'grid-rows-[0fr]'}`}
+        >
+          <div className="min-h-0 overflow-hidden">
+            <div
+              role="region"
+              aria-labelledby={`${splitsId}-toggle`}
+              tabIndex={splitsOpen ? 0 : -1}
+              className={`mt-3 ${tableHeight} overflow-auto overscroll-contain rounded-lg border px-3 focus-visible:outline-2 focus-visible:outline-ring [&_thead]:sticky [&_thead]:top-0 [&_thead]:bg-background`}
+            >
+              {splitTable}
+            </div>
+          </div>
+        </div>
+      )}
+
+      {hasEfforts && (
+        <div
+          id={effortsId}
+          aria-hidden={!effortsOpen}
+          inert={!effortsOpen}
+          className={`grid transition-[grid-template-rows] duration-250 ease-out motion-reduce:transition-none ${effortsOpen ? 'grid-rows-[1fr]' : 'grid-rows-[0fr]'}`}
+        >
+          <div className="min-h-0 overflow-hidden">
+            <div
+              role="region"
+              aria-labelledby={`${effortsId}-toggle`}
+              tabIndex={effortsOpen ? 0 : -1}
+              className={`mt-3 ${tableHeight} overflow-auto overscroll-contain rounded-lg border px-3 focus-visible:outline-2 focus-visible:outline-ring [&_thead]:sticky [&_thead]:top-0 [&_thead]:bg-background`}
+            >
+              {effortTable}
+            </div>
+          </div>
+        </div>
+      )}
+    </div>
+  )
+
   return (
     <section>
       {original.userId === me?.id ? (
@@ -529,164 +693,7 @@ export function ActivityPage() {
         </p>
       )}
 
-      {((!mixed && a.laps.length > 0) || (view && view.splits.length > 0) || hasEfforts) && (
-        <div className="mt-8">
-          <div className="flex flex-wrap gap-2">
-            {!mixed && a.laps.length > 0 && (
-              <Button
-                id={`${lapsId}-toggle`}
-                type="button"
-                variant="secondary-outline"
-                aria-expanded={lapsOpen}
-                aria-controls={lapsId}
-                onClick={() => setOpenPanel((open) => (open === 'laps' ? null : 'laps'))}
-              >
-                {t('activity.tab.laps')}
-                <ChevronDown
-                  aria-hidden="true"
-                  className={`transition-transform duration-250 motion-reduce:transition-none ${lapsOpen ? 'rotate-180' : ''}`}
-                />
-              </Button>
-            )}
-            {view && view.splits.length > 0 && (
-              <Button
-                id={`${splitsId}-toggle`}
-                type="button"
-                variant="secondary-outline"
-                aria-expanded={splitsOpen}
-                aria-controls={splitsId}
-                onClick={() => setOpenPanel((open) => (open === 'splits' ? null : 'splits'))}
-              >
-                {t('activity.splits')}
-                <ChevronDown
-                  aria-hidden="true"
-                  className={`transition-transform duration-250 motion-reduce:transition-none ${splitsOpen ? 'rotate-180' : ''}`}
-                />
-              </Button>
-            )}
-            {hasEfforts && (
-              <Button
-                id={`${effortsId}-toggle`}
-                type="button"
-                variant="secondary-outline"
-                aria-expanded={effortsOpen}
-                aria-controls={effortsId}
-                onClick={() => setOpenPanel((open) => (open === 'efforts' ? null : 'efforts'))}
-              >
-                {t('records.bestEfforts')}
-                <ChevronDown
-                  aria-hidden="true"
-                  className={`transition-transform duration-250 motion-reduce:transition-none ${effortsOpen ? 'rotate-180' : ''}`}
-                />
-              </Button>
-            )}
-          </div>
-          {openPanel && sourceNote}
-          {!mixed && a.laps.length > 0 && (
-            <div
-              id={lapsId}
-              aria-hidden={!lapsOpen}
-              inert={!lapsOpen}
-              className={`grid transition-[grid-template-rows] duration-250 ease-out motion-reduce:transition-none ${lapsOpen ? 'grid-rows-[1fr]' : 'grid-rows-[0fr]'}`}
-            >
-              <div className="min-h-0 overflow-hidden">
-                <div
-                  role="region"
-                  aria-labelledby={`${lapsId}-toggle`}
-                  tabIndex={lapsOpen ? 0 : -1}
-                  className="mt-3 max-h-[min(16rem,25svh)] overflow-auto overscroll-contain rounded-lg border px-3 focus-visible:outline-2 focus-visible:outline-ring"
-                >
-                  <table className="w-full text-sm whitespace-nowrap tabular-nums [&_td]:pr-4 [&_th]:pr-4">
-                    <thead className="sticky top-0 bg-background text-left text-xs text-muted-foreground">
-                      <tr>
-                        <th className="py-1 font-normal">{t('activity.lap')}</th>
-                        <th className="py-1 font-normal">{t('activity.distance')}</th>
-                        <th className="py-1 font-normal">{t('activity.time')}</th>
-                        <th className="py-1 font-normal">{t('activity.pace')}</th>
-                        <th className="py-1 font-normal">{t('activity.splitElevation')}</th>
-                        {a.laps.some((l) => l.avgHr !== null) && (
-                          <th className="py-1 font-normal">{t('activity.splitHr')}</th>
-                        )}
-                        {a.laps.some((l) => l.avgCadence !== null) && (
-                          <th className="py-1 font-normal">{t('activity.cadence')}</th>
-                        )}
-                      </tr>
-                    </thead>
-                    <tbody className="divide-y">
-                      {a.laps.map((l) => (
-                        <tr key={l.lapIndex}>
-                          <td className="py-1.5">{l.lapIndex + 1}</td>
-                          <td className="py-1.5">{number.format(l.distanceM / 1000)} km</td>
-                          <td className="py-1.5">{formatDuration(l.movingS ?? l.durationS)}</td>
-                          <td className="py-1.5">
-                            {formatSportPace(
-                              a.sport,
-                              l.movingS ?? l.durationS,
-                              l.distanceM,
-                              i18n.resolvedLanguage,
-                            )}
-                          </td>
-                          <td className="py-1.5">
-                            {l.ascentM === null && l.descentM === null
-                              ? '–'
-                              : `${Math.round((l.ascentM ?? 0) - (l.descentM ?? 0))} m`}
-                          </td>
-                          {a.laps.some((x) => x.avgHr !== null) && (
-                            <td className="py-1.5">{l.avgHr ?? '–'}</td>
-                          )}
-                          {a.laps.some((x) => x.avgCadence !== null) && (
-                            <td className="py-1.5">{l.avgCadence ?? '–'}</td>
-                          )}
-                        </tr>
-                      ))}
-                    </tbody>
-                  </table>
-                </div>
-              </div>
-            </div>
-          )}
-
-          {view && view.splits.length > 0 && (
-            <div
-              id={splitsId}
-              aria-hidden={!splitsOpen}
-              inert={!splitsOpen}
-              className={`grid transition-[grid-template-rows] duration-250 ease-out motion-reduce:transition-none ${splitsOpen ? 'grid-rows-[1fr]' : 'grid-rows-[0fr]'}`}
-            >
-              <div className="min-h-0 overflow-hidden">
-                <div
-                  role="region"
-                  aria-labelledby={`${splitsId}-toggle`}
-                  tabIndex={splitsOpen ? 0 : -1}
-                  className="mt-3 max-h-[min(16rem,25svh)] overflow-auto overscroll-contain rounded-lg border px-3 focus-visible:outline-2 focus-visible:outline-ring [&_thead]:sticky [&_thead]:top-0 [&_thead]:bg-background"
-                >
-                  {splitTable}
-                </div>
-              </div>
-            </div>
-          )}
-
-          {hasEfforts && (
-            <div
-              id={effortsId}
-              aria-hidden={!effortsOpen}
-              inert={!effortsOpen}
-              className={`grid transition-[grid-template-rows] duration-250 ease-out motion-reduce:transition-none ${effortsOpen ? 'grid-rows-[1fr]' : 'grid-rows-[0fr]'}`}
-            >
-              <div className="min-h-0 overflow-hidden">
-                <div
-                  role="region"
-                  aria-labelledby={`${effortsId}-toggle`}
-                  tabIndex={effortsOpen ? 0 : -1}
-                  className="mt-3 max-h-[min(16rem,25svh)] overflow-auto overscroll-contain rounded-lg border px-3 focus-visible:outline-2 focus-visible:outline-ring [&_thead]:sticky [&_thead]:top-0 [&_thead]:bg-background"
-                >
-                  {effortTable}
-                </div>
-              </div>
-            </div>
-          )}
-        </div>
-      )}
+      {!mapExpanded && tablePanels && <div className="mt-8">{tablePanels}</div>}
 
       <div className="mt-8">
         {view && view.coordinates.length > 1 ? (
@@ -696,6 +703,23 @@ export function ActivityPage() {
               routes={colored?.routes ?? view.routes}
               label={t('activity.map')}
               expandable
+              onExpandedChange={(expanded) => {
+                setMapExpanded(expanded)
+                // Open the first table so the side panel isn't empty
+                if (expanded)
+                  setOpenPanel(
+                    (open) =>
+                      open ??
+                      (!mixed && a.laps.length > 0
+                        ? 'laps'
+                        : view.splits.length > 0
+                          ? 'splits'
+                          : hasEfforts
+                            ? 'efforts'
+                            : null),
+                  )
+              }}
+              side={tablePanels || undefined}
             />
             {Object.values(view.metrics).some(Boolean) && (
               <div className="mt-2 flex flex-wrap items-center gap-x-4 gap-y-2">

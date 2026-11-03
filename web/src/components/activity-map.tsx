@@ -6,11 +6,29 @@ import {
   type GeoJSONSource,
   type GeoJSONSourceSpecification,
 } from 'maplibre-gl'
-import { Maximize2, Minimize2 } from 'lucide-react'
-import { useEffect, useLayoutEffect, useMemo, useRef, useState } from 'react'
+import { Maximize2, Minimize2, PanelLeftClose, PanelLeftOpen } from 'lucide-react'
+import {
+  useEffect,
+  useId,
+  useLayoutEffect,
+  useMemo,
+  useRef,
+  useState,
+  useSyncExternalStore,
+  type ReactNode,
+} from 'react'
 import { createPortal } from 'react-dom'
 import { useTranslation } from 'react-i18next'
 import { mapStyle } from '@/lib/map'
+import { Button } from '@/components/ui/button'
+
+// The size button only shows from Tailwind's lg breakpoint
+const wideQuery = () => window.matchMedia('(min-width: 64rem)')
+const subscribeWide = (onChange: () => void) => {
+  const query = wideQuery()
+  query.addEventListener('change', onChange)
+  return () => query.removeEventListener('change', onChange)
+}
 
 // Basemap from our own PMTiles file (src/lib/map.ts), so no map provider sees where the activity went.
 export function ActivityMap({
@@ -20,6 +38,8 @@ export function ActivityMap({
   thumbnail = false,
   large = false,
   expandable = false,
+  onExpandedChange,
+  side,
   fitKey,
   handles,
 }: {
@@ -30,6 +50,9 @@ export function ActivityMap({
   large?: boolean
   // Adds a button next to zoom that toggles the large size
   expandable?: boolean
+  onExpandedChange?: (expanded: boolean) => void
+  // Shown in a collapsible panel beside the map while it is enlarged with the size button
+  side?: ReactNode
   routes?: { coordinates: [number, number][]; color: string }[]
   // Refit to the route only when this changes (default: when coordinates change), so editing keeps the zoom
   fitKey?: unknown
@@ -43,7 +66,12 @@ export function ActivityMap({
 }) {
   const { t } = useTranslation()
   const container = useRef<HTMLDivElement>(null)
-  const [expanded, setExpanded] = useState(false)
+  const [expandedChoice, setExpanded] = useState(false)
+  // A narrow window keeps the normal size, so the parent shows its tables above the map instead of beside it
+  const wide = useSyncExternalStore(subscribeWide, () => wideQuery().matches)
+  const expanded = expandedChoice && wide
+  const [sideOpen, setSideOpen] = useState(true)
+  const sideId = useId()
   // MapLibre control element that React renders the size button into (see the portal below)
   const [sizeControl] = useState(() => {
     const element = document.createElement('div')
@@ -67,10 +95,11 @@ export function ActivityMap({
     [coordinates, routes],
   )
   const markers = useRef<Marker[]>([])
-  const latest = useRef({ coordinates, data, handles })
+  const latest = useRef({ coordinates, data, handles, onExpandedChange })
   useLayoutEffect(() => {
-    latest.current = { coordinates, data, handles }
+    latest.current = { coordinates, data, handles, onExpandedChange }
   })
+  useEffect(() => latest.current.onExpandedChange?.(expanded), [expanded])
 
   // The map is created once; route changes update the source instead of recreating it (which reset the zoom)
   useEffect(() => {
@@ -179,14 +208,12 @@ export function ActivityMap({
 
   return (
     <div
-      role="img"
-      aria-label={label}
       className={
         thumbnail
-          ? 'h-full w-full overflow-hidden'
+          ? 'h-full w-full'
           : // Negative margins widen the map past the form column, centred and kept inside the viewport.
             // Width follows the margins (no w-full) so the size change can animate.
-            `overflow-hidden rounded-lg border transition-[height,max-height,margin] duration-300 motion-reduce:transition-none ${
+            `flex gap-3 transition-[height,max-height,margin] duration-300 motion-reduce:transition-none ${
               enlarged
                 ? // The editor keeps room for the sport legs below the map
                   `mx-[calc(50%-min(50vw-1rem,48rem))] ${large ? 'h-[60svh] max-h-[60svh]' : 'h-[80svh] max-h-[80svh]'}`
@@ -194,8 +221,41 @@ export function ActivityMap({
             }`
       }
     >
-      {/* MapLibre adds its own classes here, so this element's className must never change */}
-      <div ref={container} className="size-full" />
+      {expanded && side && (
+        // Collapses sideways like a sidebar; the inner width stays fixed so the content doesn't reflow
+        <div
+          className={`flex shrink-0 flex-col items-start overflow-hidden rounded-lg border transition-[width] duration-300 motion-reduce:transition-none ${sideOpen ? 'w-[26rem]' : 'w-11'}`}
+        >
+          <Button
+            type="button"
+            variant="ghost"
+            size="icon"
+            className="m-1"
+            aria-expanded={sideOpen}
+            aria-controls={sideId}
+            aria-label={sideOpen ? t('activity.mapPanelHide') : t('activity.mapPanelShow')}
+            title={sideOpen ? t('activity.mapPanelHide') : t('activity.mapPanelShow')}
+            onClick={() => setSideOpen((v) => !v)}
+          >
+            {sideOpen ? <PanelLeftClose /> : <PanelLeftOpen />}
+          </Button>
+          <div
+            id={sideId}
+            inert={!sideOpen}
+            className={`min-h-0 w-[26rem] flex-1 overflow-y-auto px-3 pb-3 transition-opacity duration-300 motion-reduce:transition-none ${sideOpen ? '' : 'opacity-0'}`}
+          >
+            {side}
+          </div>
+        </div>
+      )}
+      <div
+        role="img"
+        aria-label={label}
+        className={`size-full min-w-0 overflow-hidden ${thumbnail ? '' : 'flex-1 rounded-lg border'}`}
+      >
+        {/* MapLibre adds its own classes here, so this element's className must never change */}
+        <div ref={container} className="size-full" />
+      </div>
       {expandable &&
         createPortal(
           <button
@@ -205,7 +265,7 @@ export function ActivityMap({
             aria-pressed={expanded}
             aria-label={expanded ? t('activity.mapSmaller') : t('activity.mapLarger')}
             title={expanded ? t('activity.mapSmaller') : t('activity.mapLarger')}
-            onClick={() => setExpanded((v) => !v)}
+            onClick={() => setExpanded(!expanded)}
           >
             {expanded ? <Minimize2 className="size-4" /> : <Maximize2 className="size-4" />}
           </button>,

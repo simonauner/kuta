@@ -357,6 +357,8 @@
     "map": "Karta över rutten",
     "mapLarger": "Förstora kartan",
     "mapSmaller": "Förminska kartan",
+    "mapPanelHide": "Dölj tabellerna",
+    "mapPanelShow": "Visa tabellerna",
     "routeColoring": "Färga rutten efter",
     "routeColoringNone": "Rutt",
     "routeColoringHr": "Puls",
