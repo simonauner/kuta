@@ -402,7 +402,7 @@
     "delete": "Delete activity"
   },
   "consent": {
-    "saved": "Heart rate from your activities is saved. Change this in <settings>Settings</settings>.",
+    "saved": "Heart rate from your activities is saved. Change this in <settings>Data and privacy</settings>.",
     "title": "Save heart rate from my activities.",
     "description": "Heart rate is health data. Without your consent, Kuta saves activities without heart rate and does not keep the original file. Turning this off deletes all saved heart rate data.",
     "revoke": "All heart rate data already saved from your activities will be deleted. This cannot be undone.",
@@ -515,6 +515,8 @@
     "terms": "Terms of use"
   },
   "settings": {
+    "profileTitle": "Profile and visibility",
+    "dataTitle": "Data and privacy",
     "title": "Settings",
     "health": "Health data",
     "strava": "Import from Strava",
@@ -718,7 +720,7 @@
     "publicProfile": "Show my profile to visitors without an account.",
     "publicProfileHelp": "Anyone with your profile link can then see your name and the activities visible to everyone, without signing in. Heart rate, the full route, equipment and goals are never shown.",
     "newNote": "The activity will be visible to: <strong>{{visibility}}</strong>.",
-    "importNote": "Imported activities will be visible to: <strong>{{visibility}}</strong>, whatever their sharing on Strava. Change the default under Activity visibility.",
+    "importNote": "Imported activities will be visible to: <strong>{{visibility}}</strong>, whatever their sharing on Strava. Change the default under Settings → Profile and visibility.",
     "changeDefault": "Change default",
     "allMatch": "All your activities have the selected visibility."
   },

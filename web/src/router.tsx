@@ -14,7 +14,7 @@ import { EquipmentPage } from '@/routes/equipment'
 import { RunnerPage } from '@/routes/runner'
 import { SharedProfilePage } from '@/routes/shared-profile'
 import { ProfilePage } from '@/routes/profile'
-import { SettingsPage } from '@/routes/settings'
+import { DataSettingsPage, ProfileSettingsPage, SettingsPage } from '@/routes/settings'
 import { ImportPage } from '@/routes/import'
 import { AnalysisPage, StatsPage } from '@/routes/stats'
 import { activityPageSearch, activitySearch } from '@/lib/activity'
@@ -89,6 +89,18 @@ const settingsRoute = createRoute({
   component: SettingsPage,
 })
 
+const profileSettingsRoute = createRoute({
+  getParentRoute: () => rootRoute,
+  path: '/app/settings/profile',
+  component: ProfileSettingsPage,
+})
+
+const dataSettingsRoute = createRoute({
+  getParentRoute: () => rootRoute,
+  path: '/app/settings/data',
+  component: DataSettingsPage,
+})
+
 const followersRoute = createRoute({
   getParentRoute: () => rootRoute,
   path: '/app/settings/followers',
@@ -126,6 +138,8 @@ const routeTree = rootRoute.addChildren([
   sharedProfileRoute,
   equipmentRoute,
   settingsRoute,
+  profileSettingsRoute,
+  dataSettingsRoute,
   followersRoute,
   privacyPlacesRoute,
   importRoute,

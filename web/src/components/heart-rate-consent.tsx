@@ -91,7 +91,7 @@ export function HeartRateConsentPrompt() {
       <Trans
         i18nKey="consent.saved"
         components={{
-          settings: <Link to="/app/settings" className="underline underline-offset-4" />,
+          settings: <Link to="/app/settings/data" className="underline underline-offset-4" />,
         }}
       />
     </p>

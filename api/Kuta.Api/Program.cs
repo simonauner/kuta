@@ -281,7 +281,7 @@ static async Task<int> RunAsync(string[] args)
     app.MapFallbackToFile("/en/features", "en/features.html", staticFiles);
 
     // The public pages are static; only the app's known paths get the React shell.
-    foreach (var path in new[] { "/app", "/app/activities", "/app/activities/new", "/app/activities/{activityId:guid}", "/app/activities/{activityId:guid}/edit", "/app/stats", "/app/stats/analysis", "/app/profile", "/app/settings/equipment", "/app/settings/followers", "/app/settings/privacy-places", "/app/settings/import", "/app/runners/{runnerId:guid}", "/app/r/{code:length(8)}", "/app/settings" })
+    foreach (var path in new[] { "/app", "/app/activities", "/app/activities/new", "/app/activities/{activityId:guid}", "/app/activities/{activityId:guid}/edit", "/app/stats", "/app/stats/analysis", "/app/profile", "/app/settings/equipment", "/app/settings/followers", "/app/settings/privacy-places", "/app/settings/import", "/app/settings/profile", "/app/settings/data", "/app/runners/{runnerId:guid}", "/app/r/{code:length(8)}", "/app/settings" })
         app.MapFallbackToFile(path, "app.html", staticFiles);
 
     await app.RunAsync();
