@@ -61,7 +61,7 @@ test('only an empty home feed offers onboarding, with different copy when follow
     assert.match(welcome, /Dags för din första aktivitet/)
     assert.match(welcome, /href="\/app\/activities\/new"/)
     assert.match(welcome, /href="\/app\/settings\/import"/)
-    assert.match(welcome, /href="https:\/\/www.strava.com\/athlete\/delete_your_account"/)
+    assert.match(welcome, /href="https:\/\/www.strava.com\/athlete\/download_my_account"/)
     assert.match(welcome, /Dela min profillänk/)
     const following = await render({ following: [{ id: 'friend' }] })
     assert.match(following, /Ingen du följer har delat någon aktivitet ännu/)

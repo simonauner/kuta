@@ -517,11 +517,12 @@
   "settings": {
     "stravaGuide": {
       "title": "Så exporterar du från Strava",
-      "step1": "Logga in på strava.com i en webbläsare. Exporten går inte att beställa i Strava-appen.",
-      "step2": "Öppna <link>Ladda ner eller radera ditt konto</link> (Inställningar → Mitt konto) och välj Kom igång.",
-      "step3": "Välj Begär ditt arkiv under Ladda ner begäran.",
-      "step4": "Strava mejlar en länk när arkivet är klart, ofta inom några timmar. Ladda ner ZIP-filen.",
-      "step5": "Välj ZIP-filen nedan utan att packa upp den."
+      "step1": "Logga in på strava.com i en webbläsare.",
+      "step2": "Klicka på profilikonen och välj Settings i menyn.",
+      "step3": "Välj My Account i sidomenyn.",
+      "step4": "Scrolla till Download Your Account och klicka på Get Started (<link>direktlänk</link>).",
+      "step5": "Klicka på Request Download. Strava mejlar en länk när arkivet är klart, ofta inom några timmar.",
+      "step6": "Ladda ner ZIP-filen och välj den nedan utan att packa upp den."
     },
     "profileTitle": "Profil och synlighet",
     "dataTitle": "Data och integritet",

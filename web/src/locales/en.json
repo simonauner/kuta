@@ -517,11 +517,12 @@
   "settings": {
     "stravaGuide": {
       "title": "How to export from Strava",
-      "step1": "Sign in to strava.com in a web browser. The export cannot be requested in the Strava app.",
-      "step2": "Open <link>Download or Delete Your Account</link> (Settings → My Account) and choose Get Started.",
-      "step3": "Choose Request Your Archive under Download Request.",
-      "step4": "Strava emails a link when the archive is ready, often within a few hours. Download the ZIP file.",
-      "step5": "Choose the ZIP file below without unpacking it."
+      "step1": "Sign in to strava.com in a web browser.",
+      "step2": "Click your profile icon and choose Settings in the menu.",
+      "step3": "Choose My Account in the side menu.",
+      "step4": "Scroll to Download Your Account and click Get Started (<link>direct link</link>).",
+      "step5": "Click Request Download. Strava emails a link when the archive is ready, often within a few hours.",
+      "step6": "Download the ZIP file and choose it below without unpacking it."
     },
     "profileTitle": "Profile and visibility",
     "dataTitle": "Data and privacy",

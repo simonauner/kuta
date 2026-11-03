@@ -227,7 +227,7 @@ export function Recalculation() {
 // Strava's export is several steps away on their site and arrives by email, so the way there is spelled out.
 function StravaGuide() {
   const { t } = useTranslation()
-  const steps = ['step1', 'step2', 'step3', 'step4', 'step5'] as const
+  const steps = ['step1', 'step2', 'step3', 'step4', 'step5', 'step6'] as const
   return (
     <section aria-labelledby="strava-guide-heading" className="mb-6">
       <Heading level={3} id="strava-guide-heading">
