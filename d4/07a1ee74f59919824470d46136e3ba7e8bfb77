@@ -1,0 +1,31 @@
+web/src/routes/activity.tsx
+  s_ff64578b5ac4cb::t_d2a17b042b9e83 362-364,366-424,426-429,431-458,460-475,477-479,481-488,490-493,495,497-499,501-508,510-513,515,517-519
+  s_ff64578b5ac4cb::t_d9f06e0c0214a0 365,425,430,459,476,480,489,494,496,500,509,514,516,520-522,696
+  s_ff64578b5ac4cb::t_10114d6a37b5cd 122-124,722
+  s_ff64578b5ac4cb::t_95d9567a517f0d 706-721
+web/src/components/activity-map.tsx
+  s_ff64578b5ac4cb::t_ce4736db8ea993 9,240,251-258
+  s_ff64578b5ac4cb::t_c50d040d0c2b08 10-19,25-31,69-72,98,100,102,268
+  s_ff64578b5ac4cb::t_d2a17b042b9e83 23,41-42,53-55,73-74,213,216,224-239,241-250
+  s_ff64578b5ac4cb::t_344d7d94e3ab5f 24
+web/src/locales/sv.json
+  s_ff64578b5ac4cb::t_d2a17b042b9e83 360-361
+web/src/locales/en.json
+  s_ff64578b5ac4cb::t_d2a17b042b9e83 360-361
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.7.5",
+  "base_commit_sha": "d407a1ee74f59919824470d46136e3ba7e8bfb77",
+  "prompts": {},
+  "sessions": {
+    "s_ff64578b5ac4cb": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "521d1979-fbbd-4455-8fa4-e75bab65020f",
+        "model": "claude-opus-5-5"
+      },
+      "human_author": "Simon Aunér <simonauner@gmail.com>"
+    }
+  }
+}
