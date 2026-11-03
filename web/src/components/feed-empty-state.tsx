@@ -53,7 +53,7 @@ export function FeedEmptyState() {
               {t('feed.socialTitle')}
             </Heading>
             <p className="mb-4 mt-2 text-sm text-muted-foreground">{t('feed.socialDescription')}</p>
-            <ShareProfile label={t('feed.copyProfileLink')} />
+            <ShareProfile label={t('feed.shareProfileLink')} />
           </section>
         </div>
       ) : null}

@@ -47,7 +47,7 @@
     },
     "socialTitle": "Train together",
     "socialDescription": "Ask a friend to share their profile link so you can follow them, or share your own.",
-    "copyProfileLink": "Copy my profile link",
+    "shareProfileLink": "Share my profile link",
     "summary": {
       "following": "Following",
       "followers": "Followers",
@@ -758,7 +758,7 @@
     "runnerNotFound": "Runner not found.",
     "shareProfile": "Share profile",
     "profileLinkCopied": "Profile link copied.",
-    "profileLinkCopyFailed": "Could not copy the link. You can copy it from the field below.",
+    "profileLinkCopyFailed": "Could not share the link. You can copy it from the field below.",
     "profileLink": "Profile link",
     "profileLinksHint": "To follow someone, open their shared profile link. You can copy your own link from your profile.",
     "requestsTitle_one": "{{name}} wants to follow you",

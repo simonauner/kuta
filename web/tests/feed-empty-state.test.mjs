@@ -62,13 +62,13 @@ test('only an empty home feed offers onboarding, with different copy when follow
     assert.match(welcome, /href="\/app\/activities\/new"/)
     assert.match(welcome, /href="\/app\/settings\/import"/)
     assert.match(welcome, /href="https:\/\/www.strava.com\/athlete\/delete_your_account"/)
-    assert.match(welcome, /Kopiera min profillänk/)
+    assert.match(welcome, /Dela min profillänk/)
     const following = await render({ following: [{ id: 'friend' }] })
     assert.match(following, /Ingen du följer har delat någon aktivitet ännu/)
     assert.doesNotMatch(following, /Dags för din första aktivitet/)
     const profile = await render({ runnerId: 'friend' })
     assert.match(profile, /Inga aktiviteter/)
-    assert.doesNotMatch(profile, /Kopiera min profillänk|Dags för din första aktivitet/)
+    assert.doesNotMatch(profile, /Dela min profillänk|Dags för din första aktivitet/)
     const ownProfile = await render({
       runnerId: 'me',
       emptyState: createElement('p', null, 'Own training story'),
@@ -91,7 +91,7 @@ test('only an empty home feed offers onboarding, with different copy when follow
       ],
     })
     assert.match(populated, /Morning run/)
-    assert.doesNotMatch(populated, /Kopiera min profillänk|Dags för din första aktivitet/)
+    assert.doesNotMatch(populated, /Dela min profillänk|Dags för din första aktivitet/)
   } finally {
     globalThis.window = previousWindow
     await server.close()
