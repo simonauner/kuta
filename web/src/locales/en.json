@@ -515,6 +515,14 @@
     "terms": "Terms of use"
   },
   "settings": {
+    "stravaGuide": {
+      "title": "How to export from Strava",
+      "step1": "Sign in to strava.com in a web browser. The export cannot be requested in the Strava app.",
+      "step2": "Open <link>Download or Delete Your Account</link> (Settings → My Account) and choose Get Started.",
+      "step3": "Choose Request Your Archive under Download Request.",
+      "step4": "Strava emails a link when the archive is ready, often within a few hours. Download the ZIP file.",
+      "step5": "Choose the ZIP file below without unpacking it."
+    },
     "profileTitle": "Profile and visibility",
     "dataTitle": "Data and privacy",
     "title": "Settings",
@@ -524,7 +532,7 @@
     "import": "Import activities",
     "importing": "Importing …",
     "importWait": "The import runs on the server. You can leave this page and come back; progress is shown here.",
-    "importHelp": "Choose the whole ZIP export from Strava, at most 500 MB. Duplicates are skipped, so you can run the import again.",
+    "importHelp": "At most 500 MB. Duplicates are skipped, so the import can be run again.",
     "importResult": "Imported: {{imported}}. Duplicates: {{duplicates}}. Failed: {{failed}}.",
     "importEquipmentResult": "Shoes imported: {{imported}}. Existing activities linked to shoes: {{linked}}.",
     "failedImports": "Strava IDs of activities that could not be imported",

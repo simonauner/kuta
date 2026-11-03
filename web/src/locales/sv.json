@@ -515,6 +515,14 @@
     "terms": "Användarvillkor"
   },
   "settings": {
+    "stravaGuide": {
+      "title": "Så exporterar du från Strava",
+      "step1": "Logga in på strava.com i en webbläsare. Exporten går inte att beställa i Strava-appen.",
+      "step2": "Öppna <link>Ladda ner eller radera ditt konto</link> (Inställningar → Mitt konto) och välj Kom igång.",
+      "step3": "Välj Begär ditt arkiv under Ladda ner begäran.",
+      "step4": "Strava mejlar en länk när arkivet är klart, ofta inom några timmar. Ladda ner ZIP-filen.",
+      "step5": "Välj ZIP-filen nedan utan att packa upp den."
+    },
     "profileTitle": "Profil och synlighet",
     "dataTitle": "Data och integritet",
     "title": "Inställningar",
@@ -524,7 +532,7 @@
     "import": "Importera aktiviteter",
     "importing": "Importerar …",
     "importWait": "Importen körs på servern. Du kan lämna sidan och komma tillbaka; förloppet visas här.",
-    "importHelp": "Välj hela ZIP-exporten från Strava, högst 500 MB. Dubbletter hoppas över, så importen går att köra igen.",
+    "importHelp": "Högst 500 MB. Dubbletter hoppas över, så importen går att köra igen.",
     "importResult": "Importerade: {{imported}}. Dubbletter: {{duplicates}}. Misslyckade: {{failed}}.",
     "importEquipmentResult": "Skor importerade: {{imported}}. Tidigare aktiviteter kompletterade med skor: {{linked}}.",
     "failedImports": "Strava-ID för aktiviteter som inte kunde importeras",
