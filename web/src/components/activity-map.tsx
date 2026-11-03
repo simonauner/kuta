@@ -1,16 +1,35 @@
 import {
   LngLatBounds,
+  FullscreenControl,
   Map,
   Marker,
   NavigationControl,
   type GeoJSONSource,
   type GeoJSONSourceSpecification,
 } from 'maplibre-gl'
-import { Maximize2, Minimize2 } from 'lucide-react'
-import { useEffect, useLayoutEffect, useMemo, useRef, useState } from 'react'
+import { Expand, Maximize2, Minimize, Minimize2, PanelLeftClose, PanelLeftOpen } from 'lucide-react'
+import {
+  useEffect,
+  useId,
+  useLayoutEffect,
+  useMemo,
+  useRef,
+  useState,
+  useSyncExternalStore,
+  type ReactNode,
+} from 'react'
 import { createPortal } from 'react-dom'
 import { useTranslation } from 'react-i18next'
 import { mapStyle } from '@/lib/map'
+import { Button } from '@/components/ui/button'
+
+// The size button only shows from Tailwind's lg breakpoint
+const wideQuery = () => window.matchMedia('(min-width: 64rem)')
+const subscribeWide = (onChange: () => void) => {
+  const query = wideQuery()
+  query.addEventListener('change', onChange)
+  return () => query.removeEventListener('change', onChange)
+}
 
 // Basemap from our own PMTiles file (src/lib/map.ts), so no map provider sees where the activity went.
 export function ActivityMap({
@@ -20,6 +39,8 @@ export function ActivityMap({
   thumbnail = false,
   large = false,
   expandable = false,
+  onSideChange,
+  side,
   fitKey,
   handles,
 }: {
@@ -28,8 +49,11 @@ export function ActivityMap({
   thumbnail?: boolean
   // Wider and taller map for precise dragging of handles; MapLibre follows the container size itself
   large?: boolean
-  // Adds a button next to zoom that toggles the large size
+  // Adds buttons next to zoom that toggle the large size and fullscreen
   expandable?: boolean
+  onSideChange?: (shown: boolean) => void
+  // Shown in a collapsible panel beside the map while it is enlarged or fullscreen on a wide screen
+  side?: ReactNode
   routes?: { coordinates: [number, number][]; color: string }[]
   // Refit to the route only when this changes (default: when coordinates change), so editing keeps the zoom
   fitKey?: unknown
@@ -43,8 +67,19 @@ export function ActivityMap({
 }) {
   const { t } = useTranslation()
   const container = useRef<HTMLDivElement>(null)
-  const [expanded, setExpanded] = useState(false)
+  const [expandedChoice, setExpanded] = useState(false)
+  // A narrow window keeps the normal size, so the parent shows its tables above the map instead of beside it
+  const wide = useSyncExternalStore(subscribeWide, () => wideQuery().matches)
+  const expanded = expandedChoice && wide
+  const [fullscreen, setFullscreen] = useState(false)
+  const sideShown = (expanded || fullscreen) && wide
+  // Fullscreen takes the panel along, so it targets this frame rather than the map itself
+  const frame = useRef<HTMLDivElement>(null)
+  const [sideOpen, setSideOpen] = useState(true)
+  const sideId = useId()
   // MapLibre control element that React renders the size button into (see the portal below)
+  // Replaces the fullscreen control's own icon so both size buttons use the same icon set
+  const [fullscreenIcon] = useState(() => document.createElement('span'))
   const [sizeControl] = useState(() => {
     const element = document.createElement('div')
     // On a small screen the map already fills the width
@@ -67,10 +102,16 @@ export function ActivityMap({
     [coordinates, routes],
   )
   const markers = useRef<Marker[]>([])
-  const latest = useRef({ coordinates, data, handles })
+  const latest = useRef({ coordinates, data, handles, onSideChange, t })
   useLayoutEffect(() => {
-    latest.current = { coordinates, data, handles }
+    latest.current = { coordinates, data, handles, onSideChange, t }
   })
+  useEffect(() => latest.current.onSideChange?.(sideShown), [sideShown])
+  // The size button does nothing in fullscreen; important beats the lg:block! that shows it
+  useEffect(() => {
+    if (fullscreen) sizeControl.style.setProperty('display', 'none', 'important')
+    else sizeControl.style.removeProperty('display')
+  }, [fullscreen, sizeControl])
 
   // The map is created once; route changes update the source instead of recreating it (which reset the zoom)
   useEffect(() => {
@@ -82,11 +123,26 @@ export function ActivityMap({
       // Scroll and one finger move the page, not the map; zoom with Ctrl/Cmd + scroll or two fingers
       cooperativeGestures: !thumbnail,
       interactive: !thumbnail,
+      // Created once, so the titles keep the language the map opened in
+      locale: {
+        'FullscreenControl.Enter': latest.current.t('activity.mapFullscreen'),
+        'FullscreenControl.Exit': latest.current.t('activity.mapExitFullscreen'),
+      },
     })
     if (!thumbnail) {
       map.addControl(new NavigationControl({ showCompass: false }))
-      if (expandable)
+      if (expandable && frame.current) {
         map.addControl({ onAdd: () => sizeControl, onRemove: () => sizeControl.remove() })
+        const fullscreenControl = new FullscreenControl({ container: frame.current })
+        // The control itself turns off cooperative gestures while fullscreen
+        fullscreenControl.on('fullscreenstart', () => setFullscreen(true))
+        fullscreenControl.on('fullscreenend', () => setFullscreen(false))
+        map.addControl(fullscreenControl)
+        const fullscreenButton = map.getContainer().querySelector('.maplibregl-ctrl-fullscreen')
+        // MapLibre only toggles its own classes on the button, so these stay
+        fullscreenButton?.classList.add('flex!', 'items-center', 'justify-center', 'text-[#333]')
+        fullscreenButton?.replaceChildren(fullscreenIcon)
+      }
     }
     // Thumbnails can't be dragged, which is what collapses the attribution otherwise. OSM's attribution guidelines
     // allow collapsing behind the (i) button once it has been shown for five seconds.
@@ -126,7 +182,7 @@ export function ActivityMap({
       map.remove()
       mapRef.current = null
     }
-  }, [thumbnail, expandable, sizeControl])
+  }, [thumbnail, expandable, sizeControl, fullscreenIcon])
 
   useEffect(() => {
     mapRef.current?.getSource<GeoJSONSource>('route')?.setData(data)
@@ -179,14 +235,17 @@ export function ActivityMap({
 
   return (
     <div
-      role="img"
-      aria-label={label}
+      ref={frame}
       className={
         thumbnail
-          ? 'h-full w-full overflow-hidden'
+          ? 'h-full w-full'
           : // Negative margins widen the map past the form column, centred and kept inside the viewport.
             // Width follows the margins (no w-full) so the size change can animate.
-            `overflow-hidden rounded-lg border transition-[height,max-height,margin] duration-300 motion-reduce:transition-none ${
+            // MapLibre toggles its pseudo-fullscreen class here where the Fullscreen API is missing (iPhone), so React
+            // keeps it while fullscreen; the margin and max height would otherwise offset and cap the fixed frame.
+            `flex gap-3 bg-background transition-[height,max-height,margin] duration-300 motion-reduce:transition-none [&:fullscreen]:p-3 ${
+              fullscreen ? 'maplibregl-pseudo-fullscreen m-0! max-h-none! p-3' : ''
+            } ${
               enlarged
                 ? // The editor keeps room for the sport legs below the map
                   `mx-[calc(50%-min(50vw-1rem,48rem))] ${large ? 'h-[60svh] max-h-[60svh]' : 'h-[80svh] max-h-[80svh]'}`
@@ -194,8 +253,41 @@ export function ActivityMap({
             }`
       }
     >
-      {/* MapLibre adds its own classes here, so this element's className must never change */}
-      <div ref={container} className="size-full" />
+      {sideShown && side && (
+        // Collapses sideways like a sidebar; the inner width stays fixed so the content doesn't reflow
+        <div
+          className={`flex shrink-0 flex-col items-start overflow-hidden rounded-lg border transition-[width] duration-300 motion-reduce:transition-none ${sideOpen ? 'w-[26rem]' : 'w-11'}`}
+        >
+          <Button
+            type="button"
+            variant="ghost"
+            size="icon"
+            className="m-1"
+            aria-expanded={sideOpen}
+            aria-controls={sideId}
+            aria-label={sideOpen ? t('activity.mapPanelHide') : t('activity.mapPanelShow')}
+            title={sideOpen ? t('activity.mapPanelHide') : t('activity.mapPanelShow')}
+            onClick={() => setSideOpen((v) => !v)}
+          >
+            {sideOpen ? <PanelLeftClose /> : <PanelLeftOpen />}
+          </Button>
+          <div
+            id={sideId}
+            inert={!sideOpen}
+            className={`min-h-0 w-[26rem] flex-1 overflow-y-auto px-3 pb-3 transition-opacity duration-300 motion-reduce:transition-none ${sideOpen ? '' : 'opacity-0'}`}
+          >
+            {side}
+          </div>
+        </div>
+      )}
+      <div
+        role="img"
+        aria-label={label}
+        className={`size-full min-w-0 overflow-hidden ${thumbnail ? '' : 'flex-1 rounded-lg border'}`}
+      >
+        {/* MapLibre adds its own classes here, so this element's className must never change */}
+        <div ref={container} className="size-full" />
+      </div>
       {expandable &&
         createPortal(
           <button
@@ -205,11 +297,16 @@ export function ActivityMap({
             aria-pressed={expanded}
             aria-label={expanded ? t('activity.mapSmaller') : t('activity.mapLarger')}
             title={expanded ? t('activity.mapSmaller') : t('activity.mapLarger')}
-            onClick={() => setExpanded((v) => !v)}
+            onClick={() => setExpanded(!expanded)}
           >
             {expanded ? <Minimize2 className="size-4" /> : <Maximize2 className="size-4" />}
           </button>,
           sizeControl,
+        )}
+      {expandable &&
+        createPortal(
+          fullscreen ? <Minimize className="size-4" /> : <Expand className="size-4" />,
+          fullscreenIcon,
         )}
     </div>
   )
