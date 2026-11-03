@@ -41,8 +41,9 @@
       "garminTitle": "Koppla Garmin",
       "garminDescription": "Nya aktiviteter från klockan kommer in automatiskt, från och med nu.",
       "stravaTitle": "Ta med din historik från Strava",
-      "stravaDescription": "Exportera ditt Strava-arkiv och ladda upp ZIP-filen, så följer gamla aktiviteter och skor med.",
+      "stravaDescription": "Beställ ditt arkiv hos Strava. Det kommer som en ZIP-fil via mejl, ofta inom några timmar. Ladda sedan upp filen här, så följer gamla aktiviteter och skor med.",
       "stravaAction": "Importera från Strava",
+      "stravaRequest": "Beställ arkivet hos Strava",
       "manual": "Eller lägg till en aktivitet manuellt eller med en FIT-fil."
     },
     "socialTitle": "Träna tillsammans",

@@ -41,8 +41,9 @@
       "garminTitle": "Connect Garmin",
       "garminDescription": "New activities from your watch arrive automatically from now on.",
       "stravaTitle": "Bring your history from Strava",
-      "stravaDescription": "Export your Strava archive and upload the ZIP file to bring over old activities and shoes.",
+      "stravaDescription": "Request your archive from Strava. It arrives as a ZIP file by email, often within a few hours. Then upload the file here to bring over old activities and shoes.",
       "stravaAction": "Import from Strava",
+      "stravaRequest": "Request the archive from Strava",
       "manual": "Or add an activity manually or with a FIT file."
     },
     "socialTitle": "Train together",

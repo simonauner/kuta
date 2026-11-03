@@ -1,7 +1,7 @@
 import { SlowLoading } from '@/components/slow-loading'
 import { useQuery } from '@tanstack/react-query'
 import { Link } from '@tanstack/react-router'
-import { Plus, Users } from 'lucide-react'
+import { ExternalLink, Plus, Users } from 'lucide-react'
 import { useTranslation } from 'react-i18next'
 import { ErrorMessage } from '@/components/error-message'
 import { ShareProfile } from '@/components/share-profile'
@@ -10,6 +10,7 @@ import { Button } from '@/components/ui/button'
 import { followsQuery } from '@/lib/follows'
 import { card } from '@/components/ui/card-variants'
 import { Heading } from '@/components/ui/heading'
+import { stravaExportUrl } from '@/lib/strava'
 
 export function FeedEmptyState() {
   const { t } = useTranslation()
@@ -94,6 +95,15 @@ function OnboardingSteps() {
               >
                 <Link to="/app/settings/import">{step.action}</Link>
               </Button>
+              {/* The archive takes hours to arrive, so it can be requested straight away. */}
+              {step.key === 'strava' && (
+                <Button asChild variant="link" className="ml-4 mt-3">
+                  <a href={stravaExportUrl} target="_blank" rel="noopener noreferrer">
+                    {t('feed.onboarding.stravaRequest')}
+                    <ExternalLink aria-hidden="true" />
+                  </a>
+                </Button>
+              )}
             </div>
           </li>
         ))}
