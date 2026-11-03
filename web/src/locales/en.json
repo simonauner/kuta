@@ -359,6 +359,8 @@
     "mapSmaller": "Shrink map",
     "mapPanelHide": "Hide tables",
     "mapPanelShow": "Show tables",
+    "mapFullscreen": "View map in fullscreen",
+    "mapExitFullscreen": "Exit fullscreen",
     "routeColoring": "Color the route by",
     "routeColoringNone": "Route",
     "routeColoringHr": "Heart rate",

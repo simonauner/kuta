@@ -359,6 +359,8 @@
     "mapSmaller": "Förminska kartan",
     "mapPanelHide": "Dölj tabellerna",
     "mapPanelShow": "Visa tabellerna",
+    "mapFullscreen": "Visa kartan i helskärm",
+    "mapExitFullscreen": "Avsluta helskärm",
     "routeColoring": "Färga rutten efter",
     "routeColoringNone": "Rutt",
     "routeColoringHr": "Puls",

@@ -119,9 +119,12 @@ export function ActivityPage() {
   const visitor = me === null
   const equipment = useQuery({ ...equipmentQuery, enabled: !visitor })
   const [openPanel, setOpenPanel] = useState<'laps' | 'splits' | 'efforts' | null>(null)
-  // The enlarged map shows the tables in its side panel instead of above it
-  const [mapExpanded, setMapExpanded] = useState(false)
-  const tableHeight = mapExpanded ? 'max-h-[calc(80svh-9rem)]' : 'max-h-[min(16rem,25svh)]'
+  // An enlarged or fullscreen map shows the tables in its side panel instead of above it
+  const [tablesBeside, setTablesBeside] = useState(false)
+  // The map frame carries MapLibre's fullscreen class in fullscreen, where the panel gets the whole screen height
+  const tableHeight = tablesBeside
+    ? 'max-h-[calc(80svh-9rem)] [.maplibregl-pseudo-fullscreen_&]:max-h-[calc(100svh-9rem)]'
+    : 'max-h-[min(16rem,25svh)]'
   const lapsOpen = openPanel === 'laps'
   const splitsOpen = openPanel === 'splits'
   const effortsOpen = openPanel === 'efforts'
@@ -693,7 +696,7 @@ export function ActivityPage() {
         </p>
       )}
 
-      {!mapExpanded && tablePanels && <div className="mt-8">{tablePanels}</div>}
+      {!tablesBeside && tablePanels && <div className="mt-8">{tablePanels}</div>}
 
       <div className="mt-8">
         {view && view.coordinates.length > 1 ? (
@@ -703,10 +706,10 @@ export function ActivityPage() {
               routes={colored?.routes ?? view.routes}
               label={t('activity.map')}
               expandable
-              onExpandedChange={(expanded) => {
-                setMapExpanded(expanded)
+              onSideChange={(shown) => {
+                setTablesBeside(shown)
                 // Open the first table so the side panel isn't empty
-                if (expanded)
+                if (shown)
                   setOpenPanel(
                     (open) =>
                       open ??
