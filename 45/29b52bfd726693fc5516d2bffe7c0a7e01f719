@@ -1,0 +1,57 @@
+api/Kuta.Api/RecordTrends.cs
+  s_1a3502eba67d77::t_a46d57cd9fafd0 19-20,29-32
+  s_1a3502eba67d77::t_c8c0f15eab0f6c 17-18,27-28
+web/src/components/record-award.css
+  s_1a3502eba67d77::t_53640f92c3f662 22-23
+web/src/lib/records.ts
+  s_1a3502eba67d77::t_11eeefdaad9bf9 14-16
+  s_1a3502eba67d77::t_2576e80086bac9 11
+  s_1a3502eba67d77::t_ac58dd1b826792 10
+api/Kuta.Api/SocialEndpoints.cs
+  s_1a3502eba67d77::t_a46d57cd9fafd0 268-269,276-277,283,290,295
+  s_1a3502eba67d77::t_c8c0f15eab0f6c 266-267,275,282
+README.md
+  s_1a3502eba67d77::t_b9bade5c9d3e02 571
+web/src/locales/en.json
+  s_1a3502eba67d77::t_5e59cabb266506 78-79,173-174
+  s_1a3502eba67d77::t_ac58dd1b826792 81-83,177-178
+web/src/locales/sv.json
+  s_1a3502eba67d77::t_ac58dd1b826792 81-83,177-178
+  s_1a3502eba67d77::t_5e59cabb266506 78-79,173-174
+web/src/routes/activity.tsx
+  s_1a3502eba67d77::t_11eeefdaad9bf9 130-131,327,485
+  s_1a3502eba67d77::t_2576e80086bac9 24
+web/src/components/records.tsx
+  s_1a3502eba67d77::t_2576e80086bac9 17,360-363
+web/src/components/record-award.tsx
+  s_1a3502eba67d77::t_d1b4c27ae8f5d9 43-46
+  s_1a3502eba67d77::t_53640f92c3f662 35-40,47-48,50,54-55,58,63
+  s_1a3502eba67d77::t_7cc3b5cd9cbcc5 1
+  s_1a3502eba67d77::t_2c18943bcb914b 31,33-34,41-42,66
+  s_1a3502eba67d77::t_0ab4e3be5b8fd5 74-75,78
+web/src/components/activity-feed.tsx
+  s_1a3502eba67d77::t_ac58dd1b826792 42
+  s_1a3502eba67d77::t_2c18943bcb914b 23
+api/Kuta.Api.Tests/RecordTrendsTests.cs
+  s_1a3502eba67d77::t_4f0d30a93eb203 62-69,71-72
+  s_1a3502eba67d77::t_ac58dd1b826792 70
+  s_1a3502eba67d77::t_d8bc56168961d4 56,76
+api/Kuta.Api.Tests/SocialTests.cs
+  s_1a3502eba67d77::t_d8bc56168961d4 92-93,101,106,108,110,113-115
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.7.5",
+  "base_commit_sha": "4529b52bfd726693fc5516d2bffe7c0a7e01f719",
+  "prompts": {},
+  "sessions": {
+    "s_1a3502eba67d77": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "ca41ae2d-d33c-43c6-835b-251a4f260733",
+        "model": "claude-opus-5-5"
+      },
+      "human_author": "Simon Aunér <simonauner@gmail.com>"
+    }
+  }
+}
