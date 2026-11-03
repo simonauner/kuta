@@ -1,5 +1,6 @@
 import { useTranslation } from 'react-i18next'
 import { GarminConnect, GarminConnectedAlert } from '@/components/garmin'
+import { HeartRateConsentPrompt } from '@/components/heart-rate-consent'
 import { HelpPopover } from '@/components/help-popover'
 import { SettingsBreadcrumb } from '@/components/settings-breadcrumb'
 import { StravaImport } from '@/components/strava-import'
@@ -14,6 +15,10 @@ export function ImportPage() {
       <GarminConnectedAlert className="mb-4" />
       <Heading level={1}>{t('settings.importTitle')}</Heading>
       <p className="mt-2 text-body text-muted-foreground">{t('settings.importIntro')}</p>
+      {/* Before both imports: activities that arrive without consent never get their heart rate back. */}
+      <div className="mt-6">
+        <HeartRateConsentPrompt />
+      </div>
 
       <section aria-labelledby="garmin-heading" className="mt-8 border-t pt-6">
         <Heading level={2} id="garmin-heading">

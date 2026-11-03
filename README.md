@@ -44,7 +44,7 @@ förväxlingsbara tecken (0/o, 1/l/i), slumpas med kryptografisk RNG och skapas 
 `POST /api/me/share-code` ger egen kod (skapar den vid behov; POST eftersom GET aldrig ändrar data),
 `POST /api/me/share-code/replace` ersätter den och `GET /api/share-codes/{kod}` ger `{ runnerId }`
 eller 404. Uppslaget kräver inloggning och har rate limiten `shareCodes`, 30 anrop/timme/användare,
-så att koder inte kan gissas fram. **Inställningar → Profillänk → Skapa ny länk** byter kod efter en
+så att koder inte kan gissas fram. **Inställningar → Profil och synlighet → Profillänk → Skapa ny länk** byter kod efter en
 bekräftelse; den gamla länken slutar då fungera. Den som redan hittat profilen (flöde, följlistor,
 `/app/runners/{id}`) kommer fortfarande åt den: koden hittar bara profilen, och blockering och
 synlighet styr läsningen. Koden ingår i `profile.json` i exporten.
@@ -140,7 +140,7 @@ annars förfluten tid. Tidsaxelns etikett följer appens valda språk.
 
 ## Standardsynlighet för pass
 
-Profil → Inställningar har ett automatiskt sparat standardval för nya pass: privat,
+Profil → Inställningar → Profil och synlighet har ett automatiskt sparat standardval för nya pass: privat,
 godkända följare eller alla inloggade löpare. Förvalet är privat. Manuella pass,
 FIT-uppladdningar och Strava-importer läser det aktuella valet när varje pass sparas.
 Enskilda pass kan fortfarande ändras via redigeringssidan.
@@ -168,7 +168,7 @@ Frivilligt årligt supporterskap (brons 50 kr, silver 150 kr, guld 300 kr, valfr
 
 ## Profilbild
 
-Inställningar → Profilbild laddar upp en egen bild; utan bild visas initialerna. Ingen Gravatar: hashen av e-postadressen skulle låta andra koppla en känd adress till profilen, och Gravatar skulle se vem som tittar på vilken profil.
+Inställningar → Profil och synlighet → Profilbild laddar upp en egen bild; utan bild visas initialerna. Ingen Gravatar: hashen av e-postadressen skulle låta andra koppla en känd adress till profilen, och Gravatar skulle se vem som tittar på vilken profil.
 
 - Webben beskär till en kvadrat och skalar till 256 px JPEG i webbläsaren innan uppladdningen. Omkodningen tar bort EXIF, även GPS.
 - `POST /api/me/avatar` (multipart, fältet `file`, högst 200 kB, måste vara JPEG; rate limiten `uploads`) och `DELETE /api/me/avatar` svarar `{ avatarId }`. Varje uppladdning får ett nytt slumpat `users.avatar_id` (migrering 030); den gamla filen raderas först, under profillåset.
@@ -269,7 +269,7 @@ loggningen, och Wolverine är ett helt meddelanderamverk. Kön är en tabell `jo
 - **Omberäkning:** `POST /api/activities/recalculate` (CSRF) köar omberäkning av rekord och löpintensitet för alla egna
   pass med tidsserier, 50 åt gången. Ett aktivt jobb returneras i stället för ett nytt. Förloppet sparar senaste passet,
   så ett avbrutet jobb fortsätter där det slutade. Migrering 020 köar en omberäkning för alla användare med tidsserier.
-  Knappen finns under Inställningar → Räkna om pass.
+  Knappen finns under Inställningar → Data och integritet → Räkna om aktiviteter.
 - **Läsning:** `GET /api/jobs` ger användarens senaste jobb av varje slag och `GET /api/jobs/{id}` ett eget jobb
   (annars 404). Webben frågar varje sekund medan ett jobb är aktivt.
 - **Tester:** `Jobs__Enabled=false` stänger av arbetaren i testappen, och testerna kör jobben med
@@ -306,10 +306,10 @@ prognosen. Tröskelfarten ingår i dataexportens `profile.json`. Bara egna pass 
 
 ## Träningsmål
 
-**Pass → Nytt mål** skapar ett mål: distans (km), tid (minuter) eller antal pass per vecka,
+**Profil → Mål → Nytt mål** skapar ett mål: distans (km), tid (minuter) eller antal pass per vecka,
 månad eller år, för en grupp av träningsformer eller alla. Målet upprepas varje period eller gäller en gång,
 för perioden då det skapas (exempelvis 1 000 km i år). Pågående mål visas som kort med
-förloppsstapel ovanför passlistan; ett uppnått mål får ”Hurra! Målet är nått”. Upprepade mål
+förloppsstapel under Mål på profilen; ett uppnått mål får ”Hurra! Målet är nått”. Upprepade mål
 visar även förra periodens resultat när det nåddes och hur många perioder i rad målet nåtts
 (från två). Ett avslutat engångsmål visas nedtonat tills det tas bort. Klick på kortet öppnar
 redigering och borttagning i samma modal. Inga mål ger ingen sektion.
@@ -421,7 +421,7 @@ Kommer bekräftelsemejlet ändå på engelska med en länk till Supabase har aut
 
 ### Kontoradering
 
-Inställningar → Radera data → **Radera konto** kräver att användaren skriver sitt lösenord. `DELETE /api/me` kräver inloggning, CSRF-token och `{ password }`, som API:t kontrollerar mot Supabase (fel lösenord ger `403 wrongPassword`; auth-gränsen per IP gäller), och använder endast den inloggade användarens id. Under samma profillås som importen raderas råfilerna via objektlagringen, därefter raderas `auth.users` direkt i databastransaktionen. Befintliga FK-kaskader tar bort profil, utrustning, pass, tidsserier, varv, sportdelar, rekord och Supabase-/Kuta-sessioner. Cookien och webbens sessionscache rensas; gamla cookies avvisas vid nästa anrop.
+Inställningar → Data och integritet → Radera data → **Radera konto** kräver att användaren skriver sitt lösenord. `DELETE /api/me` kräver inloggning, CSRF-token och `{ password }`, som API:t kontrollerar mot Supabase (fel lösenord ger `403 wrongPassword`; auth-gränsen per IP gäller), och använder endast den inloggade användarens id. Under samma profillås som importen raderas råfilerna via objektlagringen, därefter raderas `auth.users` direkt i databastransaktionen. Befintliga FK-kaskader tar bort profil, utrustning, pass, tidsserier, varv, sportdelar, rekord och Supabase-/Kuta-sessioner. Cookien och webbens sessionscache rensas; gamla cookies avvisas vid nästa anrop.
 
 Om filrensningen misslyckas behålls kontot och filreferenserna för ett nytt försök. Redan raderade filer kan inte återställas om ett senare steg misslyckas, men raderingen kan köras igen. Leverantörsloggar och säkerhetskopior omfattas inte av appens radering; se integritetsunderlaget nedan. Ingen ny migrering eller separat Auth-adminnyckel behövs.
 
@@ -610,7 +610,7 @@ till fältet; redan importerade dubbletter hoppas fortfarande över vid Strava-i
 
 ## Exportera data
 
-Öppna **Profil → Inställningar → Exportera data → Ladda ner ZIP**. Låt sidan vara öppen medan arkivet förbereds. `GET /api/me/export` kräver inloggning och hämtar bara det egna kontots data, oberoende av filter och sidindelning i passlistan. Svaret är en nedladdningsbar `kuta-export.zip` med `Cache-Control: no-store`.
+Öppna **Profil → Inställningar → Data och integritet → Exportera data → Ladda ner ZIP**. Låt sidan vara öppen medan arkivet förbereds. `GET /api/me/export` kräver inloggning och hämtar bara det egna kontots data, oberoende av filter och sidindelning i passlistan. Svaret är en nedladdningsbar `kuta-export.zip` med `Cache-Control: no-store`.
 
 - `avatar.jpg`: profilbilden, om en finns.
 - `profile.json`: id, e-postadress, visningsnamn, profilens skapandetid, tidpunkt för pulssamtycke och för godkända villkor.
@@ -626,7 +626,7 @@ Exportens innehåll, åtkomst mellan två användare, råfilernas bytes och samo
 
 ## Importera en Strava-export
 
-Öppna **Profil → Inställningar** via kugghjulet. Under **Importera från Strava** väljer du Stravas kompletta ZIP-export (högst 500 MB) och trycker **Importera pass**. Ta ställning till pulssamtycket först. Uppladdningen köar importen, som sedan körs på servern (se [Jobbkö](#jobbkö)). Under importen visas antal bearbetade pass och löpande räknare för importerade, dubbletter och misslyckade. Sidan kan lämnas; förloppet och det senaste resultatet visas igen när du kommer tillbaka. Exporten måste innehålla `activities.csv` i roten och filerna på sökvägarna i kolumnen `Filename`.
+Öppna **Profil → Inställningar → Import och anslutningar** via kugghjulet. Sidan visar stegen för att beställa arkivet hos Strava, med direktlänk. Under **Importera från Strava** väljer du Stravas kompletta ZIP-export (högst 500 MB) och trycker **Importera pass**. Ta ställning till pulssamtycket först. Uppladdningen köar importen, som sedan körs på servern (se [Jobbkö](#jobbkö)). Under importen visas antal bearbetade pass och löpande räknare för importerade, dubbletter och misslyckade. Sidan kan lämnas; förloppet och det senaste resultatet visas igen när du kommer tillbaka. Exporten måste innehålla `activities.csv` i roten och filerna på sökvägarna i kolumnen `Filename`.
 
 Träningsformen bevaras även för exempelvis terränglöpning, elcykling och virtuella pass. Namn från Stravas CSV och kompakta sportnamn normaliseras vid importen; okända framtida namn sparas också. Äldre importer slog ihop Run/Trail Run/Virtual Run respektive Ride/Virtual Ride/E-Bike Ride. Dessa redan sparade pass får ikonen för sin sparade sport; återimport av dubbletter ändrar inte sporten. Rekord beräknas för löpning, terränglöpning och virtuell löpning.
 

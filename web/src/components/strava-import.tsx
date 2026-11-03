@@ -1,7 +1,7 @@
 import { FormField } from '@/components/ui/form-field'
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
 import { useEffect, useRef, useState, type FormEvent } from 'react'
-import { useTranslation } from 'react-i18next'
+import { Trans, useTranslation } from 'react-i18next'
 import { DefaultPrivacyNote } from '@/components/activity-privacy'
 import { ErrorMessage } from '@/components/error-message'
 import { Button } from '@/components/ui/button'
@@ -9,6 +9,8 @@ import { Input } from '@/components/ui/input'
 import { refreshActivityQueries } from '@/lib/activity-query'
 import { api, ApiError } from '@/lib/api'
 import { isActive, jobFraction, latestJob, latestJobsQuery, type Job } from '@/lib/jobs'
+import { stravaExportUrl } from '@/lib/strava'
+import { Heading } from '@/components/ui/heading'
 
 type StravaImportResult = {
   imported: number
@@ -109,6 +111,7 @@ export function StravaImport() {
   const result = job?.status === 'succeeded' ? job.result : null
   return (
     <form onSubmit={onSubmit} className="mt-4">
+      <StravaGuide />
       <FormField label={t('settings.stravaFile')}>
         {(id) => (
           <Input
@@ -218,5 +221,37 @@ export function Recalculation() {
         </p>
       )}
     </div>
+  )
+}
+
+// Strava's export is several steps away on their site and arrives by email, so the way there is spelled out.
+function StravaGuide() {
+  const { t } = useTranslation()
+  const steps = ['step1', 'step2', 'step3', 'step4', 'step5', 'step6'] as const
+  return (
+    <section aria-labelledby="strava-guide-heading" className="mb-6">
+      <Heading level={3} id="strava-guide-heading">
+        {t('settings.stravaGuide.title')}
+      </Heading>
+      <ol className="mt-2 list-decimal space-y-1 pl-5 text-sm text-muted-foreground">
+        {steps.map((step) => (
+          <li key={step}>
+            <Trans
+              i18nKey={`settings.stravaGuide.${step}`}
+              components={{
+                link: (
+                  <a
+                    href={stravaExportUrl}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="underline underline-offset-4"
+                  />
+                ),
+              }}
+            />
+          </li>
+        ))}
+      </ol>
+    </section>
   )
 }

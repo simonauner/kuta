@@ -12,6 +12,7 @@ import { AuthPage, ChooseNamePage, ResetPasswordPage } from '@/routes/auth'
 import { useState } from 'react'
 import { Button } from '@/components/ui/button'
 import { VisitorContext } from '@/lib/visitor'
+import { rememberReturnTo } from '@/lib/return-to'
 
 const tabs = [
   { to: '/app', label: 'nav.feed', icon: Home },
@@ -149,6 +150,7 @@ function VisitorShell() {
   const [signingIn, setSigningIn] = useState(false)
   if (signingIn) return <AuthPage />
   const signIn = (mode: 'login' | 'signup') => {
+    rememberReturnTo(window.location.pathname)
     window.location.hash = mode === 'signup' ? 'signup' : ''
     setSigningIn(true)
   }

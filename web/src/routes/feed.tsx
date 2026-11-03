@@ -1,7 +1,7 @@
 import { useQuery } from '@tanstack/react-query'
 import { useTranslation } from 'react-i18next'
 import { ActivityFeed } from '@/components/activity-feed'
-import { FeedSummary } from '@/components/feed-summary'
+import { FeedSummary, FeedWeekCard } from '@/components/feed-summary'
 import { runnerSummaryQuery } from '@/components/runner-summary'
 import { UnreviewedActivities } from '@/components/unreviewed-activities'
 import { FollowRequests } from '@/components/follow-requests'
@@ -22,7 +22,7 @@ export function FeedPage() {
           : undefined
       }
     >
-      {/* Small screens reach the same numbers on Profile, so the feed comes first there. */}
+      {/* Small screens get this week and the running load above the feed instead; the rest is on Profile. */}
       {showSummary && (
         <aside className="hidden lg:block">
           <FeedSummary />
@@ -38,6 +38,11 @@ export function FeedPage() {
         <Heading level={1} className="sr-only md:not-sr-only">
           {t('nav.feed')}
         </Heading>
+        {showSummary && (
+          <div className="lg:hidden">
+            <FeedWeekCard />
+          </div>
+        )}
         <FollowRequests />
         <UnreviewedActivities />
         <ActivityFeed />

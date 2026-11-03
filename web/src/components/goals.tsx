@@ -2,7 +2,7 @@ import { Reveal } from '@/components/reveal'
 import { GarminDerivedNote } from '@/components/garmin'
 import { FormField } from '@/components/ui/form-field'
 import { Heading } from '@/components/ui/heading'
-import { useEffect, useRef, useState, type FormEvent } from 'react'
+import { useEffect, useRef, useState, type FormEvent, type ReactNode } from 'react'
 import { motion, useReducedMotion } from 'motion/react'
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
 import { useTranslation } from 'react-i18next'
@@ -68,10 +68,13 @@ export function GoalList({
   onSelect,
   runnerId,
   viewAs,
+  action,
 }: {
   onSelect?: (goal: Goal) => void
   runnerId?: string
   viewAs?: 'followers' | 'public'
+  // Shown beside the heading, and keeps the heading when there are no goals yet.
+  action?: ReactNode
 }) {
   const timeZone = Intl.DateTimeFormat().resolvedOptions().timeZone
   const params = new URLSearchParams({ timeZone })
@@ -92,14 +95,18 @@ export function GoalList({
         <ErrorMessage error={goals.error} />
       </p>
     )
-  if (!goals.data?.length) return null
+  if (!goals.data) return null
+  if (!goals.data.length && !action) return null
   return (
     <Reveal>
-      <section className={runnerId ? undefined : 'mt-6'} aria-labelledby="goals-heading">
-        <Heading level={2} id="goals-heading" className="mb-3">
-          {t('goals.heading')}
-        </Heading>
-        {!runnerId && <GarminDerivedNote className="-mt-2 mb-3" />}
+      <section aria-labelledby="goals-heading">
+        <div className="mb-3 flex items-center justify-between gap-4">
+          <Heading level={2} id="goals-heading">
+            {t('goals.heading')}
+          </Heading>
+          {action}
+        </div>
+        {!runnerId && goals.data.length > 0 && <GarminDerivedNote className="-mt-2 mb-3" />}
         <ul className="grid gap-3 sm:grid-cols-2">
           {goals.data.map((goal) => (
             <li key={goal.id}>
@@ -117,6 +124,32 @@ export function GoalList({
         </ul>
       </section>
     </Reveal>
+  )
+}
+
+// The signed-in runner's own goals on Profile, where they are created and edited.
+export function OwnGoals() {
+  const { t } = useTranslation()
+  // null = closed, 'new' = new goal, otherwise the goal being edited
+  const [goalForm, setGoalForm] = useState<Goal | 'new' | null>(null)
+  return (
+    <>
+      <GoalList
+        onSelect={setGoalForm}
+        action={
+          <Button size="sm" variant="secondary-outline" onClick={() => setGoalForm('new')}>
+            {t('goals.new')}
+          </Button>
+        }
+      />
+      {goalForm && (
+        <GoalDialog
+          key={goalForm === 'new' ? 'new' : goalForm.id}
+          goal={goalForm === 'new' ? null : goalForm}
+          onClose={() => setGoalForm(null)}
+        />
+      )}
+    </>
   )
 }
 

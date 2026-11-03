@@ -1,13 +1,13 @@
 import { useQuery } from '@tanstack/react-query'
 import { Link } from '@tanstack/react-router'
-import { Flame } from 'lucide-react'
+import { ChevronDown, Flame } from 'lucide-react'
 import { useState } from 'react'
 import { useTranslation } from 'react-i18next'
 import { Card } from '@/components/ui/card'
 import { Heading } from '@/components/ui/heading'
 import { SupporterBadge } from '@/components/supporter'
 import { meQuery } from '@/lib/auth'
-import { calendarWeeks, weekStreaks } from '@/lib/activity-calendar'
+import { calendarWeeks, weekStreaks, type CalendarDay } from '@/lib/activity-calendar'
 import { runnerSummaryQuery } from '@/components/runner-summary'
 import { useTrainingLoad } from '@/components/training-load'
 import { weeklyLoads, weekTrend } from '@/lib/training-load'
@@ -18,20 +18,6 @@ export function FeedSummary() {
   const { data: me } = useQuery(meQuery)
   const { data } = useQuery({ ...runnerSummaryQuery(me?.id ?? ''), enabled: !!me })
   if (!me || !data) return null
-  // sv-SE formats dates as yyyy-mm-dd in the device's time zone.
-  const today = new Date().toLocaleDateString('sv-SE')
-  const weeks = calendarWeeks(data.days, today)
-  const streak = weekStreaks(weeks).current
-  const week = weeks.at(-1)!
-  const monday = Date.parse(`${week[0].day}T00:00:00Z`)
-  const weekday = new Intl.DateTimeFormat(i18n.resolvedLanguage, {
-    weekday: 'narrow',
-    timeZone: 'UTC',
-  })
-  const longDay = new Intl.DateTimeFormat(i18n.resolvedLanguage, {
-    weekday: 'long',
-    timeZone: 'UTC',
-  })
   const number = new Intl.NumberFormat(i18n.resolvedLanguage)
   const counts = [
     { label: t('feed.summary.following'), value: data.followingCount },
@@ -60,42 +46,9 @@ export function FeedSummary() {
           <Heading level={4} id="feed-summary-week">
             {t('feed.summary.thisWeek')}
           </Heading>
-          <p className="flex items-center gap-1 text-metadata text-muted-foreground">
-            <Flame aria-hidden="true" className="size-3.5 text-primary" />
-            {t('profile.calendar.streak', { count: streak })}
-          </p>
+          <WeekStreak days={data.days} />
         </div>
-        <ol className="grid grid-cols-7 gap-1 text-center">
-          {Array.from({ length: 7 }, (_, i) => {
-            const date = new Date(monday + i * 86_400_000)
-            const day = week[i]
-            const active = !!day && day.count > 0
-            return (
-              <li key={i} className="flex flex-col items-center gap-1">
-                <span aria-hidden="true" className="text-metadata text-muted-foreground">
-                  {weekday.format(date)}
-                </span>
-                <span
-                  className={`flex size-7 items-center justify-center rounded-full border text-metadata tabular-nums ${
-                    active
-                      ? 'border-primary bg-primary text-primary-foreground'
-                      : day?.day === today
-                        ? 'border-foreground'
-                        : ''
-                  } ${day ? '' : 'opacity-40'}`}
-                >
-                  <span className="sr-only">
-                    {longDay.format(date)}:{' '}
-                    {active
-                      ? t('feed.summary.activeDay', { count: day.count })
-                      : t('feed.summary.restDay')}
-                  </span>
-                  <span aria-hidden="true">{date.getUTCDate()}</span>
-                </span>
-              </li>
-            )
-          })}
-        </ol>
+        <WeekDays days={data.days} />
       </section>
       <WeeklyLoad />
       <nav aria-label={t('feed.summary.links')} className="space-y-2 border-t pt-4 text-sm">
@@ -107,6 +60,120 @@ export function FeedSummary() {
         </Link>
       </nav>
     </Card>
+  )
+}
+
+const collapsedKey = 'kuta.feedWeekCollapsed'
+
+// Small screens have no column beside the feed, so this week and the running load sit above it and can be folded
+// away; the choice is remembered in this browser.
+export function FeedWeekCard() {
+  const { t } = useTranslation()
+  const { data: me } = useQuery(meQuery)
+  const { data } = useQuery({ ...runnerSummaryQuery(me?.id ?? ''), enabled: !!me })
+  const [collapsed, setCollapsed] = useState(() => {
+    try {
+      return localStorage.getItem(collapsedKey) === 'true'
+    } catch {
+      return false
+    }
+  })
+  if (!data) return null
+  const toggle = () => {
+    setCollapsed(!collapsed)
+    try {
+      localStorage.setItem(collapsedKey, String(!collapsed))
+    } catch {
+      // Blocked storage only forgets the choice.
+    }
+  }
+  return (
+    <Card>
+      <div className="flex items-center justify-between gap-2">
+        <Heading level={4}>
+          <button
+            type="button"
+            aria-expanded={!collapsed}
+            aria-controls="feed-week-content"
+            onClick={toggle}
+            className="flex items-center gap-1 rounded-sm focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-ring"
+          >
+            {t('feed.summary.thisWeek')}
+            <ChevronDown
+              aria-hidden="true"
+              className={`size-4 transition-transform motion-reduce:transition-none ${collapsed ? '' : 'rotate-180'}`}
+            />
+          </button>
+        </Heading>
+        <WeekStreak days={data.days} />
+      </div>
+      <div id="feed-week-content" hidden={collapsed} className="mt-3 space-y-4">
+        <WeekDays days={data.days} />
+        <WeeklyLoad />
+      </div>
+    </Card>
+  )
+}
+
+// sv-SE formats dates as yyyy-mm-dd in the device's time zone.
+const todayLocal = () => new Date().toLocaleDateString('sv-SE')
+
+function WeekStreak({ days }: { days: CalendarDay[] }) {
+  const { t } = useTranslation()
+  const streak = weekStreaks(calendarWeeks(days, todayLocal())).current
+  return (
+    <p className="flex items-center gap-1 text-metadata text-muted-foreground">
+      <Flame aria-hidden="true" className="size-3.5 text-primary" />
+      {t('profile.calendar.streak', { count: streak })}
+    </p>
+  )
+}
+
+function WeekDays({ days }: { days: CalendarDay[] }) {
+  const { t, i18n } = useTranslation()
+  const today = todayLocal()
+  const week = calendarWeeks(days, today).at(-1)!
+  const monday = Date.parse(`${week[0].day}T00:00:00Z`)
+  const weekday = new Intl.DateTimeFormat(i18n.resolvedLanguage, {
+    weekday: 'narrow',
+    timeZone: 'UTC',
+  })
+  const longDay = new Intl.DateTimeFormat(i18n.resolvedLanguage, {
+    weekday: 'long',
+    timeZone: 'UTC',
+  })
+  return (
+    <ol className="grid grid-cols-7 gap-1 text-center">
+      {Array.from({ length: 7 }, (_, i) => {
+        const date = new Date(monday + i * 86_400_000)
+        const day = week[i]
+        const active = !!day && day.count > 0
+        return (
+          <li key={i} className="flex flex-col items-center gap-1">
+            <span aria-hidden="true" className="text-metadata text-muted-foreground">
+              {weekday.format(date)}
+            </span>
+            <span
+              className={`flex size-7 items-center justify-center rounded-full border text-metadata tabular-nums ${
+                active
+                  ? 'border-primary bg-primary text-primary-foreground'
+                  : day?.day === today
+                    ? 'border-foreground'
+                    : ''
+              } ${day ? '' : 'opacity-40'}`}
+            >
+              <span className="sr-only">
+                {longDay.format(date)}:{' '}
+                {active
+                  ? t('feed.summary.activeDay', { count: day.count })
+                  : t('feed.summary.restDay')}
+              </span>
+              <span aria-hidden="true">{date.getUTCDate()}</span>
+            </span>
+          </li>
+        )
+      })}
+    </ol>
   )
 }
 

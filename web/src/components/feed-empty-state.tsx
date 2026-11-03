@@ -1,15 +1,17 @@
 import { SlowLoading } from '@/components/slow-loading'
 import { useQuery } from '@tanstack/react-query'
 import { Link } from '@tanstack/react-router'
-import { Plus, Users } from 'lucide-react'
+import { ExternalLink, Plus, Users } from 'lucide-react'
 import { useTranslation } from 'react-i18next'
 import { ErrorMessage } from '@/components/error-message'
+import { AddActivityButton } from '@/components/onboarding-actions'
 import { ShareProfile } from '@/components/share-profile'
 import { garminStatusQuery } from '@/components/garmin'
 import { Button } from '@/components/ui/button'
 import { followsQuery } from '@/lib/follows'
 import { card } from '@/components/ui/card-variants'
 import { Heading } from '@/components/ui/heading'
+import { stravaExportUrl } from '@/lib/strava'
 
 export function FeedEmptyState() {
   const { t } = useTranslation()
@@ -51,7 +53,7 @@ export function FeedEmptyState() {
               {t('feed.socialTitle')}
             </Heading>
             <p className="mb-4 mt-2 text-sm text-muted-foreground">{t('feed.socialDescription')}</p>
-            <ShareProfile label={t('feed.copyProfileLink')} />
+            <ShareProfile label={t('feed.shareProfileLink')} />
           </section>
         </div>
       ) : null}
@@ -73,34 +75,35 @@ function OnboardingSteps() {
 
   return (
     <>
-      <ol aria-label={t('feed.onboarding.stepsLabel')} className="mt-6 space-y-5">
-        {steps.map((step, index) => (
-          <li key={step.key} className="flex gap-4">
-            <span
-              aria-hidden="true"
-              className="flex size-8 shrink-0 items-center justify-center rounded-full bg-primary text-sm font-semibold text-primary-foreground"
-            >
-              {index + 1}
-            </span>
-            <div>
-              <Heading level={3}>{t(`feed.onboarding.${step.key}Title`)}</Heading>
-              <p className="mt-1 max-w-prose text-body text-muted-foreground">
-                {t(`feed.onboarding.${step.key}Description`)}
-              </p>
-              <Button
-                asChild
-                variant={index === 0 ? 'primary-filled' : 'secondary-outline'}
-                className="mt-3"
-              >
+      {/* Adding an activity works right away, so it leads; connections bring in more but take a detour. */}
+      <AddActivityButton className="mt-6" />
+      <p id="onboarding-steps-label" className="mt-8 text-metadata text-muted-foreground">
+        {t('feed.onboarding.stepsLabel')}
+      </p>
+      <ul aria-labelledby="onboarding-steps-label" className="mt-2 divide-y border-t">
+        {steps.map((step) => (
+          <li key={step.key} className="py-4">
+            <Heading level={3}>{t(`feed.onboarding.${step.key}Title`)}</Heading>
+            <p className="mt-1 max-w-prose text-body text-muted-foreground">
+              {t(`feed.onboarding.${step.key}Description`)}
+            </p>
+            <div className="mt-3 flex flex-wrap items-center gap-x-4 gap-y-2">
+              <Button asChild variant="secondary-outline">
                 <Link to="/app/settings/import">{step.action}</Link>
               </Button>
+              {/* The archive takes hours to arrive, so it can be requested straight away. */}
+              {step.key === 'strava' && (
+                <Button asChild variant="link">
+                  <a href={stravaExportUrl} target="_blank" rel="noopener noreferrer">
+                    {t('feed.onboarding.stravaRequest')}
+                    <ExternalLink aria-hidden="true" />
+                  </a>
+                </Button>
+              )}
             </div>
           </li>
         ))}
-      </ol>
-      <Button asChild variant="link" className="mt-6">
-        <Link to="/app/activities/new">{t('feed.onboarding.manual')}</Link>
-      </Button>
+      </ul>
     </>
   )
 }

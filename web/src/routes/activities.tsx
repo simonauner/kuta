@@ -7,10 +7,8 @@ import { activityTagsQuery, activityYearsQuery } from '@/lib/activity-query'
 import { ErrorMessage } from '@/components/error-message'
 import { ActivitiesEmptyState } from '@/components/activities-empty-state'
 import { SlowLoading } from '@/components/slow-loading'
-import { GoalDialog, GoalList } from '@/components/goals'
 import { ActivityCalendar } from '@/components/activity-calendar'
 import { TrainingLoadWarning } from '@/components/training-load'
-import type { Goal } from '@/lib/goals'
 import { useState } from 'react'
 import { motion, useReducedMotion } from 'motion/react'
 import { Reveal } from '@/components/reveal'
@@ -80,17 +78,12 @@ export function ActivitiesPage() {
     year === undefined &&
     !tag &&
     !sport
-  // null = closed, 'new' = new goal, otherwise the goal being edited
-  const [goalForm, setGoalForm] = useState<Goal | 'new' | null>(null)
 
   return (
     <section>
       <div className="flex items-center justify-between gap-4">
         <Heading level={1}>{t('nav.activities')}</Heading>
         <div className="flex flex-wrap justify-end gap-2">
-          <Button size="sm" variant="secondary-outline" onClick={() => setGoalForm('new')}>
-            {t('goals.new')}
-          </Button>
           {!showOnboarding && (
             <Button asChild size="sm">
               <Link to="/app/activities/new" search={{ year, tag, sport }}>
@@ -102,14 +95,6 @@ export function ActivitiesPage() {
       </div>
       <TrainingLoadWarning />
       <UnreviewedActivities className="pt-4" />
-      <GoalList onSelect={setGoalForm} />
-      {goalForm && (
-        <GoalDialog
-          key={goalForm === 'new' ? 'new' : goalForm.id}
-          goal={goalForm === 'new' ? null : goalForm}
-          onClose={() => setGoalForm(null)}
-        />
-      )}
       {!showOnboarding && (
         <nav
           aria-label={t('activities.views')}

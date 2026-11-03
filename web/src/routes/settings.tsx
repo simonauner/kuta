@@ -18,6 +18,7 @@ import { card } from '@/components/ui/card-variants'
 import { Heading } from '@/components/ui/heading'
 import { HelpPopover } from '@/components/help-popover'
 
+// The overview: language, links to the grouped pages, supporting Kuta and signing out.
 export function SettingsPage() {
   const { t } = useTranslation()
   const { data: me } = useQuery(meQuery)
@@ -26,11 +27,6 @@ export function SettingsPage() {
     mutationFn: () => api.send('POST', '/api/auth/logout'),
     onSuccess: sessionChanged,
   })
-
-  const dataExport = useMutation({
-    mutationFn: () => api.download('/api/me/export', 'kuta-export.zip'),
-  })
-
   return (
     <section>
       <SettingsBreadcrumb />
@@ -41,10 +37,12 @@ export function SettingsPage() {
       <nav aria-label={t('settings.title')} className="mt-6 grid gap-3">
         {(
           [
+            ['/app/settings/profile', t('settings.profileTitle')],
             ['/app/settings/followers', t('settings.followers')],
             ['/app/settings/equipment', t('equipment.title')],
             ['/app/settings/privacy-places', t('privacyPlaces.title')],
             ['/app/settings/import', t('settings.importTitle')],
+            ['/app/settings/data', t('settings.dataTitle')],
           ] as const
         ).map(([to, label]) => (
           <Link
@@ -60,22 +58,60 @@ export function SettingsPage() {
           </Link>
         ))}
       </nav>
+      <SupporterSection />
+      <section aria-labelledby="account-heading" className="mt-8 border-t pt-6">
+        <Heading level={2} id="account-heading">
+          {t('settings.account')}
+        </Heading>
+        <p className="mt-2 break-words text-sm text-muted-foreground">{me?.email}</p>
+        <Button
+          variant="secondary-outline"
+          className="mt-4"
+          disabled={logout.isPending}
+          onClick={() => logout.mutate()}
+        >
+          {t('settings.logout')}
+        </Button>
+        {logout.error && (
+          <p role="alert" className="mt-4 text-sm text-destructive">
+            <ErrorMessage error={logout.error} />
+          </p>
+        )}
+      </section>
+    </section>
+  )
+}
 
+// What others see of you: picture, visibility and the profile link.
+export function ProfileSettingsPage() {
+  const { t } = useTranslation()
+  return (
+    <section>
+      <SettingsBreadcrumb page={t('settings.profileTitle')} />
+      <Heading level={1}>{t('settings.profileTitle')}</Heading>
       <AvatarSection />
-
       <ActivityPrivacy />
-
       <ReplaceProfileLink />
+    </section>
+  )
+}
 
+// Your data in Kuta: health data consent, export, recalculation and deletion.
+export function DataSettingsPage() {
+  const { t } = useTranslation()
+  const dataExport = useMutation({
+    mutationFn: () => api.download('/api/me/export', 'kuta-export.zip'),
+  })
+  return (
+    <section>
+      <SettingsBreadcrumb page={t('settings.dataTitle')} />
+      <Heading level={1}>{t('settings.dataTitle')}</Heading>
       <section aria-labelledby="health-heading" className="mt-8 border-t pt-6">
         <Heading level={2} id="health-heading">
           {t('settings.health')}
         </Heading>
         <HeartRateConsent className="mt-4" />
       </section>
-
-      <SupporterSection />
-
       <section aria-labelledby="export-heading" className="mt-8 border-t pt-6">
         <div className="flex items-center justify-between gap-4">
           <Heading level={2} id="export-heading">
@@ -105,32 +141,11 @@ export function SettingsPage() {
           </p>
         )}
       </section>
-
       <section aria-labelledby="recalculate-heading" className="mt-8 border-t pt-6">
         <Heading level={2} id="recalculate-heading">
           {t('settings.recalculateTitle')}
         </Heading>
         <Recalculation />
-      </section>
-
-      <section aria-labelledby="account-heading" className="mt-8 border-t pt-6">
-        <Heading level={2} id="account-heading">
-          {t('settings.account')}
-        </Heading>
-        <p className="mt-2 break-words text-sm text-muted-foreground">{me?.email}</p>
-        <Button
-          variant="secondary-outline"
-          className="mt-4"
-          disabled={logout.isPending}
-          onClick={() => logout.mutate()}
-        >
-          {t('settings.logout')}
-        </Button>
-        {logout.error && (
-          <p role="alert" className="mt-4 text-sm text-destructive">
-            <ErrorMessage error={logout.error} />
-          </p>
-        )}
       </section>
       <DangerZone />
     </section>

@@ -1,6 +1,7 @@
 import { FormField } from '@/components/ui/form-field'
 import { ErrorMessage } from '@/components/error-message'
-import { useTranslation } from 'react-i18next'
+import { Trans, useTranslation } from 'react-i18next'
+import { Link } from '@tanstack/react-router'
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
 import { useState, type ChangeEvent } from 'react'
 import { ConfirmationModal } from '@/components/ui/confirmation-modal'
@@ -77,5 +78,22 @@ export function HeartRateConsent({ className }: { className?: string }) {
         </p>
       )}
     </Card>
+  )
+}
+
+// Where activities come in: the full consent while it is missing, since activities saved without it never get heart
+// rate back (a new upload is a duplicate); once given, one line is enough.
+export function HeartRateConsentPrompt() {
+  const { data: me } = useQuery(meQuery)
+  if (!me?.hrConsent) return <HeartRateConsent />
+  return (
+    <p className="text-sm text-muted-foreground">
+      <Trans
+        i18nKey="consent.saved"
+        components={{
+          settings: <Link to="/app/settings/data" className="underline underline-offset-4" />,
+        }}
+      />
+    </p>
   )
 }

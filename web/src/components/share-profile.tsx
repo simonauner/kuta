@@ -18,12 +18,26 @@ export function ShareProfile({ label }: { label?: string }) {
   const { t } = useTranslation()
   const [profileUrl, setProfileUrl] = useState('')
   const share = useMutation({
-    mutationFn: async () => {
-      const link = api.send<ShareCode>('POST', '/api/me/share-code').then(({ code }) => {
-        const url = shareLink(code)
-        setProfileUrl(url)
-        return url
-      })
+    mutationFn: async (): Promise<'shared' | 'copied' | 'cancelled'> => {
+      const fetchLink = () =>
+        api.send<ShareCode>('POST', '/api/me/share-code').then(({ code }) => {
+          const url = shareLink(code)
+          setProfileUrl(url)
+          return url
+        })
+      // Phones get the system share sheet; desktops copy, since a share dialog there is rarely what people want.
+      if (typeof navigator.share === 'function' && matchMedia('(pointer: coarse)').matches) {
+        // A known link shares straight from the click; the first one is fetched before the sheet opens.
+        const url = profileUrl || (await fetchLink())
+        try {
+          await navigator.share({ url })
+          return 'shared'
+        } catch (error) {
+          if (error instanceof DOMException && error.name === 'AbortError') return 'cancelled'
+          throw error
+        }
+      }
+      const link = fetchLink()
       // Safari allows the copy only if it starts during the click, so hand it the pending link.
       if (typeof ClipboardItem === 'undefined') await navigator.clipboard.writeText(await link)
       // The link comes first so that a failed request reports its own error.
@@ -36,6 +50,7 @@ export function ShareProfile({ label }: { label?: string }) {
             }),
           ]),
         ])
+      return 'copied'
     },
   })
 
@@ -50,7 +65,7 @@ export function ShareProfile({ label }: { label?: string }) {
         <Share2 aria-hidden="true" />
         {label ?? t('social.shareProfile')}
       </Button>
-      {share.isSuccess && (
+      {share.data === 'copied' && (
         <p role="status" className="text-sm text-muted-foreground">
           {t('social.profileLinkCopied')}
         </p>

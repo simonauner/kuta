@@ -10,6 +10,7 @@ import { FormField } from '@/components/ui/form-field'
 import { api } from '@/lib/api'
 import { turnstileQuery, useSessionChanged, type Me } from '@/lib/auth'
 import { Heading } from '@/components/ui/heading'
+import { takeReturnTo } from '@/lib/return-to'
 
 type Mode = 'login' | 'signup' | 'recover'
 
@@ -59,7 +60,11 @@ export function AuthPage() {
       // Signup with email confirmation answers 202 with a message; otherwise we are signed in
       if (result) setCheckEmail(mode === 'recover' ? 'auth.recoverySent' : 'auth.confirmSent')
       if (result && mode === 'signup') setSentTo(String(form.get('email')))
-      else await sessionChanged()
+      else {
+        const returnTo = takeReturnTo()
+        if (returnTo && returnTo !== window.location.pathname) window.location.assign(returnTo)
+        else await sessionChanged()
+      }
     },
   })
 

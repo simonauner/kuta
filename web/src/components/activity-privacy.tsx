@@ -32,7 +32,7 @@ export function DefaultPrivacyNote({ imported = false }: { imported?: boolean })
       {!imported && (
         <>
           {' '}
-          <Link to="/app/settings" className="underline underline-offset-4">
+          <Link to="/app/settings/profile" className="underline underline-offset-4">
             {t('activityPrivacy.changeDefault')}
           </Link>
         </>
