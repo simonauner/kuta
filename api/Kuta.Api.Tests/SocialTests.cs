@@ -89,7 +89,8 @@ public class SocialTests(KutaFactory factory) : IClassFixture<KutaFactory>
         await using var tx = await conn.BeginTransactionAsync(ct);
         var owner = Guid.NewGuid();
         var viewer = Guid.NewGuid();
-        Guid older = Guid.NewGuid(), newer = Guid.NewGuid(), slower = Guid.NewGuid(), excluded = Guid.NewGuid();
+        Guid older = Guid.NewGuid(), newer = Guid.NewGuid(), slower = Guid.NewGuid(), slowest = Guid.NewGuid(),
+            excluded = Guid.NewGuid();
         await conn.ExecuteAsync("""
             insert into auth.users (id) values (@owner), (@viewer);
             insert into users (id, display_name) values (@owner, 'Owner'), (@viewer, 'Viewer');
@@ -97,19 +98,21 @@ public class SocialTests(KutaFactory factory) : IClassFixture<KutaFactory>
             values (@older, @owner, 'manual', '2025-06-01T08:00Z', 1800, 1700, 6000, 'public', false),
                 (@newer, @owner, 'manual', '2026-06-01T08:00Z', 1800, null, 6000, 'public', false),
                 (@slower, @owner, 'manual', '2026-07-01T08:00Z', 1800, null, 6000, 'public', false),
+                (@slowest, @owner, 'manual', '2027-07-01T08:00Z', 1800, null, 6000, 'public', false),
                 (@excluded, @owner, 'manual', '2026-08-01T08:00Z', 1800, null, 6000, 'public', true);
             insert into best_efforts (activity_id, user_id, distance_m, elapsed_s, start_offset_s, achieved_at)
             select e.id, @owner, e.distance_m, e.elapsed_s, 0, a.started_at
             from (values (@older, 5000, 1500), (@older, 1000, 280), (@newer, 5000, 1400), (@newer, 1000, 290),
-                (@slower, 1000, 300), (@excluded, 5000, 1000)) e(id, distance_m, elapsed_s)
+                (@slower, 1000, 300), (@slowest, 1000, 310), (@excluded, 5000, 1000)) e(id, distance_m, elapsed_s)
             join activities a using (id)
-            """, new { owner, viewer, older, newer, slower, excluded }, tx);
+            """, new { owner, viewer, older, newer, slower, slowest, excluded }, tx);
         var own = (await SocialEndpoints.ReadFeedAsync(conn, owner)).Items.ToDictionary(i => i.Id);
-        // A personal best wins over a year best; among equals, the longest distance.
+        // A higher place wins; among equals, the longest distance.
         Assert.Equal(("current", 5000, 2), (own[newer].RecordStatus, own[newer].RecordDistanceM, own[newer].RecordCount));
-        // A record beaten later stays a previous record; the year follows the UTC year of the effort.
         Assert.Equal(("current", 1000, 2), (own[older].RecordStatus, own[older].RecordDistanceM, own[older].RecordCount));
-        Assert.Equal((null, 0), (own[slower].RecordStatus, own[slower].RecordCount));
+        Assert.Equal(("third", 1000), (own[slower].RecordStatus, own[slower].RecordDistanceM));
+        // Below the top three, the year best of the UTC year of the effort.
+        Assert.Equal(("year", 2027, 1), (own[slowest].RecordStatus, own[slowest].RecordYear, own[slowest].RecordCount));
         Assert.Equal((null, 0), (own[excluded].RecordStatus, own[excluded].RecordCount));
         Assert.Equal(1700, own[older].MovingS);
         Assert.All((await SocialEndpoints.ReadFeedAsync(conn, viewer, runnerId: owner)).Items,

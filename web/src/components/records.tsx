@@ -14,6 +14,7 @@ import {
   recordDistances,
   recordMeters,
   trendChart,
+  utcYear,
   type RacePredictions,
   type RecordDistance,
   type RecordTrend,
@@ -356,7 +357,10 @@ function RecordTrendView({ trend, distanceLabel }: { trend: RecordTrend; distanc
                 <tr key={`${effort.activityId}-${effort.achievedAt}`}>
                   <th scope="row" className="py-2 pr-3 text-left font-normal">
                     <span className="inline-flex items-center gap-2">
-                      <RecordAward status={i === 0 ? 'current' : 'previous'} />
+                      <RecordAward
+                        status={i === 0 ? 'current' : 'previous'}
+                        year={utcYear(effort)}
+                      />
                       <Link
                         to="/app/activities/$activityId"
                         params={{ activityId: effort.activityId }}
