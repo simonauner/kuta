@@ -309,7 +309,6 @@
     "save": "Save",
     "saving": "Saving …",
     "description": "Description (optional)",
-    "hrSaved": "Heart rate from the file is saved. Change this in <settings>Settings</settings>.",
     "dropTitle": "Upload from your watch",
     "dropHelp": "Drop one or more FIT files here, or choose files. One file fills in the form below, several are saved straight away.",
     "chooseFiles": "Choose files",
@@ -403,6 +402,7 @@
     "delete": "Delete activity"
   },
   "consent": {
+    "saved": "Heart rate from your activities is saved. Change this in <settings>Settings</settings>.",
     "title": "Save heart rate from my activities.",
     "description": "Heart rate is health data. Without your consent, Kuta saves activities without heart rate and does not keep the original file. Turning this off deletes all saved heart rate data.",
     "revoke": "All heart rate data already saved from your activities will be deleted. This cannot be undone.",

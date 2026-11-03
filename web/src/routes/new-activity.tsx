@@ -9,12 +9,12 @@ import {
 } from '@/lib/multisport'
 import { MultisportEditor } from '@/components/multisport-editor'
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
-import { Link, useNavigate, useSearch } from '@tanstack/react-router'
+import { useNavigate, useSearch } from '@tanstack/react-router'
 import { useRef, useState, type FormEvent } from 'react'
-import { Trans, useTranslation } from 'react-i18next'
+import { useTranslation } from 'react-i18next'
 import { BackLink } from '@/components/back-link'
 import { ErrorMessage } from '@/components/error-message'
-import { HeartRateConsent } from '@/components/heart-rate-consent'
+import { HeartRateConsentPrompt } from '@/components/heart-rate-consent'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { api } from '@/lib/api'
@@ -225,21 +225,7 @@ export function NewActivityPage() {
           {!file && (
             <div className="mt-6 space-y-4">
               <FitDrop onFiles={chooseFiles} disabled={save.isPending} />
-              {/* The full consent only while it is missing; once given, one line is enough */}
-              {me?.hrConsent ? (
-                <p className="text-sm text-muted-foreground">
-                  <Trans
-                    i18nKey="newActivity.hrSaved"
-                    components={{
-                      settings: (
-                        <Link to="/app/settings" className="underline underline-offset-4" />
-                      ),
-                    }}
-                  />
-                </p>
-              ) : (
-                <HeartRateConsent />
-              )}
+              <HeartRateConsentPrompt />
             </div>
           )}
           <Heading level={2} className="mt-8">
