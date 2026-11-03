@@ -28,15 +28,16 @@ export function FeedPage() {
           <FeedSummary />
         </aside>
       )}
-      <section className="space-y-6">
-        {/* The header with the logo is a bottom bar on small screens, so the start page shows the brand here. */}
-        <div className="flex items-center gap-3">
-          <picture className="shrink-0 md:hidden">
-            <source media="(prefers-color-scheme: dark)" srcSet="/brand/logo-light.svg" />
-            <img src="/brand/logo.svg" alt="Kuta" width="96" height="32" className="h-8 w-auto" />
-          </picture>
-          <Heading level={1}>{t('nav.feed')}</Heading>
-        </div>
+      <section className="flex flex-col gap-6">
+        {/* The header with the logo is a bottom bar on small screens, so the start page shows the brand there
+            instead of the heading, which the active Feed tab already names; screen readers keep the heading. */}
+        <picture className="block md:hidden">
+          <source media="(prefers-color-scheme: dark)" srcSet="/brand/logo-light.svg" />
+          <img src="/brand/logo.svg" alt="Kuta" width="96" height="32" className="h-8 w-auto" />
+        </picture>
+        <Heading level={1} className="sr-only md:not-sr-only">
+          {t('nav.feed')}
+        </Heading>
         <FollowRequests />
         <UnreviewedActivities />
         <ActivityFeed />
