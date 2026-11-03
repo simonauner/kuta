@@ -306,10 +306,10 @@ prognosen. Tröskelfarten ingår i dataexportens `profile.json`. Bara egna pass 
 
 ## Träningsmål
 
-**Pass → Nytt mål** skapar ett mål: distans (km), tid (minuter) eller antal pass per vecka,
+**Profil → Mål → Nytt mål** skapar ett mål: distans (km), tid (minuter) eller antal pass per vecka,
 månad eller år, för en grupp av träningsformer eller alla. Målet upprepas varje period eller gäller en gång,
 för perioden då det skapas (exempelvis 1 000 km i år). Pågående mål visas som kort med
-förloppsstapel ovanför passlistan; ett uppnått mål får ”Hurra! Målet är nått”. Upprepade mål
+förloppsstapel under Mål på profilen; ett uppnått mål får ”Hurra! Målet är nått”. Upprepade mål
 visar även förra periodens resultat när det nåddes och hur många perioder i rad målet nåtts
 (från två). Ett avslutat engångsmål visas nedtonat tills det tas bort. Klick på kortet öppnar
 redigering och borttagning i samma modal. Inga mål ger ingen sektion.

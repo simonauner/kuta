@@ -10,7 +10,7 @@ import { Heading } from '@/components/ui/heading'
 import { ActivitiesEmptyState } from '@/components/activities-empty-state'
 import { ActivityFeed } from '@/components/activity-feed'
 import { GarminDerivedNote } from '@/components/garmin'
-import { GoalList } from '@/components/goals'
+import { GoalList, OwnGoals } from '@/components/goals'
 import {
   ActivityCalendar,
   ProfileStats,
@@ -87,7 +87,7 @@ export function ProfilePage() {
           <ActivityCalendar runnerId={me.id} viewAs={viewAs} />
           <RecordShelf runnerId={me.id} viewAs={viewAs} />
           {!viewAs && <GarminDerivedNote />}
-          <GoalList runnerId={me.id} viewAs={viewAs} />
+          {viewAs ? <GoalList runnerId={me.id} viewAs={viewAs} /> : <OwnGoals />}
           <div className="flex items-baseline justify-between gap-4">
             <Heading level={2}>{t(viewAs ? 'nav.activities' : 'profile.latestActivities')}</Heading>
             {/* The full list with filters lives on Activities; others see the whole list here. */}
