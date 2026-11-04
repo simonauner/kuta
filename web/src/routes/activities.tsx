@@ -8,6 +8,7 @@ import { ErrorMessage } from '@/components/error-message'
 import { ActivitiesEmptyState } from '@/components/activities-empty-state'
 import { SlowLoading } from '@/components/slow-loading'
 import { ActivityCalendar } from '@/components/activity-calendar'
+import { OwnGoals } from '@/components/goals'
 import { TrainingLoadWarning } from '@/components/training-load'
 import { useState } from 'react'
 import { motion, useReducedMotion } from 'motion/react'
@@ -92,6 +93,9 @@ export function ActivitiesPage() {
             </Button>
           )}
         </div>
+      </div>
+      <div className="mt-6">
+        <OwnGoals />
       </div>
       <TrainingLoadWarning />
       <UnreviewedActivities className="pt-4" />
