@@ -127,7 +127,7 @@ export function GoalList({
   )
 }
 
-// The signed-in runner's own goals on Profile, where they are created and edited.
+// The signed-in runner's own goals on Profile and Activities, where they are created and edited.
 export function OwnGoals() {
   const { t } = useTranslation()
   // null = closed, 'new' = new goal, otherwise the goal being edited
