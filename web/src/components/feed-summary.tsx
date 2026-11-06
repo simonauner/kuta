@@ -10,7 +10,7 @@ import { meQuery } from '@/lib/auth'
 import { calendarWeeks, weekStreaks, type CalendarDay } from '@/lib/activity-calendar'
 import { runnerSummaryQuery } from '@/components/runner-summary'
 import { useTrainingLoad } from '@/components/training-load'
-import { weeklyLoads, weekTrend } from '@/lib/training-load'
+import { rollingWeekLoads, weekTrend } from '@/lib/training-load'
 
 // The signed-in runner's own numbers and this week at a glance, beside the feed.
 export function FeedSummary() {
@@ -177,16 +177,17 @@ function WeekDays({ days }: { days: CalendarDay[] }) {
   )
 }
 
-// Running load per week, with last week compared to the three before it.
+// Running load per rolling seven days, with the last seven days compared to the three weeks before.
 function WeeklyLoad() {
   const { t, i18n } = useTranslation()
   const { data } = useTrainingLoad()
   // Animate only when the load arrives after the card, not when it was already cached.
   const [late] = useState(() => !data)
   if (!data?.thresholdSpeedMS) return null
-  const weeks = weeklyLoads(data.days, 5)
+  const weeks = rollingWeekLoads(data.days, 4)
   if (weeks.every((w) => w.load === 0)) return null
-  const trend = weekTrend(weeks.map((w) => w.load))
+  // Partial history makes the earliest window shorter, so compare only with four full windows.
+  const trend = data.days.length >= 28 ? weekTrend(weeks.map((w) => w.load)) : null
   const maximum = Math.max(...weeks.map((w) => w.load))
   const number = new Intl.NumberFormat(i18n.resolvedLanguage, { maximumFractionDigits: 0 })
   const date = new Intl.DateTimeFormat(i18n.resolvedLanguage, {
@@ -212,7 +213,9 @@ function WeeklyLoad() {
       <ol className="flex h-24 items-end gap-2">
         {weeks.map((week, i) => {
           const current = i === weeks.length - 1
-          const label = current ? t('feed.summary.thisWeek') : date.format(new Date(week.start))
+          const label = current
+            ? t('feed.summary.lastSevenDays')
+            : date.format(new Date(week.start))
           return (
             <li key={week.start} className="flex h-full flex-1 flex-col justify-end gap-1">
               <span className="sr-only">
@@ -222,13 +225,7 @@ function WeeklyLoad() {
                 aria-hidden="true"
                 title={number.format(week.load)}
                 style={{ height: `${(week.load / maximum) * 100}%` }}
-                className={`min-h-0.5 rounded-sm ${
-                  current
-                    ? 'border border-dashed border-primary'
-                    : i === weeks.length - 2
-                      ? 'bg-primary'
-                      : 'bg-primary/30'
-                }`}
+                className={`min-h-0.5 rounded-sm ${current ? 'bg-primary' : 'bg-primary/30'}`}
               />
             </li>
           )
@@ -236,7 +233,7 @@ function WeeklyLoad() {
       </ol>
       <p aria-hidden="true" className="flex justify-between text-metadata text-muted-foreground">
         <span>{date.format(new Date(weeks[0].start))}</span>
-        <span>{t('feed.summary.thisWeek')}</span>
+        <span>{t('feed.summary.lastSevenDays')}</span>
       </p>
       <Link
         to="/app/stats/analysis"

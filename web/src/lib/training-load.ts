@@ -61,23 +61,25 @@ export function loadChart(
   }
 }
 
-// Daily load summed per Monday-first week, oldest first; the last entry is the week so far.
-export function weeklyLoads(days: TrainingLoadDay[], weeks: number) {
-  const totals = new Map<string, number>()
-  for (const d of days) {
-    const date = new Date(`${d.day}T00:00:00Z`)
-    date.setUTCDate(date.getUTCDate() - ((date.getUTCDay() + 6) % 7))
-    const monday = date.toISOString().slice(0, 10)
-    totals.set(monday, (totals.get(monday) ?? 0) + d.load)
+// Daily load summed over rolling seven-day windows ending today, oldest first. Days before the first
+// activity count as zero, and windows entirely before it are left out.
+export function rollingWeekLoads(days: TrainingLoadDay[], weeks: number) {
+  const windows = []
+  for (let week = weeks - 1; week >= 0; week--) {
+    const end = days.length - week * 7
+    if (end <= 0) continue
+    const slice = days.slice(Math.max(0, end - 7), end)
+    windows.push({ start: slice[0].day, load: slice.reduce((sum, d) => sum + d.load, 0) })
   }
-  return [...totals].slice(-weeks).map(([start, load]) => ({ start, load }))
+  return windows
 }
 
-// Last full week against the average of the three before it, like a usual range.
+// The last seven days against the average of the three seven-day windows before them, like a usual
+// range. Needs four full windows of history.
 export function weekTrend(loads: number[]): 'more' | 'less' | 'steady' | null {
-  if (loads.length < 5) return null
-  const [last] = loads.slice(-2, -1)
-  const usual = loads.slice(-5, -2).reduce((sum, load) => sum + load, 0) / 3
+  if (loads.length < 4) return null
+  const last = loads[loads.length - 1]
+  const usual = loads.slice(-4, -1).reduce((sum, load) => sum + load, 0) / 3
   if (usual === 0 && last === 0) return null
   if (last > usual * 1.3) return 'more'
   if (last < usual * 0.7) return 'less'

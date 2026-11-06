@@ -53,22 +53,23 @@
       "followers": "Followers",
       "activities": "Activities",
       "thisWeek": "This week",
+      "lastSevenDays": "Last 7 days",
       "activeDay_one": "{{count}} activity",
       "activeDay_other": "{{count}} activities",
       "restDay": "no activity",
       "links": "Shortcuts",
       "yourActivities": "Your activities",
       "yourStats": "Your statistics",
-      "load": "Running load per week",
+      "load": "Running load per 7 days",
       "trend": {
         "more": "More than usual",
         "less": "Easier than usual",
         "steady": "Holding steady"
       },
       "trendText": {
-        "more": "Last week you ran harder than the average of the three weeks before.",
-        "less": "Last week you ran easier than the average of the three weeks before.",
-        "steady": "Last week matched the three weeks before. Nice and consistent."
+        "more": "Over the last 7 days you ran harder than the average of the three weeks before.",
+        "less": "Over the last 7 days you ran easier than the average of the three weeks before.",
+        "steady": "The last 7 days matched the three weeks before. Nice and consistent."
       }
     },
     "today": "Today at {{time}}",
