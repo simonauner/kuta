@@ -4,7 +4,7 @@ import {
   loadChart,
   paceSeconds,
   parseThresholdPace,
-  weeklyLoads,
+  rollingWeekLoads,
   weekTrend,
 } from '../src/lib/training-load.ts'
 
@@ -38,25 +38,25 @@ test('load chart shares one scale from zero for lines and bars', () => {
   assert.equal(loadChart([], { width: 1, height: 1, padding: 0 }), null)
 })
 
-test('weekly loads group local days into monday-first weeks ending with the current one', () => {
-  const day = (day, load) => ({ day, load, fitness: 0, fatigue: 0, form: 0 })
-  const days = [
-    day('2026-10-25', 5),
-    day('2026-10-26', 10),
-    day('2026-11-01', 20),
-    day('2026-11-02', 30),
-  ]
-  assert.deepEqual(weeklyLoads(days, 2), [
-    { start: '2026-10-26', load: 30 },
-    { start: '2026-11-02', load: 30 },
+test('rolling week loads sum seven-day windows ending today and skip windows before the history', () => {
+  const days = Array.from({ length: 10 }, (_, i) => ({
+    day: `2026-10-${String(i + 20).padStart(2, '0')}`,
+    load: i + 1,
+    fitness: 0,
+    fatigue: 0,
+    form: 0,
+  }))
+  assert.deepEqual(rollingWeekLoads(days, 4), [
+    { start: '2026-10-20', load: 6 },
+    { start: '2026-10-23', load: 49 },
   ])
 })
 
-test('week trend compares the last full week with the three before and ignores the current week', () => {
-  assert.equal(weekTrend([100, 100, 100, 131, 0]), 'more')
-  assert.equal(weekTrend([100, 100, 100, 130, 999]), 'steady')
-  assert.equal(weekTrend([100, 100, 100, 69, 0]), 'less')
-  assert.equal(weekTrend([0, 0, 0, 10, 0]), 'more')
-  assert.equal(weekTrend([0, 0, 0, 0, 50]), null)
-  assert.equal(weekTrend([100, 100, 100, 100]), null)
+test('week trend compares the last seven days with the three windows before', () => {
+  assert.equal(weekTrend([999, 100, 100, 100, 131]), 'more')
+  assert.equal(weekTrend([100, 100, 100, 130]), 'steady')
+  assert.equal(weekTrend([100, 100, 100, 69]), 'less')
+  assert.equal(weekTrend([0, 0, 0, 10]), 'more')
+  assert.equal(weekTrend([0, 0, 0, 0]), null)
+  assert.equal(weekTrend([100, 100, 100]), null)
 })

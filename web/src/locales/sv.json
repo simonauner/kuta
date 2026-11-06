@@ -53,22 +53,23 @@
       "followers": "Följare",
       "activities": "Aktiviteter",
       "thisWeek": "Den här veckan",
+      "lastSevenDays": "Senaste 7 dagarna",
       "activeDay_one": "{{count}} aktivitet",
       "activeDay_other": "{{count}} aktiviteter",
       "restDay": "ingen aktivitet",
       "links": "Genvägar",
       "yourActivities": "Dina aktiviteter",
       "yourStats": "Din statistik",
-      "load": "Löpbelastning per vecka",
+      "load": "Löpbelastning per 7 dagar",
       "trend": {
         "more": "Mer än vanligt",
         "less": "Lugnare än vanligt",
         "steady": "Jämn nivå"
       },
       "trendText": {
-        "more": "Förra veckan sprang du hårdare än snittet för de tre veckorna innan.",
-        "less": "Förra veckan sprang du lättare än snittet för de tre veckorna innan.",
-        "steady": "Förra veckan låg i nivå med de tre veckorna innan. Fint jobbat med kontinuiteten."
+        "more": "De senaste 7 dagarna har du sprungit hårdare än snittet för de tre veckorna innan.",
+        "less": "De senaste 7 dagarna har du sprungit lättare än snittet för de tre veckorna innan.",
+        "steady": "De senaste 7 dagarna ligger i nivå med de tre veckorna innan. Fint jobbat med kontinuiteten."
       }
     },
     "today": "I dag {{time}}",
