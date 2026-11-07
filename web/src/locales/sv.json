@@ -1105,5 +1105,68 @@
       "21097": "halvmaran",
       "42195": "maran"
     }
+  },
+  "yearReview": {
+    "breadcrumb": "Ditt {{year}}",
+    "title": "Ditt {{year}}",
+    "titleSoFar": "Ditt {{year}} hittills",
+    "years": "Andra år",
+    "link": "Ditt {{year}} i sammandrag",
+    "linkSoFar": "Ditt {{year}} hittills i sammandrag",
+    "empty": "Inga aktiviteter under {{year}}.",
+    "totalsTitle": "Året i siffror",
+    "totals_one": "{{count}} aktivitet, {{hours}} timmar och {{days}} dagar i rörelse.",
+    "totals_other": "{{count}} aktiviteter, {{hours}} timmar och {{days}} dagar i rörelse.",
+    "change": "{{percent}} % i distans jämfört med {{previous}}.",
+    "comparisonsTitle": "Hur långt är det?",
+    "distanceComparison": {
+      "marathon": "Lika långt som {{times}} maraton.",
+      "stockholmGothenburg": "{{times}} gånger Stockholm–Göteborg.",
+      "sweden": "{{times}} gånger Sveriges längd, Smygehuk–Treriksröset.",
+      "equator": "{{times}} varv runt jorden."
+    },
+    "climbComparison": {
+      "eiffel": "{{meters}} höjdmeter – {{times}} Eiffeltorn.",
+      "kebnekaise": "{{meters}} höjdmeter – {{times}} Kebnekaise.",
+      "everest": "{{meters}} höjdmeter – {{times}} Mount Everest."
+    },
+    "timeComparison": "Totalt {{days}} dygn i rörelse.",
+    "sportsTitle": "Sporter",
+    "sportLine_one": "{{count}} aktivitet · {{time}}",
+    "sportLine_other": "{{count}} aktiviteter · {{time}}",
+    "monthsTitle": "Månad för månad",
+    "monthsChart": "Träningstid per månad",
+    "biggestMonth_one": "Mest aktiv i {{month}}: {{time}} på {{count}} aktivitet.",
+    "biggestMonth_other": "Mest aktiv i {{month}}: {{time}} på {{count}} aktiviteter.",
+    "habitsTitle": "Vanor",
+    "weekday": "Favoritdag",
+    "timeOfDay": "Favorittid",
+    "timesOfDay": {
+      "morning": "Morgon",
+      "midday": "Mitt på dagen",
+      "afternoon": "Eftermiddag",
+      "evening": "Kväll",
+      "night": "Natt"
+    },
+    "activities_one": "{{count}} aktivitet",
+    "activities_other": "{{count}} aktiviteter",
+    "dayStreak": "Flest dagar i rad",
+    "weekStreak": "Flest veckor i rad",
+    "days_one": "{{count}} dag",
+    "days_other": "{{count}} dagar",
+    "weeks_one": "{{count}} vecka",
+    "weeks_other": "{{count}} veckor",
+    "highlightsTitle": "Längst",
+    "longestRun": "Längsta löpning",
+    "longestActivity": "Längsta aktivitet",
+    "recordsTitle": "Årets bästa löptider",
+    "personalBest": "Personbästa",
+    "racesTitle_one": "Tävling",
+    "racesTitle_other": "{{count}} tävlingar",
+    "equipmentTitle": "Årets sko",
+    "equipment_one": "{{distance}} på {{count}} aktivitet.",
+    "equipment_other": "{{distance}} på {{count}} aktiviteter.",
+    "achievementsTitle_one": "{{count}} utmärkelse",
+    "achievementsTitle_other": "{{count}} utmärkelser"
   }
 }

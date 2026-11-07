@@ -1105,5 +1105,68 @@
       "21097": "half marathon",
       "42195": "marathon"
     }
+  },
+  "yearReview": {
+    "breadcrumb": "Your {{year}}",
+    "title": "Your {{year}}",
+    "titleSoFar": "Your {{year}} so far",
+    "years": "Other years",
+    "link": "Your {{year}} in review",
+    "linkSoFar": "Your {{year}} so far in review",
+    "empty": "No activities in {{year}}.",
+    "totalsTitle": "The year in numbers",
+    "totals_one": "{{count}} activity, {{hours}} hours and {{days}} active days.",
+    "totals_other": "{{count}} activities, {{hours}} hours and {{days}} active days.",
+    "change": "{{percent}}% in distance compared with {{previous}}.",
+    "comparisonsTitle": "How far is that?",
+    "distanceComparison": {
+      "marathon": "As far as {{times}} marathons.",
+      "stockholmGothenburg": "{{times}} times Stockholm to Gothenburg.",
+      "sweden": "{{times}} times the length of Sweden, Smygehuk to Treriksröset.",
+      "equator": "{{times}} times around the Earth."
+    },
+    "climbComparison": {
+      "eiffel": "{{meters}} m climbed – {{times}} Eiffel Towers.",
+      "kebnekaise": "{{meters}} m climbed – {{times}} Kebnekaise.",
+      "everest": "{{meters}} m climbed – {{times}} Mount Everest."
+    },
+    "timeComparison": "{{days}} days in motion in total.",
+    "sportsTitle": "Sports",
+    "sportLine_one": "{{count}} activity · {{time}}",
+    "sportLine_other": "{{count}} activities · {{time}}",
+    "monthsTitle": "Month by month",
+    "monthsChart": "Training time per month",
+    "biggestMonth_one": "Most active in {{month}}: {{time}} in {{count}} activity.",
+    "biggestMonth_other": "Most active in {{month}}: {{time}} in {{count}} activities.",
+    "habitsTitle": "Habits",
+    "weekday": "Favorite day",
+    "timeOfDay": "Favorite time",
+    "timesOfDay": {
+      "morning": "Morning",
+      "midday": "Midday",
+      "afternoon": "Afternoon",
+      "evening": "Evening",
+      "night": "Night"
+    },
+    "activities_one": "{{count}} activity",
+    "activities_other": "{{count}} activities",
+    "dayStreak": "Most days in a row",
+    "weekStreak": "Most weeks in a row",
+    "days_one": "{{count}} day",
+    "days_other": "{{count}} days",
+    "weeks_one": "{{count}} week",
+    "weeks_other": "{{count}} weeks",
+    "highlightsTitle": "Longest",
+    "longestRun": "Longest run",
+    "longestActivity": "Longest activity",
+    "recordsTitle": "Best running times of the year",
+    "personalBest": "Personal best",
+    "racesTitle_one": "Race",
+    "racesTitle_other": "{{count}} races",
+    "equipmentTitle": "Shoe of the year",
+    "equipment_one": "{{distance}} in {{count}} activity.",
+    "equipment_other": "{{distance}} in {{count}} activities.",
+    "achievementsTitle_one": "{{count}} achievement",
+    "achievementsTitle_other": "{{count}} achievements"
   }
 }
