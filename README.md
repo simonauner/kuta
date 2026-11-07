@@ -304,6 +304,66 @@ konditionen ökar snabbt. Modellen är TrainingPeaks förenkling av Banisters im
 sparar en egen tröskelfart (1:40–60:00 per km, annars `invalidThresholdSpeed`), och `null` går tillbaka till
 prognosen. Tröskelfarten ingår i dataexportens `profile.json`. Bara egna pass räknas.
 
+## Analys, utmärkelser och årssammanfattning
+
+Alla regler är fasta och räknas på användarens egna pass oavsett källa (FIT, Strava, Garmin). Ingen AI används.
+Vyerna visar `GarminDerivedNote` när kontot har Garmin-data, och passsidans analys har passets Garmin-märkning.
+
+**Analys per pass** (`components/activity-analysis.tsx`, regler i `web/src/lib/activity-analysis.ts`) visas på
+passsidan för löpning (även en vald löpdel i ett multisportpass) och räknas i webbläsaren ur tidsserierna och varven
+som passsidan redan får:
+
+- **Fartfördelning:** tiden för första och andra halvan av distansen på en rörelseklocka (avbrott över 10 s och
+  fart under 0,5 m/s räknas inte). Inom ±2 % är jämn fart, annars negativ eller positiv split. Sista femtedelen
+  jämförs med resten och nämns vid minst 5 % skillnad. Kräver minst 3 km.
+- **Pulsdrift (aerob frikoppling):** lutningsjusterad fart per hjärtslag i första mot andra halvan av rörelsetiden,
+  efter 10 minuters uppvärmning, i fönster om ca 30 s med fart över 1,5 m/s. Kräver minst 20 minuter kvar och en
+  variationskoefficient i lutningsjusterad fart på högst 0,15 (intervaller räknas inte). Under 5 % är stabilt,
+  5–10 % drift och över 10 % tydlig drift. Bara ägaren får puls, så andra ser aldrig driften.
+- **Intervaller:** varvens fart delas i en snabb och en långsam grupp där skillnaden mellan grupperna är störst
+  (varv under 10 s eller 50 m räknas inte). Snabba varv i följd blir en repetition. De snabba måste i snitt vara minst
+  20 % snabbare och ge minst två repetitioner. Tabellen visar distans, tid, tempo, puls och vila; texten snabbaste
+  och långsammaste tempo och sista repetitionen mot snittet av de andra.
+
+**Aerob effektivitet** (Statistik → Analys, `AerobicEfficiency.cs`, migrering 031): `BestEfforts.ReplaceAsync`
+sparar `activities.aerobic_speed_m_s` och `aerobic_hr` för vanliga löppass (inte multisport) med samma fönster,
+uppvärmning och jämnhetskrav som pulsdriften, med Minettis backjustering som träningsbelastningen. Värdena härleds ur
+puls och nollställs när pulssamtycket återkallas. Äldre pass får dem vid omberäkning av rekord.
+`GET /api/aerobic-efficiency?timeZone=` ger det senaste årets egna pass som `[{ activityId, day, speedMS, hr }]`.
+Webben (`lib/aerobic-efficiency.ts`) väljer referenspulsen som medianen avrundad till 5, tar bara pass inom ±10 slag,
+skalar farten med referens/puls och visar månadens median som tempo vid samma puls (minst tre pass).
+
+**Utmärkelser** (`Achievements.cs`, migrering 032) räknas vid läsning ur passen, så raderade pass tar med sig sina
+utmärkelser. `GET /api/achievements?timeZone=` ger `[{ key, kind, threshold, year, achievedAt, activityId, seen }]`,
+nyast först:
+
+- `firstDistance`: första 5 km, 10 km, halvmaran och maran ur `best_efforts`; `firstUltra`: första löppass över 45 km.
+- `runDistance`: total löpdistans 100, 470, 1 000, 1 572, 5 000, 10 000 och 40 075 km (jämförs i webben med
+  Vasaloppet, Stockholm–Göteborg, Sveriges längd, en fjärdedel av och ett helt varv runt jorden).
+- `yearRunDistance`: 500, 1 000, 2 000 och 3 000 km löpning under ett kalenderår.
+- `climb`: höjdmeter under ett kalenderår i alla sporter, 2 097 (Kebnekaise), 4 806 (Mont Blanc), 8 849 (Mount
+  Everest) och 17 698 m.
+- `activityCount`: 10, 50, 100, 250, 500 och 1 000 aktiviteter. `monthRunDistance`: första kalendermånaden med
+  100, 200 eller 300 km löpning. `weekStreak`: första gången 4, 12, 26 eller 52 veckor i rad (måndag–söndag) med
+  minst en aktivitet. `earlyBird`/`nightOwl`: första aktiviteten som startar 03–06 respektive efter 22.
+
+Löpning räknas som statistiken: löpgruppen och löpdelar i multisportpass, medan antal, höjdmeter, veckor och tid på
+dygnet gäller hela pass. Utmärkelsen hör till passet som når gränsen. `achievement_views` sparar bara vilka nycklar
+användaren sett. `AchievementTeaser` i `Layout` hämtar listan en gång per appstart (inte vid passändringar) och visar
+osedda i en modal; stängning skickar `POST /api/achievements/seen` med `{ keys, timeZone }`, som bara sparar nycklar
+som faktiskt är uppnådda. Alla utmärkelser listas på den egna profilen. Sedda nycklar ingår i exporten
+(`achievements-seen.json`) och kaskadraderas med kontot.
+
+**Årssammanfattning** (`/app/stats/year/$year`, `YearReview.cs`, länk på Statistik för innevarande år och
+föregående år fram till och med mars): `GET /api/activities/year-review?year=&timeZone=` ger egna pass under
+kalenderåret i tittarens tidszon: totaler (antal, distans, tid, höjdmeter, aktiva dagar) och föregående års totaler,
+sportgrupper och månader som statistiken, favoritveckodag och tid på dygnet (morgon 05–10, mitt på dagen 10–14,
+eftermiddag 14–18, kväll 18–22, natt), flest dagar och veckor i rad, längsta löpning och aktivitet, tävlingar
+(taggen `race`), årets bästa tid per rekorddistans med personbästa (inga snabbare tidigare insatser; pass undantagna
+från rekord räknas inte) och den utrustning som använts längst. `complete` är falskt för innevarande år. Webben
+(`lib/year-review.ts`) jämför distansen med maraton, Stockholm–Göteborg, Sveriges längd eller jordens omkrets och
+höjdmetrarna med Eiffeltornet, Kebnekaise eller Mount Everest, och visar årets utmärkelser.
+
 ## Träningsmål
 
 **Profil → Mål → Nytt mål** (eller Nytt mål överst på Pass) skapar ett mål: distans (km), tid (minuter) eller antal pass per vecka,
@@ -617,6 +677,7 @@ till fältet; redan importerade dubbletter hoppas fortfarande över vid Strava-i
 - `equipment.json`: all egen utrustning, även pensionerad, med startvärden och total användning.
 - `privacy-places.json`: egna dolda platser med namn, mittpunkt och radie. Listan ingår även utan pass.
 - `goals.json`: egna träningsmål med sportgrupp, typ, period, mål i SI-enheter, upprepning, startdatum och synlighet.
+- `achievements-seen.json`: vilka utmärkelser användaren har sett och när.
 - `activities/<id>.json`: källa, skapandetid, synlighet, Strava-ID, sökväg till råfilen (eller `null`), `activity` med samma passdetaljer som passsidan och `bestEfforts` med passets bästa insatser. Detaljerna innehåller beskrivning, taggar, utrustnings-ID:n, tidsserier, varv samt originaldelar och redigerade multisportdelar.
 - `raw/<id>.fit` eller `.gpx`: sparade råfiler med oförändrat innehåll. Manuella pass saknar råfil. Råfiler som inte sparats utan pulssamtycke, eller som raderats vid återkallat samtycke, kan inte exporteras. Gzip-filer från Strava har packats upp vid importen.
 
