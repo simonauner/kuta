@@ -271,6 +271,7 @@ static async Task<int> RunAsync(string[] args)
     api.MapBestEfforts();
     api.MapJobs();
     api.MapGoals();
+    api.MapAchievements();
     api.MapGarmin();
     app.MapGarminPush();
 

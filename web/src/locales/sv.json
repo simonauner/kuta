@@ -1034,5 +1034,76 @@
     "chart": "Tempo vid samma puls per månad: {{months}}",
     "runs_one": "{{count}} pass",
     "runs_other": "{{count}} pass"
+  },
+  "achievements": {
+    "title": "Utmärkelser",
+    "teaserTitle_one": "Ny utmärkelse!",
+    "teaserTitle_other": "{{count}} nya utmärkelser!",
+    "close": "Toppen!",
+    "showActivity": "Visa aktiviteten",
+    "showAll": "Visa alla {{count}}",
+    "kinds": {
+      "firstDistance": {
+        "title": "Första {{distance}}!",
+        "detail": "Första gången du sprungit {{distance}} i ett och samma pass."
+      },
+      "firstUltra": {
+        "title": "Första ultran!",
+        "detail": "Över 45 km löpning i ett och samma pass."
+      },
+      "runDistance": {
+        "title": "{{km}} km löpning",
+        "detail": "Så långt har du sprungit totalt."
+      },
+      "yearRunDistance": {
+        "title": "{{km}} km löpning {{year}}",
+        "detail": "Under ett och samma kalenderår."
+      },
+      "climb": {
+        "title": "{{meters}} höjdmeter {{year}}",
+        "detail": "Så högt har du klättrat i år."
+      },
+      "activityCount": {
+        "title": "{{count}} aktiviteter",
+        "detail": "Aktivitet nummer {{count}} är loggad."
+      },
+      "monthRunDistance": {
+        "title": "{{km}} km på en månad",
+        "detail": "Första gången du sprungit så långt under en kalendermånad."
+      },
+      "weekStreak": {
+        "title": "{{count}} veckor i rad",
+        "detail": "Minst en aktivitet varje vecka i {{count}} veckor."
+      },
+      "earlyBird": {
+        "title": "Morgonpigg",
+        "detail": "En aktivitet som startade före klockan sex på morgonen."
+      },
+      "nightOwl": {
+        "title": "Nattuggla",
+        "detail": "En aktivitet som startade efter klockan tio på kvällen."
+      }
+    },
+    "comparisons": {
+      "runDistance": {
+        "100000": "Längre än Vasaloppets 90 km.",
+        "470000": "Ungefär som Stockholm–Göteborg längs vägen.",
+        "1572000": "Sveriges längd fågelvägen, från Smygehuk till Treriksröset.",
+        "10000000": "En fjärdedel av jordens omkrets.",
+        "40075000": "Ett varv runt jorden längs ekvatorn."
+      },
+      "climb": {
+        "2097": "Lika högt som Kebnekaise, {{meters}} m, sedan nyår.",
+        "4806": "Lika högt som Mont Blanc, {{meters}} m, sedan nyår.",
+        "8849": "Lika högt som Mount Everest, {{meters}} m, sedan nyår.",
+        "17698": "Två Mount Everest sedan nyår."
+      }
+    },
+    "distances": {
+      "5000": "5 km",
+      "10000": "10 km",
+      "21097": "halvmaran",
+      "42195": "maran"
+    }
   }
 }

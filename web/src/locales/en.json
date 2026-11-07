@@ -1034,5 +1034,76 @@
     "chart": "Pace at the same heart rate per month: {{months}}",
     "runs_one": "{{count}} run",
     "runs_other": "{{count}} runs"
+  },
+  "achievements": {
+    "title": "Achievements",
+    "teaserTitle_one": "New achievement!",
+    "teaserTitle_other": "{{count}} new achievements!",
+    "close": "Great!",
+    "showActivity": "Show activity",
+    "showAll": "Show all {{count}}",
+    "kinds": {
+      "firstDistance": {
+        "title": "First {{distance}}!",
+        "detail": "The first time you ran a {{distance}} in one go."
+      },
+      "firstUltra": {
+        "title": "First ultra!",
+        "detail": "More than 45 km of running in one activity."
+      },
+      "runDistance": {
+        "title": "{{km}} km of running",
+        "detail": "That's how far you have run in total."
+      },
+      "yearRunDistance": {
+        "title": "{{km}} km of running in {{year}}",
+        "detail": "Within one calendar year."
+      },
+      "climb": {
+        "title": "{{meters}} m climbed in {{year}}",
+        "detail": "That's how high you have climbed this year."
+      },
+      "activityCount": {
+        "title": "{{count}} activities",
+        "detail": "Activity number {{count}} is logged."
+      },
+      "monthRunDistance": {
+        "title": "{{km}} km in a month",
+        "detail": "The first time you ran that far in one calendar month."
+      },
+      "weekStreak": {
+        "title": "{{count}} weeks in a row",
+        "detail": "At least one activity every week for {{count}} weeks."
+      },
+      "earlyBird": {
+        "title": "Early bird",
+        "detail": "An activity that started before six in the morning."
+      },
+      "nightOwl": {
+        "title": "Night owl",
+        "detail": "An activity that started after ten in the evening."
+      }
+    },
+    "comparisons": {
+      "runDistance": {
+        "100000": "Longer than the 90 km Vasaloppet.",
+        "470000": "About Stockholm to Gothenburg by road.",
+        "1572000": "The length of Sweden as the crow flies, from Smygehuk to Treriksröset.",
+        "10000000": "A quarter of the way around the Earth.",
+        "40075000": "Once around the Earth along the equator."
+      },
+      "climb": {
+        "2097": "As high as Kebnekaise, {{meters}} m, since New Year.",
+        "4806": "As high as Mont Blanc, {{meters}} m, since New Year.",
+        "8849": "As high as Mount Everest, {{meters}} m, since New Year.",
+        "17698": "Two Mount Everests since New Year."
+      }
+    },
+    "distances": {
+      "5000": "5K",
+      "10000": "10K",
+      "21097": "half marathon",
+      "42195": "marathon"
+    }
   }
 }

@@ -1,4 +1,5 @@
 import { Footer } from '@/components/footer'
+import { AchievementTeaser } from '@/components/achievements'
 import { LanguageSelect } from '@/components/language-select'
 import { useTranslation } from 'react-i18next'
 import { useQuery } from '@tanstack/react-query'
@@ -124,6 +125,7 @@ export function Layout() {
         >
           <Outlet />
         </motion.div>
+        <AchievementTeaser />
       </main>
 
       <Footer
