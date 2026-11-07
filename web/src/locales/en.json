@@ -985,5 +985,39 @@
     "delete": "Delete picture",
     "deleteTitle": "Delete the profile picture?",
     "deleteText": "The picture is deleted, and your initials are shown instead."
+  },
+  "analysis": {
+    "title": "Analysis",
+    "help": "About the analysis",
+    "helpPacing": "Pacing compares the time for the first and second half of the distance, without pauses and standing still. Within ±2% counts as even.",
+    "helpDrift": "Heart rate drift compares grade-adjusted speed per heartbeat in the first and second half, after a ten-minute warm-up. Below 5% suggests a stable aerobic base. Shown only for steady activities of at least 30 minutes with heart rate.",
+    "helpIntervals": "Intervals are found among the watch's laps: the fast laps are told apart from the slow ones, and fast laps in a row count as one rep.",
+    "pacing": "Pacing",
+    "split": {
+      "negative": "Negative split",
+      "even": "Even pace",
+      "positive": "Positive split"
+    },
+    "halves": "Halves {{first}} and {{second}}",
+    "secondFaster": "second half {{percent}}% faster",
+    "secondSlower": "second half {{percent}}% slower",
+    "finishSlower": "The last fifth was {{percent}}% slower than the rest.",
+    "finishFaster": "You finished strong: the last fifth was {{percent}}% faster than the rest.",
+    "drift": "Heart rate drift",
+    "driftLevel": {
+      "stable": "Stable aerobic effort – heart rate kept in step with pace.",
+      "drifted": "Heart rate rose towards the end. The run was a little harder than it may have felt.",
+      "high": "Heart rate drifted clearly. Heat, dehydration or too high a pace can be behind it."
+    },
+    "reps_one": "{{count}} rep",
+    "reps_other": "{{count}} reps",
+    "repsSame_one": "{{count}} × {{distance}} m",
+    "repsSame_other": "{{count}} × {{distance}} m",
+    "repsSummary": "Average {{average}} /km, fastest {{fastest}} and slowest {{slowest}} /km.",
+    "lastEven": "The last rep held the same pace as the others.",
+    "lastSlower": "The last rep was {{percent}}% slower than the average of the others.",
+    "lastFaster": "The last rep was {{percent}}% faster than the average of the others.",
+    "rep": "Rep",
+    "recovery": "Recovery"
   }
 }

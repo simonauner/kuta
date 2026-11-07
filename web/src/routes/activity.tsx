@@ -18,6 +18,7 @@ import { TagLabels } from '@/components/activity-tags'
 import { ActivityMap } from '@/components/activity-map'
 import { ErrorMessage } from '@/components/error-message'
 import { RecordAward } from '@/components/record-award'
+import { ActivityAnalysis } from '@/components/activity-analysis'
 import { ApiError } from '@/lib/api'
 import { activityQuery, refreshActivityQueries } from '@/lib/activity-query'
 import { api } from '@/lib/api'
@@ -654,6 +655,9 @@ export function ActivityPage() {
             ))}
           </ul>
         </section>
+      )}
+      {!mixed && sportIcons[knownSport(a.sport)] === 'run' && (
+        <ActivityAnalysis streams={a.streams} laps={a.laps} sourceNote={sourceNote} />
       )}
       {original.userId === me?.id &&
         a.streams === null &&

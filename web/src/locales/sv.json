@@ -985,5 +985,39 @@
     "delete": "Radera bild",
     "deleteTitle": "Radera profilbilden?",
     "deleteText": "Bilden raderas, och dina initialer visas i stället."
+  },
+  "analysis": {
+    "title": "Analys",
+    "help": "Om analysen",
+    "helpPacing": "Fartfördelning jämför tiden för första och andra halvan av distansen, utan pauser och stillastående. Inom ±2 % räknas som jämnt.",
+    "helpDrift": "Pulsdrift jämför lutningsjusterad fart per hjärtslag i första och andra halvan, efter tio minuters uppvärmning. Under 5 % tyder på en stabil aerob bas. Visas bara för jämna pass på minst 30 minuter med puls.",
+    "helpIntervals": "Intervaller hittas bland klockans varv: de snabba varven skiljs från de långsamma, och snabba varv i följd räknas som en repetition.",
+    "pacing": "Fartfördelning",
+    "split": {
+      "negative": "Negativ split",
+      "even": "Jämn fart",
+      "positive": "Positiv split"
+    },
+    "halves": "Halvorna {{first}} och {{second}}",
+    "secondFaster": "andra halvan {{percent}} % snabbare",
+    "secondSlower": "andra halvan {{percent}} % långsammare",
+    "finishSlower": "Sista femtedelen var {{percent}} % långsammare än resten.",
+    "finishFaster": "Du ökade på slutet: sista femtedelen var {{percent}} % snabbare än resten.",
+    "drift": "Pulsdrift",
+    "driftLevel": {
+      "stable": "Stabil aerob nivå – pulsen höll sig i takt med farten.",
+      "drifted": "Pulsen steg mot slutet. Passet var något hårdare än det kanske kändes.",
+      "high": "Pulsen drev tydligt. Värme, vätskebrist eller för högt tempo kan ligga bakom."
+    },
+    "reps_one": "{{count}} repetition",
+    "reps_other": "{{count}} repetitioner",
+    "repsSame_one": "{{count}} × {{distance}} m",
+    "repsSame_other": "{{count}} × {{distance}} m",
+    "repsSummary": "Snitt {{average}} /km, snabbast {{fastest}} och långsammast {{slowest}} /km.",
+    "lastEven": "Sista repetitionen höll samma fart som de andra.",
+    "lastSlower": "Sista repetitionen var {{percent}} % långsammare än snittet av de andra.",
+    "lastFaster": "Sista repetitionen var {{percent}} % snabbare än snittet av de andra.",
+    "rep": "Rep.",
+    "recovery": "Vila"
   }
 }
