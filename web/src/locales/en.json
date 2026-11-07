@@ -1019,5 +1019,20 @@
     "lastFaster": "The last rep was {{percent}}% faster than the average of the others.",
     "rep": "Rep",
     "recovery": "Recovery"
+  },
+  "aerobic": {
+    "title": "Aerobic efficiency",
+    "methodLabel": "How is aerobic efficiency calculated?",
+    "method": "From steady runs of at least 30 minutes with heart rate. After a ten-minute warm-up, grade-adjusted average speed and average heart rate are calculated; intervals and runs with uneven pace don't count. Each run is scaled to your usual heart rate in steady runs (rounded to 5), and only runs within ±10 beats count. Each month shows the median.",
+    "description": "How fast you run at the same heart rate. If the pace drops over time, your fitness is improving, even without new records.",
+    "empty": "Needs at least three steady runs of 30 minutes or more with heart rate during the last year.",
+    "noConsent": "Aerobic efficiency is based on heart rate. Give heart rate consent in Settings to see it.",
+    "paceAt": "Pace at {{hr}} bpm",
+    "faster": "{{seconds}} s/km faster at the same heart rate since {{from}}.",
+    "slower": "{{seconds}} s/km slower at the same heart rate since {{from}}.",
+    "steady": "About unchanged since {{from}}.",
+    "chart": "Pace at the same heart rate per month: {{months}}",
+    "runs_one": "{{count}} run",
+    "runs_other": "{{count}} runs"
   }
 }

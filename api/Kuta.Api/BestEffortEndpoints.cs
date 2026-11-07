@@ -69,6 +69,16 @@ public static class BestEffortEndpoints
             return Results.Ok(await TrainingLoads.ReadAsync(conn, user.GetUserId(), timeZone, DateTime.UtcNow, ct));
         }).RequireAuthorization();
 
+        api.MapGet("/aerobic-efficiency", async (string? timeZone, NpgsqlDataSource db, ClaimsPrincipal user,
+            CancellationToken ct) =>
+        {
+            timeZone ??= "UTC";
+            await using var conn = await db.OpenConnectionAsync(ct);
+            if (!await ActivityList.IsValidTimeZoneAsync(conn, timeZone, ct))
+                return Results.BadRequest(new ApiError("Tidszonen är ogiltig. Kontrollera enhetens inställningar.", "invalidTimeZone"));
+            return Results.Ok(await AerobicEfficiency.ReadAsync(conn, user.GetUserId(), timeZone, DateTime.UtcNow, ct));
+        }).RequireAuthorization();
+
         api.MapPut("/me/threshold-speed", async (ThresholdSpeedRequest req, NpgsqlDataSource db, ClaimsPrincipal user,
             CancellationToken ct) =>
         {

@@ -1019,5 +1019,20 @@
     "lastFaster": "Sista repetitionen var {{percent}} % snabbare än snittet av de andra.",
     "rep": "Rep.",
     "recovery": "Vila"
+  },
+  "aerobic": {
+    "title": "Aerob effektivitet",
+    "methodLabel": "Hur räknas aerob effektivitet?",
+    "method": "Från jämna löppass på minst 30 minuter med puls. Efter tio minuters uppvärmning räknas lutningsjusterad snittfart och snittpuls; intervaller och pass med ojämn fart räknas inte. Varje pass skalas till din vanliga puls i jämna pass (avrundad till 5), och bara pass inom ±10 slag räknas. Varje månad visar medianen.",
+    "description": "Hur fort du springer vid samma puls. Går tempot ned över tid blir konditionen bättre, även utan nya rekord.",
+    "empty": "Behöver minst tre jämna löppass på 30 minuter eller mer med puls under det senaste året.",
+    "noConsent": "Aerob effektivitet bygger på puls. Ge pulssamtycke under Inställningar för att se den.",
+    "paceAt": "Tempo vid {{hr}} slag/min",
+    "faster": "{{seconds}} s/km snabbare vid samma puls sedan {{from}}.",
+    "slower": "{{seconds}} s/km långsammare vid samma puls sedan {{from}}.",
+    "steady": "Ungefär oförändrat sedan {{from}}.",
+    "chart": "Tempo vid samma puls per månad: {{months}}",
+    "runs_one": "{{count}} pass",
+    "runs_other": "{{count}} pass"
   }
 }

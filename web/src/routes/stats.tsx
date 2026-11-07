@@ -11,6 +11,7 @@ import { PredictionsSection, RecordsSection } from '@/components/records'
 import { ActivitiesEmptyState } from '@/components/activities-empty-state'
 import { SlowLoading } from '@/components/slow-loading'
 import { TrainingLoadSection } from '@/components/training-load'
+import { AerobicEfficiencySection } from '@/components/aerobic-efficiency'
 import { YearComparison } from '@/components/year-comparison'
 import { Button } from '@/components/ui/button'
 import { api } from '@/lib/api'
@@ -76,6 +77,7 @@ export function AnalysisPage() {
       <p className="mt-4 text-muted-foreground">{t('stats.analysisDescription')}</p>
       <GarminDerivedNote className="mt-1" />
       <TrainingLoadSection />
+      <AerobicEfficiencySection />
       <PredictionsSection />
     </section>
   )

@@ -4,13 +4,18 @@ using Npgsql;
 public static class BestEfforts
 {
     // The caller holds the activity lock and transaction, so reprocessing replaces all derived rows atomically.
-    // Also refreshes the running intensity behind the training load, which depends on the same streams and parts.
+    // Also refreshes the running intensity behind the training load and the aerobic efficiency, which depend on
+    // the same streams and parts.
     public static async Task ReplaceAsync(NpgsqlConnection conn, NpgsqlTransaction tx, Guid activityId,
         Guid userId, string sport, DateTime startedAt, int[] t, float?[]? dist, float?[]? alt, ActivityPart[]? parts = null)
     {
         var intensity = dist is null ? (double?)null : TrainingLoad.RunIntensity(sport, t, dist, alt, parts);
-        await conn.ExecuteAsync("update activities set run_intensity = @intensity where id = @activityId",
-            new { activityId, intensity }, tx);
+        var aerobic = AerobicEfficiency.ForActivity(sport, t, dist, alt,
+            await AerobicEfficiency.ReadHeartRateAsync(conn, tx, activityId), parts);
+        await conn.ExecuteAsync("""
+            update activities set run_intensity = @intensity, aerobic_speed_m_s = @speed, aerobic_hr = @hr
+            where id = @activityId
+            """, new { activityId, intensity, speed = aerobic?.SpeedMS, hr = aerobic?.Hr }, tx);
         await conn.ExecuteAsync("delete from best_efforts where activity_id = @activityId", new { activityId }, tx);
         var efforts = Calculate(sport, t, dist, parts);
         if (efforts.Count == 0) return;
