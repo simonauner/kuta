@@ -6,7 +6,7 @@ import { api } from '@/lib/api'
 import { activityTitle, formatDuration, type ActivityTag } from '@/lib/activity'
 import type { Sport } from '@/lib/sports'
 import { SportIcon } from '@/components/sport-icon'
-import { ErrorMessage } from '@/components/error-message'
+import { QueryError } from '@/components/query-error'
 import { SlowLoading } from '@/components/slow-loading'
 import { Button } from '@/components/ui/button'
 import { Heading } from '@/components/ui/heading'
@@ -66,19 +66,7 @@ export function ActivityCalendar({
 
   return (
     <SlowLoading loading={calendar.isPending}>
-      {calendar.error && (
-        <p role="alert" className="mt-4 text-sm text-destructive">
-          <ErrorMessage error={calendar.error} />{' '}
-          <Button
-            variant="secondary-outline"
-            size="sm"
-            disabled={calendar.isFetching}
-            onClick={() => void calendar.refetch()}
-          >
-            {t('activities.retry')}
-          </Button>
-        </p>
-      )}
+      <QueryError query={calendar} className="mt-4" />
       {calendar.isSuccess && (
         <>
           <p className="mt-6 text-metadata text-muted-foreground">

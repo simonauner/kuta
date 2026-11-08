@@ -7,6 +7,7 @@ import { keepPreviousData, useQuery } from '@tanstack/react-query'
 import { Link } from '@tanstack/react-router'
 import { useTranslation } from 'react-i18next'
 import { ErrorMessage } from '@/components/error-message'
+import { QueryError } from '@/components/query-error'
 import { PredictionsSection, RecordsSection } from '@/components/records'
 import { ActivitiesEmptyState } from '@/components/activities-empty-state'
 import { SlowLoading } from '@/components/slow-loading'
@@ -310,14 +311,7 @@ export function StatsPage() {
           <ErrorMessage error={sportGroups.error} />
         </p>
       )}
-      {years.error && (
-        <p role="alert" className="mt-4 text-sm text-destructive">
-          <ErrorMessage error={years.error} />{' '}
-          <Button variant="secondary-outline" size="sm" onClick={() => void years.refetch()}>
-            {t('activities.retry')}
-          </Button>
-        </p>
-      )}
+      <QueryError query={years} className="mt-4" />
       <div className="relative" aria-busy={switching}>
         {slowSince !== null && (
           <p role="status" className="absolute inset-x-0 top-8 z-10 flex justify-center">
@@ -328,18 +322,7 @@ export function StatsPage() {
           </p>
         )}
         <SlowLoading loading={statistics.isPending}>
-          {statistics.error && (
-            <p role="alert" className="mt-4 text-sm text-destructive">
-              <ErrorMessage error={statistics.error} />{' '}
-              <Button
-                variant="secondary-outline"
-                size="sm"
-                onClick={() => void statistics.refetch()}
-              >
-                {t('activities.retry')}
-              </Button>
-            </p>
-          )}
+          <QueryError query={statistics} className="mt-4" />
           {statistics.isSuccess &&
             (count === 0 ? (
               <p className="mt-8 text-muted-foreground motion-safe:animate-fade-in-up">

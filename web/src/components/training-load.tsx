@@ -5,6 +5,7 @@ import { Link } from '@tanstack/react-router'
 import { TriangleAlert } from 'lucide-react'
 import { useTranslation } from 'react-i18next'
 import { ErrorMessage } from '@/components/error-message'
+import { QueryError } from '@/components/query-error'
 import { Button } from '@/components/ui/button'
 import { FormField } from '@/components/ui/form-field'
 import { Input } from '@/components/ui/input'
@@ -86,14 +87,7 @@ export function TrainingLoadSection() {
         <HelpPopover label={t('trainingLoad.methodLabel')}>{t('trainingLoad.method')}</HelpPopover>
       </div>
       <p className="mt-2 text-sm text-muted-foreground">{t('trainingLoad.description')}</p>
-      {load.error && (
-        <p role="alert" className="mt-4 text-sm text-destructive">
-          <ErrorMessage error={load.error} />{' '}
-          <Button variant="secondary-outline" size="sm" onClick={() => void load.refetch()}>
-            {t('activities.retry')}
-          </Button>
-        </p>
-      )}
+      <QueryError query={load} className="mt-4" />
       {data && (
         <div className="motion-safe:animate-fade-in-up">
           <ThresholdForm summary={data} />

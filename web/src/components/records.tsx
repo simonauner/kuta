@@ -5,9 +5,7 @@ import { keepPreviousData, useQuery } from '@tanstack/react-query'
 import { Link, useRouterState } from '@tanstack/react-router'
 import { useTranslation } from 'react-i18next'
 import { HelpPopover } from '@/components/help-popover'
-import { ErrorMessage } from '@/components/error-message'
 import { RecordAward } from '@/components/record-award'
-import { Button } from '@/components/ui/button'
 import { api } from '@/lib/api'
 import { formatDuration, formatPace } from '@/lib/activity'
 import {
@@ -23,18 +21,7 @@ import {
 import { Card } from '@/components/ui/card'
 import { Loader } from '@/components/loader'
 import { Select } from '@/components/ui/select'
-
-function QueryError({ error, retry }: { error: Error; retry: () => void }) {
-  const { t } = useTranslation()
-  return (
-    <p role="alert" className="mt-4 text-sm text-destructive">
-      <ErrorMessage error={error} />{' '}
-      <Button variant="secondary-outline" size="sm" onClick={retry}>
-        {t('activities.retry')}
-      </Button>
-    </p>
-  )
-}
+import { QueryError } from '@/components/query-error'
 
 function EffortLink({ effort }: { effort: { activityId: string; elapsedS: number } }) {
   const returnTo = useRouterState({ select: (s) => s.location.href })
@@ -87,8 +74,8 @@ export function RecordsSection({ year }: { year: number }) {
       </div>
       <p className="mt-2 text-body text-muted-foreground">{t('records.description')}</p>
 
-      {allTime.error && <QueryError error={allTime.error} retry={() => void allTime.refetch()} />}
-      {yearly.error && <QueryError error={yearly.error} retry={() => void yearly.refetch()} />}
+      <QueryError query={allTime} className="mt-4" />
+      <QueryError query={yearly} className="mt-4" />
       {allTime.isSuccess &&
         (allTime.data.length === 0 ? (
           <p className="mt-4 text-muted-foreground motion-safe:animate-fade-in-up">
@@ -167,7 +154,7 @@ export function RecordsSection({ year }: { year: number }) {
               </Select>
             )}
           </FormField>
-          {trend.error && <QueryError error={trend.error} retry={() => void trend.refetch()} />}
+          <QueryError query={trend} className="mt-4" />
           {trend.isSuccess && (
             <div className="motion-safe:animate-fade-in-up">
               <RecordTrendView trend={trend.data} distanceLabel={distanceLabel(distance)} />
@@ -201,9 +188,7 @@ export function PredictionsSection() {
         </HelpPopover>
       </div>
       <Card className="mt-4">
-        {predictions.error && (
-          <QueryError error={predictions.error} retry={() => void predictions.refetch()} />
-        )}
+        <QueryError query={predictions} className="mt-4" />
         {predictions.isSuccess && (
           <div className="motion-safe:animate-fade-in-up">
             {predictions.data.basis === null || predictions.data.vdot === null ? (

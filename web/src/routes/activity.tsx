@@ -17,6 +17,7 @@ import { equipmentQuery } from '@/lib/equipment'
 import { TagLabels } from '@/components/activity-tags'
 import { ActivityMap } from '@/components/activity-map'
 import { ErrorMessage } from '@/components/error-message'
+import { QueryError } from '@/components/query-error'
 import { RecordAward } from '@/components/record-award'
 import { ActivityAnalysis } from '@/components/activity-analysis'
 import { ApiError } from '@/lib/api'
@@ -664,14 +665,7 @@ export function ActivityPage() {
         sportIcons[knownSport(a.sport)] === 'run' && (
           <p className="mt-4 text-sm text-muted-foreground">{t('activity.noRecordsWithoutFile')}</p>
         )}
-      {bestEfforts.error && (
-        <p role="alert" className="mt-4 text-sm text-destructive">
-          <ErrorMessage error={bestEfforts.error} />{' '}
-          <Button size="sm" variant="secondary-outline" onClick={() => void bestEfforts.refetch()}>
-            {t('activities.retry')}
-          </Button>
-        </p>
-      )}
+      <QueryError query={bestEfforts} className="mt-4" />
 
       {!tablesBeside && tablePanels && <div className="mt-8">{tablePanels}</div>}
 

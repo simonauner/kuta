@@ -5,7 +5,7 @@ import { ActivityMapPreview } from '@/components/activity-map-preview'
 import { useInfiniteQuery } from '@tanstack/react-query'
 import { Link, useRouterState } from '@tanstack/react-router'
 import { useTranslation } from 'react-i18next'
-import { ErrorMessage } from '@/components/error-message'
+import { QueryError } from '@/components/query-error'
 import { SportIcon } from '@/components/sport-icon'
 import { Avatar } from '@/components/avatar'
 import { SupporterBadge } from '@/components/supporter'
@@ -113,14 +113,7 @@ export function ActivityFeed({
   }
   return (
     <SlowLoading loading={feed.isPending}>
-      {feed.error && (
-        <div role="alert">
-          <ErrorMessage error={feed.error} />
-          <Button variant="secondary-outline" onClick={() => void feed.refetch()}>
-            {t('activities.retry')}
-          </Button>
-        </div>
-      )}
+      <QueryError query={feed} />
       {feed.isSuccess &&
         feed.data.pages[0].items.length === 0 &&
         (emptyState ??

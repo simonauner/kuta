@@ -4,7 +4,7 @@ import { useState } from 'react'
 import { Maximize2, Minimize2 } from 'lucide-react'
 import { useQuery } from '@tanstack/react-query'
 import { useTranslation } from 'react-i18next'
-import { ErrorMessage } from '@/components/error-message'
+import { QueryError } from '@/components/query-error'
 import { Button } from '@/components/ui/button'
 import { api } from '@/lib/api'
 import { formatDuration } from '@/lib/activity'
@@ -120,14 +120,7 @@ export function YearComparison({ year, sportGroup }: { year: number; sportGroup:
           )}
         </FormField>
       </div>
-      {days.error && (
-        <p role="alert" className="mt-4 text-sm text-destructive">
-          <ErrorMessage error={days.error} />{' '}
-          <Button variant="secondary-outline" size="sm" onClick={() => void days.refetch()}>
-            {t('activities.retry')}
-          </Button>
-        </p>
-      )}
+      <QueryError query={days} className="mt-4" />
       {days.isSuccess && (
         <div className="motion-safe:animate-fade-in-up">
           {series.length === 0 ? (

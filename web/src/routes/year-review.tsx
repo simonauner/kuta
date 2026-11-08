@@ -3,10 +3,9 @@ import { Link, useParams } from '@tanstack/react-router'
 import { motion, useReducedMotion } from 'motion/react'
 import type { ReactNode } from 'react'
 import { useTranslation } from 'react-i18next'
-import { ErrorMessage } from '@/components/error-message'
+import { QueryError } from '@/components/query-error'
 import { GarminDerivedNote } from '@/components/garmin'
 import { SlowLoading } from '@/components/slow-loading'
-import { Button } from '@/components/ui/button'
 import { card } from '@/components/ui/card-variants'
 import { Heading } from '@/components/ui/heading'
 import {
@@ -155,14 +154,7 @@ export function YearReviewPage() {
         </nav>
       </div>
       <GarminDerivedNote className="mt-1" />
-      {review.error && (
-        <p role="alert" className="mt-4 text-sm text-destructive">
-          <ErrorMessage error={review.error} />{' '}
-          <Button variant="secondary-outline" size="sm" onClick={() => void review.refetch()}>
-            {t('activities.retry')}
-          </Button>
-        </p>
-      )}
+      <QueryError query={review} className="mt-4" />
       <SlowLoading loading={review.isPending && Number.isInteger(year)}>{null}</SlowLoading>
       {data && totals && summary && totals.count === 0 && (
         <p className="mt-6 text-muted-foreground">{t('yearReview.empty', { year })}</p>
