@@ -1,32 +1,29 @@
+import { Checkbox } from '@/components/ui/checkbox'
+import { PrivacySelect, usePrivacyLabel } from '@/components/privacy-select'
 import { FormField } from '@/components/ui/form-field'
-import { useRef } from 'react'
+import { useState } from 'react'
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
 import { Trans, useTranslation } from 'react-i18next'
 import { Link } from '@tanstack/react-router'
 import { Check } from 'lucide-react'
-import { ErrorMessage } from '@/components/error-message'
+import { ErrorText } from '@/components/error-message'
 import { Button } from '@/components/ui/button'
-import { Modal } from '@/components/ui/modal'
+import { ConfirmationModal } from '@/components/ui/confirmation-modal'
 import { api } from '@/lib/api'
 import { SharingHints } from '@/components/privacy-places'
 import { meQuery, type Me } from '@/lib/auth'
-import { Select } from '@/components/ui/select'
 import { Heading } from '@/components/ui/heading'
 
 // New and imported activities silently get the default visibility, so the forms that create them say which it is.
 export function DefaultPrivacyNote({ imported = false }: { imported?: boolean }) {
   const { t } = useTranslation()
   const privacy = useQuery(meQuery).data?.defaultActivityPrivacy ?? 'private'
-  const labels = {
-    private: t('social.private'),
-    followers: t('social.followersVisibility'),
-    public: t('social.public'),
-  }
+  const label = usePrivacyLabel()
   return (
     <p className="text-sm">
       <Trans
         i18nKey={imported ? 'activityPrivacy.importNote' : 'activityPrivacy.newNote'}
-        values={{ visibility: labels[privacy] }}
+        values={{ visibility: label(privacy) }}
         components={{ strong: <strong /> }}
       />
       {!imported && (
@@ -46,19 +43,15 @@ export function ActivityPrivacy() {
   const { t } = useTranslation()
   const { data: me, isFetching } = useQuery({ ...meQuery, staleTime: 0 })
   const queryClient = useQueryClient()
-  const dialog = useRef<HTMLDialogElement>(null)
+  const [confirming, setConfirming] = useState(false)
   const privacy = me?.defaultActivityPrivacy ?? 'private'
-  const labels = {
-    private: t('social.private'),
-    followers: t('social.followersVisibility'),
-    public: t('social.public'),
-  }
+  const label = usePrivacyLabel()
   const save = useMutation({
     mutationFn: (request: { privacy: Me['defaultActivityPrivacy']; applyToAll: boolean }) =>
       api.send<Me>('PUT', '/api/me/activity-privacy', request),
     onSuccess: async (updated, request) => {
       queryClient.setQueryData(meQuery.queryKey, updated)
-      dialog.current?.close()
+      setConfirming(false)
       if (request.applyToAll) {
         await Promise.all(
           ['activities', 'activity', 'feed'].map((key) =>
@@ -81,24 +74,13 @@ export function ActivityPrivacy() {
       </Heading>
       <FormField label={t('activityPrivacy.default')} className="text-sm font-medium mt-4">
         {(id) => (
-          <Select
+          <PrivacySelect
             id={id}
             value={privacy}
             disabled={!me || save.isPending}
             aria-describedby="activity-privacy-help"
-            onChange={(event) =>
-              save.mutate({
-                privacy: event.target.value as Me['defaultActivityPrivacy'],
-                applyToAll: false,
-              })
-            }
-          >
-            {Object.entries(labels).map(([value, label]) => (
-              <option key={value} value={value}>
-                {label}
-              </option>
-            ))}
-          </Select>
+            onChange={(value) => save.mutate({ privacy: value, applyToAll: false })}
+          />
         )}
       </FormField>
       <p id="activity-privacy-help" className="mt-2 text-sm text-muted-foreground">
@@ -112,7 +94,7 @@ export function ActivityPrivacy() {
           disabled={!me || isFetching || save.isPending || me.activitiesWithOtherPrivacy === 0}
           onClick={() => {
             save.reset()
-            dialog.current?.showModal()
+            setConfirming(true)
           }}
         >
           {t('activityPrivacy.applyAll')}
@@ -130,9 +112,7 @@ export function ActivityPrivacy() {
         </p>
       )}
       {save.error && !save.variables?.applyToAll && (
-        <p role="alert" className="mt-2 text-sm text-destructive">
-          <ErrorMessage error={save.error} />
-        </p>
+        <ErrorText error={save.error} className="mt-2" />
       )}
       <FormField
         layout="choice"
@@ -146,59 +126,31 @@ export function ActivityPrivacy() {
         }
       >
         {(id) => (
-          <input
+          <Checkbox
             id={id}
-            type="checkbox"
-            className="mt-1 size-4 accent-primary"
+            className="mt-1"
             checked={me?.publicProfile ?? false}
             disabled={!me || publicProfile.isPending}
             onChange={(event) => publicProfile.mutate(event.currentTarget.checked)}
           />
         )}
       </FormField>
-      {publicProfile.error && (
-        <p role="alert" className="mt-2 text-sm text-destructive">
-          <ErrorMessage error={publicProfile.error} />
-        </p>
-      )}
-      <Modal
-        ref={dialog}
-        aria-labelledby="apply-privacy-title"
-        aria-describedby="apply-privacy-help"
-        onCancel={(event) => {
-          if (save.isPending) event.preventDefault()
-        }}
-      >
-        <Heading level={3} id="apply-privacy-title">
-          {t('activityPrivacy.applyAll')}
-        </Heading>
-        <p id="apply-privacy-help" className="mt-3 text-sm text-muted-foreground">
-          {t('activityPrivacy.confirm', {
-            count: me?.activitiesWithOtherPrivacy ?? 0,
-            visibility: labels[privacy],
-          })}
-        </p>
-        {save.error && (
-          <p role="alert" className="mt-3 text-sm text-destructive">
-            <ErrorMessage error={save.error} />
-          </p>
-        )}
-        <div className="mt-5 flex justify-end gap-2">
-          <Button
-            variant="secondary-outline"
-            disabled={save.isPending}
-            onClick={() => dialog.current?.close()}
-          >
-            {t('activity.cancel')}
-          </Button>
-          <Button
-            disabled={save.isPending}
-            onClick={() => save.mutate({ privacy, applyToAll: true })}
-          >
-            {t(save.isPending ? 'activityPrivacy.applying' : 'activityPrivacy.applyAll')}
-          </Button>
-        </div>
-      </Modal>
+      <ErrorText error={publicProfile.error} className="mt-2" />
+      <ConfirmationModal
+        open={confirming}
+        title={t('activityPrivacy.applyAll')}
+        description={t('activityPrivacy.confirm', {
+          count: me?.activitiesWithOtherPrivacy ?? 0,
+          visibility: label(privacy),
+        })}
+        confirmLabel={t(save.isPending ? 'activityPrivacy.applying' : 'activityPrivacy.applyAll')}
+        cancelLabel={t('activity.cancel')}
+        confirmVariant="primary-filled"
+        pending={save.isPending}
+        error={save.variables?.applyToAll ? save.error : null}
+        onConfirm={() => save.mutate({ privacy, applyToAll: true })}
+        onClose={() => setConfirming(false)}
+      />
     </section>
   )
 }

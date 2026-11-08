@@ -3,7 +3,7 @@ import { useQuery } from '@tanstack/react-query'
 import { Link } from '@tanstack/react-router'
 import { ExternalLink, Plus, Users } from 'lucide-react'
 import { useTranslation } from 'react-i18next'
-import { ErrorMessage } from '@/components/error-message'
+import { QueryError } from '@/components/query-error'
 import { AddActivityButton } from '@/components/onboarding-actions'
 import { ShareProfile } from '@/components/share-profile'
 import { garminStatusQuery } from '@/components/garmin'
@@ -20,12 +20,7 @@ export function FeedEmptyState() {
   return (
     <SlowLoading loading={follows.isPending}>
       {follows.isError ? (
-        <div role="alert" className="space-y-3">
-          <ErrorMessage error={follows.error} />
-          <Button variant="secondary-outline" onClick={() => void follows.refetch()}>
-            {t('activities.retry')}
-          </Button>
-        </div>
+        <QueryError query={follows} />
       ) : follows.data ? (
         <div className="space-y-4">
           <section

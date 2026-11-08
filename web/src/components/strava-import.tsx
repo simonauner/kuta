@@ -3,7 +3,7 @@ import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
 import { useEffect, useRef, useState, type FormEvent } from 'react'
 import { Trans, useTranslation } from 'react-i18next'
 import { DefaultPrivacyNote } from '@/components/activity-privacy'
-import { ErrorMessage } from '@/components/error-message'
+import { ErrorMessage, ErrorText } from '@/components/error-message'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { refreshActivityQueries } from '@/lib/activity-query'
@@ -137,11 +137,7 @@ export function StravaImport() {
             ? t('settings.importing')
             : t('settings.import')}
       </Button>
-      {upload.error && (
-        <p role="alert" className="mt-2 text-sm text-destructive">
-          <ErrorMessage error={upload.error} />
-        </p>
-      )}
+      <ErrorText error={upload.error} className="mt-2" />
       {job && running && (
         <>
           <JobProgress job={job} label={t('settings.importing')} />
@@ -208,11 +204,7 @@ export function Recalculation() {
       >
         {running ? t('settings.recalculating') : t('settings.recalculate')}
       </Button>
-      {start.error && (
-        <p role="alert" className="mt-2 text-sm text-destructive">
-          <ErrorMessage error={start.error} />
-        </p>
-      )}
+      <ErrorText error={start.error} className="mt-2" />
       {job && running && <JobProgress job={job} label={t('settings.recalculating')} />}
       {job?.status === 'failed' && <JobError job={job} />}
       {job?.status === 'succeeded' && job.result && (

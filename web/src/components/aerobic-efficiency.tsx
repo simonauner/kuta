@@ -1,8 +1,7 @@
 import { useQuery } from '@tanstack/react-query'
 import { useTranslation } from 'react-i18next'
-import { ErrorMessage } from '@/components/error-message'
+import { QueryError } from '@/components/query-error'
 import { HelpPopover } from '@/components/help-popover'
-import { Button } from '@/components/ui/button'
 import { Card } from '@/components/ui/card'
 import { Heading } from '@/components/ui/heading'
 import { formatDuration } from '@/lib/activity'
@@ -53,14 +52,7 @@ export function AerobicEfficiencySection() {
         <HelpPopover label={t('aerobic.methodLabel')}>{t('aerobic.method')}</HelpPopover>
       </div>
       <p className="mt-2 text-sm text-muted-foreground">{t('aerobic.description')}</p>
-      {points.error && (
-        <p role="alert" className="mt-4 text-sm text-destructive">
-          <ErrorMessage error={points.error} />{' '}
-          <Button variant="secondary-outline" size="sm" onClick={() => void points.refetch()}>
-            {t('activities.retry')}
-          </Button>
-        </p>
-      )}
+      <QueryError query={points} className="mt-4" />
       {points.data && !trend && (
         <p className="mt-4 text-muted-foreground">
           {me?.hrConsent ? t('aerobic.empty') : t('aerobic.noConsent')}

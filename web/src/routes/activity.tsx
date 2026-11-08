@@ -1,3 +1,4 @@
+import { Stat } from '@/components/stat'
 import { SlowLoading } from '@/components/slow-loading'
 import { isCyclingSport, knownSport, sportIcons } from '@/lib/sports'
 import { SportIcon } from '@/components/sport-icon'
@@ -16,7 +17,8 @@ import { meQuery } from '@/lib/auth'
 import { equipmentQuery } from '@/lib/equipment'
 import { TagLabels } from '@/components/activity-tags'
 import { ActivityMap } from '@/components/activity-map'
-import { ErrorMessage } from '@/components/error-message'
+import { ErrorMessage, ErrorText } from '@/components/error-message'
+import { QueryError } from '@/components/query-error'
 import { RecordAward } from '@/components/record-award'
 import { ActivityAnalysis } from '@/components/activity-analysis'
 import { ApiError } from '@/lib/api'
@@ -578,17 +580,15 @@ export function ActivityPage() {
           className="mt-4 flex flex-wrap gap-4 text-sm"
         >
           {[...new Set(original.parts.map((p) => p.sport))].map((sport) => (
-            <div key={sport}>
-              <dt>{t(sportNameKey(sport))}</dt>
-              <dd className="font-semibold">
-                {number.format(
-                  original.parts
-                    .filter((p) => p.sport === sport)
-                    .reduce((sum, p) => sum + p.distanceM, 0) / 1000,
-                )}{' '}
-                km
-              </dd>
-            </div>
+            <Stat
+              key={sport}
+              label={t(sportNameKey(sport))}
+              value={`${number.format(
+                original.parts
+                  .filter((p) => p.sport === sport)
+                  .reduce((sum, p) => sum + p.distanceM, 0) / 1000,
+              )} km`}
+            />
           ))}
         </dl>
       )}
@@ -606,11 +606,7 @@ export function ActivityPage() {
                   </li>
                 ))}
             </ul>
-            {equipment.error && (
-              <p role="alert" className="text-sm text-destructive">
-                <ErrorMessage error={equipment.error} />
-              </p>
-            )}
+            <ErrorText error={equipment.error} />
           </SlowLoading>
         </div>
       )}
@@ -623,14 +619,7 @@ export function ActivityPage() {
 
       <dl className="mt-6 grid grid-cols-3 gap-4">
         {stats.map(([label, value], i) => (
-          <div key={label} className={i < 3 ? '' : 'text-sm'}>
-            <dt className="text-xs text-muted-foreground">{label}</dt>
-            <dd
-              className={i < 3 ? 'text-xl font-semibold tabular-nums' : 'font-medium tabular-nums'}
-            >
-              {value}
-            </dd>
-          </div>
+          <Stat key={label} label={label} value={value} size={i < 3 ? 'xl' : 'sm'} />
         ))}
       </dl>
 
@@ -664,14 +653,7 @@ export function ActivityPage() {
         sportIcons[knownSport(a.sport)] === 'run' && (
           <p className="mt-4 text-sm text-muted-foreground">{t('activity.noRecordsWithoutFile')}</p>
         )}
-      {bestEfforts.error && (
-        <p role="alert" className="mt-4 text-sm text-destructive">
-          <ErrorMessage error={bestEfforts.error} />{' '}
-          <Button size="sm" variant="secondary-outline" onClick={() => void bestEfforts.refetch()}>
-            {t('activities.retry')}
-          </Button>
-        </p>
-      )}
+      <QueryError query={bestEfforts} className="mt-4" />
 
       {!tablesBeside && tablePanels && <div className="mt-8">{tablePanels}</div>}
 

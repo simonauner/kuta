@@ -4,7 +4,8 @@ import { sports } from '@/lib/sports'
 import { UnreviewedActivities } from '@/components/unreviewed-activities'
 import { TagLabels } from '@/components/activity-tags'
 import { activityTagsQuery, activityYearsQuery } from '@/lib/activity-query'
-import { ErrorMessage } from '@/components/error-message'
+import { ErrorText } from '@/components/error-message'
+import { QueryError } from '@/components/query-error'
 import { ActivitiesEmptyState } from '@/components/activities-empty-state'
 import { SlowLoading } from '@/components/slow-loading'
 import { ActivityCalendar } from '@/components/activity-calendar'
@@ -153,19 +154,7 @@ export function ActivitiesPage() {
           </FormField>
         </Reveal>
       )}
-      {years.error && (
-        <div role="alert" className="mt-4 text-sm text-destructive">
-          <ErrorMessage error={years.error} />{' '}
-          <Button
-            variant="secondary-outline"
-            size="sm"
-            disabled={years.isFetching}
-            onClick={() => void years.refetch()}
-          >
-            {t('activities.retry')}
-          </Button>
-        </div>
-      )}
+      <QueryError query={years} className="mt-4" />
       {!showOnboarding && (
         <>
           <FormField layout="inline" label={t('tags.label')} className="mt-5 text-sm">
@@ -230,11 +219,7 @@ export function ActivitiesPage() {
                 )}
               </p>
             ))}
-          {activities.error && (
-            <p role="alert" className="mt-4 text-sm text-destructive">
-              <ErrorMessage error={activities.error} />
-            </p>
-          )}
+          <ErrorText error={activities.error} className="mt-4" />
           <div className="mt-8 space-y-6">
             {groupActivities(items).map((period) => (
               <div key={period.activities[0].id}>

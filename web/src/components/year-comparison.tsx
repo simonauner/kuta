@@ -1,11 +1,9 @@
 import { FormField } from '@/components/ui/form-field'
 import { Heading } from '@/components/ui/heading'
 import { useState } from 'react'
-import { Maximize2, Minimize2 } from 'lucide-react'
 import { useQuery } from '@tanstack/react-query'
 import { useTranslation } from 'react-i18next'
-import { ErrorMessage } from '@/components/error-message'
-import { Button } from '@/components/ui/button'
+import { QueryError } from '@/components/query-error'
 import { api } from '@/lib/api'
 import { formatDuration } from '@/lib/activity'
 import {
@@ -16,7 +14,7 @@ import {
   type DailyTotal,
   type YearMetric,
 } from '@/lib/year-comparison'
-import { card } from '@/components/ui/card-variants'
+import { ExpandableCard, ExpandToggle } from '@/components/expandable-card'
 import { axisTicks } from '@/lib/statistics-period'
 import { Select } from '@/components/ui/select'
 import { HelpPopover } from '@/components/help-popover'
@@ -120,40 +118,18 @@ export function YearComparison({ year, sportGroup }: { year: number; sportGroup:
           )}
         </FormField>
       </div>
-      {days.error && (
-        <p role="alert" className="mt-4 text-sm text-destructive">
-          <ErrorMessage error={days.error} />{' '}
-          <Button variant="secondary-outline" size="sm" onClick={() => void days.refetch()}>
-            {t('activities.retry')}
-          </Button>
-        </p>
-      )}
+      <QueryError query={days} className="mt-4" />
       {days.isSuccess && (
         <div className="motion-safe:animate-fade-in-up">
           {series.length === 0 ? (
             <p className="mt-4 text-muted-foreground">{t('yearComparison.empty')}</p>
           ) : (
             <>
-              <div
-                className={card({
-                  // Like the enlarged map: wider than the column, centred and kept inside the viewport.
-                  className: `mt-4 transition-[margin] duration-300 motion-reduce:transition-none ${large ? 'lg:mx-[calc(50%-min(50vw-1rem,40rem))]' : ''}`,
-                })}
-              >
+              <ExpandableCard large={large} className="mt-4">
                 <p className="sr-only">{t('stats.tableNote')}</p>
                 {/* On a small screen the chart already fills the width. */}
                 <div className="hidden justify-end lg:flex">
-                  <Button
-                    type="button"
-                    variant="secondary-outline"
-                    size="icon"
-                    aria-label={t(large ? 'stats.chartSmaller' : 'stats.chartLarger')}
-                    title={t(large ? 'stats.chartSmaller' : 'stats.chartLarger')}
-                    aria-pressed={large}
-                    onClick={() => setLarge((v) => !v)}
-                  >
-                    {large ? <Minimize2 /> : <Maximize2 />}
-                  </Button>
+                  <ExpandToggle large={large} onChange={setLarge} />
                 </div>
                 <svg
                   viewBox={`0 0 ${width} ${height}`}
@@ -232,7 +208,7 @@ export function YearComparison({ year, sportGroup }: { year: number; sportGroup:
                     )
                   })}
                 </svg>
-              </div>
+              </ExpandableCard>
               <div className="mt-4 overflow-x-auto">
                 <table className="w-full text-right text-sm tabular-nums">
                   <caption className="pb-3 text-left font-medium">

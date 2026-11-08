@@ -1,5 +1,6 @@
+import { Checkbox } from '@/components/ui/checkbox'
 import { FormField } from '@/components/ui/form-field'
-import { ErrorMessage } from '@/components/error-message'
+import { ErrorText } from '@/components/error-message'
 import { Trans, useTranslation } from 'react-i18next'
 import { Link } from '@tanstack/react-router'
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
@@ -51,10 +52,9 @@ export function HeartRateConsent({ className }: { className?: string }) {
         }
       >
         {(id) => (
-          <input
+          <Checkbox
             id={id}
-            type="checkbox"
-            className="mt-1 size-4 accent-primary"
+            className="mt-1"
             checked={me?.hrConsent ?? false}
             disabled={change.isPending}
             onChange={onChange}
@@ -72,11 +72,7 @@ export function HeartRateConsent({ className }: { className?: string }) {
         onConfirm={() => change.mutate(false)}
         onClose={() => setConfirmingRevoke(false)}
       />
-      {!confirmingRevoke && change.error && (
-        <p role="alert" className="mt-2 text-sm text-destructive">
-          <ErrorMessage error={change.error} />
-        </p>
-      )}
+      {!confirmingRevoke && change.error && <ErrorText error={change.error} className="mt-2" />}
     </Card>
   )
 }

@@ -1,25 +1,26 @@
+import { Stat, StatHint } from '@/components/stat'
 import { GarminDerivedNote } from '@/components/garmin'
 import { FormField } from '@/components/ui/form-field'
 import { Heading } from '@/components/ui/heading'
-import { useEffect, useState } from 'react'
-import { LoaderCircle, Maximize2, Minimize2, Sparkles } from 'lucide-react'
+import { useState } from 'react'
+import { Sparkles } from 'lucide-react'
 import { keepPreviousData, useQuery } from '@tanstack/react-query'
 import { Link } from '@tanstack/react-router'
 import { useTranslation } from 'react-i18next'
-import { ErrorMessage } from '@/components/error-message'
+import { ErrorText } from '@/components/error-message'
+import { QueryError } from '@/components/query-error'
 import { PredictionsSection, RecordsSection } from '@/components/records'
 import { ActivitiesEmptyState } from '@/components/activities-empty-state'
-import { SlowLoading } from '@/components/slow-loading'
+import { SlowLoading, SlowRefresh } from '@/components/slow-loading'
 import { TrainingLoadSection } from '@/components/training-load'
 import { AerobicEfficiencySection } from '@/components/aerobic-efficiency'
 import { YearComparison } from '@/components/year-comparison'
 import { Button } from '@/components/ui/button'
 import { api } from '@/lib/api'
 import { formatDuration } from '@/lib/activity'
-import { scheduleSlowLoading } from '@/lib/slow-loading'
 import { sportGroupsQuery, activityYearsQuery } from '@/lib/activity-query'
 import { sportGroupLabel } from '@/lib/sport-groups'
-import { card } from '@/components/ui/card-variants'
+import { ExpandableCard, ExpandToggle } from '@/components/expandable-card'
 import { Select } from '@/components/ui/select'
 import { HelpPopover } from '@/components/help-popover'
 import {
@@ -167,9 +168,6 @@ export function StatsPage() {
   const { bucket } = ranges.current
   const buckets = statistics.data?.current.buckets ?? []
   const total = statistics.data?.current.total
-  const [slowSince, setSlowSince] = useState<number | null>(null)
-  const switching = statistics.isPlaceholderData
-  useEffect(() => scheduleSlowLoading(switching, slowSince, setSlowSince), [switching, slowSince])
   const availableYears = [...new Set([currentYear, year, ...(years.data ?? [])])].sort(
     (a, b) => b - a,
   )
@@ -305,50 +303,18 @@ export function StatsPage() {
           )}
         </FormField>
       </div>
-      {sportGroups.error && (
-        <p role="alert" className="mt-4 text-sm text-destructive">
-          <ErrorMessage error={sportGroups.error} />
-        </p>
-      )}
-      {years.error && (
-        <p role="alert" className="mt-4 text-sm text-destructive">
-          <ErrorMessage error={years.error} />{' '}
-          <Button variant="secondary-outline" size="sm" onClick={() => void years.refetch()}>
-            {t('activities.retry')}
-          </Button>
-        </p>
-      )}
-      <div className="relative" aria-busy={switching}>
-        {slowSince !== null && (
-          <p role="status" className="absolute inset-x-0 top-8 z-10 flex justify-center">
-            <span className="flex items-center gap-2 rounded-full border bg-background px-3 py-1.5 text-sm text-muted-foreground shadow-sm">
-              <LoaderCircle aria-hidden="true" className="size-4 motion-safe:animate-spin" />
-              {t('slowLoading')}
-            </span>
-          </p>
-        )}
+      <ErrorText error={sportGroups.error} className="mt-4" />
+      <QueryError query={years} className="mt-4" />
+      <SlowRefresh loading={statistics.isPlaceholderData}>
         <SlowLoading loading={statistics.isPending}>
-          {statistics.error && (
-            <p role="alert" className="mt-4 text-sm text-destructive">
-              <ErrorMessage error={statistics.error} />{' '}
-              <Button
-                variant="secondary-outline"
-                size="sm"
-                onClick={() => void statistics.refetch()}
-              >
-                {t('activities.retry')}
-              </Button>
-            </p>
-          )}
+          <QueryError query={statistics} className="mt-4" />
           {statistics.isSuccess &&
             (count === 0 ? (
               <p className="mt-8 text-muted-foreground motion-safe:animate-fade-in-up">
                 {t('stats.empty')}
               </p>
             ) : (
-              <div
-                className={`motion-safe:animate-fade-in-up transition-opacity ${slowSince !== null ? 'opacity-50' : ''}`}
-              >
+              <div className="motion-safe:animate-fade-in-up">
                 <p className="mt-6 text-metadata text-muted-foreground">
                   {formatRange(ranges.current)}
                 </p>
@@ -360,17 +326,9 @@ export function StatsPage() {
                       ['durationS', format(total?.durationS ?? 0, 'durationS')],
                     ] as const
                   ).map(([key, value]) => (
-                    <div key={key} className={card({ padding: 'compact' })}>
-                      <dt className="text-xs text-muted-foreground">{t(`stats.${key}`)}</dt>
-                      <dd className="mt-2 break-words text-lg font-semibold tabular-nums sm:text-2xl">
-                        {value}
-                      </dd>
-                      {changeText(key) && (
-                        <dd className="mt-1 text-xs tabular-nums text-muted-foreground">
-                          {changeText(key)}
-                        </dd>
-                      )}
-                    </div>
+                    <Stat key={key} boxed label={t(`stats.${key}`)} value={value}>
+                      {changeText(key) && <StatHint>{changeText(key)}</StatHint>}
+                    </Stat>
                   ))}
                 </dl>
                 <p className="mt-2 text-metadata text-muted-foreground">
@@ -382,12 +340,7 @@ export function StatsPage() {
                   </Heading>
                   <HelpPopover label={t('stats.methodLabel')}>{t('stats.method')}</HelpPopover>
                 </div>
-                <div
-                  className={card({
-                    // Like the enlarged map: wider than the column, centred and kept inside the viewport.
-                    className: `mt-4 transition-[margin] duration-300 motion-reduce:transition-none ${large ? 'lg:mx-[calc(50%-min(50vw-1rem,40rem))]' : ''}`,
-                  })}
-                >
+                <ExpandableCard large={large} className="mt-4">
                   <FormField
                     layout="inline"
                     label={t('yearComparison.metric')}
@@ -407,19 +360,7 @@ export function StatsPage() {
                             </option>
                           ))}
                         </Select>
-                        {/* On a small screen the chart already fills the width. */}
-                        <Button
-                          type="button"
-                          variant="secondary-outline"
-                          size="icon"
-                          className="hidden lg:inline-flex"
-                          aria-label={t(large ? 'stats.chartSmaller' : 'stats.chartLarger')}
-                          title={t(large ? 'stats.chartSmaller' : 'stats.chartLarger')}
-                          aria-pressed={large}
-                          onClick={() => setLarge((v) => !v)}
-                        >
-                          {large ? <Minimize2 /> : <Maximize2 />}
-                        </Button>
+                        <ExpandToggle large={large} onChange={setLarge} />
                       </div>
                     )}
                   </FormField>
@@ -518,7 +459,7 @@ export function StatsPage() {
                   {metric === 'avgHr' && !buckets.some((m) => m.avgHr !== null) && (
                     <p className="text-sm text-muted-foreground">{t('stats.noHeartRate')}</p>
                   )}
-                </div>
+                </ExpandableCard>
                 <div className="mt-6 overflow-x-auto">
                   <table className="w-full text-right text-sm tabular-nums">
                     <caption className="pb-3 text-left font-medium">
@@ -560,7 +501,7 @@ export function StatsPage() {
               </div>
             ))}
         </SlowLoading>
-      </div>
+      </SlowRefresh>
       <YearComparison year={year} sportGroup={sportGroup} />
       <RecordsSection year={year} />
     </section>

@@ -1,7 +1,8 @@
 import { SlowLoading } from '@/components/slow-loading'
 import { useQuery } from '@tanstack/react-query'
 import { useTranslation } from 'react-i18next'
-import { ErrorMessage } from '@/components/error-message'
+import { ErrorText } from '@/components/error-message'
+import { QueryError } from '@/components/query-error'
 import { Button } from '@/components/ui/button'
 import { followsQuery, useFollowChange } from '@/lib/follows'
 import { FollowRow } from '@/components/follow-row'
@@ -20,14 +21,7 @@ export function FollowersPage() {
       <Heading level={1}>{t('settings.followers')}</Heading>
       <p className="text-sm text-muted-foreground">{t('social.profileLinksHint')}</p>
       <SlowLoading loading={follows.isPending}>
-        {follows.error && (
-          <p role="alert">
-            <ErrorMessage error={follows.error} />
-            <Button variant="secondary-outline" onClick={() => void follows.refetch()}>
-              {t('activities.retry')}
-            </Button>
-          </p>
-        )}
+        <QueryError query={follows} />
         {follows.data && (
           <>
             <section aria-labelledby="followers-heading" className="border-t pt-6">
@@ -94,11 +88,7 @@ export function FollowersPage() {
           </>
         )}
       </SlowLoading>
-      {change.error && (
-        <p role="alert" className="mt-3 text-destructive">
-          <ErrorMessage error={change.error} />
-        </p>
-      )}
+      <ErrorText error={change.error} className="mt-3" />
     </section>
   )
 }

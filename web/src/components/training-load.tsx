@@ -1,10 +1,12 @@
+import { Stat } from '@/components/stat'
 import { Reveal } from '@/components/reveal'
 import { useState, type FormEvent } from 'react'
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
 import { Link } from '@tanstack/react-router'
 import { TriangleAlert } from 'lucide-react'
 import { useTranslation } from 'react-i18next'
-import { ErrorMessage } from '@/components/error-message'
+import { ErrorText } from '@/components/error-message'
+import { QueryError } from '@/components/query-error'
 import { Button } from '@/components/ui/button'
 import { FormField } from '@/components/ui/form-field'
 import { Input } from '@/components/ui/input'
@@ -86,14 +88,7 @@ export function TrainingLoadSection() {
         <HelpPopover label={t('trainingLoad.methodLabel')}>{t('trainingLoad.method')}</HelpPopover>
       </div>
       <p className="mt-2 text-sm text-muted-foreground">{t('trainingLoad.description')}</p>
-      {load.error && (
-        <p role="alert" className="mt-4 text-sm text-destructive">
-          <ErrorMessage error={load.error} />{' '}
-          <Button variant="secondary-outline" size="sm" onClick={() => void load.refetch()}>
-            {t('activities.retry')}
-          </Button>
-        </p>
-      )}
+      <QueryError query={load} className="mt-4" />
       {data && (
         <div className="motion-safe:animate-fade-in-up">
           <ThresholdForm summary={data} />
@@ -111,10 +106,7 @@ export function TrainingLoadSection() {
                     data.rampPerWeek === null ? '–' : signed.format(data.rampPerWeek),
                   ],
                 ].map(([label, value]) => (
-                  <Card key={label} padding="compact">
-                    <dt className="text-xs text-muted-foreground">{label}</dt>
-                    <dd className="mt-2 text-lg font-semibold tabular-nums sm:text-2xl">{value}</dd>
-                  </Card>
+                  <Stat key={label} boxed label={label} value={value} />
                 ))}
               </dl>
               <Card className="mt-4">
@@ -269,11 +261,7 @@ function ThresholdForm({ summary }: { summary: TrainingLoadSummary }) {
           </>
         )}
       </FormField>
-      {save.error && (
-        <p role="alert" className="mt-2 text-sm text-destructive">
-          <ErrorMessage error={save.error} />
-        </p>
-      )}
+      <ErrorText error={save.error} className="mt-2" />
     </form>
   )
 }

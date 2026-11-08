@@ -1,3 +1,4 @@
+import { Stat } from '@/components/stat'
 import { SlowLoading } from '@/components/slow-loading'
 import type { ReactNode } from 'react'
 import { FeedEmptyState } from '@/components/feed-empty-state'
@@ -5,7 +6,7 @@ import { ActivityMapPreview } from '@/components/activity-map-preview'
 import { useInfiniteQuery } from '@tanstack/react-query'
 import { Link, useRouterState } from '@tanstack/react-router'
 import { useTranslation } from 'react-i18next'
-import { ErrorMessage } from '@/components/error-message'
+import { QueryError } from '@/components/query-error'
 import { SportIcon } from '@/components/sport-icon'
 import { Avatar } from '@/components/avatar'
 import { SupporterBadge } from '@/components/supporter'
@@ -113,14 +114,7 @@ export function ActivityFeed({
   }
   return (
     <SlowLoading loading={feed.isPending}>
-      {feed.error && (
-        <div role="alert">
-          <ErrorMessage error={feed.error} />
-          <Button variant="secondary-outline" onClick={() => void feed.refetch()}>
-            {t('activities.retry')}
-          </Button>
-        </div>
-      )}
+      <QueryError query={feed} />
       {feed.isSuccess &&
         feed.data.pages[0].items.length === 0 &&
         (emptyState ??
@@ -167,10 +161,7 @@ export function ActivityFeed({
               )}
               <dl className="mt-4 flex flex-wrap gap-x-8 gap-y-3">
                 {metrics(activity).map(([label, value]) => (
-                  <div key={label}>
-                    <dt className="text-metadata text-muted-foreground">{label}</dt>
-                    <dd className="text-xl font-semibold tabular-nums">{value}</dd>
-                  </div>
+                  <Stat key={label} label={label} value={value} size="xl" />
                 ))}
               </dl>
               {activity.recordStatus && (

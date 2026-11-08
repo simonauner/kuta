@@ -4,7 +4,7 @@ import { useTranslation } from 'react-i18next'
 import { ActivityPrivacy } from '@/components/activity-privacy'
 import { AvatarSection } from '@/components/avatar'
 import { DangerZone } from '@/components/danger-zone'
-import { ErrorMessage } from '@/components/error-message'
+import { ErrorText } from '@/components/error-message'
 import { HeartRateConsent } from '@/components/heart-rate-consent'
 import { LanguageSelect } from '@/components/language-select'
 import { Recalculation } from '@/components/strava-import'
@@ -72,11 +72,7 @@ export function SettingsPage() {
         >
           {t('settings.logout')}
         </Button>
-        {logout.error && (
-          <p role="alert" className="mt-4 text-sm text-destructive">
-            <ErrorMessage error={logout.error} />
-          </p>
-        )}
+        <ErrorText error={logout.error} className="mt-4" />
       </section>
     </section>
   )
@@ -135,11 +131,7 @@ export function DataSettingsPage() {
             {t('settings.exportWait')}
           </p>
         )}
-        {dataExport.error && (
-          <p role="alert" className="mt-4 text-sm text-destructive">
-            <ErrorMessage error={dataExport.error} />
-          </p>
-        )}
+        <ErrorText error={dataExport.error} className="mt-4" />
       </section>
       <section aria-labelledby="recalculate-heading" className="mt-8 border-t pt-6">
         <Heading level={2} id="recalculate-heading">

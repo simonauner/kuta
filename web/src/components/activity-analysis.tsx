@@ -1,3 +1,4 @@
+import { Stat, StatHint } from '@/components/stat'
 import { useMemo, type ReactNode } from 'react'
 import { useTranslation } from 'react-i18next'
 import { HelpPopover } from '@/components/help-popover'
@@ -50,10 +51,8 @@ export function ActivityAnalysis({
       {sourceNote}
       <dl className="mt-3 grid gap-4 sm:grid-cols-2">
         {split && (
-          <div>
-            <dt className="text-metadata text-muted-foreground">{t('analysis.pacing')}</dt>
-            <dd className="font-semibold">{t(`analysis.split.${split.split}`)}</dd>
-            <dd className="text-sm text-muted-foreground tabular-nums">
+          <Stat label={t('analysis.pacing')} value={t(`analysis.split.${split.split}`)}>
+            <StatHint>
               {t('analysis.halves', {
                 first: formatDuration(Math.round(split.firstHalfS)),
                 second: formatDuration(Math.round(split.secondHalfS)),
@@ -62,26 +61,23 @@ export function ActivityAnalysis({
                 ` · ${t(split.percent < 0 ? 'analysis.secondFaster' : 'analysis.secondSlower', {
                   percent: percent.format(Math.abs(split.percent)),
                 })}`}
-            </dd>
+            </StatHint>
             {Math.abs(split.finishPercent) >= 5 && (
-              <dd className="text-sm text-muted-foreground">
+              <StatHint>
                 {t(split.finishPercent > 0 ? 'analysis.finishSlower' : 'analysis.finishFaster', {
                   percent: percent.format(Math.abs(split.finishPercent)),
                 })}
-              </dd>
+              </StatHint>
             )}
-          </div>
+          </Stat>
         )}
         {drift && (
-          <div>
-            <dt className="text-metadata text-muted-foreground">{t('analysis.drift')}</dt>
-            <dd className="font-semibold tabular-nums">
-              {percent.format(Math.max(0, drift.percent))} %
-            </dd>
-            <dd className="text-sm text-muted-foreground">
-              {t(`analysis.driftLevel.${drift.level}`)}
-            </dd>
-          </div>
+          <Stat
+            label={t('analysis.drift')}
+            value={`${percent.format(Math.max(0, drift.percent))} %`}
+          >
+            <StatHint>{t(`analysis.driftLevel.${drift.level}`)}</StatHint>
+          </Stat>
         )}
       </dl>
       {reps && (

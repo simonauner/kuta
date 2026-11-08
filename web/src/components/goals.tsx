@@ -1,3 +1,4 @@
+import { PrivacySelect, usePrivacyLabel } from '@/components/privacy-select'
 import { Reveal } from '@/components/reveal'
 import { GarminDerivedNote } from '@/components/garmin'
 import { FormField } from '@/components/ui/form-field'
@@ -28,7 +29,7 @@ import {
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Modal } from '@/components/ui/modal'
-import { ErrorMessage } from '@/components/error-message'
+import { ErrorText } from '@/components/error-message'
 import { SportIcon } from '@/components/sport-icon'
 import { card } from '@/components/ui/card-variants'
 import { Select } from '@/components/ui/select'
@@ -49,14 +50,7 @@ function useGoalText() {
       ...goalPeriodLabel(goal.period, goal.current.start, i18n.resolvedLanguage),
     })
   }
-  const privacyLabel = (privacy: GoalPrivacy) =>
-    t(
-      privacy === 'private'
-        ? 'social.private'
-        : privacy === 'followers'
-          ? 'social.followersVisibility'
-          : 'social.public',
-    )
+  const privacyLabel = usePrivacyLabel()
   const groupLabel = (key: string | null) =>
     key === null ? t('activities.allSports') : sportGroupLabel(key, t)
   return { t, i18n, amount, title, groupLabel, privacyLabel }
@@ -89,12 +83,7 @@ export function GoalList({
   })
   const groups = useQuery(sportGroupsQuery)
   const { t } = useTranslation()
-  if (goals.error)
-    return (
-      <p role="alert" className="mt-4 text-sm text-destructive">
-        <ErrorMessage error={goals.error} />
-      </p>
-    )
+  if (goals.error) return <ErrorText error={goals.error} className="mt-4" />
   if (!goals.data) return null
   if (!goals.data.length && !action) return null
   return (
@@ -249,7 +238,7 @@ function GoalCard({
 }
 
 export function GoalDialog({ goal, onClose }: { goal: Goal | null; onClose: () => void }) {
-  const { t, i18n, title, groupLabel, privacyLabel } = useGoalText()
+  const { t, i18n, title, groupLabel } = useGoalText()
   const groups = useQuery(sportGroupsQuery)
   const queryClient = useQueryClient()
   const dialog = useRef<HTMLDialogElement>(null)
@@ -353,11 +342,7 @@ export function GoalDialog({ goal, onClose }: { goal: Goal | null; onClose: () =
               </>
             )}
           </FormField>
-          {groups.error && (
-            <p role="alert" className="col-span-2 text-sm text-destructive">
-              <ErrorMessage error={groups.error} />
-            </p>
-          )}
+          <ErrorText error={groups.error} className="col-span-2" />
           <FormField label={t('goals.metric')} className="text-sm font-medium">
             {(id) => (
               <Select
@@ -421,18 +406,12 @@ export function GoalDialog({ goal, onClose }: { goal: Goal | null; onClose: () =
           <FormField label={t('goals.visibility')} className="text-sm font-medium col-span-2">
             {(id) => (
               <>
-                <Select
+                <PrivacySelect
                   id={id}
                   value={privacy}
                   aria-describedby="goal-visibility-help"
-                  onChange={(e) => setPrivacy(e.currentTarget.value as GoalPrivacy)}
-                >
-                  {goalPrivacies.map((value) => (
-                    <option key={value} value={value}>
-                      {privacyLabel(value)}
-                    </option>
-                  ))}
-                </Select>
+                  onChange={setPrivacy}
+                />
                 <span
                   id="goal-visibility-help"
                   className="mt-2 block text-xs font-normal text-muted-foreground"
@@ -447,11 +426,7 @@ export function GoalDialog({ goal, onClose }: { goal: Goal | null; onClose: () =
               </>
             )}
           </FormField>
-          {(save.error || remove.error) && (
-            <p role="alert" className="col-span-2 text-sm text-destructive">
-              <ErrorMessage error={(save.error ?? remove.error)!} />
-            </p>
-          )}
+          <ErrorText error={save.error ?? remove.error} className="col-span-2" />
           {confirmingDelete ? (
             <div
               role="group"

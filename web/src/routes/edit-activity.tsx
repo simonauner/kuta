@@ -1,3 +1,4 @@
+import { Checkbox } from '@/components/ui/checkbox'
 import { FormField } from '@/components/ui/form-field'
 import { MultisportEditor } from '@/components/multisport-editor'
 import { multisportView, partsFromForm, type MultisportDraft } from '@/lib/multisport'
@@ -7,9 +8,10 @@ import { Link, useNavigate, useParams, useSearch } from '@tanstack/react-router'
 import { useTranslation } from 'react-i18next'
 import { EquipmentPicker } from '@/components/equipment'
 import { TagPicker } from '@/components/activity-tags'
-import { ErrorMessage } from '@/components/error-message'
+import { ErrorMessage, ErrorText } from '@/components/error-message'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
+import { Textarea } from '@/components/ui/textarea'
 import { meQuery } from '@/lib/auth'
 import { ApiError, api } from '@/lib/api'
 import { activityQuery, refreshActivityQueries } from '@/lib/activity-query'
@@ -124,14 +126,13 @@ function EditActivityForm({ activity }: { activity: ActivityDetail }) {
         </FormField>
         <FormField label={t('newActivity.description')} className="text-sm font-medium">
           {(id) => (
-            <textarea
+            <Textarea
               id={id}
               value={description}
               maxLength={10000}
               rows={3}
               onChange={(event) => setDescription(event.currentTarget.value)}
               disabled={save.isPending}
-              className="w-full rounded-md border border-input bg-transparent px-3 py-2 text-base shadow-xs outline-none focus-visible:border-ring focus-visible:ring-[3px] focus-visible:ring-ring/50 md:text-sm dark:bg-input/30"
             />
           )}
         </FormField>
@@ -159,13 +160,11 @@ function EditActivityForm({ activity }: { activity: ActivityDetail }) {
           <div className="space-y-2">
             <FormField label={t('activity.excludeFromRecords')} layout="choice">
               {(id) => (
-                <input
+                <Checkbox
                   id={id}
-                  type="checkbox"
                   checked={excludeFromRecords}
                   onChange={(event) => setExcludeFromRecords(event.currentTarget.checked)}
                   disabled={save.isPending}
-                  className="size-4 accent-primary"
                 />
               )}
             </FormField>
@@ -187,11 +186,7 @@ function EditActivityForm({ activity }: { activity: ActivityDetail }) {
           disabled={save.isPending}
         />
         <TagPicker value={tags} onChange={setTags} disabled={save.isPending} />
-        {save.error && (
-          <p role="alert" className="text-sm text-destructive">
-            <ErrorMessage error={save.error} />
-          </p>
-        )}
+        <ErrorText error={save.error} />
         {actions}
       </form>
     </section>

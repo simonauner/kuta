@@ -7,7 +7,8 @@ import { ActivityCalendar, ProfileStats, RecordShelf } from '@/components/runner
 import { GoalList } from '@/components/goals'
 import { Avatar } from '@/components/avatar'
 import { SupporterBadge } from '@/components/supporter'
-import { ErrorMessage } from '@/components/error-message'
+import { ErrorText } from '@/components/error-message'
+import { QueryError } from '@/components/query-error'
 import { Button } from '@/components/ui/button'
 import { ApiError, api } from '@/lib/api'
 import { ProfilePage } from '@/routes/profile'
@@ -59,20 +60,12 @@ export function RunnerPage() {
         </Link>
       )}
       <SlowLoading loading={runner.isPending}>
-        {runner.error && (
-          <div role="alert">
-            {runner.error instanceof ApiError && runner.error.status === 404 ? (
-              t('social.runnerNotFound')
-            ) : (
-              <>
-                <ErrorMessage error={runner.error} />
-                <Button variant="secondary-outline" onClick={() => void runner.refetch()}>
-                  {t('activities.retry')}
-                </Button>
-              </>
-            )}
-          </div>
-        )}
+        {runner.error &&
+          (runner.error instanceof ApiError && runner.error.status === 404 ? (
+            <p role="alert">{t('social.runnerNotFound')}</p>
+          ) : (
+            <QueryError query={runner} />
+          ))}
         {runner.data && !runner.isError && (
           <>
             <div className="flex flex-wrap items-center justify-between gap-3">
@@ -108,11 +101,7 @@ export function RunnerPage() {
                 </div>
               )}
             </div>
-            {follow.error && (
-              <p role="alert" className="text-destructive">
-                <ErrorMessage error={follow.error} />
-              </p>
-            )}
+            <ErrorText error={follow.error} />
             {/* A visitor without an account only sees the public activities */}
             {!visitor && (
               <>

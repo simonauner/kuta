@@ -1,7 +1,7 @@
 import { queryOptions, useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
 import { useState } from 'react'
 import { useTranslation } from 'react-i18next'
-import { ErrorMessage } from '@/components/error-message'
+import { ErrorText } from '@/components/error-message'
 import { CircleCheckIcon } from 'lucide-react'
 import { Alert, AlertTitle } from '@/components/ui/alert'
 import { Button } from '@/components/ui/button'
@@ -78,12 +78,7 @@ export function GarminConnect() {
     },
   })
 
-  if (status.error)
-    return (
-      <p role="alert" className="mt-4 text-sm text-destructive">
-        <ErrorMessage error={status.error} />
-      </p>
-    )
+  if (status.error) return <ErrorText error={status.error} className="mt-4" />
   if (!status.data) return null
   const { available, connected, activityExport } = status.data
 
@@ -116,11 +111,7 @@ export function GarminConnect() {
           <Button disabled={connect.isPending} onClick={() => connect.mutate()}>
             {t('garmin.connect')}
           </Button>
-          {connect.error && (
-            <p role="alert" className="text-destructive">
-              <ErrorMessage error={connect.error} />
-            </p>
-          )}
+          <ErrorText error={connect.error} />
         </>
       ) : (
         <p className="text-muted-foreground">{t('garmin.notAvailable')}</p>

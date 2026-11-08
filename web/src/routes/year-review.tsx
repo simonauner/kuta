@@ -1,12 +1,12 @@
+import { Stat, StatHint } from '@/components/stat'
 import { useQuery } from '@tanstack/react-query'
 import { Link, useParams } from '@tanstack/react-router'
 import { motion, useReducedMotion } from 'motion/react'
 import type { ReactNode } from 'react'
 import { useTranslation } from 'react-i18next'
-import { ErrorMessage } from '@/components/error-message'
+import { QueryError } from '@/components/query-error'
 import { GarminDerivedNote } from '@/components/garmin'
 import { SlowLoading } from '@/components/slow-loading'
-import { Button } from '@/components/ui/button'
 import { card } from '@/components/ui/card-variants'
 import { Heading } from '@/components/ui/heading'
 import {
@@ -155,14 +155,7 @@ export function YearReviewPage() {
         </nav>
       </div>
       <GarminDerivedNote className="mt-1" />
-      {review.error && (
-        <p role="alert" className="mt-4 text-sm text-destructive">
-          <ErrorMessage error={review.error} />{' '}
-          <Button variant="secondary-outline" size="sm" onClick={() => void review.refetch()}>
-            {t('activities.retry')}
-          </Button>
-        </p>
-      )}
+      <QueryError query={review} className="mt-4" />
       <SlowLoading loading={review.isPending && Number.isInteger(year)}>{null}</SlowLoading>
       {data && totals && summary && totals.count === 0 && (
         <p className="mt-6 text-muted-foreground">{t('yearReview.empty', { year })}</p>
@@ -283,43 +276,37 @@ export function YearReviewPage() {
           <Slide title={t('yearReview.habitsTitle')}>
             <dl className="grid gap-4 sm:grid-cols-2">
               {summary.favoriteWeekday !== null && (
-                <div>
-                  <dt className="text-metadata text-muted-foreground">{t('yearReview.weekday')}</dt>
-                  <dd className="font-semibold first-letter:uppercase">
-                    {weekdayName(summary.favoriteWeekday)}
-                  </dd>
-                  <dd className="text-sm text-muted-foreground">
+                <Stat
+                  label={t('yearReview.weekday')}
+                  value={
+                    <span className="first-letter:uppercase">
+                      {weekdayName(summary.favoriteWeekday)}
+                    </span>
+                  }
+                >
+                  <StatHint>
                     {t('yearReview.activities', { count: summary.favoriteWeekdayCount })}
-                  </dd>
-                </div>
+                  </StatHint>
+                </Stat>
               )}
               {summary.timeOfDay !== null && (
-                <div>
-                  <dt className="text-metadata text-muted-foreground">
-                    {t('yearReview.timeOfDay')}
-                  </dt>
-                  <dd className="font-semibold">
-                    {t(`yearReview.timesOfDay.${summary.timeOfDay}`)}
-                  </dd>
-                  <dd className="text-sm text-muted-foreground">
+                <Stat
+                  label={t('yearReview.timeOfDay')}
+                  value={t(`yearReview.timesOfDay.${summary.timeOfDay}`)}
+                >
+                  <StatHint>
                     {t('yearReview.activities', { count: summary.timeOfDayCount })}
-                  </dd>
-                </div>
+                  </StatHint>
+                </Stat>
               )}
-              <div>
-                <dt className="text-metadata text-muted-foreground">{t('yearReview.dayStreak')}</dt>
-                <dd className="font-semibold">
-                  {t('yearReview.days', { count: summary.longestDayStreak })}
-                </dd>
-              </div>
-              <div>
-                <dt className="text-metadata text-muted-foreground">
-                  {t('yearReview.weekStreak')}
-                </dt>
-                <dd className="font-semibold">
-                  {t('yearReview.weeks', { count: summary.longestWeekStreak })}
-                </dd>
-              </div>
+              <Stat
+                label={t('yearReview.dayStreak')}
+                value={t('yearReview.days', { count: summary.longestDayStreak })}
+              />
+              <Stat
+                label={t('yearReview.weekStreak')}
+                value={t('yearReview.weeks', { count: summary.longestWeekStreak })}
+              />
             </dl>
           </Slide>
 
@@ -327,26 +314,17 @@ export function YearReviewPage() {
             <Slide title={t('yearReview.highlightsTitle')}>
               <dl className="space-y-3">
                 {summary.longestRun && (
-                  <div>
-                    <dt className="text-metadata text-muted-foreground">
-                      {t('yearReview.longestRun')}
-                    </dt>
-                    <dd className="font-semibold tabular-nums">
-                      {km(summary.longestRun.distanceM)}
-                    </dd>
+                  <Stat label={t('yearReview.longestRun')} value={km(summary.longestRun.distanceM)}>
                     <dd className="text-sm">{activityLink(summary.longestRun)}</dd>
-                  </div>
+                  </Stat>
                 )}
                 {summary.longestActivity && (
-                  <div>
-                    <dt className="text-metadata text-muted-foreground">
-                      {t('yearReview.longestActivity')}
-                    </dt>
-                    <dd className="font-semibold tabular-nums">
-                      {formatDuration(Math.round(summary.longestActivity.durationS))}
-                    </dd>
+                  <Stat
+                    label={t('yearReview.longestActivity')}
+                    value={formatDuration(Math.round(summary.longestActivity.durationS))}
+                  >
                     <dd className="text-sm">{activityLink(summary.longestActivity)}</dd>
-                  </div>
+                  </Stat>
                 )}
               </dl>
             </Slide>

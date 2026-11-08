@@ -1,9 +1,10 @@
+import { Checkbox } from '@/components/ui/checkbox'
 import { FormField } from '@/components/ui/form-field'
 import { useQuery } from '@tanstack/react-query'
 import { useTranslation } from 'react-i18next'
 import { activityTagsQuery } from '@/lib/activity-query'
 import type { ActivityTag } from '@/lib/activity'
-import { ErrorMessage } from '@/components/error-message'
+import { ErrorText } from '@/components/error-message'
 
 export function TagPicker({
   value,
@@ -28,9 +29,8 @@ export function TagPicker({
             className="rounded-md border px-3 py-2 text-sm"
           >
             {(id) => (
-              <input
+              <Checkbox
                 id={id}
-                type="checkbox"
                 checked={value.includes(tag)}
                 onChange={(e) =>
                   onChange(
@@ -42,11 +42,7 @@ export function TagPicker({
           </FormField>
         ))}
       </div>
-      {options.error && (
-        <p role="alert" className="mt-2 text-sm text-destructive">
-          <ErrorMessage error={options.error} />
-        </p>
-      )}
+      <ErrorText error={options.error} className="mt-2" />
     </fieldset>
   )
 }

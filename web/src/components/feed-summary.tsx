@@ -1,3 +1,4 @@
+import { Stat } from '@/components/stat'
 import { useQuery } from '@tanstack/react-query'
 import { Link } from '@tanstack/react-router'
 import { ChevronDown, Flame } from 'lucide-react'
@@ -35,10 +36,7 @@ export function FeedSummary() {
       </Heading>
       <dl className="grid grid-cols-3 divide-x text-center">
         {counts.map(({ label, value }) => (
-          <div key={label} className="flex flex-col-reverse px-1">
-            <dd className="text-xl font-semibold tabular-nums">{number.format(value)}</dd>
-            <dt className="text-metadata text-muted-foreground">{label}</dt>
-          </div>
+          <Stat key={label} label={label} value={number.format(value)} size="xl" className="px-1" />
         ))}
       </dl>
       <section aria-labelledby="feed-summary-week" className="space-y-3 border-t pt-4">
