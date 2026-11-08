@@ -322,7 +322,7 @@ som passsidan redan får:
   5–10 % drift och över 10 % tydlig drift. Bara ägaren får puls, så andra ser aldrig driften.
 - **Intervaller:** varvens fart delas i en snabb och en långsam grupp där skillnaden mellan grupperna är störst
   (varv under 10 s eller 50 m räknas inte). Snabba varv i följd blir en repetition. De snabba måste i snitt vara minst
-  20 % snabbare och ge minst två repetitioner. Tabellen visar distans, tid, tempo, puls och vila; texten snabbaste
+  20 % snabbare och ge minst två repetitioner, och ingen repetition får vara längre än 25 minuter eller vilan mellan två repetitioner längre än 10 minuter (annars är det ett långpass med backar, gång eller stopp, till exempel ett terrängmaraton med autovarv). Tabellen visar distans, tid, tempo, puls och vila; texten snabbaste
   och långsammaste tempo och sista repetitionen mot snittet av de andra.
 
 **Aerob effektivitet** (Statistik → Analys, `AerobicEfficiency.cs`, migrering 031): `BestEfforts.ReplaceAsync`

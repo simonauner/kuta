@@ -158,3 +158,24 @@ test('autolap inside a rep becomes one rep, and a steady run is not intervals', 
   // An accidental short lap doesn't count as a rep
   assert.equal(intervals([lap(3000, 900), lap(20, 3), lap(3000, 900), lap(20, 3)]), null)
 })
+
+test('a long run with slow hill or walking laps is not intervals', () => {
+  // Trail marathon with autolap: blocks of running at 6:30/km between climbs at 9:30/km
+  const laps = []
+  for (const [run, climb] of [
+    [10, 2],
+    [7, 3],
+    [2, 1],
+    [5, 6],
+    [2, 0],
+  ]) {
+    for (let i = 0; i < run; i++) laps.push(lap(1000, 390))
+    for (let i = 0; i < climb; i++) laps.push(lap(1000, 570))
+  }
+  assert.equal(intervals(laps), null)
+  // Short reps with a long break in the middle aren't a session either
+  assert.equal(
+    intervals([lap(1000, 220), lap(3000, 900), lap(1000, 220), lap(200, 90), lap(1000, 220)]),
+    null,
+  )
+})
