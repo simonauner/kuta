@@ -1,14 +1,14 @@
 import { Checkbox } from '@/components/ui/checkbox'
 import { PrivacySelect, usePrivacyLabel } from '@/components/privacy-select'
 import { FormField } from '@/components/ui/form-field'
-import { useRef } from 'react'
+import { useState } from 'react'
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
 import { Trans, useTranslation } from 'react-i18next'
 import { Link } from '@tanstack/react-router'
 import { Check } from 'lucide-react'
 import { ErrorText } from '@/components/error-message'
 import { Button } from '@/components/ui/button'
-import { Modal } from '@/components/ui/modal'
+import { ConfirmationModal } from '@/components/ui/confirmation-modal'
 import { api } from '@/lib/api'
 import { SharingHints } from '@/components/privacy-places'
 import { meQuery, type Me } from '@/lib/auth'
@@ -43,7 +43,7 @@ export function ActivityPrivacy() {
   const { t } = useTranslation()
   const { data: me, isFetching } = useQuery({ ...meQuery, staleTime: 0 })
   const queryClient = useQueryClient()
-  const dialog = useRef<HTMLDialogElement>(null)
+  const [confirming, setConfirming] = useState(false)
   const privacy = me?.defaultActivityPrivacy ?? 'private'
   const label = usePrivacyLabel()
   const save = useMutation({
@@ -51,7 +51,7 @@ export function ActivityPrivacy() {
       api.send<Me>('PUT', '/api/me/activity-privacy', request),
     onSuccess: async (updated, request) => {
       queryClient.setQueryData(meQuery.queryKey, updated)
-      dialog.current?.close()
+      setConfirming(false)
       if (request.applyToAll) {
         await Promise.all(
           ['activities', 'activity', 'feed'].map((key) =>
@@ -94,7 +94,7 @@ export function ActivityPrivacy() {
           disabled={!me || isFetching || save.isPending || me.activitiesWithOtherPrivacy === 0}
           onClick={() => {
             save.reset()
-            dialog.current?.showModal()
+            setConfirming(true)
           }}
         >
           {t('activityPrivacy.applyAll')}
@@ -136,40 +136,21 @@ export function ActivityPrivacy() {
         )}
       </FormField>
       <ErrorText error={publicProfile.error} className="mt-2" />
-      <Modal
-        ref={dialog}
-        aria-labelledby="apply-privacy-title"
-        aria-describedby="apply-privacy-help"
-        onCancel={(event) => {
-          if (save.isPending) event.preventDefault()
-        }}
-      >
-        <Heading level={3} id="apply-privacy-title">
-          {t('activityPrivacy.applyAll')}
-        </Heading>
-        <p id="apply-privacy-help" className="mt-3 text-sm text-muted-foreground">
-          {t('activityPrivacy.confirm', {
-            count: me?.activitiesWithOtherPrivacy ?? 0,
-            visibility: label(privacy),
-          })}
-        </p>
-        <ErrorText error={save.error} className="mt-3" />
-        <div className="mt-5 flex justify-end gap-2">
-          <Button
-            variant="secondary-outline"
-            disabled={save.isPending}
-            onClick={() => dialog.current?.close()}
-          >
-            {t('activity.cancel')}
-          </Button>
-          <Button
-            disabled={save.isPending}
-            onClick={() => save.mutate({ privacy, applyToAll: true })}
-          >
-            {t(save.isPending ? 'activityPrivacy.applying' : 'activityPrivacy.applyAll')}
-          </Button>
-        </div>
-      </Modal>
+      <ConfirmationModal
+        open={confirming}
+        title={t('activityPrivacy.applyAll')}
+        description={t('activityPrivacy.confirm', {
+          count: me?.activitiesWithOtherPrivacy ?? 0,
+          visibility: label(privacy),
+        })}
+        confirmLabel={t(save.isPending ? 'activityPrivacy.applying' : 'activityPrivacy.applyAll')}
+        cancelLabel={t('activity.cancel')}
+        confirmVariant="primary-filled"
+        pending={save.isPending}
+        error={save.variables?.applyToAll ? save.error : null}
+        onConfirm={() => save.mutate({ privacy, applyToAll: true })}
+        onClose={() => setConfirming(false)}
+      />
     </section>
   )
 }

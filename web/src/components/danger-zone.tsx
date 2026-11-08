@@ -1,9 +1,8 @@
 import { FormField } from '@/components/ui/form-field'
-import { Modal } from '@/components/ui/modal'
-import { useEffect, useRef, useState, type FormEvent } from 'react'
+import { ConfirmationModal } from '@/components/ui/confirmation-modal'
+import { useState } from 'react'
 import { useMutation, useQueryClient } from '@tanstack/react-query'
 import { useTranslation } from 'react-i18next'
-import { ErrorText } from '@/components/error-message'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { refreshActivityQueries } from '@/lib/activity-query'
@@ -17,7 +16,6 @@ export function DangerZone() {
   const queryClient = useQueryClient()
   const sessionChanged = useSessionChanged()
   const [target, setTarget] = useState<'activities' | 'account'>('activities')
-  const dialog = useRef<HTMLDialogElement>(null)
   const [word, setWord] = useState<string | null>(null)
   const [confirmation, setConfirmation] = useState('')
   // Account deletion is confirmed with the password (the API checks it against Supabase) instead of the runner word.
@@ -40,11 +38,6 @@ export function DangerZone() {
     },
   })
 
-  useEffect(() => {
-    if (word !== null) dialog.current?.showModal()
-    else dialog.current?.close()
-  }, [word])
-
   function openDialog(target: 'activities' | 'account') {
     setTarget(target)
     const words = t('dangerZone.words', { returnObjects: true })
@@ -52,11 +45,6 @@ export function DangerZone() {
     setConfirmation('')
     setPassword('')
     remove.reset()
-  }
-
-  function onSubmit(event: FormEvent<HTMLFormElement>) {
-    event.preventDefault()
-    if (confirmed && !remove.isPending) remove.mutate()
   }
 
   return (
@@ -85,78 +73,58 @@ export function DangerZone() {
           {t('dangerZone.deleteAccount')}
         </Button>
       </div>
-      <Modal
-        ref={dialog}
-        aria-labelledby="delete-all-title"
-        aria-describedby="delete-all-warning"
-        onCancel={(event) => {
-          event.preventDefault()
-          if (!remove.isPending) setWord(null)
-        }}
+      <ConfirmationModal
+        open={word !== null}
+        title={
+          target === 'account' ? t('dangerZone.accountConfirmTitle') : t('dangerZone.confirmTitle')
+        }
+        description={
+          target === 'account' ? t('dangerZone.accountWarning') : t('dangerZone.warning')
+        }
+        confirmLabel={
+          remove.isPending
+            ? t('dangerZone.deleting')
+            : target === 'account'
+              ? t('dangerZone.deleteAccount')
+              : t('dangerZone.delete')
+        }
+        cancelLabel={t('dangerZone.cancel')}
+        confirmDisabled={!confirmed}
+        pending={remove.isPending}
+        error={remove.error}
+        onConfirm={() => remove.mutate()}
+        onClose={() => setWord(null)}
       >
-        <Heading level={2} id="delete-all-title">
-          {target === 'account'
-            ? t('dangerZone.accountConfirmTitle')
-            : t('dangerZone.confirmTitle')}
-        </Heading>
-        <p id="delete-all-warning" className="mt-3 text-sm leading-relaxed text-muted-foreground">
-          {target === 'account' ? t('dangerZone.accountWarning') : t('dangerZone.warning')}
-        </p>
-        <form onSubmit={onSubmit} className="mt-5">
-          {target === 'activities' && (
-            <FormField label={t('dangerZone.confirmLabel', { word })}>
-              {(id) => (
-                <Input
-                  id={id}
-                  value={confirmation}
-                  onChange={(event) => setConfirmation(event.target.value)}
-                  disabled={remove.isPending}
-                  autoComplete="off"
-                  autoCapitalize="characters"
-                  spellCheck={false}
-                />
-              )}
-            </FormField>
-          )}
-          {target === 'account' && (
-            <FormField label={t('dangerZone.passwordLabel')}>
-              {(id) => (
-                <Input
-                  id={id}
-                  type="password"
-                  value={password}
-                  onChange={(event) => setPassword(event.target.value)}
-                  disabled={remove.isPending}
-                  autoComplete="current-password"
-                />
-              )}
-            </FormField>
-          )}
-          <ErrorText error={remove.error} className="mt-3" />
-          <div className="mt-6 flex flex-wrap justify-end gap-3">
-            <Button
-              type="button"
-              variant="secondary-outline"
-              disabled={remove.isPending}
-              onClick={() => setWord(null)}
-            >
-              {t('dangerZone.cancel')}
-            </Button>
-
-            <Button
-              type="submit"
-              variant="destructive-outline"
-              disabled={!confirmed || remove.isPending}
-            >
-              {remove.isPending
-                ? t('dangerZone.deleting')
-                : target === 'account'
-                  ? t('dangerZone.deleteAccount')
-                  : t('dangerZone.delete')}
-            </Button>
-          </div>
-        </form>
-      </Modal>
+        {target === 'activities' && (
+          <FormField label={t('dangerZone.confirmLabel', { word })}>
+            {(id) => (
+              <Input
+                id={id}
+                value={confirmation}
+                onChange={(event) => setConfirmation(event.target.value)}
+                disabled={remove.isPending}
+                autoComplete="off"
+                autoCapitalize="characters"
+                spellCheck={false}
+              />
+            )}
+          </FormField>
+        )}
+        {target === 'account' && (
+          <FormField label={t('dangerZone.passwordLabel')}>
+            {(id) => (
+              <Input
+                id={id}
+                type="password"
+                value={password}
+                onChange={(event) => setPassword(event.target.value)}
+                disabled={remove.isPending}
+                autoComplete="current-password"
+              />
+            )}
+          </FormField>
+        )}
+      </ConfirmationModal>
       {remove.isSuccess && (
         <p role="status" className="mt-3 text-sm">
           {t('dangerZone.success')}
