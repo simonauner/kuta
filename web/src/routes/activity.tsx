@@ -16,7 +16,7 @@ import { meQuery } from '@/lib/auth'
 import { equipmentQuery } from '@/lib/equipment'
 import { TagLabels } from '@/components/activity-tags'
 import { ActivityMap } from '@/components/activity-map'
-import { ErrorMessage } from '@/components/error-message'
+import { ErrorMessage, ErrorText } from '@/components/error-message'
 import { QueryError } from '@/components/query-error'
 import { RecordAward } from '@/components/record-award'
 import { ActivityAnalysis } from '@/components/activity-analysis'
@@ -607,11 +607,7 @@ export function ActivityPage() {
                   </li>
                 ))}
             </ul>
-            {equipment.error && (
-              <p role="alert" className="text-sm text-destructive">
-                <ErrorMessage error={equipment.error} />
-              </p>
-            )}
+            <ErrorText error={equipment.error} />
           </SlowLoading>
         </div>
       )}

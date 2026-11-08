@@ -4,7 +4,7 @@ import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
 import { Link } from '@tanstack/react-router'
 import { TriangleAlert } from 'lucide-react'
 import { useTranslation } from 'react-i18next'
-import { ErrorMessage } from '@/components/error-message'
+import { ErrorText } from '@/components/error-message'
 import { QueryError } from '@/components/query-error'
 import { Button } from '@/components/ui/button'
 import { FormField } from '@/components/ui/form-field'
@@ -263,11 +263,7 @@ function ThresholdForm({ summary }: { summary: TrainingLoadSummary }) {
           </>
         )}
       </FormField>
-      {save.error && (
-        <p role="alert" className="mt-2 text-sm text-destructive">
-          <ErrorMessage error={save.error} />
-        </p>
-      )}
+      <ErrorText error={save.error} className="mt-2" />
     </form>
   )
 }

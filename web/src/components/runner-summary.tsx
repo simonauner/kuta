@@ -2,7 +2,7 @@ import { useQuery } from '@tanstack/react-query'
 import { Link, useRouterState } from '@tanstack/react-router'
 import { Trophy } from 'lucide-react'
 import { useTranslation } from 'react-i18next'
-import { ErrorMessage } from '@/components/error-message'
+import { ErrorText } from '@/components/error-message'
 import { SportIcon } from '@/components/sport-icon'
 import { card } from '@/components/ui/card-variants'
 import { Heading } from '@/components/ui/heading'
@@ -151,12 +151,7 @@ export function RecordShelf({ runnerId, viewAs }: ProfileProps) {
 export function ActivityCalendar({ runnerId, viewAs }: ProfileProps) {
   const { t, i18n } = useTranslation()
   const summary = useQuery(runnerSummaryQuery(runnerId, viewAs))
-  if (summary.error)
-    return (
-      <p role="alert" className="text-sm text-destructive">
-        <ErrorMessage error={summary.error} />
-      </p>
-    )
+  if (summary.error) return <ErrorText error={summary.error} />
   if (!summary.data) return null
   // sv-SE formats dates as yyyy-mm-dd in the device's time zone.
   const weeks = calendarWeeks(summary.data.days, new Date().toLocaleDateString('sv-SE'))

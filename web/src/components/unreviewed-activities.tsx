@@ -2,7 +2,7 @@ import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
 import { Link } from '@tanstack/react-router'
 import { Sparkles } from 'lucide-react'
 import { useTranslation } from 'react-i18next'
-import { ErrorMessage } from '@/components/error-message'
+import { ErrorText } from '@/components/error-message'
 import { Reveal } from '@/components/reveal'
 import { Button } from '@/components/ui/button'
 import { refreshActivityQueries } from '@/lib/activity-query'
@@ -56,11 +56,7 @@ export function UnreviewedActivities({ className }: { className?: string }) {
                 {single ? t('unreviewed.dismissSingle') : t('unreviewed.dismiss')}
               </Button>
             </div>
-            {dismiss.error && (
-              <p role="alert" className="mt-2 text-destructive">
-                <ErrorMessage error={dismiss.error} />
-              </p>
-            )}
+            <ErrorText error={dismiss.error} className="mt-2" />
           </div>
         </Card>
       </div>

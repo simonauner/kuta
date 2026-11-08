@@ -15,7 +15,7 @@ import { equipmentQuery, equipmentKindsQuery, type Equipment } from '@/lib/equip
 import { Button } from '@/components/ui/button'
 import { ConfirmationModal } from '@/components/ui/confirmation-modal'
 import { Input } from '@/components/ui/input'
-import { ErrorMessage } from '@/components/error-message'
+import { ErrorText } from '@/components/error-message'
 import { Select as NativeSelect } from '@/components/ui/select'
 import { Heading } from '@/components/ui/heading'
 
@@ -108,16 +108,8 @@ export function EquipmentSection() {
         </Button>
       </div>
       <p className="mt-2 text-sm text-muted-foreground">{t('equipment.description')}</p>
-      {equipment.error && (
-        <p role="alert" className="mt-3 text-sm text-destructive">
-          <ErrorMessage error={equipment.error} />
-        </p>
-      )}
-      {setRetired.error && (
-        <p role="alert" className="mt-3 text-sm text-destructive">
-          <ErrorMessage error={setRetired.error} />
-        </p>
-      )}
+      <ErrorText error={equipment.error} className="mt-3" />
+      <ErrorText error={setRetired.error} className="mt-3" />
       {equipment.data?.length === 0 && (
         <p className="mt-4 text-sm text-muted-foreground">{t('equipment.empty')}</p>
       )}
@@ -279,17 +271,9 @@ export function EquipmentSection() {
                 />
               )}
             </FormField>
-            {kinds.error && (
-              <p role="alert" className="col-span-2 text-sm text-destructive">
-                <ErrorMessage error={kinds.error} />
-              </p>
-            )}
+            <ErrorText error={kinds.error} className="col-span-2" />
 
-            {save.error && (
-              <p role="alert" className="col-span-2 text-sm text-destructive">
-                <ErrorMessage error={save.error} />
-              </p>
-            )}
+            <ErrorText error={save.error} className="col-span-2" />
             <div className="col-span-2 flex flex-wrap justify-end gap-3 pt-2">
               <Button
                 type="button"
@@ -427,11 +411,7 @@ export function EquipmentPicker({
             ))}
           </div>
         )}
-        {equipment.error && (
-          <p role="alert" className="text-sm text-destructive">
-            <ErrorMessage error={equipment.error} />
-          </p>
-        )}
+        <ErrorText error={equipment.error} />
       </SlowLoading>
     </fieldset>
   )

@@ -7,7 +7,7 @@ import { Link, useNavigate, useParams, useSearch } from '@tanstack/react-router'
 import { useTranslation } from 'react-i18next'
 import { EquipmentPicker } from '@/components/equipment'
 import { TagPicker } from '@/components/activity-tags'
-import { ErrorMessage } from '@/components/error-message'
+import { ErrorMessage, ErrorText } from '@/components/error-message'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { meQuery } from '@/lib/auth'
@@ -187,11 +187,7 @@ function EditActivityForm({ activity }: { activity: ActivityDetail }) {
           disabled={save.isPending}
         />
         <TagPicker value={tags} onChange={setTags} disabled={save.isPending} />
-        {save.error && (
-          <p role="alert" className="text-sm text-destructive">
-            <ErrorMessage error={save.error} />
-          </p>
-        )}
+        <ErrorText error={save.error} />
         {actions}
       </form>
     </section>

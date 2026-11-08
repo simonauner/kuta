@@ -1,5 +1,5 @@
 import { LanguageSelect } from '@/components/language-select'
-import { ErrorMessage } from '@/components/error-message'
+import { ErrorText } from '@/components/error-message'
 import { Trans, useTranslation } from 'react-i18next'
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
 import { useEffect, useState, type FormEvent, type ReactNode } from 'react'
@@ -178,11 +178,7 @@ export function AuthPage() {
             </p>
           </>
         )}
-        {submit.error && (
-          <p role="alert" className="text-sm text-destructive">
-            <ErrorMessage error={submit.error} />
-          </p>
-        )}
+        <ErrorText error={submit.error} />
         <Button
           type="submit"
           className="w-full"
@@ -269,11 +265,7 @@ export function ResetPasswordPage() {
           </FormField>
           <p className="text-sm text-muted-foreground">{t('auth.minPassword')}</p>
         </div>
-        {save.error && (
-          <p role="alert" className="text-sm text-destructive">
-            <ErrorMessage error={save.error} />
-          </p>
-        )}
+        <ErrorText error={save.error} />
         <Button type="submit" className="w-full" disabled={save.isPending}>
           {save.isPending ? t('auth.saving') : t('auth.savePassword')}
         </Button>
@@ -307,11 +299,7 @@ export function ChooseNamePage() {
             <Input id={id} name="displayName" autoComplete="name" maxLength={100} required />
           )}
         </FormField>
-        {save.error && (
-          <p role="alert" className="text-sm text-destructive">
-            <ErrorMessage error={save.error} />
-          </p>
-        )}
+        <ErrorText error={save.error} />
         <Button type="submit" className="w-full" disabled={save.isPending}>
           {t('auth.continue')}
         </Button>
@@ -399,11 +387,7 @@ function ResendConfirmation({ email }: { email: string }) {
         {wait > 0 ? t('auth.resendIn', { seconds: wait }) : t('auth.resend')}
       </Button>
       {resend.isSuccess && <p role="status">{t('auth.resent')}</p>}
-      {resend.error && (
-        <p role="alert" className="text-destructive">
-          <ErrorMessage error={resend.error} />
-        </p>
-      )}
+      <ErrorText error={resend.error} />
     </div>
   )
 }

@@ -7,7 +7,7 @@ import { ActivityCalendar, ProfileStats, RecordShelf } from '@/components/runner
 import { GoalList } from '@/components/goals'
 import { Avatar } from '@/components/avatar'
 import { SupporterBadge } from '@/components/supporter'
-import { ErrorMessage } from '@/components/error-message'
+import { ErrorText } from '@/components/error-message'
 import { QueryError } from '@/components/query-error'
 import { Button } from '@/components/ui/button'
 import { ApiError, api } from '@/lib/api'
@@ -101,11 +101,7 @@ export function RunnerPage() {
                 </div>
               )}
             </div>
-            {follow.error && (
-              <p role="alert" className="text-destructive">
-                <ErrorMessage error={follow.error} />
-              </p>
-            )}
+            <ErrorText error={follow.error} />
             {/* A visitor without an account only sees the public activities */}
             {!visitor && (
               <>

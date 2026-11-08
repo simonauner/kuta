@@ -3,7 +3,7 @@ import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
 import { useTranslation } from 'react-i18next'
 import { Heart } from 'lucide-react'
 import { MetalGradient } from '@/components/record-award'
-import { ErrorMessage } from '@/components/error-message'
+import { ErrorText } from '@/components/error-message'
 import { Button } from '@/components/ui/button'
 import { FormField } from '@/components/ui/form-field'
 import { Input } from '@/components/ui/input'
@@ -122,11 +122,7 @@ export function SupporterSection() {
       <p id="supporter-badge-help" className="mt-2 text-sm text-muted-foreground">
         {t('supporter.badgeHelp')}
       </p>
-      {save.error && (
-        <p role="alert" className="mt-2 text-sm text-destructive">
-          <ErrorMessage error={save.error} />
-        </p>
-      )}
+      <ErrorText error={save.error} className="mt-2" />
 
       <Modal
         ref={dialog}

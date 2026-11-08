@@ -4,7 +4,7 @@ import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
 import { Trans, useTranslation } from 'react-i18next'
 import { Link } from '@tanstack/react-router'
 import { Check } from 'lucide-react'
-import { ErrorMessage } from '@/components/error-message'
+import { ErrorText } from '@/components/error-message'
 import { Button } from '@/components/ui/button'
 import { Modal } from '@/components/ui/modal'
 import { api } from '@/lib/api'
@@ -130,9 +130,7 @@ export function ActivityPrivacy() {
         </p>
       )}
       {save.error && !save.variables?.applyToAll && (
-        <p role="alert" className="mt-2 text-sm text-destructive">
-          <ErrorMessage error={save.error} />
-        </p>
+        <ErrorText error={save.error} className="mt-2" />
       )}
       <FormField
         layout="choice"
@@ -156,11 +154,7 @@ export function ActivityPrivacy() {
           />
         )}
       </FormField>
-      {publicProfile.error && (
-        <p role="alert" className="mt-2 text-sm text-destructive">
-          <ErrorMessage error={publicProfile.error} />
-        </p>
-      )}
+      <ErrorText error={publicProfile.error} className="mt-2" />
       <Modal
         ref={dialog}
         aria-labelledby="apply-privacy-title"
@@ -178,11 +172,7 @@ export function ActivityPrivacy() {
             visibility: labels[privacy],
           })}
         </p>
-        {save.error && (
-          <p role="alert" className="mt-3 text-sm text-destructive">
-            <ErrorMessage error={save.error} />
-          </p>
-        )}
+        <ErrorText error={save.error} className="mt-3" />
         <div className="mt-5 flex justify-end gap-2">
           <Button
             variant="secondary-outline"

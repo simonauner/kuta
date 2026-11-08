@@ -1,7 +1,7 @@
 import { SlowLoading } from '@/components/slow-loading'
 import { useQuery } from '@tanstack/react-query'
 import { useTranslation } from 'react-i18next'
-import { ErrorMessage } from '@/components/error-message'
+import { ErrorText } from '@/components/error-message'
 import { QueryError } from '@/components/query-error'
 import { Button } from '@/components/ui/button'
 import { followsQuery, useFollowChange } from '@/lib/follows'
@@ -88,11 +88,7 @@ export function FollowersPage() {
           </>
         )}
       </SlowLoading>
-      {change.error && (
-        <p role="alert" className="mt-3 text-destructive">
-          <ErrorMessage error={change.error} />
-        </p>
-      )}
+      <ErrorText error={change.error} className="mt-3" />
     </section>
   )
 }

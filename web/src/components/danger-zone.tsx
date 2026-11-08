@@ -3,7 +3,7 @@ import { Modal } from '@/components/ui/modal'
 import { useEffect, useRef, useState, type FormEvent } from 'react'
 import { useMutation, useQueryClient } from '@tanstack/react-query'
 import { useTranslation } from 'react-i18next'
-import { ErrorMessage } from '@/components/error-message'
+import { ErrorText } from '@/components/error-message'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { refreshActivityQueries } from '@/lib/activity-query'
@@ -132,11 +132,7 @@ export function DangerZone() {
               )}
             </FormField>
           )}
-          {remove.error && (
-            <p role="alert" className="mt-3 text-sm text-destructive">
-              <ErrorMessage error={remove.error} />
-            </p>
-          )}
+          <ErrorText error={remove.error} className="mt-3" />
           <div className="mt-6 flex flex-wrap justify-end gap-3">
             <Button
               type="button"

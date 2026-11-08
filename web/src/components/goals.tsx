@@ -28,7 +28,7 @@ import {
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Modal } from '@/components/ui/modal'
-import { ErrorMessage } from '@/components/error-message'
+import { ErrorText } from '@/components/error-message'
 import { SportIcon } from '@/components/sport-icon'
 import { card } from '@/components/ui/card-variants'
 import { Select } from '@/components/ui/select'
@@ -89,12 +89,7 @@ export function GoalList({
   })
   const groups = useQuery(sportGroupsQuery)
   const { t } = useTranslation()
-  if (goals.error)
-    return (
-      <p role="alert" className="mt-4 text-sm text-destructive">
-        <ErrorMessage error={goals.error} />
-      </p>
-    )
+  if (goals.error) return <ErrorText error={goals.error} className="mt-4" />
   if (!goals.data) return null
   if (!goals.data.length && !action) return null
   return (
@@ -353,11 +348,7 @@ export function GoalDialog({ goal, onClose }: { goal: Goal | null; onClose: () =
               </>
             )}
           </FormField>
-          {groups.error && (
-            <p role="alert" className="col-span-2 text-sm text-destructive">
-              <ErrorMessage error={groups.error} />
-            </p>
-          )}
+          <ErrorText error={groups.error} className="col-span-2" />
           <FormField label={t('goals.metric')} className="text-sm font-medium">
             {(id) => (
               <Select
@@ -447,11 +438,7 @@ export function GoalDialog({ goal, onClose }: { goal: Goal | null; onClose: () =
               </>
             )}
           </FormField>
-          {(save.error || remove.error) && (
-            <p role="alert" className="col-span-2 text-sm text-destructive">
-              <ErrorMessage error={(save.error ?? remove.error)!} />
-            </p>
-          )}
+          <ErrorText error={save.error ?? remove.error} className="col-span-2" />
           {confirmingDelete ? (
             <div
               role="group"

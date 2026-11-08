@@ -2,7 +2,7 @@ import { useMutation } from '@tanstack/react-query'
 import { Share2 } from 'lucide-react'
 import { useState } from 'react'
 import { useTranslation } from 'react-i18next'
-import { ErrorMessage } from '@/components/error-message'
+import { ErrorText } from '@/components/error-message'
 import { Button } from '@/components/ui/button'
 import { FormField } from '@/components/ui/form-field'
 import { Input } from '@/components/ui/input'
@@ -70,11 +70,7 @@ export function ShareProfile({ label }: { label?: string }) {
           {t('social.profileLinkCopied')}
         </p>
       )}
-      {share.isError && !profileUrl && (
-        <p role="alert" className="text-sm text-destructive">
-          <ErrorMessage error={share.error} />
-        </p>
-      )}
+      {share.isError && !profileUrl && <ErrorText error={share.error} />}
       {share.isError && profileUrl && (
         <div className="space-y-2">
           <p role="alert" className="text-sm text-destructive">

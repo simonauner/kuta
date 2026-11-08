@@ -9,7 +9,7 @@ import { Modal } from '@/components/ui/modal'
 import { Button } from '@/components/ui/button'
 import { ConfirmationModal } from '@/components/ui/confirmation-modal'
 import { Input } from '@/components/ui/input'
-import { ErrorMessage } from '@/components/error-message'
+import { ErrorText } from '@/components/error-message'
 import { Link } from '@tanstack/react-router'
 import { Heading } from '@/components/ui/heading'
 
@@ -77,11 +77,7 @@ export function PrivacyPlaces() {
       </div>
       <p className="mt-2 text-sm text-muted-foreground">{t('privacyPlaces.help')}</p>
       <SlowLoading loading={places.isPending}>
-        {places.error && (
-          <p role="alert" className="mt-3 text-sm text-destructive">
-            <ErrorMessage error={places.error} />
-          </p>
-        )}
+        <ErrorText error={places.error} className="mt-3" />
         {places.data?.length === 0 && (
           <p className="mt-4 text-sm text-muted-foreground">{t('privacyPlaces.empty')}</p>
         )}
@@ -305,11 +301,7 @@ function PlaceEditor({ place, onClose }: { place: PrivacyPlace | null; onClose: 
           </FormField>
         </fieldset>
         <p className="mt-3 text-xs text-muted-foreground">{t('privacyPlaces.mapPrivacy')}</p>
-        {save.error && (
-          <p role="alert" className="mt-3 text-sm text-destructive">
-            <ErrorMessage error={save.error} />
-          </p>
-        )}
+        <ErrorText error={save.error} className="mt-3" />
         <div className="mt-5 flex justify-end gap-2">
           <Button
             type="button"

@@ -6,7 +6,7 @@ import { LoaderCircle, Maximize2, Minimize2, Sparkles } from 'lucide-react'
 import { keepPreviousData, useQuery } from '@tanstack/react-query'
 import { Link } from '@tanstack/react-router'
 import { useTranslation } from 'react-i18next'
-import { ErrorMessage } from '@/components/error-message'
+import { ErrorText } from '@/components/error-message'
 import { QueryError } from '@/components/query-error'
 import { PredictionsSection, RecordsSection } from '@/components/records'
 import { ActivitiesEmptyState } from '@/components/activities-empty-state'
@@ -306,11 +306,7 @@ export function StatsPage() {
           )}
         </FormField>
       </div>
-      {sportGroups.error && (
-        <p role="alert" className="mt-4 text-sm text-destructive">
-          <ErrorMessage error={sportGroups.error} />
-        </p>
-      )}
+      <ErrorText error={sportGroups.error} className="mt-4" />
       <QueryError query={years} className="mt-4" />
       <div className="relative" aria-busy={switching}>
         {slowSince !== null && (

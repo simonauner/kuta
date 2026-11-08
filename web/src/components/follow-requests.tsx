@@ -2,7 +2,7 @@ import { useQuery } from '@tanstack/react-query'
 import { Link } from '@tanstack/react-router'
 import { UserPlus } from 'lucide-react'
 import { useTranslation } from 'react-i18next'
-import { ErrorMessage } from '@/components/error-message'
+import { ErrorText } from '@/components/error-message'
 import { FollowRow } from '@/components/follow-row'
 import { card } from '@/components/ui/card-variants'
 import { Heading } from '@/components/ui/heading'
@@ -32,11 +32,7 @@ export function FollowRequests() {
           <FollowRow key={runner.id} runner={runner} incoming change={change} />
         ))}
       </ul>
-      {change.error && (
-        <p role="alert" className="mt-3 text-sm text-destructive">
-          <ErrorMessage error={change.error} />
-        </p>
-      )}
+      <ErrorText error={change.error} className="mt-3" />
       <Link
         to="/app/settings/followers"
         className="mt-3 inline-block text-sm underline underline-offset-4"

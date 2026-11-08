@@ -13,7 +13,7 @@ import { useNavigate, useSearch } from '@tanstack/react-router'
 import { useRef, useState, type FormEvent } from 'react'
 import { useTranslation } from 'react-i18next'
 import { BackLink } from '@/components/back-link'
-import { ErrorMessage } from '@/components/error-message'
+import { ErrorText } from '@/components/error-message'
 import { HeartRateConsentPrompt } from '@/components/heart-rate-consent'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
@@ -253,11 +253,7 @@ export function NewActivityPage() {
                 {preview.isFetching && (
                   <p className="mt-1 text-xs text-muted-foreground">{t('newActivity.reading')}</p>
                 )}
-                {preview.error && (
-                  <p role="alert" className="mt-1 text-destructive">
-                    <ErrorMessage error={preview.error} />
-                  </p>
-                )}
+                <ErrorText error={preview.error} className="mt-1" />
               </div>
             )}
 
@@ -337,11 +333,7 @@ export function NewActivityPage() {
                   </Select>
                 )}
               </FormField>
-              {(shoes.error || lastUsedShoe.error) && (
-                <p role="alert" className="col-span-2 text-sm text-destructive">
-                  <ErrorMessage error={(shoes.error || lastUsedShoe.error)!} />
-                </p>
-              )}
+              <ErrorText error={shoes.error ?? lastUsedShoe.error} className="col-span-2" />
               <FormField label={t('newActivity.startedAt')}>
                 {(id) => (
                   <Input
@@ -455,11 +447,7 @@ export function NewActivityPage() {
             >
               {save.isPending ? t('newActivity.saving') : t('newActivity.save')}
             </Button>
-            {save.error && (
-              <p role="alert" className="text-sm text-destructive">
-                <ErrorMessage error={save.error} />
-              </p>
-            )}
+            <ErrorText error={save.error} />
           </form>
         </>
       )}
@@ -489,11 +477,7 @@ export function NewActivityPage() {
             nameLabel={t('shoes.name')}
             disabled={addShoe.isPending}
           />
-          {addShoe.error && (
-            <p role="alert" className="text-sm text-destructive">
-              <ErrorMessage error={addShoe.error} />
-            </p>
-          )}
+          <ErrorText error={addShoe.error} />
           <div className="flex flex-wrap justify-end gap-3 pt-2">
             <Button
               type="button"

@@ -1,5 +1,5 @@
 import { useEffect, useId, useRef, type ReactNode } from 'react'
-import { ErrorMessage } from '@/components/error-message'
+import { ErrorText } from '@/components/error-message'
 import { Button } from '@/components/ui/button'
 import { Heading } from '@/components/ui/heading'
 import { Modal } from '@/components/ui/modal'
@@ -52,11 +52,7 @@ export function ConfirmationModal({
       <p id={descriptionId} className="mt-3 text-sm leading-relaxed text-muted-foreground">
         {description}
       </p>
-      {error && (
-        <p role="alert" className="mt-3 text-sm text-destructive">
-          <ErrorMessage error={error} />
-        </p>
-      )}
+      <ErrorText error={error} className="mt-3" />
       <div className="mt-6 flex flex-wrap justify-end gap-3">
         <Button type="button" variant="secondary-outline" disabled={pending} onClick={onClose}>
           {cancelLabel}
