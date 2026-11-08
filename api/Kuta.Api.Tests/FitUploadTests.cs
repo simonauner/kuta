@@ -83,19 +83,27 @@ public class FitUploadTests(KutaFactory factory) : IClassFixture<KutaFactory>
                 "select count(avg_hr) from activity_laps where activity_id = @eveningId", new { eveningId }));
             Assert.Equal(1, await StoredFiles(conn, runner));
 
+            // A steady run of more than 30 minutes also gets an aerobic efficiency, derived from the heart rate
+            var steady = await Upload(client, FitFile.Run(System.DateTime.UtcNow.Date.AddDays(-1), seconds: 1900), ct);
+            Assert.Equal(HttpStatusCode.Created, steady.StatusCode);
+            var points = await client.GetFromJsonAsync<JsonElement>("/api/aerobic-efficiency?timeZone=Europe/Stockholm", ct);
+            Assert.Equal(1, points.GetArrayLength());
+            Assert.Equal(3, points[0].GetProperty("speedMS").GetDouble(), precision: 3);
+            Assert.InRange(points[0].GetProperty("hr").GetDouble(), 150, 165);
+
             // Withdrawn consent deletes all stored heart rate, including the raw files
             Assert.Equal(HttpStatusCode.OK, (await client.DeleteAsync("/api/me/hr-consent", ct)).StatusCode);
             Assert.Equal(0, await conn.ExecuteScalarAsync<int>(
                 """
                 select count(*) from activities a join activity_streams s on s.activity_id = a.id
                 where a.user_id = (select id from auth.users where email = @runner)
-                  and (a.avg_hr is not null or s.hr is not null or a.raw_file_key is not null
+                  and (a.avg_hr is not null or s.hr is not null or a.raw_file_key is not null or a.aerobic_hr is not null
                        or exists (select 1 from activity_laps l where l.activity_id = a.id and l.avg_hr is not null))
                 """, new { runner }));
             Assert.Equal(0, await StoredFiles(conn, runner));
 
             var list = await client.GetFromJsonAsync<ActivityPage>("/api/activities", ct);
-            Assert.Equal(2, list!.Items.Count);
+            Assert.Equal(3, list!.Items.Count);
 
             // Another user does not see the activities
             var otherClient = factory.CreateClient();

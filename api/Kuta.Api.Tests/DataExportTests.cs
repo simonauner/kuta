@@ -50,9 +50,14 @@ public class DataExportTests(KutaFactory factory) : IClassFixture<KutaFactory>
                     values (@id, @userId, 1000, 300, 0, now())
                     """, new { id, userId });
 
+                await conn.ExecuteAsync("insert into achievement_views (user_id, key) values (@userId, 'early-bird')",
+                    new { userId });
+
                 await using var archive = await DataExport.CreateAsync(conn, store, userId, ct);
                 using var zip = new ZipArchive(archive, ZipArchiveMode.Read, leaveOpen: true);
-                Assert.Equal(10, zip.Entries.Count);
+                Assert.Equal(11, zip.Entries.Count);
+                var seen = await ReadJsonAsync(zip, "achievements-seen.json", ct);
+                Assert.Equal("early-bird", Assert.Single(seen.EnumerateArray()).GetProperty("key").GetString());
                 var places = await ReadJsonAsync(zip, "privacy-places.json", ct);
                 Assert.Equal(place.Id, Assert.Single(places.EnumerateArray()).GetProperty("id").GetGuid());
                 var goals = await ReadJsonAsync(zip, "goals.json", ct);
@@ -197,7 +202,7 @@ public class DataExportTests(KutaFactory factory) : IClassFixture<KutaFactory>
             Assert.Contains("kuta-export.zip", response.Content.Headers.ContentDisposition!.ToString());
             await using var stream = await response.Content.ReadAsStreamAsync(ct);
             using var zip = new ZipArchive(stream);
-            Assert.Equal(6, zip.Entries.Count);
+            Assert.Equal(7, zip.Entries.Count);
             Assert.Equal(email, (await ReadJsonAsync(zip, "profile.json", ct)).GetProperty("email").GetString());
             // More exports than the two global slots: each finished download frees its slot, until the hourly limit.
             for (var i = 0; i < 4; i++)

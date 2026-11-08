@@ -215,7 +215,11 @@ public static class MeEndpoints
 
             await conn.ExecuteAsync("update users set hr_consent_at = null where id = @id", new { id }, tx);
             await conn.ExecuteAsync(
-                "update activities set avg_hr = null, max_hr = null, raw_file_key = null where user_id = @id", new { id }, tx);
+                """
+                update activities set avg_hr = null, max_hr = null, raw_file_key = null, aerobic_speed_m_s = null,
+                    aerobic_hr = null
+                where user_id = @id
+                """, new { id }, tx);
             await conn.ExecuteAsync(
                 "update activity_streams s set hr = null from activities a where a.id = s.activity_id and a.user_id = @id",
                 new { id }, tx);

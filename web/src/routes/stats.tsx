@@ -2,7 +2,7 @@ import { GarminDerivedNote } from '@/components/garmin'
 import { FormField } from '@/components/ui/form-field'
 import { Heading } from '@/components/ui/heading'
 import { useEffect, useState } from 'react'
-import { LoaderCircle, Maximize2, Minimize2 } from 'lucide-react'
+import { LoaderCircle, Maximize2, Minimize2, Sparkles } from 'lucide-react'
 import { keepPreviousData, useQuery } from '@tanstack/react-query'
 import { Link } from '@tanstack/react-router'
 import { useTranslation } from 'react-i18next'
@@ -11,6 +11,7 @@ import { PredictionsSection, RecordsSection } from '@/components/records'
 import { ActivitiesEmptyState } from '@/components/activities-empty-state'
 import { SlowLoading } from '@/components/slow-loading'
 import { TrainingLoadSection } from '@/components/training-load'
+import { AerobicEfficiencySection } from '@/components/aerobic-efficiency'
 import { YearComparison } from '@/components/year-comparison'
 import { Button } from '@/components/ui/button'
 import { api } from '@/lib/api'
@@ -67,6 +68,35 @@ function StatsTabs() {
   )
 }
 
+// The running year and, while it's fresh, the one before it
+function YearReviewLinks({
+  years,
+  currentYear,
+  currentMonth,
+}: {
+  years: number[]
+  currentYear: number
+  currentMonth: number
+}) {
+  const { t } = useTranslation()
+  const shown = years
+    .filter((y) => y === currentYear || (y === currentYear - 1 && currentMonth <= 3))
+    .sort((a, b) => b - a)
+  if (shown.length === 0) return null
+  return (
+    <div className="mt-4 flex flex-wrap gap-2">
+      {shown.map((year) => (
+        <Button key={year} asChild variant="secondary-outline" size="sm">
+          <Link to="/app/stats/year/$year" params={{ year: String(year) }}>
+            <Sparkles aria-hidden="true" />
+            {t(year === currentYear ? 'yearReview.linkSoFar' : 'yearReview.link', { year })}
+          </Link>
+        </Button>
+      ))}
+    </div>
+  )
+}
+
 export function AnalysisPage() {
   const { t } = useTranslation()
   return (
@@ -76,6 +106,7 @@ export function AnalysisPage() {
       <p className="mt-4 text-muted-foreground">{t('stats.analysisDescription')}</p>
       <GarminDerivedNote className="mt-1" />
       <TrainingLoadSection />
+      <AerobicEfficiencySection />
       <PredictionsSection />
     </section>
   )
@@ -226,6 +257,11 @@ export function StatsPage() {
       <StatsTabs />
       <p className="mt-4 text-muted-foreground">{t('stats.description')}</p>
       <GarminDerivedNote className="mt-1" />
+      <YearReviewLinks
+        years={years.data ?? []}
+        currentYear={currentYear}
+        currentMonth={today.month}
+      />
       <div className="mt-6 flex flex-wrap gap-4">
         <FormField label={t('stats.period')} className="text-sm font-medium">
           {(id) => (

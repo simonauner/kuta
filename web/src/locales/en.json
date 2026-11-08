@@ -985,5 +985,188 @@
     "delete": "Delete picture",
     "deleteTitle": "Delete the profile picture?",
     "deleteText": "The picture is deleted, and your initials are shown instead."
+  },
+  "analysis": {
+    "title": "Analysis",
+    "help": "About the analysis",
+    "helpPacing": "Pacing compares the time for the first and second half of the distance, without pauses and standing still. Within ±2% counts as even.",
+    "helpDrift": "Heart rate drift compares grade-adjusted speed per heartbeat in the first and second half, after a ten-minute warm-up. Below 5% suggests a stable aerobic base. Shown only for steady activities of at least 30 minutes with heart rate.",
+    "helpIntervals": "Intervals are found among the watch's laps: the fast laps are told apart from the slow ones, and fast laps in a row count as one rep.",
+    "pacing": "Pacing",
+    "split": {
+      "negative": "Negative split",
+      "even": "Even pace",
+      "positive": "Positive split"
+    },
+    "halves": "Halves {{first}} and {{second}}",
+    "secondFaster": "second half {{percent}}% faster",
+    "secondSlower": "second half {{percent}}% slower",
+    "finishSlower": "The last fifth was {{percent}}% slower than the rest.",
+    "finishFaster": "You finished strong: the last fifth was {{percent}}% faster than the rest.",
+    "drift": "Heart rate drift",
+    "driftLevel": {
+      "stable": "Stable aerobic effort – heart rate kept in step with pace.",
+      "drifted": "Heart rate rose towards the end. The run was a little harder than it may have felt.",
+      "high": "Heart rate drifted clearly. Heat, dehydration or too high a pace can be behind it."
+    },
+    "reps_one": "{{count}} rep",
+    "reps_other": "{{count}} reps",
+    "repsSame_one": "{{count}} × {{distance}} m",
+    "repsSame_other": "{{count}} × {{distance}} m",
+    "repsSummary": "Average {{average}} /km, fastest {{fastest}} and slowest {{slowest}} /km.",
+    "lastEven": "The last rep held the same pace as the others.",
+    "lastSlower": "The last rep was {{percent}}% slower than the average of the others.",
+    "lastFaster": "The last rep was {{percent}}% faster than the average of the others.",
+    "rep": "Rep",
+    "recovery": "Recovery"
+  },
+  "aerobic": {
+    "title": "Aerobic efficiency",
+    "methodLabel": "How is aerobic efficiency calculated?",
+    "method": "From steady runs of at least 30 minutes with heart rate. After a ten-minute warm-up, grade-adjusted average speed and average heart rate are calculated; intervals and runs with uneven pace don't count. Each run is scaled to your usual heart rate in steady runs (rounded to 5), and only runs within ±10 beats count. Each month shows the median.",
+    "description": "How fast you run at the same heart rate. If the pace drops over time, your fitness is improving, even without new records.",
+    "empty": "Needs at least three steady runs of 30 minutes or more with heart rate during the last year.",
+    "noConsent": "Aerobic efficiency is based on heart rate. Give heart rate consent in Settings to see it.",
+    "paceAt": "Pace at {{hr}} bpm",
+    "faster": "{{seconds}} s/km faster at the same heart rate since {{from}}.",
+    "slower": "{{seconds}} s/km slower at the same heart rate since {{from}}.",
+    "steady": "About unchanged since {{from}}.",
+    "chart": "Pace at the same heart rate per month: {{months}}",
+    "runs_one": "{{count}} run",
+    "runs_other": "{{count}} runs"
+  },
+  "achievements": {
+    "title": "Achievements",
+    "teaserTitle_one": "New achievement!",
+    "teaserTitle_other": "{{count}} new achievements!",
+    "close": "Great!",
+    "showActivity": "Show activity",
+    "showAll": "Show all {{count}}",
+    "kinds": {
+      "firstDistance": {
+        "title": "First {{distance}}!",
+        "detail": "The first time you ran a {{distance}} in one go."
+      },
+      "firstUltra": {
+        "title": "First ultra!",
+        "detail": "More than 45 km of running in one activity."
+      },
+      "runDistance": {
+        "title": "{{km}} km of running",
+        "detail": "That's how far you have run in total."
+      },
+      "yearRunDistance": {
+        "title": "{{km}} km of running in {{year}}",
+        "detail": "Within one calendar year."
+      },
+      "climb": {
+        "title": "{{meters}} m climbed in {{year}}",
+        "detail": "That's how high you have climbed this year."
+      },
+      "activityCount": {
+        "title": "{{count}} activities",
+        "detail": "Activity number {{count}} is logged."
+      },
+      "monthRunDistance": {
+        "title": "{{km}} km in a month",
+        "detail": "The first time you ran that far in one calendar month."
+      },
+      "weekStreak": {
+        "title": "{{count}} weeks in a row",
+        "detail": "At least one activity every week for {{count}} weeks."
+      },
+      "earlyBird": {
+        "title": "Early bird",
+        "detail": "An activity that started before six in the morning."
+      },
+      "nightOwl": {
+        "title": "Night owl",
+        "detail": "An activity that started after ten in the evening."
+      }
+    },
+    "comparisons": {
+      "runDistance": {
+        "100000": "Longer than the 90 km Vasaloppet.",
+        "470000": "About Stockholm to Gothenburg by road.",
+        "1572000": "The length of Sweden as the crow flies, from Smygehuk to Treriksröset.",
+        "10000000": "A quarter of the way around the Earth.",
+        "40075000": "Once around the Earth along the equator."
+      },
+      "climb": {
+        "2097": "As high as Kebnekaise, {{meters}} m, since New Year.",
+        "4806": "As high as Mont Blanc, {{meters}} m, since New Year.",
+        "8849": "As high as Mount Everest, {{meters}} m, since New Year.",
+        "17698": "Two Mount Everests since New Year."
+      }
+    },
+    "distances": {
+      "5000": "5K",
+      "10000": "10K",
+      "21097": "half marathon",
+      "42195": "marathon"
+    }
+  },
+  "yearReview": {
+    "breadcrumb": "Your {{year}}",
+    "title": "Your {{year}}",
+    "titleSoFar": "Your {{year}} so far",
+    "years": "Other years",
+    "link": "Your {{year}} in review",
+    "linkSoFar": "Your {{year}} so far in review",
+    "empty": "No activities in {{year}}.",
+    "totalsTitle": "The year in numbers",
+    "totals_one": "{{count}} activity, {{hours}} hours and {{days}} active days.",
+    "totals_other": "{{count}} activities, {{hours}} hours and {{days}} active days.",
+    "change": "{{percent}}% in distance compared with {{previous}}.",
+    "comparisonsTitle": "How far is that?",
+    "distanceComparison": {
+      "marathon": "As far as {{times}} marathons.",
+      "stockholmGothenburg": "{{times}} times Stockholm to Gothenburg.",
+      "sweden": "{{times}} times the length of Sweden, Smygehuk to Treriksröset.",
+      "equator": "{{times}} times around the Earth."
+    },
+    "climbComparison": {
+      "eiffel": "{{meters}} m climbed – {{times}} Eiffel Towers.",
+      "kebnekaise": "{{meters}} m climbed – {{times}} Kebnekaise.",
+      "everest": "{{meters}} m climbed – {{times}} Mount Everest."
+    },
+    "timeComparison": "{{days}} days in motion in total.",
+    "sportsTitle": "Sports",
+    "sportLine_one": "{{count}} activity · {{time}}",
+    "sportLine_other": "{{count}} activities · {{time}}",
+    "monthsTitle": "Month by month",
+    "monthsChart": "Training time per month",
+    "biggestMonth_one": "Most active in {{month}}: {{time}} in {{count}} activity.",
+    "biggestMonth_other": "Most active in {{month}}: {{time}} in {{count}} activities.",
+    "habitsTitle": "Habits",
+    "weekday": "Favorite day",
+    "timeOfDay": "Favorite time",
+    "timesOfDay": {
+      "morning": "Morning",
+      "midday": "Midday",
+      "afternoon": "Afternoon",
+      "evening": "Evening",
+      "night": "Night"
+    },
+    "activities_one": "{{count}} activity",
+    "activities_other": "{{count}} activities",
+    "dayStreak": "Most days in a row",
+    "weekStreak": "Most weeks in a row",
+    "days_one": "{{count}} day",
+    "days_other": "{{count}} days",
+    "weeks_one": "{{count}} week",
+    "weeks_other": "{{count}} weeks",
+    "highlightsTitle": "Longest",
+    "longestRun": "Longest run",
+    "longestActivity": "Longest activity",
+    "recordsTitle": "Best running times of the year",
+    "personalBest": "Personal best",
+    "racesTitle_one": "Race",
+    "racesTitle_other": "{{count}} races",
+    "equipmentTitle": "Shoe of the year",
+    "equipment_one": "{{distance}} in {{count}} activity.",
+    "equipment_other": "{{distance}} in {{count}} activities.",
+    "achievementsTitle_one": "{{count}} achievement",
+    "achievementsTitle_other": "{{count}} achievements"
   }
 }

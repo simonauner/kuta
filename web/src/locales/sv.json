@@ -985,5 +985,188 @@
     "delete": "Radera bild",
     "deleteTitle": "Radera profilbilden?",
     "deleteText": "Bilden raderas, och dina initialer visas i stället."
+  },
+  "analysis": {
+    "title": "Analys",
+    "help": "Om analysen",
+    "helpPacing": "Fartfördelning jämför tiden för första och andra halvan av distansen, utan pauser och stillastående. Inom ±2 % räknas som jämnt.",
+    "helpDrift": "Pulsdrift jämför lutningsjusterad fart per hjärtslag i första och andra halvan, efter tio minuters uppvärmning. Under 5 % tyder på en stabil aerob bas. Visas bara för jämna pass på minst 30 minuter med puls.",
+    "helpIntervals": "Intervaller hittas bland klockans varv: de snabba varven skiljs från de långsamma, och snabba varv i följd räknas som en repetition.",
+    "pacing": "Fartfördelning",
+    "split": {
+      "negative": "Negativ split",
+      "even": "Jämn fart",
+      "positive": "Positiv split"
+    },
+    "halves": "Halvorna {{first}} och {{second}}",
+    "secondFaster": "andra halvan {{percent}} % snabbare",
+    "secondSlower": "andra halvan {{percent}} % långsammare",
+    "finishSlower": "Sista femtedelen var {{percent}} % långsammare än resten.",
+    "finishFaster": "Du ökade på slutet: sista femtedelen var {{percent}} % snabbare än resten.",
+    "drift": "Pulsdrift",
+    "driftLevel": {
+      "stable": "Stabil aerob nivå – pulsen höll sig i takt med farten.",
+      "drifted": "Pulsen steg mot slutet. Passet var något hårdare än det kanske kändes.",
+      "high": "Pulsen drev tydligt. Värme, vätskebrist eller för högt tempo kan ligga bakom."
+    },
+    "reps_one": "{{count}} repetition",
+    "reps_other": "{{count}} repetitioner",
+    "repsSame_one": "{{count}} × {{distance}} m",
+    "repsSame_other": "{{count}} × {{distance}} m",
+    "repsSummary": "Snitt {{average}} /km, snabbast {{fastest}} och långsammast {{slowest}} /km.",
+    "lastEven": "Sista repetitionen höll samma fart som de andra.",
+    "lastSlower": "Sista repetitionen var {{percent}} % långsammare än snittet av de andra.",
+    "lastFaster": "Sista repetitionen var {{percent}} % snabbare än snittet av de andra.",
+    "rep": "Rep.",
+    "recovery": "Vila"
+  },
+  "aerobic": {
+    "title": "Aerob effektivitet",
+    "methodLabel": "Hur räknas aerob effektivitet?",
+    "method": "Från jämna löppass på minst 30 minuter med puls. Efter tio minuters uppvärmning räknas lutningsjusterad snittfart och snittpuls; intervaller och pass med ojämn fart räknas inte. Varje pass skalas till din vanliga puls i jämna pass (avrundad till 5), och bara pass inom ±10 slag räknas. Varje månad visar medianen.",
+    "description": "Hur fort du springer vid samma puls. Går tempot ned över tid blir konditionen bättre, även utan nya rekord.",
+    "empty": "Behöver minst tre jämna löppass på 30 minuter eller mer med puls under det senaste året.",
+    "noConsent": "Aerob effektivitet bygger på puls. Ge pulssamtycke under Inställningar för att se den.",
+    "paceAt": "Tempo vid {{hr}} slag/min",
+    "faster": "{{seconds}} s/km snabbare vid samma puls sedan {{from}}.",
+    "slower": "{{seconds}} s/km långsammare vid samma puls sedan {{from}}.",
+    "steady": "Ungefär oförändrat sedan {{from}}.",
+    "chart": "Tempo vid samma puls per månad: {{months}}",
+    "runs_one": "{{count}} pass",
+    "runs_other": "{{count}} pass"
+  },
+  "achievements": {
+    "title": "Utmärkelser",
+    "teaserTitle_one": "Ny utmärkelse!",
+    "teaserTitle_other": "{{count}} nya utmärkelser!",
+    "close": "Toppen!",
+    "showActivity": "Visa aktiviteten",
+    "showAll": "Visa alla {{count}}",
+    "kinds": {
+      "firstDistance": {
+        "title": "Första {{distance}}!",
+        "detail": "Första gången du sprungit {{distance}} i ett och samma pass."
+      },
+      "firstUltra": {
+        "title": "Första ultran!",
+        "detail": "Över 45 km löpning i ett och samma pass."
+      },
+      "runDistance": {
+        "title": "{{km}} km löpning",
+        "detail": "Så långt har du sprungit totalt."
+      },
+      "yearRunDistance": {
+        "title": "{{km}} km löpning {{year}}",
+        "detail": "Under ett och samma kalenderår."
+      },
+      "climb": {
+        "title": "{{meters}} höjdmeter {{year}}",
+        "detail": "Så högt har du klättrat i år."
+      },
+      "activityCount": {
+        "title": "{{count}} aktiviteter",
+        "detail": "Aktivitet nummer {{count}} är loggad."
+      },
+      "monthRunDistance": {
+        "title": "{{km}} km på en månad",
+        "detail": "Första gången du sprungit så långt under en kalendermånad."
+      },
+      "weekStreak": {
+        "title": "{{count}} veckor i rad",
+        "detail": "Minst en aktivitet varje vecka i {{count}} veckor."
+      },
+      "earlyBird": {
+        "title": "Morgonpigg",
+        "detail": "En aktivitet som startade före klockan sex på morgonen."
+      },
+      "nightOwl": {
+        "title": "Nattuggla",
+        "detail": "En aktivitet som startade efter klockan tio på kvällen."
+      }
+    },
+    "comparisons": {
+      "runDistance": {
+        "100000": "Längre än Vasaloppets 90 km.",
+        "470000": "Ungefär som Stockholm–Göteborg längs vägen.",
+        "1572000": "Sveriges längd fågelvägen, från Smygehuk till Treriksröset.",
+        "10000000": "En fjärdedel av jordens omkrets.",
+        "40075000": "Ett varv runt jorden längs ekvatorn."
+      },
+      "climb": {
+        "2097": "Lika högt som Kebnekaise, {{meters}} m, sedan nyår.",
+        "4806": "Lika högt som Mont Blanc, {{meters}} m, sedan nyår.",
+        "8849": "Lika högt som Mount Everest, {{meters}} m, sedan nyår.",
+        "17698": "Två Mount Everest sedan nyår."
+      }
+    },
+    "distances": {
+      "5000": "5 km",
+      "10000": "10 km",
+      "21097": "halvmaran",
+      "42195": "maran"
+    }
+  },
+  "yearReview": {
+    "breadcrumb": "Ditt {{year}}",
+    "title": "Ditt {{year}}",
+    "titleSoFar": "Ditt {{year}} hittills",
+    "years": "Andra år",
+    "link": "Ditt {{year}} i sammandrag",
+    "linkSoFar": "Ditt {{year}} hittills i sammandrag",
+    "empty": "Inga aktiviteter under {{year}}.",
+    "totalsTitle": "Året i siffror",
+    "totals_one": "{{count}} aktivitet, {{hours}} timmar och {{days}} dagar i rörelse.",
+    "totals_other": "{{count}} aktiviteter, {{hours}} timmar och {{days}} dagar i rörelse.",
+    "change": "{{percent}} % i distans jämfört med {{previous}}.",
+    "comparisonsTitle": "Hur långt är det?",
+    "distanceComparison": {
+      "marathon": "Lika långt som {{times}} maraton.",
+      "stockholmGothenburg": "{{times}} gånger Stockholm–Göteborg.",
+      "sweden": "{{times}} gånger Sveriges längd, Smygehuk–Treriksröset.",
+      "equator": "{{times}} varv runt jorden."
+    },
+    "climbComparison": {
+      "eiffel": "{{meters}} höjdmeter – {{times}} Eiffeltorn.",
+      "kebnekaise": "{{meters}} höjdmeter – {{times}} Kebnekaise.",
+      "everest": "{{meters}} höjdmeter – {{times}} Mount Everest."
+    },
+    "timeComparison": "Totalt {{days}} dygn i rörelse.",
+    "sportsTitle": "Sporter",
+    "sportLine_one": "{{count}} aktivitet · {{time}}",
+    "sportLine_other": "{{count}} aktiviteter · {{time}}",
+    "monthsTitle": "Månad för månad",
+    "monthsChart": "Träningstid per månad",
+    "biggestMonth_one": "Mest aktiv i {{month}}: {{time}} på {{count}} aktivitet.",
+    "biggestMonth_other": "Mest aktiv i {{month}}: {{time}} på {{count}} aktiviteter.",
+    "habitsTitle": "Vanor",
+    "weekday": "Favoritdag",
+    "timeOfDay": "Favorittid",
+    "timesOfDay": {
+      "morning": "Morgon",
+      "midday": "Mitt på dagen",
+      "afternoon": "Eftermiddag",
+      "evening": "Kväll",
+      "night": "Natt"
+    },
+    "activities_one": "{{count}} aktivitet",
+    "activities_other": "{{count}} aktiviteter",
+    "dayStreak": "Flest dagar i rad",
+    "weekStreak": "Flest veckor i rad",
+    "days_one": "{{count}} dag",
+    "days_other": "{{count}} dagar",
+    "weeks_one": "{{count}} vecka",
+    "weeks_other": "{{count}} veckor",
+    "highlightsTitle": "Längst",
+    "longestRun": "Längsta löpning",
+    "longestActivity": "Längsta aktivitet",
+    "recordsTitle": "Årets bästa löptider",
+    "personalBest": "Personbästa",
+    "racesTitle_one": "Tävling",
+    "racesTitle_other": "{{count}} tävlingar",
+    "equipmentTitle": "Årets sko",
+    "equipment_one": "{{distance}} på {{count}} aktivitet.",
+    "equipment_other": "{{distance}} på {{count}} aktiviteter.",
+    "achievementsTitle_one": "{{count}} utmärkelse",
+    "achievementsTitle_other": "{{count}} utmärkelser"
   }
 }
