@@ -1,13 +1,14 @@
 import { isoWeek } from './activity.ts'
+import { privacies, type Privacy } from './privacy.ts'
 
 // Like the API: goals in SI units (meters, seconds) or number of activities. sportGroup null = all sports.
 export const goalMetrics = ['distance', 'duration', 'count'] as const
 export const goalPeriods = ['week', 'month', 'year'] as const
-export const goalPrivacies = ['private', 'followers', 'public'] as const
+export const goalPrivacies = privacies
 export type GoalMetric = (typeof goalMetrics)[number]
 export type GoalPeriod = (typeof goalPeriods)[number]
 // Same choices and read rule as activity visibility; new goals are private.
-export type GoalPrivacy = (typeof goalPrivacies)[number]
+export type GoalPrivacy = Privacy
 export type GoalPeriodProgress = { start: string; end: string; value: number; achieved: boolean }
 export type Goal = {
   id: string

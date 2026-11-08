@@ -1,3 +1,4 @@
+import { PrivacySelect } from '@/components/privacy-select'
 import { useId, useRef, useState } from 'react'
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
 import { useTranslation } from 'react-i18next'
@@ -10,7 +11,6 @@ import { Input } from '@/components/ui/input'
 import { Modal } from '@/components/ui/modal'
 import { api } from '@/lib/api'
 import { meQuery, type Me, type SupporterTier } from '@/lib/auth'
-import { Select } from '@/components/ui/select'
 import { Heading } from '@/components/ui/heading'
 
 // Outline in the same tone as the records' metals; the fill gets the sheen stripe.
@@ -106,17 +106,13 @@ export function SupporterSection() {
 
       <FormField label={t('supporter.badgePrivacy')} className="mt-6 text-sm font-medium">
         {(id) => (
-          <Select
+          <PrivacySelect
             id={id}
             value={supporter?.badgePrivacy ?? 'private'}
             disabled={!me || save.isPending}
             aria-describedby="supporter-badge-help"
-            onChange={(event) => save.mutate(event.target.value as Me['supporter']['badgePrivacy'])}
-          >
-            <option value="private">{t('social.private')}</option>
-            <option value="followers">{t('social.followersVisibility')}</option>
-            <option value="public">{t('social.public')}</option>
-          </Select>
+            onChange={(privacy) => save.mutate(privacy)}
+          />
         )}
       </FormField>
       <p id="supporter-badge-help" className="mt-2 text-sm text-muted-foreground">

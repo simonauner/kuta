@@ -1,3 +1,4 @@
+import { PrivacySelect, usePrivacyLabel } from '@/components/privacy-select'
 import { FormField } from '@/components/ui/form-field'
 import { useRef } from 'react'
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
@@ -10,23 +11,18 @@ import { Modal } from '@/components/ui/modal'
 import { api } from '@/lib/api'
 import { SharingHints } from '@/components/privacy-places'
 import { meQuery, type Me } from '@/lib/auth'
-import { Select } from '@/components/ui/select'
 import { Heading } from '@/components/ui/heading'
 
 // New and imported activities silently get the default visibility, so the forms that create them say which it is.
 export function DefaultPrivacyNote({ imported = false }: { imported?: boolean }) {
   const { t } = useTranslation()
   const privacy = useQuery(meQuery).data?.defaultActivityPrivacy ?? 'private'
-  const labels = {
-    private: t('social.private'),
-    followers: t('social.followersVisibility'),
-    public: t('social.public'),
-  }
+  const label = usePrivacyLabel()
   return (
     <p className="text-sm">
       <Trans
         i18nKey={imported ? 'activityPrivacy.importNote' : 'activityPrivacy.newNote'}
-        values={{ visibility: labels[privacy] }}
+        values={{ visibility: label(privacy) }}
         components={{ strong: <strong /> }}
       />
       {!imported && (
@@ -48,11 +44,7 @@ export function ActivityPrivacy() {
   const queryClient = useQueryClient()
   const dialog = useRef<HTMLDialogElement>(null)
   const privacy = me?.defaultActivityPrivacy ?? 'private'
-  const labels = {
-    private: t('social.private'),
-    followers: t('social.followersVisibility'),
-    public: t('social.public'),
-  }
+  const label = usePrivacyLabel()
   const save = useMutation({
     mutationFn: (request: { privacy: Me['defaultActivityPrivacy']; applyToAll: boolean }) =>
       api.send<Me>('PUT', '/api/me/activity-privacy', request),
@@ -81,24 +73,13 @@ export function ActivityPrivacy() {
       </Heading>
       <FormField label={t('activityPrivacy.default')} className="text-sm font-medium mt-4">
         {(id) => (
-          <Select
+          <PrivacySelect
             id={id}
             value={privacy}
             disabled={!me || save.isPending}
             aria-describedby="activity-privacy-help"
-            onChange={(event) =>
-              save.mutate({
-                privacy: event.target.value as Me['defaultActivityPrivacy'],
-                applyToAll: false,
-              })
-            }
-          >
-            {Object.entries(labels).map(([value, label]) => (
-              <option key={value} value={value}>
-                {label}
-              </option>
-            ))}
-          </Select>
+            onChange={(value) => save.mutate({ privacy: value, applyToAll: false })}
+          />
         )}
       </FormField>
       <p id="activity-privacy-help" className="mt-2 text-sm text-muted-foreground">
@@ -169,7 +150,7 @@ export function ActivityPrivacy() {
         <p id="apply-privacy-help" className="mt-3 text-sm text-muted-foreground">
           {t('activityPrivacy.confirm', {
             count: me?.activitiesWithOtherPrivacy ?? 0,
-            visibility: labels[privacy],
+            visibility: label(privacy),
           })}
         </p>
         <ErrorText error={save.error} className="mt-3" />

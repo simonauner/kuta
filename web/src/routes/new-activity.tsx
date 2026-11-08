@@ -34,7 +34,8 @@ import { refreshActivityQueries } from '@/lib/activity-query'
 import { TagPicker } from '@/components/activity-tags'
 import { Select } from '@/components/ui/select'
 import { Heading } from '@/components/ui/heading'
-import { VisibilityField, type Visibility } from '@/components/activity-visibility'
+import { VisibilityField } from '@/components/activity-visibility'
+import type { Privacy } from '@/lib/privacy'
 import { ConfirmationModal } from '@/components/ui/confirmation-modal'
 import { Modal } from '@/components/ui/modal'
 import { FitDrop } from '@/components/fit-drop'
@@ -107,7 +108,7 @@ export function NewActivityPage() {
   const [duration, setDuration] = useState('')
   const [elevation, setElevation] = useState('')
   const [avgHr, setAvgHr] = useState('')
-  const [privacy, setPrivacy] = useState<Visibility | null>(null)
+  const [privacy, setPrivacy] = useState<Privacy | null>(null)
   const visibility = privacy ?? me?.defaultActivityPrivacy ?? 'private'
 
   // Re-read when consent changes, so the heart rate shown is the one saved

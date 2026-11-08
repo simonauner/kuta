@@ -1,3 +1,4 @@
+import { PrivacySelect, usePrivacyLabel } from '@/components/privacy-select'
 import { Reveal } from '@/components/reveal'
 import { GarminDerivedNote } from '@/components/garmin'
 import { FormField } from '@/components/ui/form-field'
@@ -49,14 +50,7 @@ function useGoalText() {
       ...goalPeriodLabel(goal.period, goal.current.start, i18n.resolvedLanguage),
     })
   }
-  const privacyLabel = (privacy: GoalPrivacy) =>
-    t(
-      privacy === 'private'
-        ? 'social.private'
-        : privacy === 'followers'
-          ? 'social.followersVisibility'
-          : 'social.public',
-    )
+  const privacyLabel = usePrivacyLabel()
   const groupLabel = (key: string | null) =>
     key === null ? t('activities.allSports') : sportGroupLabel(key, t)
   return { t, i18n, amount, title, groupLabel, privacyLabel }
@@ -244,7 +238,7 @@ function GoalCard({
 }
 
 export function GoalDialog({ goal, onClose }: { goal: Goal | null; onClose: () => void }) {
-  const { t, i18n, title, groupLabel, privacyLabel } = useGoalText()
+  const { t, i18n, title, groupLabel } = useGoalText()
   const groups = useQuery(sportGroupsQuery)
   const queryClient = useQueryClient()
   const dialog = useRef<HTMLDialogElement>(null)
@@ -412,18 +406,12 @@ export function GoalDialog({ goal, onClose }: { goal: Goal | null; onClose: () =
           <FormField label={t('goals.visibility')} className="text-sm font-medium col-span-2">
             {(id) => (
               <>
-                <Select
+                <PrivacySelect
                   id={id}
                   value={privacy}
                   aria-describedby="goal-visibility-help"
-                  onChange={(e) => setPrivacy(e.currentTarget.value as GoalPrivacy)}
-                >
-                  {goalPrivacies.map((value) => (
-                    <option key={value} value={value}>
-                      {privacyLabel(value)}
-                    </option>
-                  ))}
-                </Select>
+                  onChange={setPrivacy}
+                />
                 <span
                   id="goal-visibility-help"
                   className="mt-2 block text-xs font-normal text-muted-foreground"
