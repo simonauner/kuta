@@ -16,6 +16,7 @@ public sealed record AchievementsSeenRequest(string[]? Keys, string? TimeZone);
 
 // Fixed rules over the own activities, evaluated when read: nothing is stored except which ones the user has seen,
 // so deleted activities take their achievements with them and changed rules apply to the whole history.
+// Achievements reached before users.achievements_since count as seen: the teaser is for new feats, not old history.
 public static class Achievements
 {
     // Lifetime running distance (m); the web compares them with e.g. Stockholm–Gothenburg and the equator.
@@ -132,7 +133,10 @@ public static class Achievements
             """, new { userId, now }, cancellationToken: ct))).ToList();
         var seen = (await conn.QueryAsync<string>(new CommandDefinition(
             "select key from achievement_views where user_id = @userId", new { userId }, cancellationToken: ct))).ToHashSet();
-        return Evaluate(rows, efforts).Select(a => a with { Seen = seen.Contains(a.Key) }).ToList();
+        var since = await conn.ExecuteScalarAsync<DateTime?>(new CommandDefinition(
+            "select achievements_since from users where id = @userId", new { userId }, cancellationToken: ct));
+        return Evaluate(rows, efforts)
+            .Select(a => a with { Seen = seen.Contains(a.Key) || a.AchievedAt < since }).ToList();
     }
 
     public static void MapAchievements(this RouteGroupBuilder api)
