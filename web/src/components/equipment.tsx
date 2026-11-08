@@ -1,13 +1,13 @@
 import { Checkbox } from '@/components/ui/checkbox'
 import { Stat } from '@/components/stat'
-import { EquipmentNameFields } from '@/components/equipment-name-fields'
 import { SlowLoading } from '@/components/slow-loading'
 import { FormField } from '@/components/ui/form-field'
 import { Menu } from '@base-ui/react/menu'
 import { Select } from '@base-ui/react/select'
 import { Check, ChevronDown, EllipsisVertical } from 'lucide-react'
 import { Modal } from '@/components/ui/modal'
-import { useRef, useState, type FormEvent } from 'react'
+import { createPortal } from 'react-dom'
+import { useEffect, useId, useRef, useState, type FormEvent } from 'react'
 import { Link } from '@tanstack/react-router'
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
 import { useTranslation } from 'react-i18next'
@@ -24,41 +24,11 @@ import { Heading } from '@/components/ui/heading'
 export function EquipmentSection() {
   const { t, i18n } = useTranslation()
   const equipment = useQuery(equipmentQuery)
-  const kinds = useQuery(equipmentKindsQuery)
   const queryClient = useQueryClient()
   const [deleting, setDeleting] = useState<Equipment | null>(null)
-  const formDialog = useRef<HTMLDialogElement>(null)
-  const [editing, setEditing] = useState<Equipment | null>(null)
-  const [name, setName] = useState('')
-  const [brand, setBrand] = useState('')
-  const [kind, setKind] = useState('shoe')
-  const singleKind = kinds.data?.length === 1
-  const selectedKind = singleKind ? kinds.data![0] : kind
-  const [distanceKm, setDistanceKm] = useState('')
-  const [duration, setDuration] = useState('')
+  // undefined = closed, null = new equipment
+  const [editing, setEditing] = useState<Equipment | null | undefined>(undefined)
   const km = new Intl.NumberFormat(i18n.resolvedLanguage, { maximumFractionDigits: 2 })
-  const save = useMutation({
-    mutationFn: () =>
-      api.send(
-        editing ? 'PUT' : 'POST',
-        editing ? `/api/equipment/${editing.id}` : '/api/equipment',
-        {
-          name,
-          brand,
-          kind: selectedKind,
-          initialDistanceM: distanceKm === '' ? 0 : Number(distanceKm) * 1000,
-          initialDurationS: duration === '' ? 0 : parseDuration(duration),
-        },
-      ),
-    onSuccess: async () => {
-      await queryClient.invalidateQueries({ queryKey: equipmentQuery.queryKey })
-      formDialog.current?.close()
-      setName('')
-      setBrand('')
-      setDistanceKm('')
-      setDuration('')
-    },
-  })
   const refresh = () => queryClient.invalidateQueries({ queryKey: equipmentQuery.queryKey })
   const setRetired = useMutation({
     mutationFn: ({ id, retired }: Pick<Equipment, 'id' | 'retired'>) =>
@@ -82,30 +52,13 @@ export function EquipmentSection() {
       ])
     },
   })
-  function onSubmit(e: FormEvent) {
-    e.preventDefault()
-    if (!save.isPending) save.mutate()
-  }
   return (
     <section className="mt-8 border-t pt-6" aria-labelledby="equipment-heading">
       <div className="flex items-center justify-between gap-3">
         <Heading level={2} id="equipment-heading">
           {t('shoes.title')}
         </Heading>
-        <Button
-          size="sm"
-          variant="secondary-outline"
-          onClick={() => {
-            setEditing(null)
-            setName('')
-            setBrand('')
-            setKind('shoe')
-            setDistanceKm('')
-            setDuration('')
-            save.reset()
-            formDialog.current?.showModal()
-          }}
-        >
+        <Button size="sm" variant="secondary-outline" onClick={() => setEditing(null)}>
           {t('equipment.add')}
         </Button>
       </div>
@@ -153,22 +106,7 @@ export function EquipmentSection() {
                           <Menu.Popup className="min-w-40 rounded-md border bg-card p-1 text-card-foreground shadow-md outline-none">
                             <Menu.Item
                               className="cursor-default rounded-sm px-2 py-1.5 text-sm outline-none data-highlighted:bg-accent data-highlighted:text-accent-foreground"
-                              onClick={() => {
-                                setEditing(item)
-                                setName(item.name)
-                                setBrand(item.brand ?? '')
-                                setKind(item.kind)
-                                setDistanceKm(
-                                  item.initialDistanceM ? String(item.initialDistanceM / 1000) : '',
-                                )
-                                setDuration(
-                                  item.initialDurationS
-                                    ? formatDuration(item.initialDurationS)
-                                    : '',
-                                )
-                                save.reset()
-                                formDialog.current?.showModal()
-                              }}
+                              onClick={() => setEditing(item)}
                             >
                               {t('equipment.edit')}
                             </Menu.Item>
@@ -213,86 +151,11 @@ export function EquipmentSection() {
           </section>
         )
       })}
-      <Modal
-        ref={formDialog}
-        aria-labelledby="equipment-form-title"
-        onCancel={(event) => {
-          if (save.isPending) event.preventDefault()
-        }}
-      >
-        <Heading level={2} id="equipment-form-title">
-          {t(editing ? 'equipment.edit' : 'equipment.add')}
-        </Heading>
-        <form onSubmit={onSubmit}>
-          <fieldset disabled={save.isPending} className="mt-5 grid grid-cols-2 gap-4">
-            <EquipmentNameFields
-              name={name}
-              brand={brand}
-              onNameChange={setName}
-              onBrandChange={setBrand}
-              brandClassName={singleKind ? 'col-span-2 text-sm font-medium' : 'text-sm font-medium'}
-            />
-            {kinds.data && kinds.data.length > 1 && (
-              <FormField label={t('equipment.kind')} className="text-sm font-medium">
-                {(id) => (
-                  <NativeSelect
-                    id={id}
-                    value={selectedKind}
-                    onChange={(e) => setKind(e.currentTarget.value)}
-                  >
-                    {kinds.data?.map((value) => (
-                      <option key={value} value={value}>
-                        {t(`equipmentKinds.${value}`)}
-                      </option>
-                    ))}
-                  </NativeSelect>
-                )}
-              </FormField>
-            )}
-            <p className="col-span-2 text-xs text-muted-foreground">{t('equipment.initialHint')}</p>
-            <FormField label={t('equipment.initialDistance')} className="text-sm font-medium">
-              {(id) => (
-                <Input
-                  id={id}
-                  type="number"
-                  inputMode="decimal"
-                  min={0}
-                  step="any"
-                  value={distanceKm}
-                  onChange={(e) => setDistanceKm(e.currentTarget.value)}
-                />
-              )}
-            </FormField>
-            <FormField label={t('equipment.initialDuration')} className="text-sm font-medium">
-              {(id) => (
-                <Input
-                  id={id}
-                  pattern="\d+(:[0-5]\d){0,2}"
-                  placeholder="0:00:00"
-                  title={t('newActivity.durationHint')}
-                  value={duration}
-                  onChange={(e) => setDuration(e.currentTarget.value)}
-                />
-              )}
-            </FormField>
-            <ErrorText error={kinds.error} className="col-span-2" />
-
-            <ErrorText error={save.error} className="col-span-2" />
-            <div className="col-span-2 flex flex-wrap justify-end gap-3 pt-2">
-              <Button
-                type="button"
-                variant="secondary-outline"
-                onClick={() => formDialog.current?.close()}
-              >
-                {t('equipment.cancel')}
-              </Button>
-              <Button type="submit" disabled={!kinds.data?.length}>
-                {save.isPending ? t('newActivity.saving') : t('equipment.save')}
-              </Button>
-            </div>
-          </fieldset>
-        </form>
-      </Modal>
+      <EquipmentFormModal
+        open={editing !== undefined}
+        editing={editing ?? null}
+        onClose={() => setEditing(undefined)}
+      />
       <ConfirmationModal
         open={deleting !== null}
         title={t('shoes.confirmDelete', { name: deleting?.name })}
@@ -305,6 +168,178 @@ export function EquipmentSection() {
         onClose={() => setDeleting(null)}
       />
     </section>
+  )
+}
+
+// Creates or edits one piece of equipment. Open while `open` is true; onSaved gets new equipment once created.
+function EquipmentFormModal({
+  open,
+  editing,
+  onClose,
+  onSaved,
+}: {
+  open: boolean
+  editing: Equipment | null
+  onClose: () => void
+  onSaved?: (item: Equipment) => void
+}) {
+  const { t } = useTranslation()
+  const kinds = useQuery(equipmentKindsQuery)
+  const queryClient = useQueryClient()
+  const formDialog = useRef<HTMLDialogElement>(null)
+  const titleId = useId()
+  const [name, setName] = useState('')
+  const [brand, setBrand] = useState('')
+  const [kind, setKind] = useState('shoe')
+  const singleKind = kinds.data?.length === 1
+  const selectedKind = singleKind ? kinds.data![0] : kind
+  const [distanceKm, setDistanceKm] = useState('')
+  const [duration, setDuration] = useState('')
+  const save = useMutation({
+    mutationFn: () => {
+      const request = {
+        name,
+        brand,
+        kind: selectedKind,
+        initialDistanceM: distanceKm === '' ? 0 : Number(distanceKm) * 1000,
+        initialDurationS: duration === '' ? 0 : parseDuration(duration),
+      }
+      return editing
+        ? api.send('PUT', `/api/equipment/${editing.id}`, request).then(() => null)
+        : api.send<Equipment>('POST', '/api/equipment', request)
+    },
+    onSuccess: async (created) => {
+      if (created) {
+        queryClient.setQueryData(equipmentQuery.queryKey, (current) => [
+          ...(current ?? []),
+          created,
+        ])
+        onSaved?.(created)
+      }
+      onClose()
+      await queryClient.invalidateQueries({ queryKey: equipmentQuery.queryKey })
+    },
+  })
+  const { reset } = save
+
+  useEffect(() => {
+    if (!open) {
+      formDialog.current?.close()
+      return
+    }
+    setName(editing?.name ?? '')
+    setBrand(editing?.brand ?? '')
+    setKind(editing?.kind ?? 'shoe')
+    setDistanceKm(editing?.initialDistanceM ? String(editing.initialDistanceM / 1000) : '')
+    setDuration(editing?.initialDurationS ? formatDuration(editing.initialDurationS) : '')
+    reset()
+    formDialog.current?.showModal()
+  }, [open, editing, reset])
+
+  function onSubmit(e: FormEvent) {
+    e.preventDefault()
+    // The picker's modal sits inside the activity form, so its submit must not reach that form.
+    e.stopPropagation()
+    if (!save.isPending) save.mutate()
+  }
+  // A portal, so the form is not nested in an activity form that holds the picker.
+  return createPortal(
+    <Modal
+      ref={formDialog}
+      aria-labelledby={titleId}
+      onCancel={(event) => {
+        event.preventDefault()
+        if (!save.isPending) onClose()
+      }}
+    >
+      <Heading level={2} id={titleId}>
+        {t(editing ? 'equipment.edit' : 'equipment.add')}
+      </Heading>
+      <form onSubmit={onSubmit}>
+        <fieldset disabled={save.isPending} className="mt-5 grid grid-cols-2 gap-4">
+          <FormField label={t('equipment.name')} className="col-span-2 text-sm font-medium">
+            {(id) => (
+              <Input
+                id={id}
+                autoFocus
+                required
+                maxLength={100}
+                value={name}
+                onChange={(event) => setName(event.currentTarget.value)}
+              />
+            )}
+          </FormField>
+          <FormField
+            label={t('equipment.brand')}
+            className={singleKind ? 'col-span-2 text-sm font-medium' : 'text-sm font-medium'}
+          >
+            {(id) => (
+              <Input
+                id={id}
+                maxLength={100}
+                value={brand}
+                onChange={(event) => setBrand(event.currentTarget.value)}
+              />
+            )}
+          </FormField>
+          {kinds.data && kinds.data.length > 1 && (
+            <FormField label={t('equipment.kind')} className="text-sm font-medium">
+              {(id) => (
+                <NativeSelect
+                  id={id}
+                  value={selectedKind}
+                  onChange={(e) => setKind(e.currentTarget.value)}
+                >
+                  {kinds.data?.map((value) => (
+                    <option key={value} value={value}>
+                      {t(`equipmentKinds.${value}`)}
+                    </option>
+                  ))}
+                </NativeSelect>
+              )}
+            </FormField>
+          )}
+          <p className="col-span-2 text-xs text-muted-foreground">{t('equipment.initialHint')}</p>
+          <FormField label={t('equipment.initialDistance')} className="text-sm font-medium">
+            {(id) => (
+              <Input
+                id={id}
+                type="number"
+                inputMode="decimal"
+                min={0}
+                step="any"
+                value={distanceKm}
+                onChange={(e) => setDistanceKm(e.currentTarget.value)}
+              />
+            )}
+          </FormField>
+          <FormField label={t('equipment.initialDuration')} className="text-sm font-medium">
+            {(id) => (
+              <Input
+                id={id}
+                pattern="\d+(:[0-5]\d){0,2}"
+                placeholder="0:00:00"
+                title={t('newActivity.durationHint')}
+                value={duration}
+                onChange={(e) => setDuration(e.currentTarget.value)}
+              />
+            )}
+          </FormField>
+          <ErrorText error={kinds.error} className="col-span-2" />
+
+          <ErrorText error={save.error} className="col-span-2" />
+          <div className="col-span-2 flex flex-wrap justify-end gap-3 pt-2">
+            <Button type="button" variant="secondary-outline" onClick={onClose}>
+              {t('equipment.cancel')}
+            </Button>
+            <Button type="submit" disabled={!kinds.data?.length}>
+              {save.isPending ? t('newActivity.saving') : t('equipment.save')}
+            </Button>
+          </div>
+        </fieldset>
+      </form>
+    </Modal>,
+    document.body,
   )
 }
 
@@ -321,6 +356,7 @@ export function EquipmentPicker({
 }) {
   const { t } = useTranslation()
   const equipment = useQuery(equipmentQuery)
+  const [creating, setCreating] = useState(false)
   const options =
     equipment.data?.filter(
       (item) => !item.retired || value.includes(item.id) || initialIds.includes(item.id),
@@ -329,7 +365,12 @@ export function EquipmentPicker({
     `${item.name}${item.retired ? ` · ${t('equipment.retired')}` : ''}`
   return (
     <fieldset disabled={disabled}>
-      <legend className="mb-2 text-sm font-medium">{t('equipment.title')}</legend>
+      <legend className="mb-2 flex w-full items-center justify-between gap-2 text-sm font-medium">
+        {t('equipment.title')}
+        <Button type="button" variant="link" onClick={() => setCreating(true)}>
+          {t('shoes.createNew')}
+        </Button>
+      </legend>
       <SlowLoading loading={equipment.isPending}>
         {equipment.data?.length === 0 && (
           <p className="text-sm text-muted-foreground">
@@ -416,6 +457,12 @@ export function EquipmentPicker({
         )}
         <ErrorText error={equipment.error} />
       </SlowLoading>
+      <EquipmentFormModal
+        open={creating}
+        editing={null}
+        onClose={() => setCreating(false)}
+        onSaved={(item) => onChange([...value, item.id])}
+      />
     </fieldset>
   )
 }

@@ -539,7 +539,7 @@ kontrollera först att inget pass refererar till nyckeln.
 
 Aktiv utrustning visas före pensionerad. Inom grupperna behålls ordningen efter när utrustningen lades till.
 
-Lägg till utrustning i modalen under Inställningar → Utrustning och koppla den till manuella pass eller FIT-importer. Välj ”Redigera utrustning” i utrustningens meny för att ändra namn, märke och tidigare användning i samma modal. Passkopplingar och pensionsstatus behålls. Skor kan även skapas direkt med ”Skapa ny” vid skofältet; den nya skon väljs automatiskt utan att aktivitetsutkastet försvinner.
+Lägg till utrustning i modalen under Inställningar → Utrustning och koppla den till manuella pass eller FIT-importer. Välj ”Redigera utrustning” i utrustningens meny för att ändra namn, märke och tidigare användning i samma modal. Passkopplingar och pensionsstatus behålls. Utrustning kan även skapas direkt med ”Skapa ny” vid utrustningsfältet när ett pass skapas eller redigeras; den nya utrustningen väljs automatiskt utan att aktivitetsutkastet försvinner.
 Kopplingarna kan också ändras på passsidan. Ett pass kan använda flera
 utrustningsdelar. Skor (`shoe`) är den första typen; nya typer läggs till i
 `EquipmentEndpoints.Kinds` och i båda språkfilernas `equipmentKinds`. Typväljaren i formuläret visas först när fler än en typ finns.

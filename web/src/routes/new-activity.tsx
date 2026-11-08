@@ -1,4 +1,4 @@
-import { EquipmentNameFields } from '@/components/equipment-name-fields'
+import { EquipmentPicker } from '@/components/equipment'
 import { FormField } from '@/components/ui/form-field'
 import {
   multisportKinds,
@@ -10,7 +10,7 @@ import {
 import { MultisportEditor } from '@/components/multisport-editor'
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
 import { useNavigate, useSearch } from '@tanstack/react-router'
-import { useRef, useState, type FormEvent } from 'react'
+import { useState, type FormEvent } from 'react'
 import { useTranslation } from 'react-i18next'
 import { BackLink } from '@/components/back-link'
 import { ErrorText } from '@/components/error-message'
@@ -30,7 +30,7 @@ import {
 } from '@/lib/activity'
 import { sports as sportOptions, knownSport } from '@/lib/sports'
 import { meQuery } from '@/lib/auth'
-import { equipmentQuery, lastUsedShoeQuery, type Equipment } from '@/lib/equipment'
+import { equipmentQuery, lastUsedShoeQuery } from '@/lib/equipment'
 import { refreshActivityQueries } from '@/lib/activity-query'
 import { TagPicker } from '@/components/activity-tags'
 import { Select } from '@/components/ui/select'
@@ -38,7 +38,6 @@ import { Heading } from '@/components/ui/heading'
 import { VisibilityField } from '@/components/activity-visibility'
 import type { Privacy } from '@/lib/privacy'
 import { ConfirmationModal } from '@/components/ui/confirmation-modal'
-import { Modal } from '@/components/ui/modal'
 import { FitDrop } from '@/components/fit-drop'
 import { BulkUpload } from '@/components/bulk-upload'
 
@@ -60,7 +59,7 @@ type ActivityPreview = {
 }
 
 // An activity is created either fully manually or from a FIT file that fills in the fields. From a file, title,
-// description, sport and shoe can be changed: the metrics belong with the streams (map, charts, splits, records).
+// description, sport and equipment can be changed: the metrics belong with the streams (map, charts, splits, records).
 export function NewActivityPage() {
   const { t, i18n } = useTranslation()
   const navigate = useNavigate()
@@ -68,32 +67,14 @@ export function NewActivityPage() {
   const queryClient = useQueryClient()
   const { data: me } = useQuery(meQuery)
   const shoes = useQuery(equipmentQuery)
-  const [shoeChoice, setShoeChoice] = useState<string | null>(null)
-  const activeShoes = shoes.data?.filter((shoe) => shoe.kind === 'shoe' && !shoe.retired) ?? []
   const lastUsedShoe = useQuery(lastUsedShoeQuery)
-  const shoeId =
-    shoeChoice ??
-    (activeShoes.some((shoe) => shoe.id === lastUsedShoe.data?.id) ? lastUsedShoe.data?.id : '') ??
-    ''
-  const shoeDialog = useRef<HTMLDialogElement>(null)
-  const shoeSelect = useRef<HTMLSelectElement>(null)
-  const [shoeName, setShoeName] = useState('')
-  const [shoeBrand, setShoeBrand] = useState('')
-  const addShoe = useMutation({
-    mutationFn: () =>
-      api.send<Equipment>('POST', '/api/equipment', {
-        name: shoeName,
-        brand: shoeBrand,
-        kind: 'shoe',
-      }),
-    onSuccess: (shoe) => {
-      queryClient.setQueryData(equipmentQuery.queryKey, (current) => [...(current ?? []), shoe])
-      setShoeChoice(shoe.id)
-      shoeDialog.current?.close()
-      shoeSelect.current?.focus()
-      return queryClient.invalidateQueries({ queryKey: equipmentQuery.queryKey })
-    },
-  })
+  // null = not chosen yet: the last used shoe while it is still active
+  const [equipmentChoice, setEquipmentIds] = useState<string[] | null>(null)
+  const lastUsedActive = shoes.data?.some(
+    (item) => item.id === lastUsedShoe.data?.id && !item.retired,
+  )
+  const equipmentIds =
+    equipmentChoice ?? (lastUsedActive && lastUsedShoe.data?.id ? [lastUsedShoe.data.id] : [])
 
   const [pendingFile, setPendingFile] = useState<File | null>(null) // waits for confirmation to replace filled fields
   const [batch, setBatch] = useState<File[] | null>(null) // several files are saved straight away
@@ -140,14 +121,14 @@ export function NewActivityPage() {
         form.append('title', title)
         if (draft) form.append('parts', JSON.stringify(draft))
         form.append('description', description)
-        if (shoeId) form.append('equipmentIds', shoeId)
+        equipmentIds.forEach((id) => form.append('equipmentIds', id))
         tags.forEach((tag) => form.append('tags', tag))
         if (sport) form.append('sport', sport)
         form.append('privacy', visibility)
         return api.upload<Activity>('/api/activities', form)
       }
       return api.send<Activity>('POST', '/api/activities/manual', {
-        equipmentIds: shoeId ? [shoeId] : [],
+        equipmentIds,
         tags,
         sport: selectedSport,
         title,
@@ -298,43 +279,7 @@ export function NewActivityPage() {
                   </Select>
                 )}
               </FormField>
-              <FormField
-                label={t('shoes.title')}
-                action={
-                  <Button
-                    type="button"
-                    variant="link"
-                    disabled={save.isPending || addShoe.isPending}
-                    onClick={() => {
-                      setShoeName('')
-                      setShoeBrand('')
-                      addShoe.reset()
-                      shoeDialog.current?.showModal()
-                    }}
-                  >
-                    {t('shoes.createNew')}
-                  </Button>
-                }
-              >
-                {(id) => (
-                  <Select
-                    ref={shoeSelect}
-                    id={id}
-                    value={shoeId}
-                    onChange={(e) => setShoeChoice(e.currentTarget.value)}
-                    disabled={shoes.isPending || !!shoes.error}
-                  >
-                    <option value="">{t('shoes.none')}</option>
-                    {activeShoes.map((shoe) => (
-                      <option key={shoe.id} value={shoe.id}>
-                        {shoe.name}
-                        {shoe.brand ? ` (${shoe.brand})` : ''}
-                      </option>
-                    ))}
-                  </Select>
-                )}
-              </FormField>
-              <ErrorText error={shoes.error ?? lastUsedShoe.error} className="col-span-2" />
+              <ErrorText error={lastUsedShoe.error} className="col-span-2" />
               <FormField label={t('newActivity.startedAt')}>
                 {(id) => (
                   <Input
@@ -424,6 +369,12 @@ export function NewActivityPage() {
                 disabled={save.isPending}
               />
             )}
+            <EquipmentPicker
+              value={equipmentIds}
+              initialIds={[]}
+              onChange={setEquipmentIds}
+              disabled={save.isPending}
+            />
             <TagPicker value={tags} onChange={setTags} disabled={save.isPending} />
             <VisibilityField value={visibility} onChange={setPrivacy} disabled={save.isPending} />
             {fromFile && (
@@ -452,48 +403,6 @@ export function NewActivityPage() {
           </form>
         </>
       )}
-
-      <Modal
-        ref={shoeDialog}
-        aria-labelledby="add-shoe-title"
-        onCancel={(event) => {
-          if (addShoe.isPending) event.preventDefault()
-        }}
-      >
-        <Heading level={2} id="add-shoe-title">
-          {t('shoes.add')}
-        </Heading>
-        <form
-          onSubmit={(event) => {
-            event.preventDefault()
-            if (!addShoe.isPending) addShoe.mutate()
-          }}
-          className="mt-5 space-y-4"
-        >
-          <EquipmentNameFields
-            name={shoeName}
-            brand={shoeBrand}
-            onNameChange={setShoeName}
-            onBrandChange={setShoeBrand}
-            nameLabel={t('shoes.name')}
-            disabled={addShoe.isPending}
-          />
-          <ErrorText error={addShoe.error} />
-          <div className="flex flex-wrap justify-end gap-3 pt-2">
-            <Button
-              type="button"
-              variant="secondary-outline"
-              disabled={addShoe.isPending}
-              onClick={() => shoeDialog.current?.close()}
-            >
-              {t('shoes.cancel')}
-            </Button>
-            <Button type="submit" disabled={addShoe.isPending}>
-              {addShoe.isPending ? t('newActivity.saving') : t('newActivity.save')}
-            </Button>
-          </div>
-        </form>
-      </Modal>
 
       <ConfirmationModal
         open={pendingFile !== null}
