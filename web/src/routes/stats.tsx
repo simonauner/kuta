@@ -2,7 +2,7 @@ import { GarminDerivedNote } from '@/components/garmin'
 import { FormField } from '@/components/ui/form-field'
 import { Heading } from '@/components/ui/heading'
 import { useEffect, useState } from 'react'
-import { LoaderCircle, Maximize2, Minimize2, Sparkles } from 'lucide-react'
+import { LoaderCircle, Sparkles } from 'lucide-react'
 import { keepPreviousData, useQuery } from '@tanstack/react-query'
 import { Link } from '@tanstack/react-router'
 import { useTranslation } from 'react-i18next'
@@ -21,6 +21,7 @@ import { scheduleSlowLoading } from '@/lib/slow-loading'
 import { sportGroupsQuery, activityYearsQuery } from '@/lib/activity-query'
 import { sportGroupLabel } from '@/lib/sport-groups'
 import { card } from '@/components/ui/card-variants'
+import { ExpandableCard, ExpandToggle } from '@/components/expandable-card'
 import { Select } from '@/components/ui/select'
 import { HelpPopover } from '@/components/help-popover'
 import {
@@ -361,12 +362,7 @@ export function StatsPage() {
                   </Heading>
                   <HelpPopover label={t('stats.methodLabel')}>{t('stats.method')}</HelpPopover>
                 </div>
-                <div
-                  className={card({
-                    // Like the enlarged map: wider than the column, centred and kept inside the viewport.
-                    className: `mt-4 transition-[margin] duration-300 motion-reduce:transition-none ${large ? 'lg:mx-[calc(50%-min(50vw-1rem,40rem))]' : ''}`,
-                  })}
-                >
+                <ExpandableCard large={large} className="mt-4">
                   <FormField
                     layout="inline"
                     label={t('yearComparison.metric')}
@@ -386,19 +382,7 @@ export function StatsPage() {
                             </option>
                           ))}
                         </Select>
-                        {/* On a small screen the chart already fills the width. */}
-                        <Button
-                          type="button"
-                          variant="secondary-outline"
-                          size="icon"
-                          className="hidden lg:inline-flex"
-                          aria-label={t(large ? 'stats.chartSmaller' : 'stats.chartLarger')}
-                          title={t(large ? 'stats.chartSmaller' : 'stats.chartLarger')}
-                          aria-pressed={large}
-                          onClick={() => setLarge((v) => !v)}
-                        >
-                          {large ? <Minimize2 /> : <Maximize2 />}
-                        </Button>
+                        <ExpandToggle large={large} onChange={setLarge} />
                       </div>
                     )}
                   </FormField>
@@ -497,7 +481,7 @@ export function StatsPage() {
                   {metric === 'avgHr' && !buckets.some((m) => m.avgHr !== null) && (
                     <p className="text-sm text-muted-foreground">{t('stats.noHeartRate')}</p>
                   )}
-                </div>
+                </ExpandableCard>
                 <div className="mt-6 overflow-x-auto">
                   <table className="w-full text-right text-sm tabular-nums">
                     <caption className="pb-3 text-left font-medium">
