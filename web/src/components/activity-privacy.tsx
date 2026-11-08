@@ -1,3 +1,4 @@
+import { Checkbox } from '@/components/ui/checkbox'
 import { PrivacySelect, usePrivacyLabel } from '@/components/privacy-select'
 import { FormField } from '@/components/ui/form-field'
 import { useRef } from 'react'
@@ -125,10 +126,9 @@ export function ActivityPrivacy() {
         }
       >
         {(id) => (
-          <input
+          <Checkbox
             id={id}
-            type="checkbox"
-            className="mt-1 size-4 accent-primary"
+            className="mt-1"
             checked={me?.publicProfile ?? false}
             disabled={!me || publicProfile.isPending}
             onChange={(event) => publicProfile.mutate(event.currentTarget.checked)}

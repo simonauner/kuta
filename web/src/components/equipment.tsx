@@ -1,3 +1,4 @@
+import { Checkbox } from '@/components/ui/checkbox'
 import { Stat } from '@/components/stat'
 import { EquipmentNameFields } from '@/components/equipment-name-fields'
 import { SlowLoading } from '@/components/slow-loading'
@@ -397,9 +398,8 @@ export function EquipmentPicker({
                 className="rounded-md border px-3 py-2 text-sm"
               >
                 {(id) => (
-                  <input
+                  <Checkbox
                     id={id}
-                    type="checkbox"
                     checked={value.includes(item.id)}
                     onChange={(e) =>
                       onChange(

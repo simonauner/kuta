@@ -1,3 +1,4 @@
+import { Radio } from '@/components/ui/checkbox'
 import { PrivacySelect } from '@/components/privacy-select'
 import { useId, useRef, useState } from 'react'
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
@@ -205,9 +206,8 @@ function TierForm({
             className="text-sm"
           >
             {(id) => (
-              <input
+              <Radio
                 id={id}
-                type="radio"
                 name="supporter-tier"
                 checked={choice === key}
                 onChange={() => setChoice(key)}
@@ -217,9 +217,8 @@ function TierForm({
         ))}
         <FormField layout="choice" label={t('supporter.customOption')} className="text-sm">
           {(id) => (
-            <input
+            <Radio
               id={id}
-              type="radio"
               name="supporter-tier"
               checked={choice === 'custom'}
               onChange={() => setChoice('custom')}

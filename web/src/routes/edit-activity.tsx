@@ -1,3 +1,4 @@
+import { Checkbox } from '@/components/ui/checkbox'
 import { FormField } from '@/components/ui/form-field'
 import { MultisportEditor } from '@/components/multisport-editor'
 import { multisportView, partsFromForm, type MultisportDraft } from '@/lib/multisport'
@@ -159,13 +160,11 @@ function EditActivityForm({ activity }: { activity: ActivityDetail }) {
           <div className="space-y-2">
             <FormField label={t('activity.excludeFromRecords')} layout="choice">
               {(id) => (
-                <input
+                <Checkbox
                   id={id}
-                  type="checkbox"
                   checked={excludeFromRecords}
                   onChange={(event) => setExcludeFromRecords(event.currentTarget.checked)}
                   disabled={save.isPending}
-                  className="size-4 accent-primary"
                 />
               )}
             </FormField>

@@ -1,3 +1,4 @@
+import { Checkbox } from '@/components/ui/checkbox'
 import { LanguageSelect } from '@/components/language-select'
 import { ErrorText } from '@/components/error-message'
 import { Trans, useTranslation } from 'react-i18next'
@@ -154,15 +155,7 @@ export function AuthPage() {
               />
             }
           >
-            {(id) => (
-              <input
-                id={id}
-                name="acceptTerms"
-                type="checkbox"
-                className="mt-1 size-4 accent-primary"
-                required
-              />
-            )}
+            {(id) => <Checkbox id={id} name="acceptTerms" className="mt-1" required />}
           </FormField>
         )}
         {checksPerson && siteKey && (

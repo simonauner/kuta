@@ -1,3 +1,4 @@
+import { Checkbox } from '@/components/ui/checkbox'
 import { FormField } from '@/components/ui/form-field'
 import { lazy, Suspense, useId, useRef, useState } from 'react'
 import { useTranslation } from 'react-i18next'
@@ -286,9 +287,8 @@ export function MultisportEditor({
                       )}
                       <FormField layout="choice" label={t('multisport.useEquipment')}>
                         {(id) => (
-                          <input
+                          <Checkbox
                             id={id}
-                            type="checkbox"
                             checked={p.useEquipment}
                             onChange={(e) =>
                               update(

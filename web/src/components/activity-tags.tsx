@@ -1,3 +1,4 @@
+import { Checkbox } from '@/components/ui/checkbox'
 import { FormField } from '@/components/ui/form-field'
 import { useQuery } from '@tanstack/react-query'
 import { useTranslation } from 'react-i18next'
@@ -28,9 +29,8 @@ export function TagPicker({
             className="rounded-md border px-3 py-2 text-sm"
           >
             {(id) => (
-              <input
+              <Checkbox
                 id={id}
-                type="checkbox"
                 checked={value.includes(tag)}
                 onChange={(e) =>
                   onChange(

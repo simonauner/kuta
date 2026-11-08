@@ -1,3 +1,4 @@
+import { Checkbox } from '@/components/ui/checkbox'
 import { FormField } from '@/components/ui/form-field'
 import { ErrorText } from '@/components/error-message'
 import { Trans, useTranslation } from 'react-i18next'
@@ -51,10 +52,9 @@ export function HeartRateConsent({ className }: { className?: string }) {
         }
       >
         {(id) => (
-          <input
+          <Checkbox
             id={id}
-            type="checkbox"
-            className="mt-1 size-4 accent-primary"
+            className="mt-1"
             checked={me?.hrConsent ?? false}
             disabled={change.isPending}
             onChange={onChange}
