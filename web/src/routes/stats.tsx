@@ -2,8 +2,8 @@ import { Stat, StatHint } from '@/components/stat'
 import { GarminDerivedNote } from '@/components/garmin'
 import { FormField } from '@/components/ui/form-field'
 import { Heading } from '@/components/ui/heading'
-import { useEffect, useState } from 'react'
-import { LoaderCircle, Sparkles } from 'lucide-react'
+import { useState } from 'react'
+import { Sparkles } from 'lucide-react'
 import { keepPreviousData, useQuery } from '@tanstack/react-query'
 import { Link } from '@tanstack/react-router'
 import { useTranslation } from 'react-i18next'
@@ -11,14 +11,13 @@ import { ErrorText } from '@/components/error-message'
 import { QueryError } from '@/components/query-error'
 import { PredictionsSection, RecordsSection } from '@/components/records'
 import { ActivitiesEmptyState } from '@/components/activities-empty-state'
-import { SlowLoading } from '@/components/slow-loading'
+import { SlowLoading, SlowRefresh } from '@/components/slow-loading'
 import { TrainingLoadSection } from '@/components/training-load'
 import { AerobicEfficiencySection } from '@/components/aerobic-efficiency'
 import { YearComparison } from '@/components/year-comparison'
 import { Button } from '@/components/ui/button'
 import { api } from '@/lib/api'
 import { formatDuration } from '@/lib/activity'
-import { scheduleSlowLoading } from '@/lib/slow-loading'
 import { sportGroupsQuery, activityYearsQuery } from '@/lib/activity-query'
 import { sportGroupLabel } from '@/lib/sport-groups'
 import { ExpandableCard, ExpandToggle } from '@/components/expandable-card'
@@ -169,9 +168,6 @@ export function StatsPage() {
   const { bucket } = ranges.current
   const buckets = statistics.data?.current.buckets ?? []
   const total = statistics.data?.current.total
-  const [slowSince, setSlowSince] = useState<number | null>(null)
-  const switching = statistics.isPlaceholderData
-  useEffect(() => scheduleSlowLoading(switching, slowSince, setSlowSince), [switching, slowSince])
   const availableYears = [...new Set([currentYear, year, ...(years.data ?? [])])].sort(
     (a, b) => b - a,
   )
@@ -309,15 +305,7 @@ export function StatsPage() {
       </div>
       <ErrorText error={sportGroups.error} className="mt-4" />
       <QueryError query={years} className="mt-4" />
-      <div className="relative" aria-busy={switching}>
-        {slowSince !== null && (
-          <p role="status" className="absolute inset-x-0 top-8 z-10 flex justify-center">
-            <span className="flex items-center gap-2 rounded-full border bg-background px-3 py-1.5 text-sm text-muted-foreground shadow-sm">
-              <LoaderCircle aria-hidden="true" className="size-4 motion-safe:animate-spin" />
-              {t('slowLoading')}
-            </span>
-          </p>
-        )}
+      <SlowRefresh loading={statistics.isPlaceholderData}>
         <SlowLoading loading={statistics.isPending}>
           <QueryError query={statistics} className="mt-4" />
           {statistics.isSuccess &&
@@ -326,9 +314,7 @@ export function StatsPage() {
                 {t('stats.empty')}
               </p>
             ) : (
-              <div
-                className={`motion-safe:animate-fade-in-up transition-opacity ${slowSince !== null ? 'opacity-50' : ''}`}
-              >
+              <div className="motion-safe:animate-fade-in-up">
                 <p className="mt-6 text-metadata text-muted-foreground">
                   {formatRange(ranges.current)}
                 </p>
@@ -515,7 +501,7 @@ export function StatsPage() {
               </div>
             ))}
         </SlowLoading>
-      </div>
+      </SlowRefresh>
       <YearComparison year={year} sportGroup={sportGroup} />
       <RecordsSection year={year} />
     </section>
