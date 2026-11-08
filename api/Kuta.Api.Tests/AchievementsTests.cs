@@ -90,7 +90,7 @@ public class AchievementsTests(KutaFactory factory) : IClassFixture<KutaFactory>
     }
 
     [Fact]
-    public async Task Achievements_are_read_per_user_and_only_earned_keys_can_be_marked_seen()
+    public async Task Achievements_are_read_per_user_and_only_new_earned_keys_can_be_marked_seen()
     {
         var ct = TestContext.Current.CancellationToken;
         var runner = $"achieve-a-{Guid.NewGuid():N}@example.com";
@@ -106,6 +106,12 @@ public class AchievementsTests(KutaFactory factory) : IClassFixture<KutaFactory>
             // 04:30 in Stockholm (UTC+1 in January): early bird there, not in UTC
             await ActivityStorage.SaveManualAsync(conn, userId, new ManualActivityRequest("running", "Early",
                 new DateTimeOffset(2026, 1, 10, 3, 30, 0, TimeSpan.Zero), 6000, 101_000, null, null), ct);
+
+            // Reached before the profile was created (the default starting point): listed, but already seen
+            var old = await client.GetFromJsonAsync<JsonElement>("/api/achievements?timeZone=Europe/Stockholm", ct);
+            Assert.NotEqual(0, old.GetArrayLength());
+            Assert.All(old.EnumerateArray(), a => Assert.True(a.GetProperty("seen").GetBoolean()));
+            await conn.ExecuteAsync("update users set achievements_since = '2026-01-01' where id = @userId", new { userId });
 
             var list = await client.GetFromJsonAsync<JsonElement>("/api/achievements?timeZone=Europe/Stockholm", ct);
             var keys = list.EnumerateArray().Select(a => a.GetProperty("key").GetString()).ToArray();
