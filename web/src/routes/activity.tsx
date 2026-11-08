@@ -1,3 +1,4 @@
+import { Stat } from '@/components/stat'
 import { SlowLoading } from '@/components/slow-loading'
 import { isCyclingSport, knownSport, sportIcons } from '@/lib/sports'
 import { SportIcon } from '@/components/sport-icon'
@@ -579,17 +580,15 @@ export function ActivityPage() {
           className="mt-4 flex flex-wrap gap-4 text-sm"
         >
           {[...new Set(original.parts.map((p) => p.sport))].map((sport) => (
-            <div key={sport}>
-              <dt>{t(sportNameKey(sport))}</dt>
-              <dd className="font-semibold">
-                {number.format(
-                  original.parts
-                    .filter((p) => p.sport === sport)
-                    .reduce((sum, p) => sum + p.distanceM, 0) / 1000,
-                )}{' '}
-                km
-              </dd>
-            </div>
+            <Stat
+              key={sport}
+              label={t(sportNameKey(sport))}
+              value={`${number.format(
+                original.parts
+                  .filter((p) => p.sport === sport)
+                  .reduce((sum, p) => sum + p.distanceM, 0) / 1000,
+              )} km`}
+            />
           ))}
         </dl>
       )}
@@ -620,14 +619,7 @@ export function ActivityPage() {
 
       <dl className="mt-6 grid grid-cols-3 gap-4">
         {stats.map(([label, value], i) => (
-          <div key={label} className={i < 3 ? '' : 'text-sm'}>
-            <dt className="text-xs text-muted-foreground">{label}</dt>
-            <dd
-              className={i < 3 ? 'text-xl font-semibold tabular-nums' : 'font-medium tabular-nums'}
-            >
-              {value}
-            </dd>
-          </div>
+          <Stat key={label} label={label} value={value} size={i < 3 ? 'xl' : 'sm'} />
         ))}
       </dl>
 

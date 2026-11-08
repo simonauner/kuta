@@ -1,3 +1,4 @@
+import { Stat, StatHint } from '@/components/stat'
 import { FormField } from '@/components/ui/form-field'
 import { Heading } from '@/components/ui/heading'
 import { useState } from 'react'
@@ -215,17 +216,14 @@ export function PredictionsSection() {
                 </p>
                 <dl className="mt-4 grid grid-cols-2 gap-3 sm:grid-cols-3">
                   {predictions.data.predictions.map((p) => (
-                    <Card key={p.distanceM} padding="compact">
-                      <dt className="text-xs text-muted-foreground">
-                        {distanceLabel(p.distanceM)}
-                      </dt>
-                      <dd className="mt-1 text-lg font-semibold tabular-nums">
-                        {formatDuration(p.elapsedS)}
-                      </dd>
-                      <dd className="text-xs text-muted-foreground tabular-nums">
-                        {formatPace(p.elapsedS, recordMeters(p.distanceM))}
-                      </dd>
-                    </Card>
+                    <Stat
+                      key={p.distanceM}
+                      boxed
+                      label={distanceLabel(p.distanceM)}
+                      value={formatDuration(p.elapsedS)}
+                    >
+                      <StatHint>{formatPace(p.elapsedS, recordMeters(p.distanceM))}</StatHint>
+                    </Stat>
                   ))}
                 </dl>
               </>

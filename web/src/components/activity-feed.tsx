@@ -1,3 +1,4 @@
+import { Stat } from '@/components/stat'
 import { SlowLoading } from '@/components/slow-loading'
 import type { ReactNode } from 'react'
 import { FeedEmptyState } from '@/components/feed-empty-state'
@@ -160,10 +161,7 @@ export function ActivityFeed({
               )}
               <dl className="mt-4 flex flex-wrap gap-x-8 gap-y-3">
                 {metrics(activity).map(([label, value]) => (
-                  <div key={label}>
-                    <dt className="text-metadata text-muted-foreground">{label}</dt>
-                    <dd className="text-xl font-semibold tabular-nums">{value}</dd>
-                  </div>
+                  <Stat key={label} label={label} value={value} size="xl" />
                 ))}
               </dl>
               {activity.recordStatus && (

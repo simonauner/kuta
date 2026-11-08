@@ -1,3 +1,4 @@
+import { Stat } from '@/components/stat'
 import { EquipmentNameFields } from '@/components/equipment-name-fields'
 import { SlowLoading } from '@/components/slow-loading'
 import { FormField } from '@/components/ui/form-field'
@@ -194,14 +195,16 @@ export function EquipmentSection() {
                     </Menu.Root>
                   </div>
                   <dl className="mt-2 flex gap-8 text-sm tabular-nums">
-                    <div>
-                      <dt className="text-xs text-muted-foreground">{t('equipment.distance')}</dt>
-                      <dd>{km.format(item.distanceM / 1000)} km</dd>
-                    </div>
-                    <div>
-                      <dt className="text-xs text-muted-foreground">{t('equipment.duration')}</dt>
-                      <dd>{formatDuration(item.durationS)}</dd>
-                    </div>
+                    <Stat
+                      label={t('equipment.distance')}
+                      value={`${km.format(item.distanceM / 1000)} km`}
+                      size="sm"
+                    />
+                    <Stat
+                      label={t('equipment.duration')}
+                      value={formatDuration(item.durationS)}
+                      size="sm"
+                    />
                   </dl>
                 </li>
               ))}

@@ -1,3 +1,4 @@
+import { Stat, StatHint } from '@/components/stat'
 import { GarminDerivedNote } from '@/components/garmin'
 import { FormField } from '@/components/ui/form-field'
 import { Heading } from '@/components/ui/heading'
@@ -20,7 +21,6 @@ import { formatDuration } from '@/lib/activity'
 import { scheduleSlowLoading } from '@/lib/slow-loading'
 import { sportGroupsQuery, activityYearsQuery } from '@/lib/activity-query'
 import { sportGroupLabel } from '@/lib/sport-groups'
-import { card } from '@/components/ui/card-variants'
 import { ExpandableCard, ExpandToggle } from '@/components/expandable-card'
 import { Select } from '@/components/ui/select'
 import { HelpPopover } from '@/components/help-popover'
@@ -340,17 +340,9 @@ export function StatsPage() {
                       ['durationS', format(total?.durationS ?? 0, 'durationS')],
                     ] as const
                   ).map(([key, value]) => (
-                    <div key={key} className={card({ padding: 'compact' })}>
-                      <dt className="text-xs text-muted-foreground">{t(`stats.${key}`)}</dt>
-                      <dd className="mt-2 break-words text-lg font-semibold tabular-nums sm:text-2xl">
-                        {value}
-                      </dd>
-                      {changeText(key) && (
-                        <dd className="mt-1 text-xs tabular-nums text-muted-foreground">
-                          {changeText(key)}
-                        </dd>
-                      )}
-                    </div>
+                    <Stat key={key} boxed label={t(`stats.${key}`)} value={value}>
+                      {changeText(key) && <StatHint>{changeText(key)}</StatHint>}
+                    </Stat>
                   ))}
                 </dl>
                 <p className="mt-2 text-metadata text-muted-foreground">

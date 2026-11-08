@@ -1,3 +1,4 @@
+import { Stat } from '@/components/stat'
 import { Reveal } from '@/components/reveal'
 import { useState, type FormEvent } from 'react'
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
@@ -105,10 +106,7 @@ export function TrainingLoadSection() {
                     data.rampPerWeek === null ? '–' : signed.format(data.rampPerWeek),
                   ],
                 ].map(([label, value]) => (
-                  <Card key={label} padding="compact">
-                    <dt className="text-xs text-muted-foreground">{label}</dt>
-                    <dd className="mt-2 text-lg font-semibold tabular-nums sm:text-2xl">{value}</dd>
-                  </Card>
+                  <Stat key={label} boxed label={label} value={value} />
                 ))}
               </dl>
               <Card className="mt-4">
