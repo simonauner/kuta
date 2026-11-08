@@ -204,6 +204,10 @@ export const intervalRules = {
   // Shorter laps are an accidental button press
   minimumLapS: 10,
   minimumLapM: 50,
+  // Longer reps or recoveries are a long run with hills, walking or stops (autolap on a trail marathon gives a fast
+  // and a slow group too), not an interval session. 2 × 20 min and recoveries of a few minutes still fit.
+  maximumRepS: 25 * 60,
+  maximumRecoveryS: 10 * 60,
 } as const
 
 export type IntervalRep = {
@@ -281,6 +285,14 @@ export function intervals(laps: ActivityLap[]): Intervals | null {
     }
   })
   if (reps.length < intervalRules.minimumReps) return null
+  if (
+    reps.some(
+      (r) =>
+        r.durationS > intervalRules.maximumRepS ||
+        (r.recoveryS ?? 0) > intervalRules.maximumRecoveryS,
+    )
+  )
+    return null
   const paces = reps.map((r) => (r.durationS / r.distanceM) * 1000)
   const others = paces.slice(0, -1)
   const othersPace = others.reduce((a, b) => a + b, 0) / others.length
