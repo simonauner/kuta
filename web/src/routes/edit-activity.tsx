@@ -10,6 +10,7 @@ import { TagPicker } from '@/components/activity-tags'
 import { ErrorMessage, ErrorText } from '@/components/error-message'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
+import { Textarea } from '@/components/ui/textarea'
 import { meQuery } from '@/lib/auth'
 import { ApiError, api } from '@/lib/api'
 import { activityQuery, refreshActivityQueries } from '@/lib/activity-query'
@@ -124,14 +125,13 @@ function EditActivityForm({ activity }: { activity: ActivityDetail }) {
         </FormField>
         <FormField label={t('newActivity.description')} className="text-sm font-medium">
           {(id) => (
-            <textarea
+            <Textarea
               id={id}
               value={description}
               maxLength={10000}
               rows={3}
               onChange={(event) => setDescription(event.currentTarget.value)}
               disabled={save.isPending}
-              className="w-full rounded-md border border-input bg-transparent px-3 py-2 text-base shadow-xs outline-none focus-visible:border-ring focus-visible:ring-[3px] focus-visible:ring-ring/50 md:text-sm dark:bg-input/30"
             />
           )}
         </FormField>

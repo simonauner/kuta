@@ -17,6 +17,7 @@ import { ErrorText } from '@/components/error-message'
 import { HeartRateConsentPrompt } from '@/components/heart-rate-consent'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
+import { Textarea } from '@/components/ui/textarea'
 import { api } from '@/lib/api'
 import {
   activityTitle,
@@ -272,13 +273,12 @@ export function NewActivityPage() {
               </FormField>
               <FormField label={t('newActivity.description')} className="col-span-2">
                 {(id) => (
-                  <textarea
+                  <Textarea
                     id={id}
                     value={description}
                     maxLength={10000}
                     rows={3}
                     onChange={(e) => setDescription(e.currentTarget.value)}
-                    className="w-full rounded-md border border-input bg-transparent px-3 py-2 text-base shadow-xs outline-none focus-visible:border-ring focus-visible:ring-[3px] focus-visible:ring-ring/50 md:text-sm dark:bg-input/30"
                   />
                 )}
               </FormField>
