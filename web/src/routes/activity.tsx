@@ -40,6 +40,7 @@ import {
 import { card } from '@/components/ui/card-variants'
 import { VisitorNotice } from '@/components/visitor-notice'
 import { ConfirmationModal } from '@/components/ui/confirmation-modal'
+import { SimilarRoutes } from '@/components/similar-routes'
 
 // Pace from speed, smoothed over ~15 s so GPS noise doesn't cause spikes; standing still becomes a gap.
 function paceSeries(speed: (number | null)[], minSpeed = 0.5) {
@@ -734,6 +735,8 @@ export function ActivityPage() {
           {effortTable}
         </div>
       )}
+
+      {original.userId === me?.id && <SimilarRoutes activityId={original.id} />}
 
       {original.userId === me?.id && <DeleteActivity activityId={original.id} />}
     </section>
