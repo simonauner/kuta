@@ -194,6 +194,8 @@ static async Task<int> RunAsync(string[] args)
         return Task.CompletedTask;
     });
 
+    app.UseAdminHost();
+
     // In production the built web app lives in wwwroot (see Dockerfile), so web and API share an origin.
     // File names under /assets contain a hash and can be cached forever; the rest (index.html, sw.js) must not be cached.
     var staticFiles = new StaticFileOptions
@@ -274,6 +276,7 @@ static async Task<int> RunAsync(string[] args)
     api.MapAchievements();
     api.MapYearReview();
     api.MapGarmin();
+    api.MapAdmin();
     app.MapGarminPush();
 
     app.MapFallbackToFile("/privacy", "privacy.html", staticFiles);
@@ -283,7 +286,7 @@ static async Task<int> RunAsync(string[] args)
     app.MapFallbackToFile("/en/features", "en/features.html", staticFiles);
 
     // The public pages are static; only the app's known paths get the React shell.
-    foreach (var path in new[] { "/app", "/app/activities", "/app/activities/new", "/app/activities/{activityId:guid}", "/app/activities/{activityId:guid}/edit", "/app/stats", "/app/stats/analysis", "/app/stats/year/{year:int}", "/app/profile", "/app/settings/equipment", "/app/settings/followers", "/app/settings/privacy-places", "/app/settings/import", "/app/settings/profile", "/app/settings/data", "/app/runners/{runnerId:guid}", "/app/r/{code:length(8)}", "/app/settings" })
+    foreach (var path in new[] { "/app", "/app/activities", "/app/activities/new", "/app/activities/{activityId:guid}", "/app/activities/{activityId:guid}/edit", "/app/stats", "/app/stats/analysis", "/app/stats/year/{year:int}", "/app/profile", "/app/settings/equipment", "/app/settings/followers", "/app/settings/privacy-places", "/app/settings/import", "/app/settings/profile", "/app/settings/data", "/app/runners/{runnerId:guid}", "/app/r/{code:length(8)}", "/app/settings", "/app/admin" })
         app.MapFallbackToFile(path, "app.html", staticFiles);
 
     await app.RunAsync();
