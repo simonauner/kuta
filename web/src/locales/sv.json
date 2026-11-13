@@ -162,6 +162,15 @@
     "thresholdHelpLabel": "Vad är tröskeltempo?",
     "thresholdHelp": "Tröskeltempot är det snabbaste tempo du orkar hålla i ungefär en timme. För många ligger det nära tempot på ett lopp mellan 10 km och halvmaraton. Kuta använder det för att räkna hur hård varje löprunda var. Utan eget värde räknas det fram ur din prognos."
   },
+  "similarRoutes": {
+    "title": "Samma runda",
+    "summary_one": "Du har gjort den här rundan {{count}} gång. Den här är nummer {{rank}} i tid.",
+    "summary_other": "Du har gjort den här rundan {{count}} gånger. Den här är nummer {{rank}} i tid.",
+    "date": "Datum",
+    "current": "den här",
+    "fastest": "Snabbast",
+    "trendChart": "Tid per gång på rundan, med snabbare tider högre upp. Den här aktiviteten är ifylld."
+  },
   "records": {
     "helpLabel": "Hjälp om löprekord",
     "help": "Ser något fel ut? En aktivitet med felaktiga siffror kan undantas från löprekord genom att redigera aktiviteten.",
