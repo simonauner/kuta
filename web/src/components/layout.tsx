@@ -26,7 +26,9 @@ export function Layout() {
   const { t, i18n } = useTranslation()
   const pathname = useRouterState({ select: (s) => s.location.pathname })
   const me = useQuery(meQuery)
-  const follows = useQuery({ ...followsQuery, enabled: !!me.data?.displayName })
+  // The admin host serves no API beyond sign-in and the admin view, so the admin view has no app shell.
+  const admin = pathname.startsWith('/app/admin')
+  const follows = useQuery({ ...followsQuery, enabled: !!me.data?.displayName && !admin })
   const requests = pendingRequests(follows.data).length
 
   if (new URLSearchParams(window.location.search).get('reset') === 'password')
@@ -50,6 +52,12 @@ export function Layout() {
       <AuthPage />
     )
   if (me.data.displayName === null) return <ChooseNamePage />
+  if (admin)
+    return (
+      <main className="mx-auto w-full max-w-2xl px-4 py-6">
+        <Outlet />
+      </main>
+    )
 
   return (
     <div className="flex min-h-dvh flex-col">

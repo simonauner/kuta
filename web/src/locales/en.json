@@ -1164,5 +1164,16 @@
     "equipment_other": "{{distance}} in {{count}} activities.",
     "achievementsTitle_one": "{{count}} achievement",
     "achievementsTitle_other": "{{count}} achievements"
+  },
+  "admin": {
+    "title": "Admin",
+    "notAdmin": "This account is not an administrator.",
+    "accounts": "Accounts",
+    "confirmedAccounts": "Confirmed accounts",
+    "newAccounts30Days": "New accounts, 30 days",
+    "signedIn30Days": "Signed in, 30 days",
+    "accountsWithActivities": "Accounts with activities",
+    "activities": "Activities",
+    "newActivities30Days": "New activities, 30 days"
   }
 }

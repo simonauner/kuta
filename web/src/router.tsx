@@ -18,6 +18,7 @@ import { DataSettingsPage, ProfileSettingsPage, SettingsPage } from '@/routes/se
 import { ImportPage } from '@/routes/import'
 import { AnalysisPage, StatsPage } from '@/routes/stats'
 import { YearReviewPage } from '@/routes/year-review'
+import { AdminPage } from '@/routes/admin'
 import { activityPageSearch, activitySearch } from '@/lib/activity'
 import { activityQuery } from '@/lib/activity-query'
 import { queryClient } from '@/lib/query-client'
@@ -131,7 +132,14 @@ const importRoute = createRoute({
   component: ImportPage,
 })
 
+const adminRoute = createRoute({
+  getParentRoute: () => rootRoute,
+  path: '/app/admin',
+  component: AdminPage,
+})
+
 const routeTree = rootRoute.addChildren([
+  adminRoute,
   feedRoute,
   activitiesRoute,
   newActivityRoute,

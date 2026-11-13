@@ -714,6 +714,15 @@ Anslutningen följer Garmin Connect Developer Program (OAuth2 PKCE, push). Dokum
 - **Drift:** Lägg fälten `Garmin__ClientId` och `Garmin__ClientSecret` i 1Password-objektet `fly-kuta-new` innan `scripts/fly-secrets.sh` körs (`fly.secrets.tpl` refererar till dem). Utan dem visar Inställningar att anslutningen inte är tillgänglig.
 - **Spärr före lansering:** även med nycklar kan bara konton i `Garmin__AllowedUserIds` (kommaseparerade användar-id i `fly.toml` under `[env]`) ansluta. `Garmin__OpenToAll = 'true'` öppnar för alla; sätt det först när integritetspolicyn beskriver anslutningen som tillgänglig och Garmins 30-dagarsfrist gått ut. Befintliga anslutningar fortsätter ta emot data och kan alltid kopplas från. Fly sätter `Fly-Client-IP`, som IP-kontrollen kräver via `ForwardedHeaders`.
 
+## Admin
+
+`admin.kutaapp.com` visar aggregerade siffror (`GET /api/admin/stats`, `web/src/routes/admin.tsx`): konton, bekräftade konton, nya konton och inloggade de senaste 30 dagarna, konton med aktiviteter, aktiviteter och nya aktiviteter de senaste 30 dagarna. Inga namn, adresser eller andra uppgifter per konto, och inga åtgärder.
+
+- **Eget värdnamn** (`Admin__Host`, upplägget kommer från Kredovis operatörsvy): samma app och databas, men `Admin.UseAdminHost` släpper bara igenom inloggning, `/api/me` och `/api/admin` där, och svarar 404 på `/api/admin` och `/app/admin` på alla andra värdnamn. Ett injicerat skript i appen på kutaapp.com kör alltså aldrig där en adminsession gäller; sessionscookien är en `__Host-`-cookie och delas inte mellan värdnamnen. `/` och `/app` på adminvärden skickar till `/app/admin`. Utan `Admin__Host` är vyn av utanför Development; lokalt nås den på `/app/admin`.
+- **Administratörer** är kommaseparerade användar-id i `Admin__UserIds` (`fly.toml`, `[env]`), aldrig e-postadresser. Andra konton får 404.
+- **Drift:** DNS-post för `admin` hos Cloudflare (bara DNS, som `kutaapp.com`), `fly certs add admin.kutaapp.com`, och värdnamnet i Turnstile-widgetens lista hos Cloudflare.
+- **Saknas:** MFA (Kuta har ingen ännu). Den behövs innan vyn visar uppgifter om enskilda konton eller kan ändra något.
+
 ## Karta
 
 Bakgrundskartan är en egen [PMTiles](https://docs.protomaps.com/pmtiles/)-fil, utklippt ur Protomaps dagliga bygge av OpenStreetMap (ODbL; attributionen visas i kartan), med Protomaps stil `light` (`@protomaps/basemaps`) och kartetiketter på appens språk. Webbläsaren läser filen med range-anrop via `pmtiles`-protokollet i `web/src/lib/map.ts`, så ingen kartleverantör ser vilket område som visas. Typsnitt och ikoner (Protomaps `basemaps-assets`) ligger bredvid filen.
