@@ -1164,5 +1164,16 @@
     "equipment_other": "{{distance}} på {{count}} aktiviteter.",
     "achievementsTitle_one": "{{count}} utmärkelse",
     "achievementsTitle_other": "{{count}} utmärkelser"
+  },
+  "admin": {
+    "title": "Admin",
+    "notAdmin": "Det här kontot är inte administratör.",
+    "accounts": "Konton",
+    "confirmedAccounts": "Bekräftade konton",
+    "newAccounts30Days": "Nya konton, 30 dagar",
+    "signedIn30Days": "Inloggade, 30 dagar",
+    "accountsWithActivities": "Konton med aktiviteter",
+    "activities": "Aktiviteter",
+    "newActivities30Days": "Nya aktiviteter, 30 dagar"
   }
 }
