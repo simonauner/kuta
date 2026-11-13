@@ -162,6 +162,15 @@
     "thresholdHelpLabel": "What is threshold pace?",
     "thresholdHelp": "Threshold pace is the fastest pace you can hold for about an hour. For many runners it is close to their race pace between 10 km and a half marathon. Kuta uses it to work out how hard each run was. Without your own value it is derived from your prediction."
   },
+  "topRoutes": {
+    "title": "My routes",
+    "description": "The routes you have done most, of all time.",
+    "times_one": "{{sport}}, {{count}} time",
+    "times_other": "{{sport}}, {{count}} times",
+    "best": "Best time",
+    "total": "Total",
+    "latest": "Latest:"
+  },
   "similarRoutes": {
     "title": "Same route",
     "summary_one": "You have done this route {{count}} time. This one ranks number {{rank}} by time.",
