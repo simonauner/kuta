@@ -278,7 +278,8 @@ public static class ActivityEndpoints
                 return Results.BadRequest(Multisport.InvalidParts);
             if (sportChanged)
             {
-                await conn.ExecuteAsync("update activities set sport = @Sport where id = @id", new { id, req.Sport }, tx);
+                // The route is reassigned on the next read, as the sport group may have changed
+                await conn.ExecuteAsync("update activities set sport = @Sport, route_id = null where id = @id", new { id, req.Sport }, tx);
                 var (t, dist, alt) = await Multisport.ReadStreamAsync(conn, tx, id);
                 await BestEfforts.ReplaceAsync(conn, tx, id, userId, req.Sport!, owned.StartedAt, t, dist, alt);
             }

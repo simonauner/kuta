@@ -10,6 +10,7 @@ import { useTranslation } from 'react-i18next'
 import { ErrorText } from '@/components/error-message'
 import { QueryError } from '@/components/query-error'
 import { PredictionsSection, RecordsSection } from '@/components/records'
+import { TopRoutesSection } from '@/components/top-routes'
 import { ActivitiesEmptyState } from '@/components/activities-empty-state'
 import { SlowLoading, SlowRefresh } from '@/components/slow-loading'
 import { TrainingLoadSection } from '@/components/training-load'
@@ -504,6 +505,7 @@ export function StatsPage() {
       </SlowRefresh>
       <YearComparison year={year} sportGroup={sportGroup} />
       <RecordsSection year={year} />
+      <TopRoutesSection />
     </section>
   )
 }
