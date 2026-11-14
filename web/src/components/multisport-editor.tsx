@@ -239,7 +239,6 @@ export function MultisportEditor({
                               <Input
                                 id={id}
                                 className="w-28"
-                                inputMode="numeric"
                                 pattern="\d+(:[0-5]\d){0,2}"
                                 placeholder="0:45:00"
                                 required
