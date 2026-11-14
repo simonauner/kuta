@@ -17,6 +17,7 @@ import { ProfilePage } from '@/routes/profile'
 import { DataSettingsPage, ProfileSettingsPage, SettingsPage } from '@/routes/settings'
 import { ImportPage } from '@/routes/import'
 import { AnalysisPage, StatsPage } from '@/routes/stats'
+import { RoutesPage } from '@/routes/my-routes'
 import { YearReviewPage } from '@/routes/year-review'
 import { AdminPage } from '@/routes/admin'
 import { activityPageSearch, activitySearch } from '@/lib/activity'
@@ -66,6 +67,11 @@ const analysisRoute = createRoute({
   getParentRoute: () => rootRoute,
   path: '/app/stats/analysis',
   component: AnalysisPage,
+})
+const routesRoute = createRoute({
+  getParentRoute: () => rootRoute,
+  path: '/app/stats/routes',
+  component: RoutesPage,
 })
 const yearReviewRoute = createRoute({
   getParentRoute: () => rootRoute,
@@ -148,6 +154,7 @@ const routeTree = rootRoute.addChildren([
   statsRoute,
   yearReviewRoute,
   analysisRoute,
+  routesRoute,
   profileRoute,
   runnerRoute,
   sharedProfileRoute,

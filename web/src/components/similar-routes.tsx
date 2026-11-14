@@ -7,7 +7,7 @@ import { api } from '@/lib/api'
 import { formatDuration, formatSportPace } from '@/lib/activity'
 import { durationTicks } from '@/lib/duration-ticks'
 
-type SimilarRouteActivity = {
+export type SimilarRouteActivity = {
   id: string
   sport: string
   title: string | null
@@ -18,15 +18,20 @@ type SimilarRouteActivity = {
   attribution: string | null
 }
 
+export function useSimilarRoutes(activityId: string, enabled = true) {
+  return useQuery({
+    queryKey: ['activities', activityId, 'similar'],
+    queryFn: () => api.get<SimilarRouteActivity[]>(`/api/activities/${activityId}/similar`),
+    enabled,
+  })
+}
+
 // The owner's activities on the same route, newest first; shown when there is at least one other.
 export function SimilarRoutes({ activityId }: { activityId: string }) {
   const { t, i18n } = useTranslation()
   const returnTo = useRouterState({ select: (s) => s.location.href })
   const date = new Intl.DateTimeFormat(i18n.resolvedLanguage, { dateStyle: 'medium' })
-  const similar = useQuery({
-    queryKey: ['activities', activityId, 'similar'],
-    queryFn: () => api.get<SimilarRouteActivity[]>(`/api/activities/${activityId}/similar`),
-  })
+  const similar = useSimilarRoutes(activityId)
   if (similar.isError) return <QueryError query={similar} className="mt-4" />
   const items = similar.data ?? []
   if (items.length < 2) return null
@@ -96,7 +101,15 @@ export function SimilarRoutes({ activityId }: { activityId: string }) {
 }
 
 // Time per activity over time, faster higher, with gridlines at round times; the current activity is filled.
-function RouteTrend({ items, activityId }: { items: SimilarRouteActivity[]; activityId: string }) {
+export function RouteTrend({
+  items,
+  activityId,
+  label,
+}: {
+  items: SimilarRouteActivity[]
+  activityId: string
+  label?: string
+}) {
   const { t, i18n } = useTranslation()
   const date = new Intl.DateTimeFormat(i18n.resolvedLanguage, { dateStyle: 'medium' })
   const [width, height, pad, left] = [600, 140, 8, 56]
@@ -118,7 +131,7 @@ function RouteTrend({ items, activityId }: { items: SimilarRouteActivity[]; acti
         viewBox={`0 0 ${width} ${height}`}
         className="w-full overflow-visible text-primary"
         role="img"
-        aria-label={t('similarRoutes.trendChart')}
+        aria-label={label ?? t('similarRoutes.trendChart')}
       >
         {ticks.map((tick) => (
           <g key={tick}>
