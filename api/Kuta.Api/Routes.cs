@@ -140,8 +140,9 @@ public static class Routes
     public const int PageSize = 10;
 
     // The owner's most run routes (at least twice), most runs first, PageSize at a time from offset.
-    public static async Task<RouteRead<RouteSummary>> ReadTopAsync(
-        NpgsqlConnection conn, Guid userId, int offset = 0, CancellationToken ct = default)
+    // With a year, only that year's runs (local time in timeZone) count; sportGroup is a key from SportGroups.All.
+    public static async Task<RouteRead<RouteSummary>> ReadTopAsync(NpgsqlConnection conn, Guid userId, int offset = 0,
+        int? year = null, string timeZone = "UTC", string? sportGroup = null, CancellationToken ct = default)
     {
         var grouping = await QueuePendingAsync(conn, userId, ct);
         return new((await conn.QueryAsync<RouteSummary>(new CommandDefinition($"""
@@ -152,11 +153,14 @@ public static class Routes
                 case when bool_or(a.source = 'garmin') then 'Garmin' end as attribution
             from routes r join activities a on a.route_id = r.id
             where r.user_id = @userId
+                and (@sportGroup::text is null or r.sport_group = @sportGroup)
+                and (@year::int is null or (a.started_at >= (make_date(@year, 1, 1)::timestamp at time zone @timeZone)
+                    and a.started_at < (make_date(@year + 1, 1, 1)::timestamp at time zone @timeZone)))
             group by r.id
             having count(*) >= 2
             order by count(*) desc, max(a.started_at) desc, r.id
             limit @PageSize offset @offset
-            """, new { userId, PageSize, offset }, cancellationToken: ct))).AsList(), grouping);
+            """, new { userId, PageSize, offset, year, timeZone, sportGroup }, cancellationToken: ct))).AsList(), grouping);
     }
 
     public static void MapRoutes(this RouteGroupBuilder api)
@@ -167,10 +171,18 @@ public static class Routes
             return await ReadSimilarAsync(conn, id, user.GetUserId(), ct) is { } read ? Results.Ok(read) : Results.NotFound();
         }).RequireAuthorization();
 
-        api.MapGet("/routes", async (int? offset, NpgsqlDataSource db, ClaimsPrincipal user, CancellationToken ct) =>
+        api.MapGet("/routes", async (int? offset, int? year, string? timeZone, string? sportGroup,
+            NpgsqlDataSource db, ClaimsPrincipal user, CancellationToken ct) =>
         {
+            if (year is < 1 or > 9998)
+                return Results.BadRequest(new ApiError("Ange ett år mellan 1 och 9998.", "invalidActivityYear"));
+            if (sportGroup is not null && !SportGroups.IsValid(sportGroup))
+                return Results.BadRequest(new ApiError("Välj en giltig sport.", "invalidSportGroup"));
+            timeZone ??= "UTC";
             await using var conn = await db.OpenConnectionAsync(ct);
-            return Results.Ok(await ReadTopAsync(conn, user.GetUserId(), Math.Max(0, offset ?? 0), ct));
+            if (!await ActivityList.IsValidTimeZoneAsync(conn, timeZone, ct))
+                return Results.BadRequest(new ApiError("Tidszonen är ogiltig. Kontrollera enhetens inställningar.", "invalidTimeZone"));
+            return Results.Ok(await ReadTopAsync(conn, user.GetUserId(), Math.Max(0, offset ?? 0), year, timeZone, sportGroup, ct));
         }).RequireAuthorization();
     }
 }
