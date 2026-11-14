@@ -1,6 +1,6 @@
 import { api } from './api.ts'
 
-export type JobKind = 'strava_import' | 'recalculate' | 'garmin_import'
+export type JobKind = 'strava_import' | 'recalculate' | 'garmin_import' | 'routes'
 export type JobStatus = 'queued' | 'running' | 'succeeded' | 'failed'
 
 export type Job<Progress = unknown, Result = unknown> = {

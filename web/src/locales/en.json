@@ -175,7 +175,8 @@
     "more": "Show more routes",
     "retry": "Try again",
     "all": "Show all routes",
-    "empty": "Routes you have done at least twice are shown here."
+    "empty": "Routes you have done at least twice are shown here.",
+    "grouping": "Grouping your activities into routes… The first time can take a few minutes."
   },
   "similarRoutes": {
     "title": "Same route",

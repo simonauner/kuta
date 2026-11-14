@@ -2,7 +2,7 @@ import { Link } from '@tanstack/react-router'
 import { useTranslation } from 'react-i18next'
 import { QueryError } from '@/components/query-error'
 import { SlowLoading } from '@/components/slow-loading'
-import { RouteList, useRoutes } from '@/components/top-routes'
+import { GroupingNote, RouteList, useRoutes } from '@/components/top-routes'
 import {
   Breadcrumb,
   BreadcrumbItem,
@@ -18,7 +18,8 @@ import { Heading } from '@/components/ui/heading'
 export function RoutesPage() {
   const { t } = useTranslation()
   const routes = useRoutes()
-  const items = routes.data?.pages.flat() ?? []
+  const items = routes.data?.pages.flatMap((page) => page.items) ?? []
+  const grouping = routes.data?.pages[0]?.grouping
 
   return (
     <section>
@@ -41,7 +42,8 @@ export function RoutesPage() {
         <QueryError query={routes} className="mt-4" />
       ) : (
         <SlowLoading loading={routes.isPending}>
-          {routes.isSuccess && items.length === 0 && (
+          {grouping && <GroupingNote className="mt-4" />}
+          {routes.isSuccess && !grouping && items.length === 0 && (
             <p className="mt-4 text-body text-muted-foreground">{t('topRoutes.empty')}</p>
           )}
           <RouteList routes={items} />

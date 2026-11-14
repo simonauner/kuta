@@ -109,6 +109,7 @@ public sealed class JobWorker(IServiceProvider services, IConfiguration configur
                 JobKinds.StravaImport => JobQueue.Serialize(await StravaImportJob.RunAsync(
                     conn, services.GetRequiredService<RawFileStore>(), files, job, ct)),
                 JobKinds.Recalculate => JobQueue.Serialize(await RecalculationJob.RunAsync(conn, job, ct)),
+                JobKinds.Routes => JobQueue.Serialize(await Routes.RunJobAsync(conn, job, ct)),
                 JobKinds.GarminImport => JobQueue.Serialize(await Garmin.RunImportAsync(conn,
                     services.GetRequiredService<RawFileStore>(), services.GetRequiredService<GarminClient>(),
                     services.GetRequiredService<IDataProtectionProvider>(), job, ct)),
