@@ -225,7 +225,6 @@ function ThresholdForm({ summary }: { summary: TrainingLoadSummary }) {
             <div className="flex flex-wrap items-center gap-2">
               <Input
                 id={id}
-                inputMode="numeric"
                 className="w-28"
                 placeholder={predicted ? formatDuration(paceSeconds(predicted)) : '4:30'}
                 value={text}
