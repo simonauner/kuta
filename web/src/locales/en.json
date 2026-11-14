@@ -165,6 +165,7 @@
   "topRoutes": {
     "title": "My routes",
     "description": "The routes you have done most, of all time.",
+    "descriptionYear": "The routes you have done most in {{year}}.",
     "times_one": "{{sport}}, {{count}} time",
     "times_other": "{{sport}}, {{count}} times",
     "best": "Best time",
@@ -175,6 +176,7 @@
     "more": "Show more routes",
     "retry": "Try again",
     "all": "Show all routes",
+    "noMatches": "No routes done at least twice match the filters.",
     "empty": "Routes you have done at least twice are shown here.",
     "grouping": "Grouping your activities into routes… The first time can take a few minutes."
   },
