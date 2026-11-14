@@ -47,10 +47,19 @@ public class RoutesTests(KutaFactory factory) : IClassFixture<KutaFactory>
             await Insert(conn, owner, "running", null, 9);
             var stranger = await Insert(conn, other, "running", Target, 1);
 
+            // A read queues the routes job instead of assigning in the request
+            var queued = await Routes.ReadSimilarAsync(conn, target, owner, ct);
+            Assert.Equal((0, true), (queued!.Items.Count, queued.Grouping));
+            await JobWorker.RunAllAsync(factory.Services, owner, ct);
+            await JobWorker.RunAllAsync(factory.Services, other, ct); // not queued: the stranger has not read routes yet
+
             var matches = await Routes.ReadSimilarAsync(conn, target, owner, ct);
-            Assert.Equal([target, shifted, trail], matches!.Select(m => m.Id));
+            Assert.False(matches!.Grouping);
+            Assert.Equal([target, shifted, trail], matches.Items.Select(m => m.Id));
             Assert.Null(await Routes.ReadSimilarAsync(conn, target, other, ct));
-            Assert.Equal([stranger], (await Routes.ReadSimilarAsync(conn, stranger, other, ct))!.Select(m => m.Id));
+            Assert.True((await Routes.ReadSimilarAsync(conn, stranger, other, ct))!.Grouping);
+            await JobWorker.RunAllAsync(factory.Services, other, ct);
+            Assert.Equal([stranger], (await Routes.ReadSimilarAsync(conn, stranger, other, ct))!.Items.Select(m => m.Id));
             // Each activity with a line has one route; the oldest on a course is the reference
             Assert.Equal(6, await conn.ExecuteScalarAsync<int>("select count(*) from routes where user_id = @owner", new { owner }));
         }
@@ -77,14 +86,18 @@ public class RoutesTests(KutaFactory factory) : IClassFixture<KutaFactory>
             await Insert(conn, owner, "running", "LINESTRING(18 59,18 59.03)", 6); // run once: not listed
             await Insert(conn, other, "running", Target, 1);
 
-            var top = await Routes.ReadTopAsync(conn, owner, ct: ct);
+            await Routes.ReadTopAsync(conn, owner, ct: ct);
+            await JobWorker.RunAllAsync(factory.Services, owner, ct);
+            var top = (await Routes.ReadTopAsync(conn, owner, ct: ct)).Items;
             Assert.Equal([3, 2], top.Select(r => r.Count));
             Assert.Equal(("running", 880, latest), (top[0].SportGroup, top[0].BestDurationS, top[0].LatestActivityId));
-            Assert.Equal([2], (await Routes.ReadTopAsync(conn, owner, offset: 1, ct)).Select(r => r.Count));
+            Assert.Equal([2], (await Routes.ReadTopAsync(conn, owner, offset: 1, ct)).Items.Select(r => r.Count));
 
             // A changed sport group moves the activity to a route of that group
             await conn.ExecuteAsync("update activities set sport = 'cycling', route_id = null where id = @bike", new { bike });
-            Assert.Equal([2, 2], (await Routes.ReadTopAsync(conn, owner, ct: ct)).Select(r => r.Count));
+            Assert.True((await Routes.ReadTopAsync(conn, owner, ct: ct)).Grouping);
+            await JobWorker.RunAllAsync(factory.Services, owner, ct);
+            Assert.Equal([2, 2], (await Routes.ReadTopAsync(conn, owner, ct: ct)).Items.Select(r => r.Count));
 
             // Deleting all activities leaves no copy of their lines
             await conn.ExecuteAsync("delete from activities where user_id = @owner", new { owner });
@@ -120,11 +133,14 @@ public class RoutesTests(KutaFactory factory) : IClassFixture<KutaFactory>
                 )
                 select id from inserted limit 1
                 """, new { ownerEmail, followerEmail, route = Target });
-            Assert.Equal(2, (await owner.GetFromJsonAsync<SimilarRouteActivity[]>($"/api/activities/{id}/similar", ct))!.Length);
-            Assert.Equal(2, Assert.Single((await owner.GetFromJsonAsync<RouteSummary[]>("/api/routes", ct))!).Count);
+            Assert.True((await owner.GetFromJsonAsync<RouteRead<RouteSummary>>("/api/routes", ct))!.Grouping);
+            await JobWorker.RunAllAsync(factory.Services, await conn.ExecuteScalarAsync<Guid>(
+                "select id from auth.users where email = @ownerEmail", new { ownerEmail }), ct);
+            Assert.Equal(2, (await owner.GetFromJsonAsync<RouteRead<SimilarRouteActivity>>($"/api/activities/{id}/similar", ct))!.Items.Count);
+            Assert.Equal(2, Assert.Single((await owner.GetFromJsonAsync<RouteRead<RouteSummary>>("/api/routes", ct))!.Items).Count);
             // Even public activities: routes are grouped over the owner's private activities.
             Assert.Equal(HttpStatusCode.NotFound, (await follower.GetAsync($"/api/activities/{id}/similar", ct)).StatusCode);
-            Assert.Empty((await follower.GetFromJsonAsync<RouteSummary[]>("/api/routes", ct))!);
+            Assert.Empty((await follower.GetFromJsonAsync<RouteRead<RouteSummary>>("/api/routes", ct))!.Items);
         }
         finally
         {

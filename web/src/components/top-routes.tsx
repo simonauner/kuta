@@ -1,17 +1,23 @@
 import { useState } from 'react'
 import { useInfiniteQuery } from '@tanstack/react-query'
-import { ChevronDown } from 'lucide-react'
+import { ChevronDown, LoaderCircle } from 'lucide-react'
 import { Link, useRouterState } from '@tanstack/react-router'
 import { useTranslation } from 'react-i18next'
 import { ActivityMapPreview } from '@/components/activity-map-preview'
 import { QueryError } from '@/components/query-error'
-import { RouteTrend, useSimilarRoutes } from '@/components/similar-routes'
+import {
+  groupingInterval,
+  RouteTrend,
+  useSimilarRoutes,
+  type RouteRead,
+} from '@/components/similar-routes'
 import { SlowLoading } from '@/components/slow-loading'
 import { Button } from '@/components/ui/button'
 import { Stat } from '@/components/stat'
 import { Heading } from '@/components/ui/heading'
 import { card } from '@/components/ui/card-variants'
 import { api } from '@/lib/api'
+import { cn } from '@/lib/utils'
 import { formatDuration } from '@/lib/activity'
 import { sportGroupLabel } from '@/lib/sport-groups'
 
@@ -33,20 +39,33 @@ export function useRoutes() {
   return useInfiniteQuery({
     queryKey: ['activities', 'routes'],
     initialPageParam: 0,
-    queryFn: ({ pageParam }) => api.get<RouteSummary[]>(`/api/routes?offset=${pageParam}`),
+    queryFn: ({ pageParam }) => api.get<RouteRead<RouteSummary>>(`/api/routes?offset=${pageParam}`),
     // shortcut: a full last page costs one extra request that comes back empty
     getNextPageParam: (page, pages) =>
-      page.length === pageSize ? pages.length * pageSize : undefined,
+      page.items.length === pageSize ? pages.length * pageSize : undefined,
+    refetchInterval: (query) => groupingInterval({ state: { data: query.state.data?.pages[0] } }),
   })
+}
+
+// Shown while the routes job assigns activities, which takes a while the first time.
+export function GroupingNote({ className }: { className?: string }) {
+  const { t } = useTranslation()
+  return (
+    <p role="status" className={cn('flex items-center gap-2 text-muted-foreground', className)}>
+      <LoaderCircle aria-hidden="true" className="size-4 motion-safe:animate-spin" />
+      {t('topRoutes.grouping')}
+    </p>
+  )
 }
 
 // The three routes the runner has done most, of all time, with a link to the rest.
 export function TopRoutesSection() {
   const { t } = useTranslation()
   const routes = useRoutes()
-  const items = routes.data?.pages[0] ?? []
+  const items = routes.data?.pages[0]?.items ?? []
+  const grouping = routes.data?.pages[0]?.grouping
   if (routes.isError && !routes.data) return <QueryError query={routes} className="mt-10" />
-  if (!items.length) return null
+  if (!items.length && !grouping) return null
 
   return (
     <section className="mt-10" aria-labelledby="top-routes-title">
@@ -54,6 +73,7 @@ export function TopRoutesSection() {
         {t('topRoutes.title')}
       </Heading>
       <p className="mt-1 text-body text-muted-foreground">{t('topRoutes.description')}</p>
+      {grouping && <GroupingNote className="mt-4" />}
       <RouteList routes={items.slice(0, 3)} />
       {items.length > 3 && (
         <Button asChild variant="secondary-outline" className="mt-4">

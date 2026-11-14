@@ -175,7 +175,8 @@
     "more": "Visa fler rundor",
     "retry": "Försök igen",
     "all": "Visa alla rundor",
-    "empty": "Här visas rundor du gjort minst två gånger."
+    "empty": "Här visas rundor du gjort minst två gånger.",
+    "grouping": "Grupperar dina aktiviteter i rundor… Första gången kan det ta några minuter."
   },
   "similarRoutes": {
     "title": "Samma runda",

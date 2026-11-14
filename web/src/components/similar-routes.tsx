@@ -18,11 +18,19 @@ export type SimilarRouteActivity = {
   attribution: string | null
 }
 
+// While the routes job assigns activities, reads say so and are repeated until it is done.
+export type RouteRead<T> = { items: T[]; grouping: boolean }
+export const groupingInterval = (query: { state: { data?: { grouping: boolean } } }) =>
+  query.state.data?.grouping ? 3000 : false
+
 export function useSimilarRoutes(activityId: string, enabled = true) {
   return useQuery({
     queryKey: ['activities', activityId, 'similar'],
-    queryFn: () => api.get<SimilarRouteActivity[]>(`/api/activities/${activityId}/similar`),
+    queryFn: () =>
+      api.get<RouteRead<SimilarRouteActivity>>(`/api/activities/${activityId}/similar`),
     enabled,
+    select: (read) => read.items,
+    refetchInterval: groupingInterval,
   })
 }
 
