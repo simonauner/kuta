@@ -110,8 +110,11 @@ public static class Routes
             """, new { activityId, userId }, cancellationToken: ct))).ToList();
     }
 
-    // The owner's most run routes (at least twice), most runs first.
-    public static async Task<IReadOnlyList<RouteSummary>> ReadTopAsync(NpgsqlConnection conn, Guid userId, CancellationToken ct = default)
+    public const int PageSize = 10;
+
+    // The owner's most run routes (at least twice), most runs first, PageSize at a time from offset.
+    public static async Task<IReadOnlyList<RouteSummary>> ReadTopAsync(
+        NpgsqlConnection conn, Guid userId, int offset = 0, CancellationToken ct = default)
     {
         await AssignPendingAsync(conn, userId, ct);
         return (await conn.QueryAsync<RouteSummary>(new CommandDefinition($"""
@@ -125,8 +128,8 @@ public static class Routes
             group by r.id
             having count(*) >= 2
             order by count(*) desc, max(a.started_at) desc, r.id
-            limit 10
-            """, new { userId }, cancellationToken: ct))).ToList();
+            limit @PageSize offset @offset
+            """, new { userId, PageSize, offset }, cancellationToken: ct))).ToList();
     }
 
     public static void MapRoutes(this RouteGroupBuilder api)
@@ -137,10 +140,10 @@ public static class Routes
             return await ReadSimilarAsync(conn, id, user.GetUserId(), ct) is { } items ? Results.Ok(items) : Results.NotFound();
         }).RequireAuthorization();
 
-        api.MapGet("/routes", async (NpgsqlDataSource db, ClaimsPrincipal user, CancellationToken ct) =>
+        api.MapGet("/routes", async (int? offset, NpgsqlDataSource db, ClaimsPrincipal user, CancellationToken ct) =>
         {
             await using var conn = await db.OpenConnectionAsync(ct);
-            return Results.Ok(await ReadTopAsync(conn, user.GetUserId(), ct));
+            return Results.Ok(await ReadTopAsync(conn, user.GetUserId(), Math.Max(0, offset ?? 0), ct));
         }).RequireAuthorization();
     }
 }

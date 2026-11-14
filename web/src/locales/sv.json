@@ -169,7 +169,13 @@
     "times_other": "{{sport}}, {{count}} gånger",
     "best": "Bästa tid",
     "total": "Totalt",
-    "latest": "Senast:"
+    "latest": "Senast:",
+    "trendChart": "Tid per gång på rundan, med snabbare tider högre upp. Senaste gången är ifylld.",
+    "trend": "Tid över tid",
+    "more": "Visa fler rundor",
+    "retry": "Försök igen",
+    "all": "Visa alla rundor",
+    "empty": "Här visas rundor du gjort minst två gånger."
   },
   "similarRoutes": {
     "title": "Samma runda",

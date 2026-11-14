@@ -169,7 +169,13 @@
     "times_other": "{{sport}}, {{count}} times",
     "best": "Best time",
     "total": "Total",
-    "latest": "Latest:"
+    "latest": "Latest:",
+    "trendChart": "Time per run on this route. Faster times are higher; the latest run is filled in.",
+    "trend": "Time over time",
+    "more": "Show more routes",
+    "retry": "Try again",
+    "all": "Show all routes",
+    "empty": "Routes you have done at least twice are shown here."
   },
   "similarRoutes": {
     "title": "Same route",

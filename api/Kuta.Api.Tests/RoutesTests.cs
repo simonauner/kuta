@@ -77,13 +77,14 @@ public class RoutesTests(KutaFactory factory) : IClassFixture<KutaFactory>
             await Insert(conn, owner, "running", "LINESTRING(18 59,18 59.03)", 6); // run once: not listed
             await Insert(conn, other, "running", Target, 1);
 
-            var top = await Routes.ReadTopAsync(conn, owner, ct);
+            var top = await Routes.ReadTopAsync(conn, owner, ct: ct);
             Assert.Equal([3, 2], top.Select(r => r.Count));
             Assert.Equal(("running", 880, latest), (top[0].SportGroup, top[0].BestDurationS, top[0].LatestActivityId));
+            Assert.Equal([2], (await Routes.ReadTopAsync(conn, owner, offset: 1, ct)).Select(r => r.Count));
 
             // A changed sport group moves the activity to a route of that group
             await conn.ExecuteAsync("update activities set sport = 'cycling', route_id = null where id = @bike", new { bike });
-            Assert.Equal([2, 2], (await Routes.ReadTopAsync(conn, owner, ct)).Select(r => r.Count));
+            Assert.Equal([2, 2], (await Routes.ReadTopAsync(conn, owner, ct: ct)).Select(r => r.Count));
 
             // Deleting all activities leaves no copy of their lines
             await conn.ExecuteAsync("delete from activities where user_id = @owner", new { owner });
