@@ -117,6 +117,44 @@ public class GroupsTests(KutaFactory factory) : IClassFixture<KutaFactory>
     }
 
     [Fact]
+    public async Task Club_search_finds_open_clubs_by_name_skeleton_but_never_private_groups()
+    {
+        var ct = TestContext.Current.CancellationToken;
+        await using var conn = await factory.Services.GetRequiredService<NpgsqlDataSource>().OpenConnectionAsync(ct);
+        await using var tx = await conn.BeginTransactionAsync(ct);
+        var (admin, viewer) = (Guid.NewGuid(), Guid.NewGuid());
+        await conn.ExecuteAsync("""
+            insert into auth.users (id) values (@admin), (@viewer);
+            insert into users (id, display_name) values (@admin, 'Admin'), (@viewer, 'Viewer');
+            """, new { admin, viewer }, tx);
+        // A unique word keeps clubs from other tests out of the result.
+        var word = $"Hässelby{Guid.NewGuid():N}"[..20];
+        async Task<Guid> Group(string name, string visibility)
+        {
+            var id = await CreateGroupAsync(conn, tx, admin);
+            await conn.ExecuteAsync("update groups set name = @name, name_skeleton = @skeleton, visibility = @visibility where id = @id",
+                new { id, name, skeleton = MeEndpoints.NameSkeleton(name), visibility }, tx);
+            return id;
+        }
+        var larger = await Group($"{word} löparklubb", "open");
+        var exact = await Group(word.ToUpperInvariant(), "open");
+        await Group($"{word} privat", "private");
+        await AddMemberAsync(conn, tx, larger, viewer, accepted: true, share: false);
+
+        var found = await Groups.SearchClubsAsync(conn, viewer, MeEndpoints.NameSkeleton(word.Replace('ä', 'a')), ct);
+        Assert.Equal([exact, larger], found.Select(c => c.Id));
+        Assert.Equal(("none", "member", 2), (found[0].Status, found[1].Status, found[1].MemberCount));
+        // A longer name finds the clubs inside it, so that the web can warn before a duplicate is created.
+        var longer = await Groups.SearchClubsAsync(conn, viewer, MeEndpoints.NameSkeleton($"{word} SK Friidrott"), ct);
+        Assert.Equal([exact], longer.Select(c => c.Id));
+
+        // An open club needs a skeleton to be found.
+        await Assert.ThrowsAsync<PostgresException>(() => conn.ExecuteAsync(
+            "update groups set name_skeleton = null where id = @exact", new { exact }, tx));
+        await tx.RollbackAsync(ct);
+    }
+
+    [Fact]
     public async Task Invite_link_request_approval_and_sharing_over_http()
     {
         var ct = TestContext.Current.CancellationToken;
@@ -165,6 +203,54 @@ public class GroupsTests(KutaFactory factory) : IClassFixture<KutaFactory>
             Assert.Equal(HttpStatusCode.NoContent, (await joiner.DeleteAsync($"/api/groups/{id}/members/{joinerId}", ct)).StatusCode);
             Assert.Equal(HttpStatusCode.NoContent, (await admin.DeleteAsync($"/api/groups/{id}", ct)).StatusCode);
             Assert.Empty((await admin.GetFromJsonAsync<GroupSummary[]>("/api/groups", ct))!);
+        }
+        finally { await conn.ExecuteAsync("delete from auth.users where email = any(@emails)", new { emails }); }
+    }
+
+    [Fact]
+    public async Task Open_club_settings_search_page_and_request_over_http()
+    {
+        var ct = TestContext.Current.CancellationToken;
+        await using var conn = await factory.Services.GetRequiredService<NpgsqlDataSource>().OpenConnectionAsync(ct);
+        using var admin = factory.CreateClient();
+        using var visitor = factory.CreateClient();
+        var emails = new[] { $"club-admin-{Guid.NewGuid():N}@example.com", $"club-visitor-{Guid.NewGuid():N}@example.com" };
+        try
+        {
+            await TestSession.CreateRunnerAsync(factory, admin, conn, emails[0], "Admin", ct);
+            await TestSession.CreateRunnerAsync(factory, visitor, conn, emails[1], "Visitor", ct);
+            var name = $"Club{Guid.NewGuid():N}"[..16];
+            // A club can be open from the start.
+            using var invalidCreate = await admin.PostAsJsonAsync("/api/groups", new GroupRequest(name, Visibility: "public"), ct);
+            Assert.Equal(HttpStatusCode.BadRequest, invalidCreate.StatusCode);
+            var openId = (await (await admin.PostAsJsonAsync("/api/groups",
+                    new GroupRequest($"{name}open", Visibility: "open", Place: "Uppsala"), ct))
+                .Content.ReadFromJsonAsync<JsonElement>(ct)).GetProperty("id").GetGuid();
+            Assert.Equal("Uppsala", (await visitor.GetFromJsonAsync<ClubSummary>($"/api/clubs/{openId}", ct))!.Place);
+            var id = (await (await admin.PostAsJsonAsync("/api/groups", new GroupRequest(name), ct))
+                .Content.ReadFromJsonAsync<JsonElement>(ct)).GetProperty("id").GetGuid();
+            // A private group is neither searchable nor open to requests by id.
+            Assert.Equal([openId], (await visitor.GetFromJsonAsync<ClubSummary[]>($"/api/clubs?query={name}", ct))!.Select(c => c.Id));
+            Assert.Equal(HttpStatusCode.NotFound, (await visitor.GetAsync($"/api/clubs/{id}", ct)).StatusCode);
+            Assert.Equal(HttpStatusCode.NotFound, (await visitor.PostAsync($"/api/clubs/{id}/join", null, ct)).StatusCode);
+
+            using var invalid = await admin.PutAsJsonAsync($"/api/groups/{id}", new GroupRequest(name, Visibility: "public"), ct);
+            Assert.Equal("invalidGroupSettings", (await invalid.Content.ReadFromJsonAsync<JsonElement>(ct)).GetProperty("code").GetString());
+            var settings = new GroupRequest(name, Visibility: "open", Description: " Morning runs ", Place: "Stockholm", SportGroup: "running");
+            Assert.Equal(HttpStatusCode.NotFound, (await visitor.PutAsJsonAsync($"/api/groups/{id}", settings, ct)).StatusCode);
+            Assert.Equal(HttpStatusCode.NoContent, (await admin.PutAsJsonAsync($"/api/groups/{id}", settings, ct)).StatusCode);
+
+            Assert.Equal(HttpStatusCode.BadRequest, (await visitor.GetAsync("/api/clubs?query=ab", ct)).StatusCode);
+            var club = (await visitor.GetFromJsonAsync<ClubSummary[]>($"/api/clubs?query={name.ToLowerInvariant()}", ct))!
+                .Single(c => c.Id == id);
+            Assert.Equal((id, "Stockholm", "Morning runs", 1, "none"), (club.Id, club.Place, club.Description, club.MemberCount, club.Status));
+            // The club page shows the club, never its members.
+            var page = await visitor.GetFromJsonAsync<JsonElement>($"/api/clubs/{id}", ct);
+            Assert.False(page.TryGetProperty("members", out _));
+            Assert.Equal(HttpStatusCode.OK, (await visitor.PostAsync($"/api/clubs/{id}/join", null, ct)).StatusCode);
+            Assert.Equal("pending", (await visitor.GetFromJsonAsync<ClubSummary>($"/api/clubs/{id}", ct))!.Status);
+            Assert.Equal(HttpStatusCode.NotFound, (await visitor.GetAsync($"/api/groups/{id}", ct)).StatusCode);
+            Assert.Equal("open", (await admin.GetFromJsonAsync<GroupDetail>($"/api/groups/{id}", ct))!.Visibility);
         }
         finally { await conn.ExecuteAsync("delete from auth.users where email = any(@emails)", new { emails }); }
     }

@@ -122,6 +122,10 @@ static async Task<int> RunAsync(string[] args)
         o.AddPolicy("follows", ctx => RateLimitPartition.GetFixedWindowLimiter(
             ctx.User.FindFirstValue(ClaimTypes.NameIdentifier) ?? "anonymous",
             _ => new FixedWindowRateLimiterOptions { PermitLimit = 20, Window = TimeSpan.FromHours(1) }));
+        // Club search: 60 searches per hour and user, enough for people looking but not for listing every club.
+        o.AddPolicy("clubSearch", ctx => RateLimitPartition.GetFixedWindowLimiter(
+            ctx.User.FindFirstValue(ClaimTypes.NameIdentifier) ?? "anonymous",
+            _ => new FixedWindowRateLimiterOptions { PermitLimit = 60, Window = TimeSpan.FromHours(1) }));
         // Profile link codes: 30 lookups per hour and user, so that codes cannot be guessed by trying them.
         o.AddPolicy("shareCodes", ctx => RateLimitPartition.GetFixedWindowLimiter(
             ctx.User.FindFirstValue(ClaimTypes.NameIdentifier) ?? "anonymous",
@@ -288,7 +292,7 @@ static async Task<int> RunAsync(string[] args)
     app.MapFallbackToFile("/en/features", "en/features.html", staticFiles);
 
     // The public pages are static; only the app's known paths get the React shell.
-    foreach (var path in new[] { "/app", "/app/activities", "/app/activities/new", "/app/activities/{activityId:guid}", "/app/activities/{activityId:guid}/edit", "/app/stats", "/app/stats/analysis", "/app/stats/routes", "/app/stats/year/{year:int}", "/app/profile", "/app/settings/equipment", "/app/settings/followers", "/app/settings/privacy-places", "/app/settings/import", "/app/settings/profile", "/app/settings/data", "/app/runners/{runnerId:guid}", "/app/r/{code:length(8)}", "/app/settings", "/app/groups", "/app/groups/{groupId:guid}", "/app/groups/{groupId:guid}/settings", "/app/g/{code:length(8)}", "/app/admin" })
+    foreach (var path in new[] { "/app", "/app/activities", "/app/activities/new", "/app/activities/{activityId:guid}", "/app/activities/{activityId:guid}/edit", "/app/stats", "/app/stats/analysis", "/app/stats/routes", "/app/stats/year/{year:int}", "/app/profile", "/app/settings/equipment", "/app/settings/followers", "/app/settings/privacy-places", "/app/settings/import", "/app/settings/profile", "/app/settings/data", "/app/runners/{runnerId:guid}", "/app/r/{code:length(8)}", "/app/settings", "/app/groups", "/app/groups/{groupId:guid}", "/app/groups/{groupId:guid}/settings", "/app/clubs/{clubId:guid}", "/app/g/{code:length(8)}", "/app/admin" })
         app.MapFallbackToFile(path, "app.html", staticFiles);
 
     await app.RunAsync();
