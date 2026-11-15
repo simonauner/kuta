@@ -89,7 +89,7 @@ public class RoutesTests(KutaFactory factory) : IClassFixture<KutaFactory>
             await JobWorker.RunAllAsync(factory.Services, owner, ct);
             var top = (await Routes.ReadTopAsync(conn, owner, ct: ct)).Items;
             Assert.Equal([3, 2], top.Select(r => r.Count));
-            Assert.Equal(("running", 880, latest), (top[0].SportGroup, top[0].BestDurationS, top[0].LatestActivityId));
+            Assert.Equal(("running", 880, latest, 2900.0), (top[0].SportGroup, top[0].BestDurationS, top[0].LatestActivityId, top[0].RouteDistanceM));
             Assert.Equal([2], (await Routes.ReadTopAsync(conn, owner, offset: 1, ct: ct)).Items.Select(r => r.Count));
 
             // A changed sport group moves the activity to a route of that group

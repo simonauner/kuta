@@ -7,7 +7,7 @@ public record SimilarRouteActivity(
 
 public record RouteSummary(
     Guid Id, string SportGroup, int Count, double DistanceM, int BestDurationS, Guid LatestActivityId,
-    DateTime LatestStartedAt, string RouteGeoJson, string? Attribution);
+    DateTime LatestStartedAt, string RouteGeoJson, string? Attribution, double RouteDistanceM);
 
 // Grouping is true while the routes job has activities left to assign, so the items may still change.
 public record RouteRead<T>(IReadOnlyList<T> Items, bool Grouping);
@@ -150,7 +150,8 @@ public static class Routes
                 min(a.duration_s) as best_duration_s, (array_agg(a.id order by a.started_at desc))[1] as latest_activity_id,
                 max(a.started_at) as latest_started_at, st_asgeojson(st_simplify(r.route::geometry, 0.00005), 5) as route_geo_json,
                 -- Garmin's rule: data from Garmin is marked wherever it is shown
-                case when bool_or(a.source = 'garmin') then 'Garmin' end as attribution
+                case when bool_or(a.source = 'garmin') then 'Garmin' end as attribution,
+                avg(a.distance_m) as route_distance_m
             from routes r join activities a on a.route_id = r.id
             where r.user_id = @userId
                 and (@sportGroup::text is null or r.sport_group = @sportGroup)
