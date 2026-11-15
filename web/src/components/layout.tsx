@@ -46,7 +46,7 @@ export function Layout() {
       </div>
     )
   if (!me.data)
-    return /^\/app\/((runners|activities)\/[0-9a-f-]{36}|r\/[a-z0-9]+)\/?$/i.test(pathname) ? (
+    return /^\/app\/((runners|activities)\/[0-9a-f-]{36}|[rg]\/[a-z0-9]+)\/?$/i.test(pathname) ? (
       <VisitorShell />
     ) : (
       <AuthPage />

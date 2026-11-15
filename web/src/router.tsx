@@ -9,6 +9,7 @@ import { Layout } from '@/components/layout'
 import { EditActivityPage } from '@/routes/edit-activity'
 import { ActivitiesPage } from '@/routes/activities'
 import { FollowersPage } from '@/routes/followers'
+import { GroupPage, GroupSettingsPage, GroupsPage, JoinGroupPage } from '@/routes/groups'
 import { FeedPage } from '@/routes/feed'
 import { NewActivityPage } from '@/routes/new-activity'
 import { EquipmentPage } from '@/routes/equipment'
@@ -108,6 +109,30 @@ const sharedProfileRoute = createRoute({
   component: SharedProfilePage,
 })
 
+const groupsRoute = createRoute({
+  getParentRoute: () => rootRoute,
+  path: '/app/groups',
+  component: GroupsPage,
+})
+
+const groupRoute = createRoute({
+  getParentRoute: () => rootRoute,
+  path: '/app/groups/$groupId',
+  component: GroupPage,
+})
+
+const groupSettingsRoute = createRoute({
+  getParentRoute: () => rootRoute,
+  path: '/app/groups/$groupId/settings',
+  component: GroupSettingsPage,
+})
+
+const joinGroupRoute = createRoute({
+  getParentRoute: () => rootRoute,
+  path: '/app/g/$code',
+  component: JoinGroupPage,
+})
+
 const settingsRoute = createRoute({
   getParentRoute: () => rootRoute,
   path: '/app/settings',
@@ -170,6 +195,10 @@ const routeTree = rootRoute.addChildren([
   profileRoute,
   runnerRoute,
   sharedProfileRoute,
+  groupsRoute,
+  groupRoute,
+  groupSettingsRoute,
+  joinGroupRoute,
   equipmentRoute,
   settingsRoute,
   profileSettingsRoute,

@@ -5,7 +5,7 @@ import { Heading } from '@/components/ui/heading'
 import { useVisitor } from '@/lib/visitor'
 
 // For a visitor without an account on a profile or activity that is not open to them.
-export function VisitorNotice({ kind }: { kind: 'runner' | 'activity' }) {
+export function VisitorNotice({ kind }: { kind: 'runner' | 'activity' | 'group' }) {
   const { t } = useTranslation()
   const visitor = useVisitor()
   return (
