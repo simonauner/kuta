@@ -165,6 +165,7 @@
   "topRoutes": {
     "title": "Mina rundor",
     "description": "Rundorna du gjort flest gånger, genom tiderna.",
+    "descriptionYear": "Rundorna du gjort flest gånger {{year}}.",
     "times_one": "{{sport}}, {{count}} gång",
     "times_other": "{{sport}}, {{count}} gånger",
     "best": "Bästa tid",
@@ -175,6 +176,7 @@
     "more": "Visa fler rundor",
     "retry": "Försök igen",
     "all": "Visa alla rundor",
+    "noMatches": "Inga rundor gjorda minst två gånger matchar filtren.",
     "empty": "Här visas rundor du gjort minst två gånger.",
     "grouping": "Grupperar dina aktiviteter i rundor… Första gången kan det ta några minuter."
   },

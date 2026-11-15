@@ -79,10 +79,9 @@ public class RoutesTests(KutaFactory factory) : IClassFixture<KutaFactory>
         {
             const string loop = "LINESTRING(18 59,18.02 59,18.02 59.01,18 59)";
             var latest = await Insert(conn, owner, "running", Target, 1, durationS: 950);
-            await Insert(conn, owner, "running", Target, 2, durationS: 880);
+            var best = await Insert(conn, owner, "running", Target, 2, durationS: 880);
             var bike = await Insert(conn, owner, "running", Target, 3);
-            await Insert(conn, owner, "running", loop, 4);
-            await Insert(conn, owner, "running", loop, 5);
+            var loops = new[] { await Insert(conn, owner, "running", loop, 4), await Insert(conn, owner, "running", loop, 5) };
             await Insert(conn, owner, "running", "LINESTRING(18 59,18 59.03)", 6); // run once: not listed
             await Insert(conn, other, "running", Target, 1);
 
@@ -91,13 +90,25 @@ public class RoutesTests(KutaFactory factory) : IClassFixture<KutaFactory>
             var top = (await Routes.ReadTopAsync(conn, owner, ct: ct)).Items;
             Assert.Equal([3, 2], top.Select(r => r.Count));
             Assert.Equal(("running", 880, latest), (top[0].SportGroup, top[0].BestDurationS, top[0].LatestActivityId));
-            Assert.Equal([2], (await Routes.ReadTopAsync(conn, owner, offset: 1, ct)).Items.Select(r => r.Count));
+            Assert.Equal([2], (await Routes.ReadTopAsync(conn, owner, offset: 1, ct: ct)).Items.Select(r => r.Count));
 
             // A changed sport group moves the activity to a route of that group
             await conn.ExecuteAsync("update activities set sport = 'cycling', route_id = null where id = @bike", new { bike });
             Assert.True((await Routes.ReadTopAsync(conn, owner, ct: ct)).Grouping);
             await JobWorker.RunAllAsync(factory.Services, owner, ct);
             Assert.Equal([2, 2], (await Routes.ReadTopAsync(conn, owner, ct: ct)).Items.Select(r => r.Count));
+            Assert.Empty((await Routes.ReadTopAsync(conn, owner, sportGroup: "cycling", ct: ct)).Items); // run once
+
+            // A year counts only that year's runs, in local time: the New Year's Eve run is 2021 in Stockholm
+            await conn.ExecuteAsync("""
+                update activities set started_at = '2020-12-31 23:30+00' where id = @latest;
+                update activities set started_at = '2021-06-01' where id = @best;
+                update activities set started_at = '2020-06-01'::timestamptz + make_interval(days => array_position(@loops, id)) where id = any(@loops);
+                """, new { latest, best, loops });
+            Assert.Equal([loops[1]], (await Routes.ReadTopAsync(conn, owner, year: 2020, timeZone: "UTC", ct: ct)).Items
+                .Select(r => r.LatestActivityId));
+            Assert.Equal([best], (await Routes.ReadTopAsync(conn, owner, year: 2021, timeZone: "Europe/Stockholm", ct: ct)).Items
+                .Select(r => r.LatestActivityId));
 
             // Deleting all activities leaves no copy of their lines
             await conn.ExecuteAsync("delete from activities where user_id = @owner", new { owner });

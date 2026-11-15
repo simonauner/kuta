@@ -35,11 +35,19 @@ type RouteSummary = {
 
 const pageSize = 10 // Routes.PageSize in the API
 
-export function useRoutes() {
+export type RouteFilters = { year?: number; sportGroup?: string }
+
+export function useRoutes({ year, sportGroup }: RouteFilters = {}) {
+  const timeZone = Intl.DateTimeFormat().resolvedOptions().timeZone
   return useInfiniteQuery({
-    queryKey: ['activities', 'routes'],
+    queryKey: ['activities', 'routes', year, sportGroup, timeZone],
     initialPageParam: 0,
-    queryFn: ({ pageParam }) => api.get<RouteRead<RouteSummary>>(`/api/routes?offset=${pageParam}`),
+    queryFn: ({ pageParam }) => {
+      const params = new URLSearchParams({ offset: String(pageParam), timeZone })
+      if (year !== undefined) params.set('year', String(year))
+      if (sportGroup) params.set('sportGroup', sportGroup)
+      return api.get<RouteRead<RouteSummary>>(`/api/routes?${params}`)
+    },
     // shortcut: a full last page costs one extra request that comes back empty
     getNextPageParam: (page, pages) =>
       page.items.length === pageSize ? pages.length * pageSize : undefined,

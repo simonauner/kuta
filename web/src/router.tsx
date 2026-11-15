@@ -3,6 +3,7 @@ import {
   createRoute,
   createRouter,
   lazyRouteComponent,
+  redirect,
 } from '@tanstack/react-router'
 import { Layout } from '@/components/layout'
 import { EditActivityPage } from '@/routes/edit-activity'
@@ -17,7 +18,7 @@ import { ProfilePage } from '@/routes/profile'
 import { DataSettingsPage, ProfileSettingsPage, SettingsPage } from '@/routes/settings'
 import { ImportPage } from '@/routes/import'
 import { AnalysisPage, StatsPage } from '@/routes/stats'
-import { RoutesPage } from '@/routes/my-routes'
+import { RoutesPage, routeSearch, savedRouteFilters } from '@/routes/my-routes'
 import { YearReviewPage } from '@/routes/year-review'
 import { AdminPage } from '@/routes/admin'
 import { activityPageSearch, activitySearch } from '@/lib/activity'
@@ -71,6 +72,17 @@ const analysisRoute = createRoute({
 const routesRoute = createRoute({
   getParentRoute: () => rootRoute,
   path: '/app/stats/routes',
+  validateSearch: routeSearch,
+  // Without filters in the URL, the page opens with the ones last chosen in this browser.
+  beforeLoad: ({ search }) => {
+    const saved = savedRouteFilters()
+    if (
+      search.year === undefined &&
+      !search.sportGroup &&
+      (saved.year !== undefined || saved.sportGroup)
+    )
+      throw redirect({ to: '/app/stats/routes', search: saved, replace: true })
+  },
   component: RoutesPage,
 })
 const yearReviewRoute = createRoute({
