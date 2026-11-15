@@ -111,8 +111,8 @@ kontroller behöver HTTP för att visa att rätt användare, statuskod och svar 
 ## Grupper
 
 Grupper (`Groups.cs`, migrering 036, `routes/groups.tsx`) nås bara via inbjudningslänk
-`/app/g/{kod}`; det finns ingen katalog eller sökning, och ingen ser vilka andra grupper någon är
-med i. Länken visar bara gruppens namn och antal medlemmar, och den som öppnar den kan be om att gå
+`/app/g/{kod}` eller, för öppna klubbar, via sökning (se nedan); ingen ser vilka andra grupper
+någon är med i. Länken visar bara gruppens namn och antal medlemmar, och den som öppnar den kan be om att gå
 med. En administratör godkänner varje förfrågan (med kontots ålder och varning för namn som liknar
 en befintlig medlems) och kan göra andra till administratörer, ta bort medlemmar, byta namn,
 ersätta länken så att den gamla slutar fungera och radera gruppen. Den som skapar gruppen blir
@@ -147,6 +147,35 @@ administrationen och Lämna gruppen finns under kugghjulet på `/app/groups/{id}
 Andra än godkända medlemmar får 404 på gruppens endpoints. Topplistans summering, synlighet för
 väntande och utomstående, blockering och administratörstriggern testas mot databasen; HTTP-testet
 kör huvudflödet från länk till topplista och att administratörsåtgärder nekas medlemmar.
+
+### Öppna klubbar
+
+En grupp kan skapas som öppen klubb direkt, eller göras öppen senare under gruppens inställningar
+(migrering 037, `groups.visibility`). Klubbens namn, ort, sport, beskrivning, antal medlemmar och när den skapades
+blir då sökbara för alla inloggade under **Grupper → Hitta klubb**. Medlemmarna, topplistan och
+vilka klubbar en viss person är med i syns fortfarande bara för medlemmar, och nya medlemmar
+godkänns som förut; annars skulle en klubb fungera som en sökbar lista över personer. Öppna klubbar
+tar emot upp till 1 000 medlemmar (privata grupper 100). Att göra klubben privat igen tar bort den ur
+sökningen utan att röra medlemmarna.
+
+Sökningen kräver minst tre bokstäver eller siffror, jämför namn med `MeEndpoints.NameSkeleton`
+(sparas i `groups.name_skeleton` när namnet ändras) och hittar klubbar vars namn innehåller sökningen
+eller, från fem tecken, finns i den (så att "Hässelby SK Friidrott" hittar "Hässelby SK"). Den visar
+exakta namn först och sedan de största
+klubbarna, högst 20 träffar och ingen bläddringsbar lista. Den har en egen rate limit (60 sökningar
+i timmen per användare). Innan en öppen klubb skapas, en grupp blir öppen eller en öppen klubb byter namn,
+visar webben öppna klubbar med liknande namn och kräver Skapa ändå respektive Spara ändå. Klubbar är tills vidare overifierade och
+visar när de skapades; verifiering via DNS-post på klubbens domän är nästa steg.
+
+| Metod | Sökväg | Svar |
+|---|---|---|
+| GET | `/api/clubs?query=` | Öppna klubbar med namn som innehåller sökningen |
+| GET | `/api/clubs/{id}` | Klubbens uppgifter och din status; 404 för privata grupper |
+| POST | `/api/clubs/{id}/join` | Be om att gå med i en öppen klubb |
+
+`POST /api/groups` och `PUT /api/groups/{id}` tar även `visibility`, `description` (högst 500 tecken), `place` (högst
+100 tecken) och `sportGroup`. Klubbsidan `/app/clubs/$clubId` visar klubben och knappen för att be
+om att gå med; en besökare utan konto får logga in först.
 
 ## Passlistans sidindelning
 
