@@ -31,6 +31,7 @@ type RouteSummary = {
   latestStartedAt: string
   routeGeoJson: string
   attribution: string | null
+  routeDistanceM: number
 }
 
 const pageSize = 10 // Routes.PageSize in the API
@@ -98,6 +99,7 @@ export function RouteList({ routes }: { routes: RouteSummary[] }) {
   const returnTo = useRouterState({ select: (s) => s.location.href })
   const date = new Intl.DateTimeFormat(i18n.resolvedLanguage, { dateStyle: 'medium' })
   const km = new Intl.NumberFormat(i18n.resolvedLanguage, { maximumFractionDigits: 0 })
+  const routeKm = new Intl.NumberFormat(i18n.resolvedLanguage, { maximumFractionDigits: 1 })
   if (!routes.length) return null
   return (
     <ol className="mt-4 grid gap-4 sm:grid-cols-2">
@@ -107,6 +109,7 @@ export function RouteList({ routes }: { routes: RouteSummary[] }) {
             {t('topRoutes.times', {
               count: route.count,
               sport: sportGroupLabel(route.sportGroup, t),
+              distance: `${routeKm.format(route.routeDistanceM / 1000)} km`,
             })}
           </Heading>
           {route.attribution && (
