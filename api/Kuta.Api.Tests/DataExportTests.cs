@@ -52,10 +52,17 @@ public class DataExportTests(KutaFactory factory) : IClassFixture<KutaFactory>
 
                 await conn.ExecuteAsync("insert into achievement_views (user_id, key) values (@userId, 'early-bird')",
                     new { userId });
+                var groupId = await conn.ExecuteScalarAsync<Guid>("""
+                    with g as (insert into groups (name, invite_code, time_zone) values ('Synthetic group', @code, 'UTC') returning id)
+                    insert into group_members (group_id, user_id, role, accepted_at) select id, @userId, 'admin', now() from g
+                    returning group_id
+                    """, new { userId, code = ShareCodes.Generate() });
 
                 await using var archive = await DataExport.CreateAsync(conn, store, userId, ct);
                 using var zip = new ZipArchive(archive, ZipArchiveMode.Read, leaveOpen: true);
-                Assert.Equal(11, zip.Entries.Count);
+                Assert.Equal(12, zip.Entries.Count);
+                var group = Assert.Single((await ReadJsonAsync(zip, "groups.json", ct)).EnumerateArray());
+                Assert.Equal((groupId, "admin"), (group.GetProperty("id").GetGuid(), group.GetProperty("role").GetString()));
                 var seen = await ReadJsonAsync(zip, "achievements-seen.json", ct);
                 Assert.Equal("early-bird", Assert.Single(seen.EnumerateArray()).GetProperty("key").GetString());
                 var places = await ReadJsonAsync(zip, "privacy-places.json", ct);
@@ -202,7 +209,7 @@ public class DataExportTests(KutaFactory factory) : IClassFixture<KutaFactory>
             Assert.Contains("kuta-export.zip", response.Content.Headers.ContentDisposition!.ToString());
             await using var stream = await response.Content.ReadAsStreamAsync(ct);
             using var zip = new ZipArchive(stream);
-            Assert.Equal(7, zip.Entries.Count);
+            Assert.Equal(8, zip.Entries.Count);
             Assert.Equal(email, (await ReadJsonAsync(zip, "profile.json", ct)).GetProperty("email").GetString());
             // More exports than the two global slots: each finished download frees its slot, until the hourly limit.
             for (var i = 0; i < 4; i++)
