@@ -531,7 +531,11 @@
     "invalidViewAs": "Förhandsvisningen gäller bara din egen profil.",
     "invalidAvatar": "Välj en bild (högst 200 kB).",
     "invalidStatisticsPeriod": "Välj en period på högst ett år.",
-    "invalidStatisticsBucket": "Välj vecka eller månad."
+    "invalidStatisticsBucket": "Välj vecka eller månad.",
+    "invalidGroupName": "Ange ett namn på högst 100 tecken.",
+    "groupLimit": "Du kan vara med i högst 20 grupper.",
+    "groupFull": "Gruppen har redan 100 medlemmar.",
+    "invalidLeaderboard": "Kontrollera sport, typ och vecka."
   },
   "home": "Kuta – startsida",
   "footer": {
@@ -956,7 +960,8 @@
     "closedTitle": "Logga in för att se mer",
     "closed": {
       "runner": "Den här profilen visas bara för inloggade. Skapa ett konto eller logga in för att se den och be att få följa.",
-      "activity": "Den här aktiviteten visas bara för inloggade. Skapa ett konto eller logga in för att se den."
+      "activity": "Den här aktiviteten visas bara för inloggade. Skapa ett konto eller logga in för att se den.",
+      "group": "Grupper visas bara för inloggade. Skapa ett konto eller logga in för att be om att gå med."
     }
   },
   "profile": {
@@ -1202,5 +1207,50 @@
     "accountsWithActivities": "Konton med aktiviteter",
     "activities": "Aktiviteter",
     "newActivities30Days": "Nya aktiviteter, 30 dagar"
+  },
+  "groups": {
+    "title": "Grupper",
+    "group": "Grupp",
+    "intro": "Grupper nås bara via inbjudningslänk, och en administratör godkänner nya medlemmar. Medlemmar ser varandra och en veckotopplista med summorna som var och en valt att dela – aldrig dina aktiviteter.",
+    "none": "Du är inte med i någon grupp än. Skapa en eller be om en inbjudningslänk.",
+    "create": "Skapa grupp",
+    "creating": "Skapar…",
+    "name": "Namn",
+    "save": "Spara",
+    "pending": "Väntar på godkännande",
+    "admin": "Administratör",
+    "memberCount_one": "{{count}} medlem",
+    "memberCount_other": "{{count}} medlemmar",
+    "notFound": "Gruppen finns inte, eller så är du inte medlem.",
+    "shareTotals": "Dela mina veckosummor med gruppen",
+    "shareTotalsHint": "Medlemmarna ser din distans, tid och antal aktiviteter per vecka i topplistan. Summorna räknas från alla dina aktiviteter, även privata, men inte aktiviteter från Garmin Connect. Själva aktiviteterna visas inte.",
+    "leaderboard": "Topplista",
+    "previousWeek": "Förra",
+    "nextWeek": "Nästa",
+    "runner": "Löpare",
+    "nobodyShares": "Ingen i gruppen delar sina veckosummor än.",
+    "requests": "Förfrågningar",
+    "members": "Medlemmar",
+    "makeAdmin": "Gör till administratör",
+    "removeMember": "Ta bort",
+    "inviteLink": "Inbjudningslänk",
+    "inviteHint": "Den som öppnar länken kan be om att gå med. En administratör godkänner varje förfrågan.",
+    "copyLink": "Kopiera länk",
+    "linkCopied": "Länken är kopierad.",
+    "newLink": "Ny länk",
+    "newLinkConfirm": "Den nuvarande länken slutar fungera. Befintliga medlemmar påverkas inte.",
+    "settings": "Gruppen",
+    "delete": "Radera gruppen",
+    "deleteConfirm": "Gruppen {{name}} och alla medlemskap raderas. Medlemmarnas aktiviteter påverkas inte.",
+    "leave": "Lämna gruppen",
+    "leaveConfirm": "Du kan gå med igen via inbjudningslänken, men en administratör måste godkänna dig på nytt.",
+    "inviteInvalid": "Länken gäller inte längre. Be om en ny inbjudningslänk.",
+    "join": "Be om att gå med",
+    "requestSent": "Förfrågan är skickad. Du blir medlem när en administratör godkänt den.",
+    "profileHeading": "Grupper",
+    "all": "Alla grupper",
+    "sharing": "Delning",
+    "settingsLink": "Gruppens inställningar",
+    "notSharing": "Du syns inte i topplistan eftersom du inte delar dina veckosummor."
   }
 }

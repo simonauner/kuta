@@ -74,6 +74,10 @@ public static class DataExport
                     where follower_id = @userId or following_id = @userId order by follower_id, following_id
                     """, new { userId }, tx, cancellationToken: ct)), ct);
                 await WriteJsonAsync(zip, "privacy-places.json", await PrivacyPlaces.LoadAsync(conn, userId, ct, tx), ct);
+                await WriteJsonAsync(zip, "groups.json", await conn.QueryAsync<ExportGroup>(new CommandDefinition("""
+                    select g.id, g.name, m.role, m.accepted_at, m.share_totals, m.created_at
+                    from group_members m join groups g on g.id = m.group_id where m.user_id = @userId order by m.created_at, g.id
+                    """, new { userId }, tx, cancellationToken: ct)), ct);
                 await WriteJsonAsync(zip, "goals.json", await Goals.LoadStoredAsync(conn, userId, ct, tx), ct);
                 await WriteJsonAsync(zip, "achievements-seen.json", await Achievements.LoadViewsAsync(conn, userId, ct, tx), ct);
                 // Tokens are not exported; they grant access to the Garmin account.
@@ -120,6 +124,7 @@ public static class DataExport
     }
 
     private record ExportGarmin(string GarminUserId, string Permissions, DateTime CreatedAt);
+    private record ExportGroup(Guid Id, string Name, string Role, DateTime? AcceptedAt, bool ShareTotals, DateTime CreatedAt);
     private record ExportFollow(Guid FollowerId, Guid FollowingId, DateTime? AcceptedAt, DateTime CreatedAt);
     private record ExportProfile(Guid Id, string? Email, string DisplayName, string? PreviousDisplayName,
         DateTime? DisplayNameChangedAt, DateTime CreatedAt, DateTime? HrConsentAt, string DefaultActivityPrivacy,

@@ -108,6 +108,46 @@ godkännande → delat pass → återkallelse, svarens dataskydd, ägarskap vid 
 validering av sidmarkör. Dessa
 kontroller behöver HTTP för att visa att rätt användare, statuskod och svar kopplas ihop.
 
+## Grupper
+
+Grupper (`Groups.cs`, migrering 036, `routes/groups.tsx`) nås bara via inbjudningslänk
+`/app/g/{kod}`; det finns ingen katalog eller sökning, och ingen ser vilka andra grupper någon är
+med i. Länken visar bara gruppens namn och antal medlemmar, och den som öppnar den kan be om att gå
+med. En administratör godkänner varje förfrågan (med kontots ålder och varning för namn som liknar
+en befintlig medlems) och kan göra andra till administratörer, ta bort medlemmar, byta namn,
+ersätta länken så att den gamla slutar fungera och radera gruppen. Den som skapar gruppen blir
+administratör. Lämnar sista administratören (även via kontoradering) blir den som varit medlem
+längst administratör, och en grupp utan medlemmar raderas (trigger i databasen).
+
+Medlemskap ger ingen läsrätt till pass; `SocialEndpoints.CanRead` är oförändrad. Godkända medlemmar
+ser varandra och en veckotopplista per sportgrupp och mått (distans, tid eller antal pass) över
+medlemmar som själva slagit på **Dela mina veckosummor** (av som standard, ett val per grupp).
+Summorna räknas som statistiken (`SportGroups.Effective`, multisportdelar per sportgrupp) från alla
+medlemmens pass, även privata, men aldrig pass med `source = 'garmin'`, som inte får visas för
+andra innan Garmin godkänt det. Veckan börjar på måndag i gruppens tidszon, som sätts när gruppen
+skapas, så topplistan är densamma för alla. En medlem som blockerat tittaren syns varken i
+medlemslistan eller topplistan. Gränser: högst 100 medlemmar per grupp och 20 grupper (inklusive
+förfrågningar) per användare; uppslag av en länk har samma rate limit som profillänkar och
+förfrågningar samma som följförfrågningar. Medlemskap ingår i exporten (`groups.json`) och
+kaskadraderas med kontot. Profilen listar egna grupper och länkar till `/app/groups`, där grupper
+skapas. Gruppsidan visar topplistan och medlemmarna; delningsvalet, inbjudningslänken,
+administrationen och Lämna gruppen finns under kugghjulet på `/app/groups/{id}/settings`.
+
+| Metod | Sökväg | Svar |
+|---|---|---|
+| GET/POST | `/api/groups` | Egna grupper och förfrågningar / skapa (`{ name, timeZone }`) |
+| GET/PUT/DELETE | `/api/groups/{id}` | Medlemmar och, för administratörer, förfrågningar / byt namn / radera (administratör) |
+| POST | `/api/groups/{id}/invite-code/replace` | Ny länk (administratör) |
+| PUT | `/api/groups/{id}/me` | `{ shareTotals }` |
+| POST | `/api/groups/{id}/members/{userId}/accept`, `/admin` | Godkänn / gör till administratör |
+| DELETE | `/api/groups/{id}/members/{userId}` | Lämna, dra tillbaka förfrågan eller (administratör) ta bort |
+| GET | `/api/groups/{id}/leaderboard?sportGroup=&metric=&week=` | `{ weekStart, rows }`; utelämnad vecka = aktuell |
+| GET/POST | `/api/group-invites/{kod}` | Namn, antal och status / be om att gå med |
+
+Andra än godkända medlemmar får 404 på gruppens endpoints. Topplistans summering, synlighet för
+väntande och utomstående, blockering och administratörstriggern testas mot databasen; HTTP-testet
+kör huvudflödet från länk till topplista och att administratörsåtgärder nekas medlemmar.
+
 ## Passlistans sidindelning
 
 `GET /api/activities?timeZone=Europe%2FStockholm` ger `{ items, nextCursor }`, högst 25 pass
@@ -678,6 +718,7 @@ till fältet; redan importerade dubbletter hoppas fortfarande över vid Strava-i
 - `profile.json`: id, e-postadress, visningsnamn, profilens skapandetid, tidpunkt för pulssamtycke och för godkända villkor.
 - `equipment.json`: all egen utrustning, även pensionerad, med startvärden och total användning.
 - `privacy-places.json`: egna dolda platser med namn, mittpunkt och radie. Listan ingår även utan pass.
+- `groups.json`: egna gruppmedlemskap och förfrågningar med gruppens namn, roll, godkännande och om veckosummorna delas.
 - `goals.json`: egna träningsmål med sportgrupp, typ, period, mål i SI-enheter, upprepning, startdatum och synlighet.
 - `achievements-seen.json`: vilka utmärkelser användaren har sett och när.
 - `activities/<id>.json`: källa, skapandetid, synlighet, Strava-ID, sökväg till råfilen (eller `null`), `activity` med samma passdetaljer som passsidan och `bestEfforts` med passets bästa insatser. Detaljerna innehåller beskrivning, taggar, utrustnings-ID:n, tidsserier, varv samt originaldelar och redigerade multisportdelar.

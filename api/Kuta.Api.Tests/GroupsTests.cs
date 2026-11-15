@@ -1,0 +1,171 @@
+using System.Net;
+using System.Net.Http.Json;
+using System.Text.Json;
+using Dapper;
+using Microsoft.Extensions.DependencyInjection;
+using Npgsql;
+using Xunit;
+
+public class GroupsTests(KutaFactory factory) : IClassFixture<KutaFactory>
+{
+    static async Task<Guid> CreateGroupAsync(NpgsqlConnection conn, NpgsqlTransaction tx, Guid admin, string timeZone = "UTC") =>
+        await conn.ExecuteScalarAsync<Guid>("""
+            with g as (insert into groups (name, invite_code, time_zone) values ('Synthetic group', @code, @timeZone) returning id)
+            insert into group_members (group_id, user_id, role, accepted_at) select id, @admin, 'admin', now() from g
+            returning group_id
+            """, new { admin, timeZone, code = ShareCodes.Generate() }, tx);
+
+    static Task AddMemberAsync(NpgsqlConnection conn, NpgsqlTransaction tx, Guid group, Guid user, bool accepted, bool share,
+        DateTime? acceptedAt = null) =>
+        conn.ExecuteAsync("""
+            insert into group_members (group_id, user_id, accepted_at, share_totals)
+            values (@group, @user, case when @accepted then coalesce(@acceptedAt, now()) end, @share)
+            """, new { group, user, accepted, share, acceptedAt }, tx);
+
+    [Fact]
+    public async Task Leaderboard_counts_sharing_members_in_the_groups_week_without_Garmin_or_blockers()
+    {
+        var ct = TestContext.Current.CancellationToken;
+        await using var conn = await factory.Services.GetRequiredService<NpgsqlDataSource>().OpenConnectionAsync(ct);
+        await using var tx = await conn.BeginTransactionAsync(ct);
+        var (admin, sharing, silent, pending, outsider) = (Guid.NewGuid(), Guid.NewGuid(), Guid.NewGuid(), Guid.NewGuid(), Guid.NewGuid());
+        await conn.ExecuteAsync("""
+            insert into auth.users (id) select unnest(@ids);
+            insert into users (id, display_name) select id, 'Runner ' || n from unnest(@ids) with ordinality as t(id, n);
+            insert into activities (user_id, source, sport, started_at, duration_s, distance_m) values
+                -- Sunday 23:30 UTC is Monday 00:30 in Stockholm: inside the week. The next Sunday night is outside.
+                (@sharing, 'manual', 'running', '2026-03-08T23:30:00Z', 1500, 5000),
+                (@sharing, 'manual', 'running', '2026-03-15T23:30:00Z', 900, 3000),
+                (@sharing, 'garmin', 'running', '2026-03-10T07:00:00Z', 3000, 10000),
+                (@sharing, 'manual', 'cycling', '2026-03-11T07:00:00Z', 2400, 20000),
+                (@admin, 'manual', 'trail run', '2026-03-12T07:00:00Z', 1200, 4000),
+                (@silent, 'manual', 'running', '2026-03-12T07:00:00Z', 300, 1000),
+                (@pending, 'manual', 'running', '2026-03-12T07:00:00Z', 300, 1000)
+            """, new { ids = new[] { admin, sharing, silent, pending, outsider }, admin, sharing, silent, pending }, tx);
+        var group = await CreateGroupAsync(conn, tx, admin, "Europe/Stockholm");
+        await conn.ExecuteAsync("update group_members set share_totals = true where user_id = @admin", new { admin }, tx);
+        await AddMemberAsync(conn, tx, group, sharing, accepted: true, share: true);
+        await AddMemberAsync(conn, tx, group, silent, accepted: true, share: false);
+        await AddMemberAsync(conn, tx, group, pending, accepted: false, share: true);
+        var now = DateTimeOffset.Parse("2026-03-13T12:00:00Z");
+
+        async Task<Dictionary<Guid, double>?> Board(Guid viewer, string? sportGroup, string metric, DateOnly? week = null) =>
+            (await Groups.ReadLeaderboardAsync(conn, viewer, group, sportGroup, metric, week, now, ct))?.Rows
+                .ToDictionary(r => r.UserId, r => r.Value);
+
+        Assert.Equal(new() { [sharing] = 5000, [admin] = 4000 }, await Board(admin, "running", "distance"));
+        Assert.Equal(new() { [sharing] = 2, [admin] = 1 }, await Board(silent, null, "count"));
+        Assert.Equal(new() { [sharing] = 20000, [admin] = 0 }, await Board(admin, "cycling", "distance"));
+        // Any day of the week gives the week from Monday.
+        var board = await Groups.ReadLeaderboardAsync(conn, admin, group, "running", "distance", new DateOnly(2026, 3, 18), now, ct);
+        Assert.Equal((new DateOnly(2026, 3, 16), 3000d), (board!.WeekStart, board.Rows[0].Value));
+
+        // Neither outsiders nor members waiting for approval read the group.
+        foreach (var viewer in new[] { outsider, pending })
+        {
+            Assert.Null(await Board(viewer, null, "count"));
+            Assert.Null(await Groups.ReadAsync(conn, viewer, group, ct));
+        }
+        var detail = (await Groups.ReadAsync(conn, admin, group, ct))!;
+        Assert.Equal(3, detail.Members.Count);
+        Assert.Equal(pending, Assert.Single(detail.Requests).Id);
+        Assert.Empty((await Groups.ReadAsync(conn, silent, group, ct))!.Requests);
+
+        // A member who blocked the viewer disappears from the viewer's group; the blocker still sees the blocked member.
+        await conn.ExecuteAsync("insert into follow_blocks (blocker_id, blocked_id) values (@sharing, @admin)", new { sharing, admin }, tx);
+        Assert.Equal(new[] { admin }, (await Board(admin, null, "count"))!.Keys);
+        Assert.DoesNotContain((await Groups.ReadAsync(conn, admin, group, ct))!.Members, m => m.Id == sharing);
+        Assert.Contains((await Groups.ReadAsync(conn, sharing, group, ct))!.Members, m => m.Id == admin);
+
+        foreach (var table in new[] { "groups", "group_members" })
+        {
+            Assert.True(await conn.ExecuteScalarAsync<bool>("select relrowsecurity from pg_class where oid = @table::regclass", new { table }, tx));
+            foreach (var role in new[] { "anon", "authenticated" })
+                Assert.False(await conn.ExecuteScalarAsync<bool>("select has_table_privilege(@role, @table, 'SELECT,INSERT,UPDATE,DELETE')",
+                    new { role, table }, tx));
+        }
+        await tx.RollbackAsync(ct);
+    }
+
+    [Fact]
+    public async Task Last_admin_leaving_promotes_the_longest_member_and_an_empty_group_is_deleted()
+    {
+        var ct = TestContext.Current.CancellationToken;
+        await using var conn = await factory.Services.GetRequiredService<NpgsqlDataSource>().OpenConnectionAsync(ct);
+        await using var tx = await conn.BeginTransactionAsync(ct);
+        var (admin, early, late, waiting) = (Guid.NewGuid(), Guid.NewGuid(), Guid.NewGuid(), Guid.NewGuid());
+        await conn.ExecuteAsync("""
+            insert into auth.users (id) select unnest(@ids);
+            insert into users (id, display_name) select id, 'Runner' from unnest(@ids) as t(id);
+            """, new { ids = new[] { admin, early, late, waiting } }, tx);
+        var group = await CreateGroupAsync(conn, tx, admin);
+        await AddMemberAsync(conn, tx, group, late, accepted: true, share: false, DateTime.UtcNow);
+        await AddMemberAsync(conn, tx, group, early, accepted: true, share: false, DateTime.UtcNow.AddDays(-1));
+        await AddMemberAsync(conn, tx, group, waiting, accepted: false, share: false);
+        async Task<string?> Role(Guid user) => await conn.ExecuteScalarAsync<string?>(
+            "select role from group_members where group_id = @group and user_id = @user", new { group, user }, tx);
+
+        // Account deletion cascades through the same trigger.
+        await conn.ExecuteAsync("delete from auth.users where id = @admin", new { admin }, tx);
+        Assert.Equal(("admin", "member"), (await Role(early), await Role(late)));
+        await conn.ExecuteAsync("delete from group_members where group_id = @group and user_id = any(@users)",
+            new { group, users = new[] { early, late } }, tx);
+        // Only a request is left, so the group is gone together with it.
+        Assert.False(await conn.ExecuteScalarAsync<bool>("select exists(select 1 from groups where id = @group)", new { group }, tx));
+        Assert.Null(await Role(waiting));
+        await tx.RollbackAsync(ct);
+    }
+
+    [Fact]
+    public async Task Invite_link_request_approval_and_sharing_over_http()
+    {
+        var ct = TestContext.Current.CancellationToken;
+        await using var conn = await factory.Services.GetRequiredService<NpgsqlDataSource>().OpenConnectionAsync(ct);
+        using var admin = factory.CreateClient();
+        using var joiner = factory.CreateClient();
+        var emails = new[] { $"group-admin-{Guid.NewGuid():N}@example.com", $"group-joiner-{Guid.NewGuid():N}@example.com" };
+        try
+        {
+            await TestSession.CreateRunnerAsync(factory, admin, conn, emails[0], "Admin", ct);
+            await TestSession.CreateRunnerAsync(factory, joiner, conn, emails[1], "Joiner", ct);
+            var joinerId = await conn.ExecuteScalarAsync<Guid>("select id from auth.users where email = @email", new { email = emails[1] });
+
+            using var invalid = await admin.PostAsJsonAsync("/api/groups", new GroupRequest("  "), ct);
+            Assert.Equal("invalidGroupName", (await invalid.Content.ReadFromJsonAsync<JsonElement>(ct)).GetProperty("code").GetString());
+            using var created = await admin.PostAsJsonAsync("/api/groups", new GroupRequest(" Morning club ", "Europe/Stockholm"), ct);
+            Assert.Equal(HttpStatusCode.Created, created.StatusCode);
+            var id = (await created.Content.ReadFromJsonAsync<JsonElement>(ct)).GetProperty("id").GetGuid();
+            var code = (await admin.GetFromJsonAsync<GroupDetail>($"/api/groups/{id}", ct))!.InviteCode;
+
+            Assert.Equal(HttpStatusCode.NotFound, (await joiner.GetAsync($"/api/groups/{id}", ct)).StatusCode);
+            var invite = await joiner.GetFromJsonAsync<GroupInvite>($"/api/group-invites/{code.ToUpperInvariant()}", ct);
+            Assert.Equal(("Morning club", 1, "none"), (invite!.Name, invite.MemberCount, invite.Status));
+            Assert.Equal(HttpStatusCode.OK, (await joiner.PostAsync($"/api/group-invites/{code}", null, ct)).StatusCode);
+            Assert.Equal("pending", Assert.Single((await joiner.GetFromJsonAsync<GroupSummary[]>("/api/groups", ct))!).Status);
+            // A request can neither share nor approve itself.
+            Assert.Equal(HttpStatusCode.NotFound, (await joiner.PutAsJsonAsync($"/api/groups/{id}/me", new ShareTotalsRequest(true), ct)).StatusCode);
+            Assert.Equal(HttpStatusCode.NotFound, (await joiner.PostAsync($"/api/groups/{id}/members/{joinerId}/accept", null, ct)).StatusCode);
+
+            Assert.Equal(joinerId, Assert.Single((await admin.GetFromJsonAsync<GroupDetail>($"/api/groups/{id}", ct))!.Requests).Id);
+            Assert.Equal(HttpStatusCode.NoContent, (await admin.PostAsync($"/api/groups/{id}/members/{joinerId}/accept", null, ct)).StatusCode);
+            Assert.Equal(HttpStatusCode.NoContent, (await joiner.PutAsJsonAsync($"/api/groups/{id}/me", new ShareTotalsRequest(true), ct)).StatusCode);
+            var board = await joiner.GetFromJsonAsync<Leaderboard>($"/api/groups/{id}/leaderboard?sportGroup=running&metric=distance", ct);
+            Assert.Equal(joinerId, Assert.Single(board!.Rows).UserId);
+            Assert.Equal(HttpStatusCode.BadRequest, (await joiner.GetAsync($"/api/groups/{id}/leaderboard?metric=pace", ct)).StatusCode);
+
+            // Admin actions are not available to members.
+            Assert.Equal(HttpStatusCode.NotFound, (await joiner.PutAsJsonAsync($"/api/groups/{id}", new GroupRequest("Mine"), ct)).StatusCode);
+            Assert.Equal(HttpStatusCode.NotFound, (await joiner.PostAsync($"/api/groups/{id}/invite-code/replace", null, ct)).StatusCode);
+            Assert.Equal(HttpStatusCode.NotFound, (await joiner.DeleteAsync($"/api/groups/{id}", ct)).StatusCode);
+
+            var replaced = await (await admin.PostAsync($"/api/groups/{id}/invite-code/replace", null, ct)).Content.ReadFromJsonAsync<ShareCode>(ct);
+            Assert.NotEqual(code, replaced!.Code);
+            Assert.Equal(HttpStatusCode.NotFound, (await joiner.GetAsync($"/api/group-invites/{code}", ct)).StatusCode);
+
+            Assert.Equal(HttpStatusCode.NoContent, (await joiner.DeleteAsync($"/api/groups/{id}/members/{joinerId}", ct)).StatusCode);
+            Assert.Equal(HttpStatusCode.NoContent, (await admin.DeleteAsync($"/api/groups/{id}", ct)).StatusCode);
+            Assert.Empty((await admin.GetFromJsonAsync<GroupSummary[]>("/api/groups", ct))!);
+        }
+        finally { await conn.ExecuteAsync("delete from auth.users where email = any(@emails)", new { emails }); }
+    }
+}

@@ -37,24 +37,27 @@ public static class SportGroups
     // SQL: the effective CTE (requires Cte and @userId) has one row per own activity (part = false) and one row per
     // other sport group in a multisport activity (part = true). The distance follows the current split.
     // Filter with "not part" for all sports and "sport_group = …" for one group; count(distinct id) counts activities.
-    public const string EffectiveCte = """
+    public static readonly string EffectiveCte = Effective("a.user_id = @userId");
+
+    // The same rows for the activities matching a condition on "a" (several users, for example).
+    public static string Effective(string activities) => $"""
         effective as (
-            select a.id, a.started_at, coalesce(m.sport_group, a.sport) as sport_group,
+            select a.id, a.user_id, a.started_at, coalesce(m.sport_group, a.sport) as sport_group,
                 a.duration_s::double precision as duration_s,
                 coalesce((select sum(p.distance_m) from activity_parts p
                     where p.activity_id = a.id and p.original = not a.parts_edited), a.distance_m) as distance_m,
                 false as part
             from activities a left join sport_groups m on m.sport = a.sport
-            where a.user_id = @userId
+            where {activities}
             union all
-            select a.id, a.started_at, coalesce(pm.sport_group, p.sport),
+            select a.id, a.user_id, a.started_at, coalesce(pm.sport_group, p.sport),
                 sum(p.end_s - p.start_s)::double precision, sum(p.distance_m), true
             from activities a
             join activity_parts p on p.activity_id = a.id and p.original = not a.parts_edited
             left join sport_groups am on am.sport = a.sport
             left join sport_groups pm on pm.sport = p.sport
-            where a.user_id = @userId and coalesce(pm.sport_group, p.sport) <> coalesce(am.sport_group, a.sport)
-            group by a.id, a.started_at, coalesce(pm.sport_group, p.sport)
+            where {activities} and coalesce(pm.sport_group, p.sport) <> coalesce(am.sport_group, a.sport)
+            group by a.id, a.user_id, a.started_at, coalesce(pm.sport_group, p.sport)
         )
         """;
     public static readonly string[] GroupedSports = Named.SelectMany(g => g.Sports).ToArray();
