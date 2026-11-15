@@ -516,7 +516,7 @@ pull requests med dessa sökvägsfilter; `Dockerfile`, `.dockerignore` och
 `main` anropar `.github/workflows/deploy.yml` båda jobben utan sökvägsfilter och
 deployar bara om båda lyckas; se [Driftsättning](#driftsättning-flyio).
 
-API-jobbet installerar .NET enligt `global.json` och Supabase CLI 2.72.7, startar
+API-jobbet installerar .NET enligt `global.json` och Supabase CLI 3.1.0, startar
 en tillfällig lokal Supabase med Auth, Mailpit och Storage, läser dess lokala
 nycklar och väntar på auth efter omstart innan testerna körs. Testerna körs
 sekventiellt (`-- --parallel none`). Inga produktionshemligheter eller hostade
