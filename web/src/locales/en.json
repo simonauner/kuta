@@ -534,8 +534,10 @@
     "invalidStatisticsBucket": "Choose week or month.",
     "invalidGroupName": "Enter a name of at most 100 characters.",
     "groupLimit": "You can be in at most 20 groups.",
-    "groupFull": "The group already has 100 members.",
-    "invalidLeaderboard": "Check sport, type and week."
+    "groupFull": "The group cannot take more members.",
+    "invalidLeaderboard": "Check sport, type and week.",
+    "invalidGroupSettings": "Check visibility, place (at most 100 characters), sport and description (at most 500 characters).",
+    "invalidClubSearch": "Search with at least three letters or digits."
   },
   "home": "Kuta – home",
   "footer": {
@@ -1211,7 +1213,7 @@
   "groups": {
     "title": "Groups",
     "group": "Group",
-    "intro": "Groups are reached only through an invite link, and an admin approves new members. Members see each other and a weekly leaderboard of the totals each of them chose to share – never your activities.",
+    "intro": "Groups are reached through an invite link or, for open clubs, through search. An admin approves new members. Members see each other and a weekly leaderboard of the totals each of them chose to share – never your activities.",
     "none": "You are not in any group yet. Create one or ask for an invite link.",
     "create": "Create group",
     "creating": "Creating…",
@@ -1251,6 +1253,27 @@
     "all": "All groups",
     "sharing": "Sharing",
     "settingsLink": "Group settings",
-    "notSharing": "You are not on the leaderboard because you do not share your weekly totals."
+    "notSharing": "You are not on the leaderboard because you do not share your weekly totals.",
+    "findClub": "Find a club",
+    "findClubHint": "Search open clubs by name. You never see who the members are until you are approved.",
+    "clubName": "Club name",
+    "search": "Search",
+    "noClubs": "No open clubs match the search.",
+    "unverified": "Not verified · created {{date}}",
+    "clubNotFound": "The club does not exist, or it is no longer open.",
+    "visibility": "Visibility",
+    "visibilities": {
+      "private": "Private group – invite link only",
+      "open": "Open club – searchable"
+    },
+    "privateHint": "The group is visible only to members and to people who get the invite link.",
+    "openHint": "Name, place, sport, description and member count become searchable for everyone signed in. New members still need approval, and the members and leaderboard stay visible to members only.",
+    "place": "Place",
+    "noSport": "No particular sport",
+    "description": "Description",
+    "similarClubs": "There are already open clubs with similar names. Did you mean one of them? Otherwise you can continue anyway.",
+    "saveAnyway": "Save anyway",
+    "saved": "Your changes are saved.",
+    "createAnyway": "Create anyway"
   }
 }

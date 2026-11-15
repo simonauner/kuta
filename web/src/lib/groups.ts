@@ -22,9 +22,15 @@ export type GroupMember = {
   joinedAt: string | null
   similarTo: string | null
 }
+export type GroupVisibility = 'private' | 'open'
 export type GroupDetail = {
   id: string
   name: string
+  // Open clubs are searchable by name, place and description; members still need approval and stay hidden.
+  visibility: GroupVisibility
+  description: string | null
+  place: string | null
+  sportGroup: string | null
   timeZone: string
   inviteCode: string
   role: GroupRole
@@ -36,6 +42,16 @@ export type GroupInvite = {
   id: string
   name: string
   memberCount: number
+  status: 'none' | 'pending' | 'member'
+}
+export type ClubSummary = {
+  id: string
+  name: string
+  place: string | null
+  sportGroup: string | null
+  description: string | null
+  memberCount: number
+  createdAt: string
   status: 'none' | 'pending' | 'member'
 }
 export type Leaderboard = {
@@ -69,6 +85,15 @@ export const leaderboardQuery = (
       if (week) params.set('week', week)
       return api.get<Leaderboard>(`/api/groups/${id}/leaderboard?${params}`)
     },
+  })
+
+// Searches only on submit: the API limits searches per hour.
+export const clubSearchQuery = (query: string) =>
+  queryOptions({
+    queryKey: ['clubs', 'search', query],
+    queryFn: () => api.get<ClubSummary[]>(`/api/clubs?query=${encodeURIComponent(query)}`),
+    enabled: query.length > 0,
+    staleTime: 60_000,
   })
 
 export const inviteLink = (code: string, origin = window.location.origin) =>

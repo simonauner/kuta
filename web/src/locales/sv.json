@@ -534,8 +534,10 @@
     "invalidStatisticsBucket": "Välj vecka eller månad.",
     "invalidGroupName": "Ange ett namn på högst 100 tecken.",
     "groupLimit": "Du kan vara med i högst 20 grupper.",
-    "groupFull": "Gruppen har redan 100 medlemmar.",
-    "invalidLeaderboard": "Kontrollera sport, typ och vecka."
+    "groupFull": "Gruppen kan inte ta emot fler medlemmar.",
+    "invalidLeaderboard": "Kontrollera sport, typ och vecka.",
+    "invalidGroupSettings": "Kontrollera synlighet, ort (högst 100 tecken), sport och beskrivning (högst 500 tecken).",
+    "invalidClubSearch": "Sök på minst tre bokstäver eller siffror."
   },
   "home": "Kuta – startsida",
   "footer": {
@@ -1211,7 +1213,7 @@
   "groups": {
     "title": "Grupper",
     "group": "Grupp",
-    "intro": "Grupper nås bara via inbjudningslänk, och en administratör godkänner nya medlemmar. Medlemmar ser varandra och en veckotopplista med summorna som var och en valt att dela – aldrig dina aktiviteter.",
+    "intro": "Grupper nås via inbjudningslänk eller, för öppna klubbar, via sökning. En administratör godkänner nya medlemmar. Medlemmar ser varandra och en veckotopplista med summorna som var och en valt att dela – aldrig dina aktiviteter.",
     "none": "Du är inte med i någon grupp än. Skapa en eller be om en inbjudningslänk.",
     "create": "Skapa grupp",
     "creating": "Skapar…",
@@ -1251,6 +1253,27 @@
     "all": "Alla grupper",
     "sharing": "Delning",
     "settingsLink": "Gruppens inställningar",
-    "notSharing": "Du syns inte i topplistan eftersom du inte delar dina veckosummor."
+    "notSharing": "Du syns inte i topplistan eftersom du inte delar dina veckosummor.",
+    "findClub": "Hitta klubb",
+    "findClubHint": "Sök bland öppna klubbar på namn. Du ser aldrig vilka som är medlemmar förrän du godkänts.",
+    "clubName": "Klubbens namn",
+    "search": "Sök",
+    "noClubs": "Inga öppna klubbar matchar sökningen.",
+    "unverified": "Ej verifierad · skapad {{date}}",
+    "clubNotFound": "Klubben finns inte, eller så är den inte längre öppen.",
+    "visibility": "Synlighet",
+    "visibilities": {
+      "private": "Privat grupp – bara via inbjudningslänk",
+      "open": "Öppen klubb – sökbar"
+    },
+    "privateHint": "Gruppen syns bara för medlemmar och den som får inbjudningslänken.",
+    "openHint": "Namn, ort, sport, beskrivning och antal medlemmar blir sökbara för alla inloggade. Nya medlemmar måste fortfarande godkännas, och medlemmarna och topplistan syns bara för medlemmar.",
+    "place": "Ort",
+    "noSport": "Ingen särskild sport",
+    "description": "Beskrivning",
+    "similarClubs": "Det finns redan öppna klubbar med liknande namn. Menar du någon av dem? Annars kan du fortsätta ändå.",
+    "saveAnyway": "Spara ändå",
+    "saved": "Ändringarna är sparade.",
+    "createAnyway": "Skapa ändå"
   }
 }
