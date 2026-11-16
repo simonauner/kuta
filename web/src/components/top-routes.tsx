@@ -1,6 +1,6 @@
 import { useState } from 'react'
 import { useInfiniteQuery } from '@tanstack/react-query'
-import { ChevronDown, LoaderCircle } from 'lucide-react'
+import { ArrowRight, ChevronDown, LoaderCircle } from 'lucide-react'
 import { Link, useRouterState } from '@tanstack/react-router'
 import { useTranslation } from 'react-i18next'
 import { ActivityMapPreview } from '@/components/activity-map-preview'
@@ -78,17 +78,22 @@ export function TopRoutesSection() {
 
   return (
     <section className="mt-10" aria-labelledby="top-routes-title">
-      <Heading level={2} id="top-routes-title">
-        {t('topRoutes.title')}
-      </Heading>
+      <div className="flex items-center justify-between gap-4">
+        <Heading level={2} id="top-routes-title">
+          {t('topRoutes.title')}
+        </Heading>
+        {items.length > 3 && (
+          <Button asChild variant="link">
+            <Link to="/app/stats/routes">
+              {t('topRoutes.all')}
+              <ArrowRight aria-hidden="true" />
+            </Link>
+          </Button>
+        )}
+      </div>
       <p className="mt-1 text-body text-muted-foreground">{t('topRoutes.description')}</p>
       {grouping && <GroupingNote className="mt-4" />}
       <RouteList routes={items.slice(0, 3)} />
-      {items.length > 3 && (
-        <Button asChild variant="secondary-outline" className="mt-4">
-          <Link to="/app/stats/routes">{t('topRoutes.all')}</Link>
-        </Button>
-      )}
     </section>
   )
 }
