@@ -1106,7 +1106,9 @@
     "teaserTitle_other": "{{count}} nya utmärkelser!",
     "close": "Toppen!",
     "showActivity": "Visa aktiviteten",
-    "showAll": "Visa alla {{count}}",
+    "byYear": "År för år",
+    "byYearDescription": "Bläddra bland dina utmärkelser genom alla år eller för ett enskilt år.",
+    "emptyYear": "Inga utmärkelser det här året.",
     "kinds": {
       "firstDistance": {
         "title": "Första {{distance}}!",

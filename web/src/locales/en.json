@@ -1106,7 +1106,9 @@
     "teaserTitle_other": "{{count}} new achievements!",
     "close": "Great!",
     "showActivity": "Show activity",
-    "showAll": "Show all {{count}}",
+    "byYear": "Year by year",
+    "byYearDescription": "Browse your achievements of all time or for a single year.",
+    "emptyYear": "No achievements this year.",
     "kinds": {
       "firstDistance": {
         "title": "First {{distance}}!",

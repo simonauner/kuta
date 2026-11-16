@@ -1,7 +1,7 @@
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
 import { Link } from '@tanstack/react-router'
-import { Trophy } from 'lucide-react'
-import { useEffect, useId, useRef, useState } from 'react'
+import { ArrowRight, Trophy } from 'lucide-react'
+import { useEffect, useId, useRef } from 'react'
 import { useTranslation } from 'react-i18next'
 import { GarminDerivedNote } from '@/components/garmin'
 import { Button } from '@/components/ui/button'
@@ -11,9 +11,9 @@ import { Modal } from '@/components/ui/modal'
 import { achievementText, achievementsQuery, type Achievement } from '@/lib/achievements'
 import { api } from '@/lib/api'
 
-const timeZone = () => Intl.DateTimeFormat().resolvedOptions().timeZone
+export const timeZone = () => Intl.DateTimeFormat().resolvedOptions().timeZone
 
-function AchievementItem({ achievement }: { achievement: Achievement }) {
+export function AchievementItem({ achievement }: { achievement: Achievement }) {
   const { t, i18n } = useTranslation()
   const date = new Intl.DateTimeFormat(i18n.resolvedLanguage, { dateStyle: 'medium' })
   const { title, detail } = achievementText(achievement, t, i18n.resolvedLanguage)
@@ -101,30 +101,29 @@ export function AchievementTeaser() {
 
 const shownAtFirst = 5
 
-// All achievements on the own profile, newest first
+// The latest achievements on the own profile, newest first; all of them are on /app/profile/achievements.
 export function AchievementList() {
   const { t } = useTranslation()
   const achievements = useQuery(achievementsQuery(timeZone()))
-  const [all, setAll] = useState(false)
   if (!achievements.data?.length) return null
-  const shown = all ? achievements.data : achievements.data.slice(0, shownAtFirst)
   return (
     <section aria-labelledby="achievements-title">
-      <Heading level={2} id="achievements-title">
-        {t('achievements.title')}
-      </Heading>
+      <div className="flex flex-wrap items-center justify-between gap-x-4">
+        <Heading level={2} id="achievements-title">
+          {t('achievements.title')}
+        </Heading>
+        <Button variant="link-muted" render={<Link to="/app/profile/achievements" />}>
+          {t('achievements.byYear')}
+          <ArrowRight aria-hidden="true" />
+        </Button>
+      </div>
       <GarminDerivedNote className="mt-1" />
       <Card className="mt-3">
         <ul className="space-y-4">
-          {shown.map((a) => (
+          {achievements.data.slice(0, shownAtFirst).map((a) => (
             <AchievementItem key={a.key} achievement={a} />
           ))}
         </ul>
-        {shown.length < achievements.data.length && (
-          <Button variant="link" className="mt-3" onClick={() => setAll(true)}>
-            {t('achievements.showAll', { count: achievements.data.length })}
-          </Button>
-        )}
       </Card>
     </section>
   )

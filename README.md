@@ -427,7 +427,8 @@ Löpning räknas som statistiken: löpgruppen och löpdelar i multisportpass, me
 dygnet gäller hela pass. Utmärkelsen hör till passet som når gränsen. `achievement_views` sparar bara vilka nycklar
 användaren sett. `AchievementTeaser` i `Layout` hämtar listan en gång per appstart (inte vid passändringar) och visar
 osedda i en modal. Utmärkelser som nåtts före `users.achievements_since` (migrering 033: driftsättningen för befintliga konton, annars när profilen skapades) räknas som sedda, så modalen firar bara nya bedrifter och inte gammal historik eller ett importerat Strava-arkiv; profilen listar fortfarande alla. Stängning skickar `POST /api/achievements/seen` med `{ keys, timeZone }`, som bara sparar nycklar
-som faktiskt är uppnådda. Alla utmärkelser listas på den egna profilen. Sedda nycklar ingår i exporten
+som faktiskt är uppnådda. Den egna profilen visar de fem senaste och länkar till `/app/profile/achievements`, som listar alla
+utmärkelser, för alla år eller ett år i taget (`?year=`, år i webbläsarens tidszon). Sedda nycklar ingår i exporten
 (`achievements-seen.json`) och kaskadraderas med kontot.
 
 **Årssammanfattning** (`/app/stats/year/$year`, `YearReview.cs`, länk bredvid Statistiks flikar bara i
