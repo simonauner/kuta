@@ -21,6 +21,7 @@ import { ImportPage } from '@/routes/import'
 import { AnalysisPage, StatsPage } from '@/routes/stats'
 import { RoutesPage, routeSearch, savedRouteFilters } from '@/routes/my-routes'
 import { YearReviewPage } from '@/routes/year-review'
+import { RecordsPage, recordsSearch } from '@/routes/records'
 import { AdminPage } from '@/routes/admin'
 import { activityPageSearch, activitySearch } from '@/lib/activity'
 import { activityQuery } from '@/lib/activity-query'
@@ -85,6 +86,12 @@ const routesRoute = createRoute({
       throw redirect({ to: '/app/stats/routes', search: saved, replace: true })
   },
   component: RoutesPage,
+})
+const recordsRoute = createRoute({
+  getParentRoute: () => rootRoute,
+  path: '/app/stats/records',
+  validateSearch: recordsSearch,
+  component: RecordsPage,
 })
 const yearReviewRoute = createRoute({
   getParentRoute: () => rootRoute,
@@ -198,6 +205,7 @@ const routeTree = rootRoute.addChildren([
   yearReviewRoute,
   analysisRoute,
   routesRoute,
+  recordsRoute,
   profileRoute,
   runnerRoute,
   sharedProfileRoute,
