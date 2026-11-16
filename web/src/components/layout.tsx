@@ -4,7 +4,7 @@ import { LanguageSelect } from '@/components/language-select'
 import { useTranslation } from 'react-i18next'
 import { useQuery } from '@tanstack/react-query'
 import { Link, Outlet, useRouterState } from '@tanstack/react-router'
-import { Activity, BarChart3, Home, User } from 'lucide-react'
+import { Activity, BarChart3, Home, User, Users } from 'lucide-react'
 import { motion } from 'motion/react'
 import { meQuery } from '@/lib/auth'
 import { pendingRequests, followsQuery } from '@/lib/follows'
@@ -19,6 +19,7 @@ const tabs = [
   { to: '/app', label: 'nav.feed', icon: Home },
   { to: '/app/activities', label: 'nav.activities', icon: Activity },
   { to: '/app/stats', label: 'nav.stats', icon: BarChart3 },
+  { to: '/app/groups', label: 'nav.groups', icon: Users },
   { to: '/app/profile', label: 'nav.profile', icon: User },
 ] as const
 
@@ -83,7 +84,8 @@ export function Layout() {
                     ? pathname === '/app' || pathname === '/app/'
                     : pathname.startsWith(to) ||
                       // Settings is shown as a breadcrumb under Profile.
-                      (to === '/app/profile' && pathname.startsWith('/app/settings'))
+                      (to === '/app/profile' && pathname.startsWith('/app/settings')) ||
+                      (to === '/app/groups' && /^\/app\/(clubs|g)\//.test(pathname))
                 return (
                   <li key={to}>
                     <Link

@@ -47,7 +47,7 @@ import {
 import { sportGroupLabel } from '@/lib/sport-groups'
 import { useVisitor } from '@/lib/visitor'
 
-// Profile → Groups → the group → the current page; the last given level is the current page.
+// Groups → the group → the current page; the last given level is the current page.
 function GroupsBreadcrumb({
   group,
   page,
@@ -59,12 +59,6 @@ function GroupsBreadcrumb({
   return (
     <Breadcrumb aria-label={t('breadcrumbs')} className="mb-4">
       <BreadcrumbList>
-        <BreadcrumbItem>
-          <BreadcrumbLink render={<Link to="/app/profile" activeOptions={{ exact: true }} />}>
-            {t('nav.profile')}
-          </BreadcrumbLink>
-        </BreadcrumbItem>
-        <BreadcrumbSeparator />
         <BreadcrumbItem>
           {group || page ? (
             <BreadcrumbLink render={<Link to="/app/groups" activeOptions={{ exact: true }} />}>
@@ -281,7 +275,6 @@ export function GroupsPage() {
   }
   return (
     <section className="space-y-6">
-      <GroupsBreadcrumb />
       <Heading level={1}>{t('groups.title')}</Heading>
       <p className="text-body text-muted-foreground">{t('groups.intro')}</p>
       <SlowLoading loading={groups.isPending}>
