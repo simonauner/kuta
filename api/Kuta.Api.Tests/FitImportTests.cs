@@ -30,4 +30,15 @@ public class FitImportTests
         var parsed = FitImport.Parse(file)!;
         Assert.Equal((null, 0f), (parsed.AerobicTrainingEffect, parsed.AnaerobicTrainingEffect));
     }
+
+    // The zones come from the watch; boundaries that do not increase cannot describe zones and are dropped.
+    [Fact]
+    public void Heart_rate_zones_are_read_from_the_session_and_follow_consent()
+    {
+        var start = new System.DateTime(2026, 1, 1, 0, 0, 0, System.DateTimeKind.Utc);
+        var parsed = FitImport.Parse(FitFile.Run(start, 60))!;
+        Assert.Equal(new short[] { 100, 120, 140, 160, 175 }, parsed.HrZones);
+        Assert.Null(parsed.WithoutHeartRate().HrZones);
+        Assert.Null(FitImport.Parse(FitFile.Run(start, 60, hrZones: [100, 140, 120, 160, 175]))!.HrZones);
+    }
 }
