@@ -18,7 +18,7 @@ import { SharedProfilePage } from '@/routes/shared-profile'
 import { ProfilePage } from '@/routes/profile'
 import { DataSettingsPage, ProfileSettingsPage, SettingsPage } from '@/routes/settings'
 import { ImportPage } from '@/routes/import'
-import { AnalysisPage, StatsPage } from '@/routes/stats'
+import { AnalysisPage, StatsPage, StatsRecordsPage } from '@/routes/stats'
 import { RoutesPage, routeSearch, savedRouteFilters } from '@/routes/my-routes'
 import { YearReviewPage } from '@/routes/year-review'
 import { RecordsPage, recordsSearch } from '@/routes/records'
@@ -91,6 +91,11 @@ const routesRoute = createRoute({
 const recordsRoute = createRoute({
   getParentRoute: () => rootRoute,
   path: '/app/stats/records',
+  component: StatsRecordsPage,
+})
+const recordsByYearRoute = createRoute({
+  getParentRoute: () => rootRoute,
+  path: '/app/stats/records/years',
   validateSearch: recordsSearch,
   component: RecordsPage,
 })
@@ -213,6 +218,7 @@ const routeTree = rootRoute.addChildren([
   analysisRoute,
   routesRoute,
   recordsRoute,
+  recordsByYearRoute,
   profileRoute,
   achievementsRoute,
   runnerRoute,
