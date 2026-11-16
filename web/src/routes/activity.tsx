@@ -21,6 +21,7 @@ import { ErrorMessage, ErrorText } from '@/components/error-message'
 import { QueryError } from '@/components/query-error'
 import { RecordAward } from '@/components/record-award'
 import { ActivityAnalysis } from '@/components/activity-analysis'
+import { HeartRateZones } from '@/components/heart-rate-zones'
 import { ApiError } from '@/lib/api'
 import { activityQuery, refreshActivityQueries } from '@/lib/activity-query'
 import { api } from '@/lib/api'
@@ -678,6 +679,7 @@ export function ActivityPage() {
       {!mixed && sportIcons[knownSport(a.sport)] === 'run' && (
         <ActivityAnalysis streams={a.streams} laps={a.laps} sourceNote={sourceNote} />
       )}
+      <HeartRateZones streams={a.streams} bounds={a.hrZones} sourceNote={sourceNote} />
       {original.userId === me?.id &&
         a.streams === null &&
         sportIcons[knownSport(a.sport)] === 'run' && (

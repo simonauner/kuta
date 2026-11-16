@@ -310,3 +310,21 @@ export function intervals(laps: ActivityLap[]): Intervals | null {
     lastPercent: ((paces[paces.length - 1] - othersPace) / othersPace) * 100,
   }
 }
+
+// Gaps longer than this are pauses (the watch stops recording) and count in no zone.
+export const zoneMaxGapS = 30
+
+// Seconds per heart rate zone, index 0 = below zone 1 and index n = the open-ended top zone (n = bounds.length).
+// Each interval between samples counts toward the zone of its closing sample, like the watch's time in zone.
+export function heartRateZones(streams: ActivityStreams, bounds: number[]): number[] | null {
+  const { t, hr } = streams
+  if (!hr) return null
+  const seconds = new Array<number>(bounds.length + 1).fill(0)
+  for (let i = 1; i < t.length; i++) {
+    const h = hr[i]
+    const dt = t[i] - t[i - 1]
+    if (h == null || !(h > 0) || dt <= 0 || dt > zoneMaxGapS) continue
+    seconds[bounds.filter((b) => b < h).length] += dt
+  }
+  return seconds.some((s) => s > 0) ? seconds : null
+}
