@@ -3,13 +3,32 @@ import { CircleQuestionMark } from 'lucide-react'
 import { Popover } from '@base-ui/react/popover'
 import { Button } from '@/components/ui/button'
 
-export function HelpPopover({ label, children }: { label: string; children: ReactNode }) {
+// small fits next to a label inside a compact card.
+export function HelpPopover({
+  label,
+  small = false,
+  children,
+}: {
+  label: string
+  small?: boolean
+  children: ReactNode
+}) {
   return (
     <Popover.Root>
       <Popover.Trigger
-        render={<Button type="button" variant="ghost" size="icon" aria-label={label} />}
+        render={
+          <Button
+            type="button"
+            variant="ghost"
+            size={small ? 'icon-xs' : 'icon'}
+            aria-label={label}
+          />
+        }
       >
-        <CircleQuestionMark aria-hidden="true" className="size-5 text-muted-foreground" />
+        <CircleQuestionMark
+          aria-hidden="true"
+          className={`${small ? 'size-4' : 'size-5'} text-muted-foreground`}
+        />
       </Popover.Trigger>
       <Popover.Portal>
         <Popover.Positioner align="end" sideOffset={8} collisionPadding={16} className="z-50">

@@ -152,6 +152,38 @@
     "fatigue": "Trötthet",
     "form": "Form",
     "ramp": "Ökning per vecka",
+    "formZone": {
+      "fresh": "Utvilad – bra inför ett lopp.",
+      "neutral": "Neutral – varken sliten eller utvilad.",
+      "building": "Du bygger kondition. Det ska kännas.",
+      "overload": "Mycket trött – risk för överbelastning. Vila."
+    },
+    "rampZone": {
+      "fast": "Snabb ökning – risk för överbelastning.",
+      "building": "Du bygger upp i lugn takt.",
+      "steady": "Stabil nivå. Öka 2–5 per vecka för att bli bättre.",
+      "falling": "Konditionen minskar – vila eller färre pass."
+    },
+    "help": {
+      "label": "Om {{name}}",
+      "fitness": "Snittet av din dagliga belastning de senaste cirka sex veckorna – din grund. Ju högre, desto mer träning har du i kroppen.",
+      "fatigue": "Snittet av din dagliga belastning den senaste veckan. Den stiger snabbt efter hårda pass och sjunker snabbt när du vilar.",
+      "form": "Kondition minus trötthet.",
+      "formZones": {
+        "fresh": "Över +5: utvilad, bra inför ett lopp.",
+        "neutral": "Ned till −10: neutral.",
+        "building": "Ned till −30: du bygger kondition.",
+        "overload": "Därunder: risk för överbelastning."
+      },
+      "ramp": "Hur mycket konditionen har ändrats på en vecka.",
+      "rampZones": {
+        "fast": "Över 7: snabb ökning, risk för överbelastning.",
+        "building": "Från +2: lugn uppbyggnad.",
+        "steady": "Mellan −2 och +2: stabil nivå. Öka 2–5 per vecka för att bli bättre.",
+        "falling": "Under −2: konditionen minskar."
+      },
+      "rulesOfThumb": "Gränserna är vanliga tumregler, inte medicinska råd."
+    },
     "dailyLoad": "Daglig belastning",
     "chartScale": "Skala: 0–{{max}}.",
     "chart": "Kondition, trötthet och daglig belastning {{from}}–{{to}}.",

@@ -152,6 +152,38 @@
     "fatigue": "Fatigue",
     "form": "Form",
     "ramp": "Change per week",
+    "formZone": {
+      "fresh": "Rested – good before a race.",
+      "neutral": "Neutral – neither worn out nor rested.",
+      "building": "You are building fitness. It should feel like it.",
+      "overload": "Very tired – risk of overload. Rest."
+    },
+    "rampZone": {
+      "fast": "Fast increase – risk of overload.",
+      "building": "You are building up at a calm pace.",
+      "steady": "Steady level. Add 2–5 per week to improve.",
+      "falling": "Fitness is dropping – rest or fewer runs."
+    },
+    "help": {
+      "label": "About {{name}}",
+      "fitness": "The average of your daily load over roughly the last six weeks – your base. The higher it is, the more training you have in your body.",
+      "fatigue": "The average of your daily load over the last week. It rises quickly after hard runs and drops quickly when you rest.",
+      "form": "Fitness minus fatigue.",
+      "formZones": {
+        "fresh": "Above +5: rested, good before a race.",
+        "neutral": "Down to −10: neutral.",
+        "building": "Down to −30: you are building fitness.",
+        "overload": "Below that: risk of overload."
+      },
+      "ramp": "How much your fitness has changed in a week.",
+      "rampZones": {
+        "fast": "Above 7: fast increase, risk of overload.",
+        "building": "From +2: building up at a calm pace.",
+        "steady": "Between −2 and +2: steady level. Add 2–5 per week to improve.",
+        "falling": "Below −2: fitness is dropping."
+      },
+      "rulesOfThumb": "The limits are common rules of thumb, not medical advice."
+    },
     "dailyLoad": "Daily load",
     "chartScale": "Scale: 0–{{max}}.",
     "chart": "Fitness, fatigue and daily load {{from}}–{{to}}.",

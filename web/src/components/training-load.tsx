@@ -1,4 +1,4 @@
-import { Stat } from '@/components/stat'
+import { Stat, StatHint } from '@/components/stat'
 import { Reveal } from '@/components/reveal'
 import { useState, type FormEvent } from 'react'
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
@@ -13,9 +13,11 @@ import { Input } from '@/components/ui/input'
 import { api } from '@/lib/api'
 import { formatDuration } from '@/lib/activity'
 import {
+  formZone,
   loadChart,
   paceSeconds,
   parseThresholdPace,
+  rampZone,
   trainingLoadQueryKey,
   type TrainingLoadSummary,
 } from '@/lib/training-load'
@@ -98,15 +100,69 @@ export function TrainingLoadSection() {
             <>
               <dl className="mt-4 grid grid-cols-2 gap-3 sm:grid-cols-4">
                 {[
-                  [t('trainingLoad.fitness'), number.format(today.fitness)],
-                  [t('trainingLoad.fatigue'), number.format(today.fatigue)],
-                  [t('trainingLoad.form'), signed.format(today.form)],
-                  [
-                    t('trainingLoad.ramp'),
-                    data.rampPerWeek === null ? '–' : signed.format(data.rampPerWeek),
-                  ],
-                ].map(([label, value]) => (
-                  <Stat key={label} boxed label={label} value={value} />
+                  {
+                    label: t('trainingLoad.fitness'),
+                    value: number.format(today.fitness),
+                    help: <p>{t('trainingLoad.help.fitness')}</p>,
+                  },
+                  {
+                    label: t('trainingLoad.fatigue'),
+                    value: number.format(today.fatigue),
+                    help: <p>{t('trainingLoad.help.fatigue')}</p>,
+                  },
+                  {
+                    label: t('trainingLoad.form'),
+                    value: signed.format(today.form),
+                    hint: t(`trainingLoad.formZone.${formZone(today.form)}`),
+                    help: (
+                      <>
+                        <p>{t('trainingLoad.help.form')}</p>
+                        <ul className="mt-2 list-disc pl-5">
+                          {(['fresh', 'neutral', 'building', 'overload'] as const).map((zone) => (
+                            <li key={zone}>{t(`trainingLoad.help.formZones.${zone}`)}</li>
+                          ))}
+                        </ul>
+                        <p className="mt-2">{t('trainingLoad.help.rulesOfThumb')}</p>
+                      </>
+                    ),
+                  },
+                  {
+                    label: t('trainingLoad.ramp'),
+                    value: data.rampPerWeek === null ? '–' : signed.format(data.rampPerWeek),
+                    hint:
+                      data.rampPerWeek === null
+                        ? null
+                        : t(`trainingLoad.rampZone.${rampZone(data.rampPerWeek)}`),
+                    help: (
+                      <>
+                        <p>{t('trainingLoad.help.ramp')}</p>
+                        <ul className="mt-2 list-disc pl-5">
+                          {(['fast', 'building', 'steady', 'falling'] as const).map((zone) => (
+                            <li key={zone}>{t(`trainingLoad.help.rampZones.${zone}`)}</li>
+                          ))}
+                        </ul>
+                        <p className="mt-2">{t('trainingLoad.help.rulesOfThumb')}</p>
+                      </>
+                    ),
+                  },
+                ].map(({ label, value, hint, help }) => (
+                  <Stat
+                    key={label}
+                    boxed
+                    label={
+                      <span className="flex items-start justify-between gap-2">
+                        {label}
+                        <span className="-my-1 -mr-1">
+                          <HelpPopover small label={t('trainingLoad.help.label', { name: label })}>
+                            {help}
+                          </HelpPopover>
+                        </span>
+                      </span>
+                    }
+                    value={value}
+                  >
+                    {hint && <StatHint>{hint}</StatHint>}
+                  </Stat>
                 ))}
               </dl>
               <Card className="mt-4">
