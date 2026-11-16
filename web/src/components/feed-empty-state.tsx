@@ -83,16 +83,17 @@ function OnboardingSteps() {
               {t(`feed.onboarding.${step.key}Description`)}
             </p>
             <div className="mt-3 flex flex-wrap items-center gap-x-4 gap-y-2">
-              <Button asChild variant="secondary-outline">
-                <Link to="/app/settings/import">{step.action}</Link>
+              <Button variant="secondary-outline" render={<Link to="/app/settings/import" />}>
+                {step.action}
               </Button>
               {/* The archive takes hours to arrive, so it can be requested straight away. */}
               {step.key === 'strava' && (
-                <Button asChild variant="link">
-                  <a href={stravaExportUrl} target="_blank" rel="noopener noreferrer">
-                    {t('feed.onboarding.stravaRequest')}
-                    <ExternalLink aria-hidden="true" />
-                  </a>
+                <Button
+                  variant="link"
+                  render={<a href={stravaExportUrl} target="_blank" rel="noopener noreferrer" />}
+                >
+                  {t('feed.onboarding.stravaRequest')}
+                  <ExternalLink aria-hidden="true" />
                 </Button>
               )}
             </div>

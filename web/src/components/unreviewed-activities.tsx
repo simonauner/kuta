@@ -42,10 +42,13 @@ export function UnreviewedActivities({ className }: { className?: string }) {
               : t('unreviewed.title', { count: unreviewed.data.count })}
             <p className="mt-1 text-muted-foreground">{t('unreviewed.text')}</p>
             <div className="mt-3 flex flex-wrap gap-2">
-              <Button asChild size="sm">
-                <Link to="/app/activities/$activityId/edit" params={{ activityId: latest.id }}>
-                  {single ? t('unreviewed.editSingle') : t('unreviewed.edit')}
-                </Link>
+              <Button
+                size="sm"
+                render={
+                  <Link to="/app/activities/$activityId/edit" params={{ activityId: latest.id }} />
+                }
+              >
+                {single ? t('unreviewed.editSingle') : t('unreviewed.edit')}
               </Button>
               <Button
                 size="sm"

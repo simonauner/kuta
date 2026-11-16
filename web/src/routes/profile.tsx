@@ -69,10 +69,12 @@ export function ProfilePage() {
             )}
           </FormField>
           <ShareProfile />
-          <Button asChild variant="ghost" size="icon">
-            <Link to="/app/settings" aria-label={t('settings.title')}>
-              <Settings aria-hidden="true" />
-            </Link>
+          <Button
+            variant="ghost"
+            size="icon"
+            render={<Link to="/app/settings" aria-label={t('settings.title')} />}
+          >
+            <Settings aria-hidden="true" />
           </Button>
         </div>
       </div>

@@ -1,7 +1,7 @@
-import * as React from 'react'
+import { mergeProps } from '@base-ui/react/merge-props'
+import { useRender } from '@base-ui/react/use-render'
 import { cva, type VariantProps } from 'class-variance-authority'
 import { cn } from '@/lib/utils'
-import { Slot } from 'radix-ui'
 
 const buttonVariants = cva(
   "inline-flex shrink-0 items-center justify-center gap-2 rounded-md text-sm font-medium whitespace-nowrap transition-all outline-none focus-visible:border-ring focus-visible:ring-[3px] focus-visible:ring-ring/50 disabled:pointer-events-none disabled:opacity-50 aria-invalid:border-destructive aria-invalid:ring-destructive/20 dark:aria-invalid:ring-destructive/40 [&_svg]:pointer-events-none [&_svg]:shrink-0 [&_svg:not([class*='size-'])]:size-4",
@@ -40,27 +40,26 @@ const buttonVariants = cva(
 )
 
 // className is for layout only (margins, width, placement); appearance comes from the variants.
+// render={<Link … />} shows a link that looks like a button; the Button's children become the link's.
 function Button({
   className,
   variant = 'primary-filled',
   size = 'default',
-  asChild = false,
+  render,
   ...props
-}: React.ComponentProps<'button'> &
-  VariantProps<typeof buttonVariants> & {
-    asChild?: boolean
-  }) {
-  const Comp = asChild ? Slot.Root : 'button'
-
-  return (
-    <Comp
-      data-slot="button"
-      data-variant={variant}
-      data-size={size}
-      className={cn(buttonVariants({ variant, size: variant === 'link' ? null : size, className }))}
-      {...props}
-    />
-  )
+}: useRender.ComponentProps<'button'> & VariantProps<typeof buttonVariants>) {
+  return useRender({
+    defaultTagName: 'button',
+    render,
+    props: mergeProps<'button'>(
+      {
+        className: cn(
+          buttonVariants({ variant, size: variant === 'link' ? null : size, className }),
+        ),
+      },
+      props,
+    ),
+  })
 }
 
 export { Button }

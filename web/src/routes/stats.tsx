@@ -88,11 +88,14 @@ function YearReviewLinks({
   return (
     <div className="mt-4 flex flex-wrap gap-2">
       {shown.map((year) => (
-        <Button key={year} asChild variant="secondary-outline" size="sm">
-          <Link to="/app/stats/year/$year" params={{ year: String(year) }}>
-            <Sparkles aria-hidden="true" />
-            {t(year === currentYear ? 'yearReview.linkSoFar' : 'yearReview.link', { year })}
-          </Link>
+        <Button
+          key={year}
+          variant="secondary-outline"
+          size="sm"
+          render={<Link to="/app/stats/year/$year" params={{ year: String(year) }} />}
+        >
+          <Sparkles aria-hidden="true" />
+          {t(year === currentYear ? 'yearReview.linkSoFar' : 'yearReview.link', { year })}
         </Button>
       ))}
     </div>

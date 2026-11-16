@@ -87,10 +87,11 @@ export function ActivitiesPage() {
         <Heading level={1}>{t('nav.activities')}</Heading>
         <div className="flex flex-wrap justify-end gap-2">
           {!showOnboarding && (
-            <Button asChild size="sm">
-              <Link to="/app/activities/new" search={{ year, tag, sport }}>
-                {t('newActivity.title')}
-              </Link>
+            <Button
+              size="sm"
+              render={<Link to="/app/activities/new" search={{ year, tag, sport }} />}
+            >
+              {t('newActivity.title')}
             </Button>
           )}
         </div>

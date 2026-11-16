@@ -462,14 +462,18 @@ function GroupContent({ group }: { group: GroupDetail }) {
         <Heading level={1} className="min-w-0 break-words">
           {group.name}
         </Heading>
-        <Button asChild variant="ghost" size="icon">
-          <Link
-            to="/app/groups/$groupId/settings"
-            params={{ groupId: group.id }}
-            aria-label={t('groups.settingsLink')}
-          >
-            <Settings aria-hidden="true" />
-          </Link>
+        <Button
+          variant="ghost"
+          size="icon"
+          render={
+            <Link
+              to="/app/groups/$groupId/settings"
+              params={{ groupId: group.id }}
+              aria-label={t('groups.settingsLink')}
+            />
+          }
+        >
+          <Settings aria-hidden="true" />
         </Button>
       </div>
       <LeaderboardSection groupId={group.id} sharing={group.shareTotals} />
