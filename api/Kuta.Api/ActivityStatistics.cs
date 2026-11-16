@@ -27,8 +27,7 @@ public static class ActivityStatistics
                     and started_at < (@to::timestamp at time zone @timeZone)
             ), effective as (
                 select a.id, a.started_at, a.sport, a.duration_s,
-                    coalesce((select sum(p.distance_m) from activity_parts p
-                        where p.activity_id = a.id and p.original = not a.parts_edited), a.distance_m) as distance_m,
+                    {Multisport.DistanceSql("a")} as distance_m,
                     a.avg_hr::double precision as avg_hr
                 from scoped a left join sport_groups m on m.sport = a.sport
                 where @sportGroup::text is null or coalesce(m.sport_group, a.sport) = @sportGroup

@@ -37,7 +37,7 @@ public static class ActivityList
         var otherSportFilter = sport is null ? "" : "and other.sport = @sport";
         await using var command = new NpgsqlCommand($"""
             with page as (
-                select a.id, a.sport, a.title, a.started_at, a.duration_s, coalesce((select sum(p.distance_m) from activity_parts p where p.activity_id = a.id and p.original = not a.parts_edited), a.distance_m) as distance_m, a.avg_hr, a.tags,
+                select a.id, a.sport, a.title, a.started_at, a.duration_s, {Multisport.DistanceSql("a")} as distance_m, a.avg_hr, a.tags,
                     {GarminAttribution.Sql("a")} as attribution, a.reviewed_at is null as unreviewed
                 from activities a
                 where a.user_id = @userId and a.tags @> @tags::text[] {cursorFilter} {yearFilter} {sportFilter}
@@ -95,7 +95,7 @@ public static class ActivityList
         (await conn.QueryAsync<ActivityCalendarItem>(new CommandDefinition($"""
             select a.id, a.sport, a.title, a.started_at,
                 to_char(a.started_at at time zone @timeZone, 'YYYY-MM-DD') as day, a.duration_s,
-                coalesce((select sum(p.distance_m) from activity_parts p where p.activity_id = a.id and p.original = not a.parts_edited), a.distance_m) as distance_m,
+                {Multisport.DistanceSql("a")} as distance_m,
                 {GarminAttribution.Sql("a")} as attribution
             from activities a
             where a.user_id = @userId and a.tags @> @tags::text[] and (@sport::text is null or a.sport = @sport)

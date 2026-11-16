@@ -54,7 +54,7 @@ public static class RunnerProfile
         var args = new { userId, runnerId, timeZone };
         // 53 full weeks plus the current one, in the viewer's time zone.
         var days = (await conn.QueryAsync<CalendarDay>(new CommandDefinition($"""
-            select (a.started_at at time zone @timeZone)::date as day, count(*)::int as count, sum(a.distance_m) as distance_m
+            select (a.started_at at time zone @timeZone)::date as day, count(*)::int as count, sum({Multisport.DistanceSql("a")}) as distance_m
             from activities a
             where a.user_id = @runnerId and {SocialEndpoints.CanRead} and a.started_at >= now() - interval '378 days'
             group by 1 order by 1
@@ -67,7 +67,7 @@ public static class RunnerProfile
             from users where id = @runnerId
             """, args, cancellationToken: ct));
         async Task<SummaryTotals> Totals(bool thisYear) => await conn.QuerySingleAsync<SummaryTotals>(new CommandDefinition($"""
-            select count(*)::int as count, coalesce(sum(a.distance_m), 0) as distance_m, coalesce(sum(a.duration_s), 0)::float8 as duration_s
+            select count(*)::int as count, coalesce(sum({Multisport.DistanceSql("a")}), 0) as distance_m, coalesce(sum(a.duration_s), 0)::float8 as duration_s
             from activities a
             where a.user_id = @runnerId and {SocialEndpoints.CanRead}
               and (not @thisYear or a.started_at >= date_trunc('year', now() at time zone @timeZone) at time zone @timeZone)

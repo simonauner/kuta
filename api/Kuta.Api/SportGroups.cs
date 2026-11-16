@@ -44,8 +44,7 @@ public static class SportGroups
         effective as (
             select a.id, a.user_id, a.started_at, coalesce(m.sport_group, a.sport) as sport_group,
                 a.duration_s::double precision as duration_s,
-                coalesce((select sum(p.distance_m) from activity_parts p
-                    where p.activity_id = a.id and p.original = not a.parts_edited), a.distance_m) as distance_m,
+                {Multisport.DistanceSql("a")} as distance_m,
                 false as part
             from activities a left join sport_groups m on m.sport = a.sport
             where {activities}
