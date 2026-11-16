@@ -29,13 +29,13 @@ export function FeedPage() {
         </aside>
       )}
       <section className="flex flex-col gap-6">
-        {/* The header with the logo is a bottom bar on small screens, so the start page shows the brand there
-            instead of the heading, which the active Feed tab already names; screen readers keep the heading. */}
+        {/* The header with the logo is a bottom bar on small screens, so the start page shows the brand there.
+            The active Feed tab already names the page, so the heading is only for screen readers. */}
         <picture className="block md:hidden">
           <source media="(prefers-color-scheme: dark)" srcSet="/brand/logo-light.svg" />
           <img src="/brand/logo.svg" alt="Kuta" width="96" height="32" className="h-8 w-auto" />
         </picture>
-        <Heading level={1} className="sr-only md:not-sr-only">
+        <Heading level={1} className="sr-only">
           {t('nav.feed')}
         </Heading>
         {showSummary && (
