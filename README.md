@@ -371,6 +371,8 @@ konditionen ökar snabbt. Modellen är TrainingPeaks förenkling av Banisters im
 - **Tolkning:** varje ruta har en hjälpruta med förklaringen och gränserna, och under form och ökning står vilken
   zon dagens värde ligger i (`formZone`/`rampZone` i `web/src/lib/training-load.ts`). Formen läses som utvilad över +5, neutral ned till −10, uppbyggnad ned till −30 och överbelastning därunder;
   ökningen som snabb över 7 (samma gräns som varningen), uppbyggnad från 2, stabil över −2 och annars minskande.
+  Vid stabil nivå visas belastningen per vecka som håller konditionen (ungefär 7 × konditionen) och rådet att öka
+  med högst cirka 10 % per vecka, eftersom en fast ökning i konditionspoäng blir för stor när konditionen är låg.
 - **Varning:** när konditionen har ökat mer än 7 på en vecka, och först efter mer än 42 dagars historik så att en ny
   användare inte varnas medan konditionen byggs upp från noll. Texten är information, inte ett medicinskt råd.
 

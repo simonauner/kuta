@@ -161,7 +161,7 @@
     "rampZone": {
       "fast": "Snabb ökning – risk för överbelastning.",
       "building": "Du bygger upp i lugn takt.",
-      "steady": "Stabil nivå. Öka 2–5 per vecka för att bli bättre.",
+      "steady": "Stabil nivå. Ungefär {{weekLoad}} i belastning per vecka håller nivån; öka med högst cirka 10 % i veckan för att bli bättre.",
       "falling": "Konditionen minskar – vila eller färre pass."
     },
     "help": {
@@ -179,9 +179,10 @@
       "rampZones": {
         "fast": "Över 7: snabb ökning, risk för överbelastning.",
         "building": "Från +2: lugn uppbyggnad.",
-        "steady": "Mellan −2 och +2: stabil nivå. Öka 2–5 per vecka för att bli bättre.",
+        "steady": "Mellan −2 och +2: stabil nivå.",
         "falling": "Under −2: konditionen minskar."
       },
+      "rampAdvice": "Konditionen håller sig när belastningen per vecka är ungefär sju gånger konditionen, för dig cirka {{weekLoad}}. Öka gradvis, med högst cirka 10 % mer per vecka – särskilt när konditionen är låg.",
       "rulesOfThumb": "Gränserna är vanliga tumregler, inte medicinska råd."
     },
     "dailyLoad": "Daglig belastning",
