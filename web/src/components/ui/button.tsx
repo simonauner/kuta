@@ -20,6 +20,9 @@ const buttonVariants = cva(
           'text-muted-foreground hover:text-foreground aria-pressed:bg-background aria-pressed:text-foreground aria-pressed:shadow-sm',
         // Text only: no padding or height, always underlined so it reads as a link
         link: 'h-auto p-0 text-left whitespace-normal text-primary underline underline-offset-4 hover:text-primary/80',
+        // Secondary link next to a heading, such as "see all"
+        'link-muted':
+          'h-auto p-0 text-left whitespace-normal text-muted-foreground underline underline-offset-4 hover:text-foreground',
       },
       size: {
         default: 'h-9 px-4 py-2 has-[>svg]:px-3',
@@ -54,7 +57,11 @@ function Button({
     props: mergeProps<'button'>(
       {
         className: cn(
-          buttonVariants({ variant, size: variant === 'link' ? null : size, className }),
+          buttonVariants({
+            variant,
+            size: variant === 'link' || variant === 'link-muted' ? null : size,
+            className,
+          }),
         ),
       },
       props,
