@@ -85,3 +85,20 @@ export function weekTrend(loads: number[]): 'more' | 'less' | 'steady' | null {
   if (last < usual * 0.7) return 'less'
   return 'steady'
 }
+
+// Common rules of thumb for reading form (fitness minus fatigue), on the rounded value that is shown.
+export function formZone(form: number): 'fresh' | 'neutral' | 'building' | 'overload' {
+  const shown = Math.round(form)
+  if (shown > 5) return 'fresh'
+  if (shown >= -10) return 'neutral'
+  if (shown >= -30) return 'building'
+  return 'overload'
+}
+
+// Weekly fitness change; 'fast' uses the same limit as the api's warning (more than 7).
+export function rampZone(ramp: number): 'fast' | 'building' | 'steady' | 'falling' {
+  if (ramp > 7) return 'fast'
+  if (Math.round(ramp) >= 2) return 'building'
+  if (Math.round(ramp) > -2) return 'steady'
+  return 'falling'
+}

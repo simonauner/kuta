@@ -1,9 +1,11 @@
 import assert from 'node:assert/strict'
 import { test } from 'node:test'
 import {
+  formZone,
   loadChart,
   paceSeconds,
   parseThresholdPace,
+  rampZone,
   rollingWeekLoads,
   weekTrend,
 } from '../src/lib/training-load.ts'
@@ -59,4 +61,23 @@ test('week trend compares the last seven days with the three windows before', ()
   assert.equal(weekTrend([0, 0, 0, 10]), 'more')
   assert.equal(weekTrend([0, 0, 0, 0]), null)
   assert.equal(weekTrend([100, 100, 100]), null)
+})
+
+test('form and weekly change are read with the zone boundaries on the shown value', () => {
+  assert.deepEqual([5.4, 5.6, -10.4, -10.6, -30.4, -30.6].map(formZone), [
+    'neutral',
+    'fresh',
+    'neutral',
+    'building',
+    'building',
+    'overload',
+  ])
+  assert.deepEqual([7, 7.1, 1.4, 1.6, -1.4, -1.6].map(rampZone), [
+    'building',
+    'fast',
+    'steady',
+    'building',
+    'steady',
+    'falling',
+  ])
 })

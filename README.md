@@ -368,6 +368,9 @@ konditionen ökar snabbt. Modellen är TrainingPeaks förenkling av Banisters im
 - **Kondition (CTL) och trötthet (ATL):** exponentiella medelvärden av daglig belastning med 42 respektive 7 dagar
   (`x += (belastning − x) / N`), från första dagen med löpning till idag i webbläsarens tidszon. Form (TSB) är
   kondition minus trötthet samma dag.
+- **Tolkning:** varje ruta har en hjälpruta med förklaringen och gränserna, och under form och ökning står vilken
+  zon dagens värde ligger i (`formZone`/`rampZone` i `web/src/lib/training-load.ts`). Formen läses som utvilad över +5, neutral ned till −10, uppbyggnad ned till −30 och överbelastning därunder;
+  ökningen som snabb över 7 (samma gräns som varningen), uppbyggnad från 2, stabil över −2 och annars minskande.
 - **Varning:** när konditionen har ökat mer än 7 på en vecka, och först efter mer än 42 dagars historik så att en ny
   användare inte varnas medan konditionen byggs upp från noll. Texten är information, inte ett medicinskt råd.
 
