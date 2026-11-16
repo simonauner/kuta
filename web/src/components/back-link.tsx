@@ -39,7 +39,7 @@ function backLabel(path: string) {
   const pathname = path.split(/[?#]/)[0].replace(/\/$/, '')
   if (pathname === '/app') return 'nav.feed'
   if (pathname === '/app/activities') return 'activity.back'
-  if (pathname === '/app/stats') return 'nav.stats'
+  if (pathname === '/app/stats' || pathname === '/app/stats/records') return 'nav.stats'
   if (pathname === '/app/profile') return 'nav.profile'
   if (pathname.startsWith('/app/runners/')) return 'activity.backToRunner'
   return 'common.back'

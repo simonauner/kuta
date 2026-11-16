@@ -291,8 +291,9 @@ eller ett kalenderår; senaste 12 veckorna och löpning är förval (se [Sportgr
 i veckor som börjar på måndag, och månader och år delas i kalendermånader; den pågående veckan eller månaden markeras.
 Summorna visar förändringen mot lika lång tid närmast före perioden (för kalenderår samma del av föregående år), så att
 en påbörjad vecka jämförs rättvist. Årsväljaren innehåller hela den egna historiken. Tomma veckor och månader har noll mängd,
-men saknat tempo och puls visas som `–`. En växel högst upp byter mellan Översikt och Analys
-(`/app/stats/analysis`), som visar läget just nu: träningsbelastning och loppprognos, oberoende av periodvalet.
+men saknat tempo och puls visas som `–`. En växel högst upp byter mellan Översikt, Analys
+(`/app/stats/analysis`), som visar läget just nu: träningsbelastning och loppprognos, och Löprekord
+(`/app/stats/records`) med personbästa, årets bästa och utveckling per distans. Analys och Löprekord följer inte periodvalet.
 
 `GET /api/activities/statistics?from=2026-08-17&to=2026-11-09&bucket=week&sportGroup=running&timeZone=Europe%2FStockholm`
 ger `{ buckets, total }` för den inloggade användaren: en rad per ISO-vecka eller kalendermånad (`bucket=week|month`,

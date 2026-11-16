@@ -47,7 +47,7 @@ type StatisticsResult = { buckets: StatisticsBucket[]; total: StatisticsBucket }
 const metrics = ['distanceM', 'durationS', 'paceSPerKm', 'avgHr'] as const
 type Metric = (typeof metrics)[number]
 
-// Overview follows the chosen year; Analysis shows current form, which no year affects.
+// Overview follows the chosen period; Analysis and Running records are independent of it.
 function StatsTabs() {
   const { t } = useTranslation()
   const tabClass =
@@ -66,6 +66,9 @@ function StatsTabs() {
         </Link>
         <Link to="/app/stats/analysis" className={tabClass} activeProps={activeProps}>
           {t('stats.analysis')}
+        </Link>
+        <Link to="/app/stats/records" className={tabClass} activeProps={activeProps}>
+          {t('records.title')}
         </Link>
       </nav>
       <YearReviewLink />
@@ -106,6 +109,18 @@ export function AnalysisPage() {
       <TrainingLoadSection />
       <AerobicEfficiencySection />
       <PredictionsSection />
+    </section>
+  )
+}
+
+export function StatsRecordsPage() {
+  const { t } = useTranslation()
+  const [year] = useState(() => new Date().getFullYear())
+  return (
+    <section>
+      <Heading level={1}>{t('nav.stats')}</Heading>
+      <StatsTabs />
+      <RecordsSection year={year} />
     </section>
   )
 }
@@ -495,7 +510,6 @@ export function StatsPage() {
         </SlowLoading>
       </SlowRefresh>
       <YearComparison year={year} sportGroup={sportGroup} />
-      <RecordsSection year={year} />
       <TopRoutesSection />
     </section>
   )

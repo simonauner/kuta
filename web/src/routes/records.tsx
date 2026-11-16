@@ -25,7 +25,7 @@ export function recordsSearch(search: Record<string, unknown>): { year?: number 
   return Number.isInteger(year) && year >= 1 && year <= 9998 ? { year } : {}
 }
 
-const route = getRouteApi('/app/stats/records')
+const route = getRouteApi('/app/stats/records/years')
 
 // Best effort per distance, of all time or within one UTC year.
 export function RecordsPage() {
@@ -54,11 +54,17 @@ export function RecordsPage() {
           </BreadcrumbItem>
           <BreadcrumbSeparator />
           <BreadcrumbItem>
-            <BreadcrumbPage>{t('records.title')}</BreadcrumbPage>
+            <BreadcrumbLink render={<Link to="/app/stats/records" />}>
+              {t('records.title')}
+            </BreadcrumbLink>
+          </BreadcrumbItem>
+          <BreadcrumbSeparator />
+          <BreadcrumbItem>
+            <BreadcrumbPage>{t('records.byYear')}</BreadcrumbPage>
           </BreadcrumbItem>
         </BreadcrumbList>
       </Breadcrumb>
-      <Heading level={1}>{t('records.title')}</Heading>
+      <Heading level={1}>{t('records.byYear')}</Heading>
       <p className="mt-1 text-body text-muted-foreground">{t('records.byYearDescription')}</p>
       <FormField layout="inline" label={t('activities.year')} className="mt-4 text-sm">
         {(id) => (
