@@ -329,7 +329,8 @@ loggningen, och Wolverine är ett helt meddelanderamverk. Kön är en tabell `jo
   jobb rensas efter 30 dagar.
 - **Arbetare:** en bakgrundstjänst i API-processen tar nästa jobb med `for update skip locked` och håller det med ett lås
   på två minuter som förnyas vid varje förlopp. Dör maskinen går låset ut och jobbet tas upp igen. Vid nedstängning
-  lämnas jobbet tillbaka utan att försöket räknas. Oväntade fel ger högst tre försök med ökande väntetid och loggas som
+  lämnas jobbet tillbaka utan att försöket räknas. Arbetaren är gemensam för alla, så ett jobb som väntar mer än 5 s på
+  ett lås (exempelvis profilen under en dataexport) lämnas också tillbaka och körs igen efter 30 s. Oväntade fel ger högst tre försök med ökande väntetid och loggas som
   den fasta händelsen `job_failed` med undantagsprojektionen; därefter `jobFailed`.
 - **Importarkiv:** ZIP-filen ligger på maskinens lokala disk (`Jobs:ImportDirectory`, förval en katalog i
   temp-katalogen) medan jobbet väntar och körs, och raderas när jobbet avslutas, när kontot raderas och vid arbetarens
