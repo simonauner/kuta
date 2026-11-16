@@ -334,7 +334,9 @@ loggningen, och Wolverine är ett helt meddelanderamverk. Kön är en tabell `jo
 - **Importarkiv:** ZIP-filen ligger på maskinens lokala disk (`Jobs:ImportDirectory`, förval en katalog i
   temp-katalogen) medan jobbet väntar och körs, och raderas när jobbet avslutas, när kontot raderas och vid arbetarens
   timvisa städning. Arkiv på upp till 500 MB passar inte objektlagringens storleksgräns, och filen innehåller puls.
-  Driften har en maskin; fler maskiner kräver att arkivet flyttas till objektlagring.
+  Driften har en maskin; fler maskiner kräver att arkivet flyttas till objektlagring. Maskinen får inte stoppas
+  automatiskt när ingen besöker appen (`min_machines_running = 1` i `fly.toml`): pågående jobb räknas inte som trafik,
+  och en stoppad maskin förlorar arkivet.
 - **Omberäkning:** `POST /api/activities/recalculate` (CSRF) köar omberäkning av rekord och löpintensitet för alla egna
   pass med tidsserier, 50 åt gången. Ett aktivt jobb returneras i stället för ett nytt. Förloppet sparar senaste passet,
   så ett avbrutet jobb fortsätter där det slutade. Migrering 020 köar en omberäkning för alla användare med tidsserier.
