@@ -2,7 +2,9 @@ using System.Security.Claims;
 using Dapper;
 using Npgsql;
 
-public record GroupRequest(string? Name, string? TimeZone = null);
+// Visibility null keeps the current one; description, place and sport group are replaced (null clears them).
+public record GroupRequest(string? Name, string? TimeZone = null, string? Visibility = null, string? Description = null,
+    string? Place = null, string? SportGroup = null);
 public record ShareTotalsRequest(bool ShareTotals);
 // Status: "member" or "pending" (waiting for an admin).
 public record GroupSummary(Guid Id, string Name, string Role, string Status, int MemberCount);
@@ -10,28 +12,52 @@ public record GroupSummary(Guid Id, string Name, string Role, string Status, int
 public record GroupMember(Guid Id, string DisplayName, string Role, Guid? AvatarId, string? PreviousName,
     DateTime? JoinedAt = null, string? SimilarTo = null);
 public record GroupDetail(Guid Id, string Name, string TimeZone, string InviteCode, string Role, bool ShareTotals,
-    IReadOnlyList<GroupMember> Members, IReadOnlyList<GroupMember> Requests);
+    IReadOnlyList<GroupMember> Members, IReadOnlyList<GroupMember> Requests, string Visibility, string? Description,
+    string? Place, string? SportGroup);
+// What anyone signed in may see of an open club. Status for the viewer: "none", "pending" or "member".
+public record ClubSummary(Guid Id, string Name, string? Place, string? SportGroup, string? Description, int MemberCount,
+    DateTime CreatedAt, string Status);
 // Status for the visitor: "none", "pending" or "member".
 public record GroupInvite(Guid Id, string Name, int MemberCount, string Status);
 public record LeaderboardRow(Guid UserId, string DisplayName, Guid? AvatarId, double Value);
 public record Leaderboard(DateOnly WeekStart, IReadOnlyList<LeaderboardRow> Rows);
 
-// Invite-only groups. Membership never grants access to activities: members see each other and a weekly leaderboard of
+// Groups are joined through an invite link or, for open clubs, from search; an admin approves every request. Membership never grants access to activities: members see each other and a weekly leaderboard of
 // the totals each member chose to share (all own activities, also private ones, but never Garmin activities, which may
 // not be shown to others before Garmin approves it).
 public static class Groups
 {
     public const int MaxMembers = 100;
+    // Real clubs are larger; open clubs are the ones that represent them.
+    public const int MaxClubMembers = 1000;
     public const int MaxGroupsPerUser = 20;
 
     static readonly ApiError InvalidName = new("Ange ett namn på högst 100 tecken.", "invalidGroupName");
     static readonly ApiError GroupLimit = new($"Du kan vara med i högst {MaxGroupsPerUser} grupper.", "groupLimit");
-    static readonly ApiError GroupFull = new($"Gruppen har redan {MaxMembers} medlemmar.", "groupFull");
+    static readonly ApiError GroupFull = new("Gruppen kan inte ta emot fler medlemmar.", "groupFull");
+    static readonly ApiError InvalidSettings = new("Kontrollera synlighet, ort (högst 100 tecken), sport och beskrivning (högst 500 tecken).",
+        "invalidGroupSettings");
+    static readonly ApiError InvalidClubSearch = new("Sök på minst tre bokstäver eller siffror.", "invalidClubSearch");
     static readonly ApiError NameRequired = new("Välj ett namn först.", "nameRequired");
     static readonly ApiError InvalidLeaderboard = new("Kontrollera sport, typ och vecka.", "invalidLeaderboard");
     static readonly ApiError InvalidTimeZone = new("Tidszonen är ogiltig. Kontrollera enhetens inställningar.", "invalidTimeZone");
 
     public static string? NormalizeName(string? name) => name?.Trim() is { Length: >= 1 and <= 100 } trimmed ? trimmed : null;
+
+    static string? Blank(string? text) => string.IsNullOrWhiteSpace(text) ? null : text.Trim();
+
+    public static ApiError? ValidateSettings(GroupRequest req) =>
+        (req.Visibility is not (null or "private" or "open"))
+        || Blank(req.Description)?.Length > 500 || Blank(req.Place)?.Length > 100
+        || (req.SportGroup is not null && !SportGroups.IsValid(req.SportGroup))
+            ? InvalidSettings : null;
+
+    const string ClubColumns = """
+        g.id, g.name, g.place, g.sport_group, g.description,
+            (select count(*) from group_members c where c.group_id = g.id and c.accepted_at is not null)::int as member_count,
+            g.created_at,
+            case when m.user_id is null then 'none' when m.accepted_at is null then 'pending' else 'member' end as status
+        """;
 
     // A group where the viewer is a member (accepted) and that member's role.
     const string Membership = """
@@ -55,6 +81,7 @@ public static class Groups
         groups.MapPost("", async (GroupRequest req, NpgsqlDataSource db, ClaimsPrincipal user, CancellationToken ct) =>
         {
             if (NormalizeName(req.Name) is not { } name) return Results.BadRequest(InvalidName);
+            if (ValidateSettings(req) is { } invalid) return Results.BadRequest(invalid);
             var timeZone = req.TimeZone ?? "UTC";
             await using var conn = await db.OpenConnectionAsync(ct);
             if (!await ActivityList.IsValidTimeZoneAsync(conn, timeZone, ct)) return Results.BadRequest(InvalidTimeZone);
@@ -62,10 +89,14 @@ public static class Groups
             await using var tx = await conn.BeginTransactionAsync(ct);
             if (await LockMemberAsync(conn, tx, userId, ct) is { } error) return error;
             var id = await WithNewCodeAsync(code => conn.ExecuteScalarAsync<Guid>(new CommandDefinition("""
-                with g as (insert into groups (name, invite_code, time_zone) values (@name, @code, @timeZone) returning id)
+                with g as (insert into groups (name, name_skeleton, invite_code, time_zone, visibility, description, place, sport_group)
+                    values (@name, @skeleton, @code, @timeZone, coalesce(@Visibility, 'private'), @description, @place, @SportGroup)
+                    returning id)
                 insert into group_members (group_id, user_id, role, accepted_at) select id, @userId, 'admin', now() from g
                 returning group_id
-                """, new { name, code, timeZone, userId }, tx, cancellationToken: ct)), conn, tx, ct);
+                """, new { name, skeleton = MeEndpoints.NameSkeleton(name), code, timeZone, userId, req.Visibility,
+                description = Blank(req.Description), place = Blank(req.Place), req.SportGroup }, tx, cancellationToken: ct)),
+                conn, tx, ct);
             await tx.CommitAsync(ct);
             return Results.Created($"/api/groups/{id}", new { id });
         });
@@ -78,10 +109,15 @@ public static class Groups
         groups.MapPut("/{id:guid}", async (Guid id, GroupRequest req, NpgsqlDataSource db, ClaimsPrincipal user, CancellationToken ct) =>
         {
             if (NormalizeName(req.Name) is not { } name) return Results.BadRequest(InvalidName);
+            if (ValidateSettings(req) is { } invalid) return Results.BadRequest(invalid);
             await using var conn = await db.OpenConnectionAsync(ct);
             return await conn.ExecuteAsync(new CommandDefinition($"""
-                update groups set name = @name where id = @id and ({Membership}) = 'admin'
-                """, new { id, name, userId = user.GetUserId() }, cancellationToken: ct)) > 0 ? Results.NoContent() : Results.NotFound();
+                update groups set name = @name, name_skeleton = @skeleton, visibility = coalesce(@Visibility, visibility),
+                    description = @description, place = @place, sport_group = @SportGroup
+                where id = @id and ({Membership}) = 'admin'
+                """, new { id, name, skeleton = MeEndpoints.NameSkeleton(name), req.Visibility, description = Blank(req.Description),
+                place = Blank(req.Place), req.SportGroup, userId = user.GetUserId() }, cancellationToken: ct)) > 0
+                ? Results.NoContent() : Results.NotFound();
         });
         groups.MapDelete("/{id:guid}", async (Guid id, NpgsqlDataSource db, ClaimsPrincipal user, CancellationToken ct) =>
         {
@@ -115,13 +151,13 @@ public static class Groups
             await using var conn = await db.OpenConnectionAsync(ct);
             await using var tx = await conn.BeginTransactionAsync(ct);
             // The group row lock keeps concurrent approvals under the member limit.
-            if (await conn.QuerySingleOrDefaultAsync<string?>(new CommandDefinition($"""
-                    select ({Membership}) from groups where id = @id for update
-                    """, new { id, userId = user.GetUserId() }, tx, cancellationToken: ct)) != "admin")
-                return Results.NotFound();
+            var group = await conn.QuerySingleOrDefaultAsync<(string? Role, string Visibility)>(new CommandDefinition($"""
+                select ({Membership}), visibility from groups where id = @id for update
+                """, new { id, userId = user.GetUserId() }, tx, cancellationToken: ct));
+            if (group.Role != "admin") return Results.NotFound();
             if (await conn.ExecuteScalarAsync<int>(new CommandDefinition(
                     "select count(*) from group_members where group_id = @id and accepted_at is not null",
-                    new { id }, tx, cancellationToken: ct)) >= MaxMembers)
+                    new { id }, tx, cancellationToken: ct)) >= (group.Visibility == "open" ? MaxClubMembers : MaxMembers))
                 return Results.Conflict(GroupFull);
             var updated = await conn.ExecuteAsync(new CommandDefinition("""
                 update group_members set accepted_at = coalesce(accepted_at, now()) where group_id = @id and user_id = @memberId
@@ -177,23 +213,69 @@ public static class Groups
         invites.MapPost("", async (string code, NpgsqlDataSource db, ClaimsPrincipal user, CancellationToken ct) =>
         {
             await using var conn = await db.OpenConnectionAsync(ct);
-            var userId = user.GetUserId();
-            await using var tx = await conn.BeginTransactionAsync(ct);
-            var id = await conn.ExecuteScalarAsync<Guid?>(new CommandDefinition(
-                "select id from groups where invite_code = @code", new { code = code.ToLowerInvariant() }, tx, cancellationToken: ct));
-            if (id is null) return Results.NotFound();
-            if (!await conn.ExecuteScalarAsync<bool>(new CommandDefinition(
-                    "select exists(select 1 from group_members where group_id = @id and user_id = @userId)",
-                    new { id, userId }, tx, cancellationToken: ct)))
-            {
-                if (await LockMemberAsync(conn, tx, userId, ct) is { } error) return error;
-                await conn.ExecuteAsync(new CommandDefinition("""
-                    insert into group_members (group_id, user_id) values (@id, @userId) on conflict do nothing
-                    """, new { id, userId }, tx, cancellationToken: ct));
-            }
-            await tx.CommitAsync(ct);
-            return Results.Ok(new { id });
+            return await JoinAsync(conn, user.GetUserId(), "invite_code = @code", new { code = code.ToLowerInvariant() }, ct);
         }).RequireRateLimiting("follows");
+
+        // Open clubs: searchable by name, never listed in full; the members stay visible to members only.
+        var clubs = api.MapGroup("/clubs").RequireAuthorization();
+        clubs.MapGet("", async (string? query, NpgsqlDataSource db, ClaimsPrincipal user, CancellationToken ct) =>
+        {
+            var skeleton = MeEndpoints.NameSkeleton(query ?? "");
+            if (skeleton.Length < 3) return Results.BadRequest(InvalidClubSearch);
+            await using var conn = await db.OpenConnectionAsync(ct);
+            return Results.Ok(await SearchClubsAsync(conn, user.GetUserId(), skeleton, ct));
+        }).RequireRateLimiting("clubSearch");
+        clubs.MapGet("/{id:guid}", async (Guid id, NpgsqlDataSource db, ClaimsPrincipal user, CancellationToken ct) =>
+        {
+            await using var conn = await db.OpenConnectionAsync(ct);
+            var club = await conn.QuerySingleOrDefaultAsync<ClubSummary>(new CommandDefinition($"""
+                select {ClubColumns}
+                from groups g left join group_members m on m.group_id = g.id and m.user_id = @userId
+                where g.id = @id and g.visibility = 'open'
+                """, new { id, userId = user.GetUserId() }, cancellationToken: ct));
+            return club is null ? Results.NotFound() : Results.Ok(club);
+        });
+        clubs.MapPost("/{id:guid}/join", async (Guid id, NpgsqlDataSource db, ClaimsPrincipal user, CancellationToken ct) =>
+        {
+            await using var conn = await db.OpenConnectionAsync(ct);
+            return await JoinAsync(conn, user.GetUserId(), "id = @id and visibility = 'open'", new { id }, ct);
+        }).RequireRateLimiting("follows");
+    }
+
+    // Clubs whose name contains the search, or whose name is inside it (so "Hässelby SK Friidrott" finds "Hässelby SK"
+    // before a duplicate is created); exact names first, then the largest clubs. Names under five letters are not matched
+    // inside longer searches, or "IK" would match half of them. The skeleton has only letters and digits, so it needs no
+    // escaping for like.
+    // shortcut: abbreviations ("SK" for "Sportklubb") are not similar; compare words if duplicates slip through.
+    public static async Task<IReadOnlyList<ClubSummary>> SearchClubsAsync(NpgsqlConnection conn, Guid userId, string skeleton,
+        CancellationToken ct) =>
+        (await conn.QueryAsync<ClubSummary>(new CommandDefinition($"""
+            select {ClubColumns}
+            from groups g left join group_members m on m.group_id = g.id and m.user_id = @userId
+            where g.visibility = 'open' and (g.name_skeleton like '%' || @skeleton || '%'
+                or (length(g.name_skeleton) >= 5 and @skeleton like '%' || g.name_skeleton || '%'))
+            order by g.name_skeleton = @skeleton desc, member_count desc, g.name, g.id
+            limit 20
+            """, new { userId, skeleton }, cancellationToken: ct))).ToList();
+
+    // A request to join the group matching the condition (by invite code, or an open club by id).
+    static async Task<IResult> JoinAsync(NpgsqlConnection conn, Guid userId, string condition, object args, CancellationToken ct)
+    {
+        await using var tx = await conn.BeginTransactionAsync(ct);
+        var id = await conn.ExecuteScalarAsync<Guid?>(new CommandDefinition(
+            $"select id from groups where {condition}", args, tx, cancellationToken: ct));
+        if (id is null) return Results.NotFound();
+        if (!await conn.ExecuteScalarAsync<bool>(new CommandDefinition(
+                "select exists(select 1 from group_members where group_id = @id and user_id = @userId)",
+                new { id, userId }, tx, cancellationToken: ct)))
+        {
+            if (await LockMemberAsync(conn, tx, userId, ct) is { } error) return error;
+            await conn.ExecuteAsync(new CommandDefinition("""
+                insert into group_members (group_id, user_id) values (@id, @userId) on conflict do nothing
+                """, new { id, userId }, tx, cancellationToken: ct));
+        }
+        await tx.CommitAsync(ct);
+        return Results.Ok(new { id });
     }
 
     // Locks the profile so that parallel joins stay under the group limit; requires a chosen name.
@@ -225,13 +307,12 @@ public static class Groups
     // else a blocked person sees nothing of the blocker. Requests are listed for admins only.
     public static async Task<GroupDetail?> ReadAsync(NpgsqlConnection conn, Guid userId, Guid id, CancellationToken ct)
     {
-        var group = await conn.QuerySingleOrDefaultAsync<(Guid Id, string Name, string TimeZone, string InviteCode, string Role, bool ShareTotals)>(
-            new CommandDefinition("""
-                select g.id, g.name, g.time_zone, g.invite_code, m.role, m.share_totals
-                from groups g join group_members m on m.group_id = g.id
-                where g.id = @id and m.user_id = @userId and m.accepted_at is not null
-                """, new { id, userId }, cancellationToken: ct));
-        if (group.Id == Guid.Empty) return null;
+        var group = await conn.QuerySingleOrDefaultAsync<GroupRow>(new CommandDefinition("""
+            select g.id, g.name, g.time_zone, g.invite_code, m.role, m.share_totals, g.visibility, g.description, g.place, g.sport_group
+            from groups g join group_members m on m.group_id = g.id
+            where g.id = @id and m.user_id = @userId and m.accepted_at is not null
+            """, new { id, userId }, cancellationToken: ct));
+        if (group is null) return null;
         var rows = (await conn.QueryAsync<GroupMember>(new CommandDefinition($"""
             select u.id, u.display_name, m.role, u.avatar_id, {SocialEndpoints.PreviousName},
                 case when m.accepted_at is null then u.created_at end as joined_at, null::text as similar_to
@@ -245,8 +326,12 @@ public static class Groups
         {
             SimilarTo = members.FirstOrDefault(m => MeEndpoints.NameSkeleton(m.DisplayName) == MeEndpoints.NameSkeleton(r.DisplayName))?.DisplayName,
         }).ToList();
-        return new(group.Id, group.Name, group.TimeZone, group.InviteCode, group.Role, group.ShareTotals, members, requests);
+        return new(group.Id, group.Name, group.TimeZone, group.InviteCode, group.Role, group.ShareTotals, members, requests,
+            group.Visibility, group.Description, group.Place, group.SportGroup);
     }
+
+    record GroupRow(Guid Id, string Name, string TimeZone, string InviteCode, string Role, bool ShareTotals, string Visibility,
+        string? Description, string? Place, string? SportGroup);
 
     const string WeekActivities = """
         a.user_id in (select user_id from members) and a.source <> 'garmin'
