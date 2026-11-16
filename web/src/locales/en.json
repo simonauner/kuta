@@ -1236,6 +1236,8 @@
     "nobodyShares": "Nobody in the group shares their weekly totals yet.",
     "requests": "Requests",
     "members": "Members",
+    "moreMembers": "Show more members",
+    "retryMembers": "Try again",
     "makeAdmin": "Make admin",
     "removeMember": "Remove",
     "inviteLink": "Invite link",

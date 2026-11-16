@@ -41,6 +41,7 @@ export function Avatar({
         src={`/api/avatars/${avatarId}`}
         alt=""
         aria-hidden="true"
+        loading="lazy"
         className={cn(className, 'object-cover')}
         onError={() => setFailed(avatarId)}
       />

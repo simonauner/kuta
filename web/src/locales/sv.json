@@ -1236,6 +1236,8 @@
     "nobodyShares": "Ingen i gruppen delar sina veckosummor än.",
     "requests": "Förfrågningar",
     "members": "Medlemmar",
+    "moreMembers": "Visa fler medlemmar",
+    "retryMembers": "Försök igen",
     "makeAdmin": "Gör till administratör",
     "removeMember": "Ta bort",
     "inviteLink": "Inbjudningslänk",

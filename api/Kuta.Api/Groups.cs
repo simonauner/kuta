@@ -11,8 +11,9 @@ public record GroupSummary(Guid Id, string Name, string Role, string Status, int
 // JoinedAt and SimilarTo are set only for requests, as for follow requests: they help an admin spot impersonation.
 public record GroupMember(Guid Id, string DisplayName, string Role, Guid? AvatarId, string? PreviousName,
     DateTime? JoinedAt = null, string? SimilarTo = null);
+// The members themselves are paged (GET /api/groups/{id}/members): a club can have up to 1000.
 public record GroupDetail(Guid Id, string Name, string TimeZone, string InviteCode, string Role, bool ShareTotals,
-    IReadOnlyList<GroupMember> Members, IReadOnlyList<GroupMember> Requests, string Visibility, string? Description,
+    int MemberCount, IReadOnlyList<GroupMember> Requests, string Visibility, string? Description,
     string? Place, string? SportGroup);
 // What anyone signed in may see of an open club. Status for the viewer: "none", "pending" or "member".
 public record ClubSummary(Guid Id, string Name, string? Place, string? SportGroup, string? Description, int MemberCount,
@@ -31,6 +32,7 @@ public static class Groups
     // Real clubs are larger; open clubs are the ones that represent them.
     public const int MaxClubMembers = 1000;
     public const int MaxGroupsPerUser = 20;
+    public const int MemberPageSize = 50;
 
     static readonly ApiError InvalidName = new("Ange ett namn på högst 100 tecken.", "invalidGroupName");
     static readonly ApiError GroupLimit = new($"Du kan vara med i högst {MaxGroupsPerUser} grupper.", "groupLimit");
@@ -105,6 +107,13 @@ public static class Groups
             await using var conn = await db.OpenConnectionAsync(ct);
             var detail = await ReadAsync(conn, user.GetUserId(), id, ct);
             return detail is null ? Results.NotFound() : Results.Ok(detail);
+        });
+        groups.MapGet("/{id:guid}/members", async (Guid id, int? offset, NpgsqlDataSource db, ClaimsPrincipal user,
+            CancellationToken ct) =>
+        {
+            await using var conn = await db.OpenConnectionAsync(ct);
+            var members = await ReadMembersAsync(conn, user.GetUserId(), id, Math.Max(0, offset ?? 0), ct);
+            return members is null ? Results.NotFound() : Results.Ok(members);
         });
         groups.MapPut("/{id:guid}", async (Guid id, GroupRequest req, NpgsqlDataSource db, ClaimsPrincipal user, CancellationToken ct) =>
         {
@@ -303,35 +312,64 @@ public static class Groups
         }
     }
 
-    // Members of a group the viewer belongs to; null otherwise. A member who blocked the viewer is left out, as everywhere
-    // else a blocked person sees nothing of the blocker. Requests are listed for admins only.
+    // A member who blocked the viewer is left out, as everywhere else a blocked person sees nothing of the blocker.
+    static string VisibleMember(string viewer) => $"m.group_id = @id and {SocialEndpoints.NotBlocked("m.user_id", viewer)}";
+
+    // A group the viewer belongs to; null otherwise. Requests are listed for admins only, with a warning when a name looks
+    // like a member's.
     public static async Task<GroupDetail?> ReadAsync(NpgsqlConnection conn, Guid userId, Guid id, CancellationToken ct)
     {
-        var group = await conn.QuerySingleOrDefaultAsync<GroupRow>(new CommandDefinition("""
-            select g.id, g.name, g.time_zone, g.invite_code, m.role, m.share_totals, g.visibility, g.description, g.place, g.sport_group
+        var group = await conn.QuerySingleOrDefaultAsync<GroupRow>(new CommandDefinition($"""
+            select g.id, g.name, g.time_zone, g.invite_code, m.role, m.share_totals, g.visibility, g.description, g.place, g.sport_group,
+                (select count(*) from group_members m where {VisibleMember("@userId")} and m.accepted_at is not null)::int as member_count
             from groups g join group_members m on m.group_id = g.id
             where g.id = @id and m.user_id = @userId and m.accepted_at is not null
             """, new { id, userId }, cancellationToken: ct));
         if (group is null) return null;
-        var rows = (await conn.QueryAsync<GroupMember>(new CommandDefinition($"""
-            select u.id, u.display_name, m.role, u.avatar_id, {SocialEndpoints.PreviousName},
-                case when m.accepted_at is null then u.created_at end as joined_at, null::text as similar_to
-            from group_members m join users u on u.id = m.user_id
-            where m.group_id = @id and {SocialEndpoints.NotBlocked("m.user_id", "@userId")}
-                and (m.accepted_at is not null or @admin)
-            order by m.role, u.display_name, u.id
-            """, new { id, userId, admin = group.Role == "admin" }, cancellationToken: ct))).ToList();
-        var members = rows.Where(r => r.JoinedAt is null).ToList();
-        var requests = rows.Where(r => r.JoinedAt is not null).Select(r => r with
+        List<GroupMember> requests = [];
+        if (group.Role == "admin")
         {
-            SimilarTo = members.FirstOrDefault(m => MeEndpoints.NameSkeleton(m.DisplayName) == MeEndpoints.NameSkeleton(r.DisplayName))?.DisplayName,
-        }).ToList();
-        return new(group.Id, group.Name, group.TimeZone, group.InviteCode, group.Role, group.ShareTotals, members, requests,
-            group.Visibility, group.Description, group.Place, group.SportGroup);
+            requests = (await conn.QueryAsync<GroupMember>(new CommandDefinition($"""
+                select u.id, u.display_name, m.role, u.avatar_id, {SocialEndpoints.PreviousName}, u.created_at as joined_at,
+                    null::text as similar_to
+                from group_members m join users u on u.id = m.user_id
+                where {VisibleMember("@userId")} and m.accepted_at is null
+                order by u.display_name, u.id
+                """, new { id, userId }, cancellationToken: ct))).ToList();
+            if (requests.Count > 0)
+            {
+                var names = (await conn.QueryAsync<string>(new CommandDefinition($"""
+                    select u.display_name from group_members m join users u on u.id = m.user_id
+                    where {VisibleMember("@userId")} and m.accepted_at is not null
+                    """, new { id, userId }, cancellationToken: ct))).Select(n => (Name: n, Skeleton: MeEndpoints.NameSkeleton(n))).ToList();
+                requests = requests.Select(r => r with
+                {
+                    SimilarTo = names.FirstOrDefault(n => n.Skeleton == MeEndpoints.NameSkeleton(r.DisplayName)).Name,
+                }).ToList();
+            }
+        }
+        return new(group.Id, group.Name, group.TimeZone, group.InviteCode, group.Role, group.ShareTotals, group.MemberCount,
+            requests, group.Visibility, group.Description, group.Place, group.SportGroup);
+    }
+
+    // One page of a group's members, admins first; null when the viewer is not a member.
+    public static async Task<IReadOnlyList<GroupMember>?> ReadMembersAsync(NpgsqlConnection conn, Guid userId, Guid id, int offset,
+        CancellationToken ct)
+    {
+        if (await conn.ExecuteScalarAsync<string?>(new CommandDefinition(Membership, new { id, userId }, cancellationToken: ct)) is null)
+            return null;
+        return (await conn.QueryAsync<GroupMember>(new CommandDefinition($"""
+            select u.id, u.display_name, m.role, u.avatar_id, {SocialEndpoints.PreviousName}, null::timestamptz as joined_at,
+                null::text as similar_to
+            from group_members m join users u on u.id = m.user_id
+            where {VisibleMember("@userId")} and m.accepted_at is not null
+            order by m.role, u.display_name, u.id
+            limit @MemberPageSize offset @offset
+            """, new { id, userId, offset, MemberPageSize }, cancellationToken: ct))).ToList();
     }
 
     record GroupRow(Guid Id, string Name, string TimeZone, string InviteCode, string Role, bool ShareTotals, string Visibility,
-        string? Description, string? Place, string? SportGroup);
+        string? Description, string? Place, string? SportGroup, int MemberCount);
 
     const string WeekActivities = """
         a.user_id in (select user_id from members) and a.source <> 'garmin'

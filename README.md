@@ -130,13 +130,14 @@ medlemslistan eller topplistan. Gränser: högst 100 medlemmar per grupp och 20 
 förfrågningar) per användare; uppslag av en länk har samma rate limit som profillänkar och
 förfrågningar samma som följförfrågningar. Medlemskap ingår i exporten (`groups.json`) och
 kaskadraderas med kontot. Profilen listar egna grupper och länkar till `/app/groups`, där grupper
-skapas. Gruppsidan visar topplistan och medlemmarna; delningsvalet, inbjudningslänken,
+skapas. Gruppsidan visar topplistan och medlemmarna, 50 åt gången (administratörer först); delningsvalet, inbjudningslänken,
 administrationen och Lämna gruppen finns under kugghjulet på `/app/groups/{id}/settings`.
 
 | Metod | Sökväg | Svar |
 |---|---|---|
 | GET/POST | `/api/groups` | Egna grupper och förfrågningar / skapa (`{ name, timeZone }`) |
-| GET/PUT/DELETE | `/api/groups/{id}` | Medlemmar och, för administratörer, förfrågningar / byt namn / radera (administratör) |
+| GET/PUT/DELETE | `/api/groups/{id}` | Gruppen med antal medlemmar och, för administratörer, förfrågningar / byt namn / radera (administratör) |
+| GET | `/api/groups/{id}/members?offset=` | 50 medlemmar från `offset`, administratörer först |
 | POST | `/api/groups/{id}/invite-code/replace` | Ny länk (administratör) |
 | PUT | `/api/groups/{id}/me` | `{ shareTotals }` |
 | POST | `/api/groups/{id}/members/{userId}/accept`, `/admin` | Godkänn / gör till administratör |
@@ -241,7 +242,7 @@ Inställningar → Profil och synlighet → Profilbild laddar upp en egen bild; 
 
 - Webben beskär till en kvadrat och skalar till 256 px JPEG i webbläsaren innan uppladdningen. Omkodningen tar bort EXIF, även GPS.
 - `POST /api/me/avatar` (multipart, fältet `file`, högst 200 kB, måste vara JPEG; rate limiten `uploads`) och `DELETE /api/me/avatar` svarar `{ avatarId }`. Varje uppladdning får ett nytt slumpat `users.avatar_id` (migrering 030); den gamla filen raderas först, under profillåset.
-- Bilden ligger i samma bucket som råfilerna (`avatars/<avatarId>.jpg`) och visas via `GET /api/avatars/{avatarId}` utan inloggning, med ett års webbläsarcache (rate limiten `public`). Bara den aktuella bilden svarar; en ersatt eller raderad ger 404.
+- Bilden ligger i samma bucket som råfilerna (`avatars/<avatarId>.jpg`) och visas via `GET /api/avatars/{avatarId}` utan inloggning, med ett års webbläsarcache (rate limiten `public`). Bara den aktuella bilden svarar; en ersatt eller raderad ger 404. Webben laddar bilderna först nära skärmen (`loading="lazy"`), så att långa listor som en klubbs medlemmar inte slår i rate limiten.
 - Bilden visas där namnet visas och har ingen egen synlighet: `avatarId` finns i `/api/me`, `/api/runners/{id}` (även publikt), flödet och `/api/follows`. Det slumpade id:t går inte att gissa.
 - Bilden ingår i exporten som `avatar.jpg` och raderas med kontot.
 
