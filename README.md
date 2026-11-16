@@ -427,8 +427,8 @@ osedda i en modal. Utmärkelser som nåtts före `users.achievements_since` (mig
 som faktiskt är uppnådda. Alla utmärkelser listas på den egna profilen. Sedda nycklar ingår i exporten
 (`achievements-seen.json`) och kaskadraderas med kontot.
 
-**Årssammanfattning** (`/app/stats/year/$year`, `YearReview.cs`, länk på Statistik för innevarande år och
-föregående år fram till och med mars): `GET /api/activities/year-review?year=&timeZone=` ger egna pass under
+**Årssammanfattning** (`/app/stats/year/$year`, `YearReview.cs`, länk bredvid Statistiks flikar bara i
+december för innevarande år och i januari för föregående år): `GET /api/activities/year-review?year=&timeZone=` ger egna pass under
 kalenderåret i tittarens tidszon: totaler (antal, distans, tid, höjdmeter, aktiva dagar) och föregående års totaler,
 sportgrupper och månader som statistiken, favoritveckodag och tid på dygnet (morgon 05–10, mitt på dagen 10–14,
 eftermiddag 14–18, kväll 18–22, natt), flest dagar och veckor i rad, längsta löpning och aktivitet, tävlingar

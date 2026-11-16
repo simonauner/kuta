@@ -54,51 +54,44 @@ function StatsTabs() {
     'rounded-md px-3 py-1.5 text-sm font-medium text-muted-foreground transition-colors hover:text-foreground'
   const activeProps = { className: 'bg-background text-foreground shadow-sm' }
   return (
-    <nav aria-label={t('stats.views')} className="mt-4 inline-flex rounded-lg bg-muted p-1">
-      <Link
-        to="/app/stats"
-        activeOptions={{ exact: true }}
-        className={tabClass}
-        activeProps={activeProps}
-      >
-        {t('stats.overview')}
-      </Link>
-      <Link to="/app/stats/analysis" className={tabClass} activeProps={activeProps}>
-        {t('stats.analysis')}
-      </Link>
-    </nav>
+    <div className="mt-4 flex flex-wrap items-center gap-2">
+      <nav aria-label={t('stats.views')} className="inline-flex rounded-lg bg-muted p-1">
+        <Link
+          to="/app/stats"
+          activeOptions={{ exact: true }}
+          className={tabClass}
+          activeProps={activeProps}
+        >
+          {t('stats.overview')}
+        </Link>
+        <Link to="/app/stats/analysis" className={tabClass} activeProps={activeProps}>
+          {t('stats.analysis')}
+        </Link>
+      </nav>
+      <YearReviewLink />
+    </div>
   )
 }
 
-// The running year and, while it's fresh, the one before it
-function YearReviewLinks({
-  years,
-  currentYear,
-  currentMonth,
-}: {
-  years: number[]
-  currentYear: number
-  currentMonth: number
-}) {
+// The year review is a seasonal event: the running year in December, the year just ended in January
+function YearReviewLink() {
   const { t } = useTranslation()
-  const shown = years
-    .filter((y) => y === currentYear || (y === currentYear - 1 && currentMonth <= 3))
-    .sort((a, b) => b - a)
-  if (shown.length === 0) return null
+  const [now] = useState(() => new Date())
+  const month = now.getMonth() + 1
+  const year = month === 12 ? now.getFullYear() : now.getFullYear() - 1
+  const timeZone = Intl.DateTimeFormat().resolvedOptions().timeZone
+  const seasonal = month === 12 || month === 1
+  const years = useQuery({ ...activityYearsQuery(timeZone), enabled: seasonal })
+  if (!seasonal || !years.data?.includes(year)) return null
   return (
-    <div className="mt-4 flex flex-wrap gap-2">
-      {shown.map((year) => (
-        <Button
-          key={year}
-          variant="secondary-outline"
-          size="sm"
-          render={<Link to="/app/stats/year/$year" params={{ year: String(year) }} />}
-        >
-          <Sparkles aria-hidden="true" />
-          {t(year === currentYear ? 'yearReview.linkSoFar' : 'yearReview.link', { year })}
-        </Button>
-      ))}
-    </div>
+    <Button
+      variant="secondary-outline"
+      size="sm"
+      render={<Link to="/app/stats/year/$year" params={{ year: String(year) }} />}
+    >
+      <Sparkles aria-hidden="true" />
+      {t(month === 12 ? 'yearReview.linkSoFar' : 'yearReview.link', { year })}
+    </Button>
   )
 }
 
@@ -259,11 +252,6 @@ export function StatsPage() {
       <StatsTabs />
       <p className="mt-4 text-muted-foreground">{t('stats.description')}</p>
       <GarminDerivedNote className="mt-1" />
-      <YearReviewLinks
-        years={years.data ?? []}
-        currentYear={currentYear}
-        currentMonth={today.month}
-      />
       <div className="mt-6 flex flex-wrap gap-4">
         <FormField label={t('stats.period')} className="text-sm font-medium">
           {(id) => (
