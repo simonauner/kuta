@@ -82,8 +82,8 @@ export function TopRoutesSection() {
         <Heading level={2} id="top-routes-title">
           {t('topRoutes.title')}
         </Heading>
-        {items.length > 3 && (
-          <Button variant="link" render={<Link to="/app/stats/routes" />}>
+        {items.length > 4 && (
+          <Button variant="link-muted" render={<Link to="/app/stats/routes" />}>
             {t('topRoutes.all')}
             <ArrowRight aria-hidden="true" />
           </Button>
@@ -91,7 +91,7 @@ export function TopRoutesSection() {
       </div>
       <p className="mt-1 text-body text-muted-foreground">{t('topRoutes.description')}</p>
       {grouping && <GroupingNote className="mt-4" />}
-      <RouteList routes={items.slice(0, 3)} />
+      <RouteList routes={items.slice(0, 4)} />
     </section>
   )
 }
