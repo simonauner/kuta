@@ -202,6 +202,31 @@ public class GarminTests(KutaFactory factory) : IClassFixture<KutaFactory>
         finally { await conn.ExecuteAsync("delete from auth.users where email = @email or id = @other", new { email, other }); }
     }
 
+    // Garmin answering a refresh with an unexpected status must not break the hourly cleanup that the job worker runs.
+    [Fact]
+    public async Task Maintenance_survives_a_refresh_that_Garmin_refuses()
+    {
+        var ct = TestContext.Current.CancellationToken;
+        await using var conn = await factory.Services.GetRequiredService<NpgsqlDataSource>().OpenConnectionAsync(ct);
+        var userId = await RunnerAsync(conn);
+        await Garmin.SaveConnectionAsync(conn, Provider, userId, $"garmin-{userId}", new GarminTokens("synthetic-access",
+            "synthetic-refresh", DateTimeOffset.UtcNow.AddHours(1), DateTimeOffset.UtcNow.AddDays(1)),
+            [GarminClient.ActivityExport], ct);
+        var refusing = new GarminClient(new HttpClient(new StatusHandler(HttpStatusCode.Forbidden)), new ConfigurationBuilder()
+            .AddInMemoryCollection(new Dictionary<string, string?>
+            {
+                ["Garmin:ClientId"] = "synthetic-client", ["Garmin:ClientSecret"] = "synthetic-secret",
+            }).Build());
+
+        await Garmin.MaintainAsync(conn, refusing, Provider, ct);
+    }
+
+    sealed class StatusHandler(HttpStatusCode status) : HttpMessageHandler
+    {
+        protected override Task<HttpResponseMessage> SendAsync(HttpRequestMessage request, CancellationToken ct) =>
+            Task.FromResult(new HttpResponseMessage(status));
+    }
+
     [Fact]
     public void Before_launch_only_listed_accounts_may_connect()
     {

@@ -59,8 +59,9 @@ public sealed class JobWorker(IServiceProvider services, IConfiguration configur
             {
                 if (DateTime.UtcNow - lastCleanup > CleanupInterval)
                 {
-                    await CleanupAsync(services, stoppingToken);
+                    // Set first: a cleanup that keeps failing must wait an hour, not run instead of every job.
                     lastCleanup = DateTime.UtcNow;
+                    await CleanupAsync(services, stoppingToken);
                 }
                 if (!await RunNextAsync(services, null, stoppingToken, diagnostics))
                     await Task.Delay(IdleDelay, stoppingToken);
