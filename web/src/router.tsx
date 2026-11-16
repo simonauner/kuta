@@ -22,6 +22,7 @@ import { AnalysisPage, StatsPage } from '@/routes/stats'
 import { RoutesPage, routeSearch, savedRouteFilters } from '@/routes/my-routes'
 import { YearReviewPage } from '@/routes/year-review'
 import { RecordsPage, recordsSearch } from '@/routes/records'
+import { AchievementsPage } from '@/routes/achievements'
 import { AdminPage } from '@/routes/admin'
 import { activityPageSearch, activitySearch } from '@/lib/activity'
 import { activityQuery } from '@/lib/activity-query'
@@ -102,6 +103,12 @@ const profileRoute = createRoute({
   getParentRoute: () => rootRoute,
   path: '/app/profile',
   component: ProfilePage,
+})
+const achievementsRoute = createRoute({
+  getParentRoute: () => rootRoute,
+  path: '/app/profile/achievements',
+  validateSearch: recordsSearch,
+  component: AchievementsPage,
 })
 
 const runnerRoute = createRoute({
@@ -207,6 +214,7 @@ const routeTree = rootRoute.addChildren([
   routesRoute,
   recordsRoute,
   profileRoute,
+  achievementsRoute,
   runnerRoute,
   sharedProfileRoute,
   groupsRoute,
