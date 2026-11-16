@@ -218,6 +218,9 @@ export type ActivityDetail = Activity & {
   avgSpeedMps: number | null
   elevationGainM: number | null
   device: string | null
+  // The watch's own Training Effect (0–5); owner only, needs heart rate consent
+  aerobicTrainingEffect: number | null
+  anaerobicTrainingEffect: number | null
   streams: ActivityStreams | null
   originalParts: ActivityPart[]
   originalSport: string

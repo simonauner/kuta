@@ -21,4 +21,13 @@ public class FitImportTests
         Assert.Null(parsed.Route);
         Assert.Equal(61, parsed.T.Length);
     }
+
+    // The watch writes Training Effect as a byte scaled by 10, so a broken value can reach 25.5 and would fail the import.
+    [Fact]
+    public void Training_effect_outside_zero_to_five_is_treated_as_missing()
+    {
+        var file = FitFile.Run(new System.DateTime(2026, 1, 1, 0, 0, 0, System.DateTimeKind.Utc), 60, trainingEffect: 25f);
+        var parsed = FitImport.Parse(file)!;
+        Assert.Equal((null, 0f), (parsed.AerobicTrainingEffect, parsed.AnaerobicTrainingEffect));
+    }
 }

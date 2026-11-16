@@ -419,6 +419,16 @@
     "chartTemp": "Temperatur (°C)",
     "avgCadence": "Snittkadens",
     "avgTemp": "Snittemperatur",
+    "trainingEffect": {
+      "aerobic": "Aerob träningseffekt",
+      "anaerobic": "Anaerob träningseffekt",
+      "none": "Ingen effekt",
+      "minor": "Liten effekt",
+      "maintaining": "Bibehållande",
+      "improving": "Förbättrande",
+      "highlyImproving": "Mycket förbättrande",
+      "overreaching": "Överbelastande"
+    },
     "cadence": "Kadens",
     "lap": "Varv",
     "tab": {

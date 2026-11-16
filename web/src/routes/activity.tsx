@@ -247,6 +247,8 @@ export function ActivityPage() {
         movingS: null,
         avgHr: average(view?.streams.hr ?? null),
         maxHr: null,
+        aerobicTrainingEffect: null,
+        anaerobicTrainingEffect: null,
         elevationGainM: null,
         streams: view?.streams ?? null,
         laps: original.laps.filter(
@@ -270,6 +272,20 @@ export function ActivityPage() {
   const cadenceUnit = isCyclingSport(a.sport) ? 'rpm' : 'spm'
   const cadence = average(a.streams?.cadence ?? null)
   const temp = average(a.streams?.temp ?? null)
+  // Garmin's wording for each whole step of the 0–5 scale; 5.0 is the top step
+  const trainingEffect = (value: number) =>
+    `${value.toLocaleString(i18n.resolvedLanguage, { minimumFractionDigits: 1, maximumFractionDigits: 1 })} ${t(
+      (
+        [
+          'activity.trainingEffect.none',
+          'activity.trainingEffect.minor',
+          'activity.trainingEffect.maintaining',
+          'activity.trainingEffect.improving',
+          'activity.trainingEffect.highlyImproving',
+          'activity.trainingEffect.overreaching',
+        ] as const
+      )[Math.min(5, Math.floor(value))],
+    )}`
   const stats = [
     [t('activity.distance'), `${number.format(a.distanceM / 1000)} km`],
     [t('activity.time'), formatDuration(a.durationS)],
@@ -283,6 +299,14 @@ export function ActivityPage() {
     a.maxHr !== null && [t('activity.maxHr'), `${a.maxHr} bpm`],
     !mixed && cadence !== null && [t('activity.avgCadence'), `${cadence} ${cadenceUnit}`],
     temp !== null && [t('activity.avgTemp'), `${temp} °C`],
+    a.aerobicTrainingEffect !== null && [
+      t('activity.trainingEffect.aerobic'),
+      trainingEffect(a.aerobicTrainingEffect),
+    ],
+    a.anaerobicTrainingEffect !== null && [
+      t('activity.trainingEffect.anaerobic'),
+      trainingEffect(a.anaerobicTrainingEffect),
+    ],
   ].filter((s): s is [string, string] => !!s)
 
   const splitTable = view && (

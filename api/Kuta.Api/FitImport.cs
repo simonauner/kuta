@@ -9,12 +9,14 @@ public sealed record ParsedActivity(
     string Sport, System.DateTime StartedAt, int DurationS, int? MovingS, double DistanceM,
     short? AvgHr, short? MaxHr, float? AvgSpeedMps, float? ElevationGainM, LineString? Route,
     int[] T, float?[]? Dist, short?[]? Hr, float?[]? Speed, float?[]? Alt, double?[]? Lat, double?[]? Lon,
-    string? Device = null, short?[]? Cadence = null, short?[]? Temp = null, ParsedLap[]? Laps = null, ActivityPart[]? Parts = null)
+    string? Device = null, short?[]? Cadence = null, short?[]? Temp = null, ParsedLap[]? Laps = null, ActivityPart[]? Parts = null,
+    float? AerobicTrainingEffect = null, float? AnaerobicTrainingEffect = null)
 {
-    // Without consent no heart rate (health data) is stored: neither summary, stream nor lap heart rate.
+    // Without consent no heart rate (health data) is stored: neither summary, stream nor lap heart rate, nor the
+    // watch's training effect, which it derives from heart rate.
     public ParsedActivity WithoutHeartRate() => this with
     {
-        AvgHr = null, MaxHr = null, Hr = null, Laps = Laps?.Select(l => l with { AvgHr = null, MaxHr = null }).ToArray(),
+        AvgHr = null, MaxHr = null, Hr = null, AerobicTrainingEffect = null, AnaerobicTrainingEffect = null, Laps = Laps?.Select(l => l with { AvgHr = null, MaxHr = null }).ToArray(),
     };
 }
 
@@ -131,6 +133,8 @@ public static class FitImport
             Sport = kind, DurationS = parts[^1].EndS, MovingS = legs.Sum(l => l.MovingS ?? l.DurationS),
             DistanceM = legs.Sum(l => l.DistanceM), AvgSpeedMps = null,
             AvgHr = null, MaxHr = legs.Max(l => l.MaxHr),
+            // The watch rates each session on its own; there is no total for the whole activity.
+            AerobicTrainingEffect = null, AnaerobicTrainingEffect = null,
             ElevationGainM = legs.Any(l => l.ElevationGainM is not null) ? legs.Sum(l => l.ElevationGainM ?? 0) : null,
             T = samples.Select(s => s.T).ToArray(), Dist = samples.Select(s => s.D).ToArray(),
             Hr = Merge(l => l.Hr), Speed = Merge(l => l.Speed), Alt = Merge(l => l.Alt),
@@ -171,6 +175,8 @@ public static class FitImport
             ElevationGainM: session.GetTotalAscent(),
             Route: Route(lat, lon),
             Device: Device(fileId, devices),
+            AerobicTrainingEffect: TrainingEffect(session.GetTotalTrainingEffect()),
+            AnaerobicTrainingEffect: TrainingEffect(session.GetTotalAnaerobicTrainingEffect()),
             T: records.Select(r => Seconds(r.Time)).ToArray(),
             Dist: dist,
             Hr: Channel(records, r => (short?)r.Hr),
@@ -191,6 +197,9 @@ public static class FitImport
                 DescentM: l.GetTotalDescent(),
                 AvgCadence: Cadence(l.GetAvgCadence(), l.GetAvgFractionalCadence()))).ToArray());
     }
+
+    // Training Effect is defined on 0–5; anything else is a broken value and must not fail the import.
+    private static float? TrainingEffect(float? value) => value is >= 0 and <= 5 ? value : null;
 
     // The watch name: the product name if the watch writes it (device_info for the file's creator), otherwise
     // manufacturer + Garmin's product code, e.g. "Garmin Fenix 5s".
