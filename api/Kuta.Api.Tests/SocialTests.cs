@@ -222,8 +222,9 @@ public class SocialTests(KutaFactory factory) : IClassFixture<KutaFactory>
             var viewerId = await conn.ExecuteScalarAsync<Guid>("select id from auth.users where email = @viewerEmail", new { viewerEmail });
             var activityId = Guid.NewGuid();
             await conn.ExecuteAsync("""
-                insert into activities (id, user_id, source, title, started_at, duration_s, distance_m, privacy, avg_hr, max_hr, device)
-                values (@activityId, @ownerId, 'manual', 'Shared test', now(), 1800, 5000, 'followers', 140, 170, 'Private watch');
+                insert into activities (id, user_id, source, title, started_at, duration_s, distance_m, privacy, avg_hr, max_hr, device,
+                                        aerobic_training_effect, anaerobic_training_effect)
+                values (@activityId, @ownerId, 'manual', 'Shared test', now(), 1800, 5000, 'followers', 140, 170, 'Private watch', 3.1, 0.5);
                 update activities set route = st_geogfromtext('LINESTRING(18 59,18.02 59.01,18.04 59.02)') where id = @activityId;
                 insert into activity_streams (activity_id, t, dist, hr, lat, lon)
                 values (@activityId, '{0,1800}', '{0,5000}', '{140,150}', '{59,59.1}', '{18,18.1}');
@@ -271,6 +272,7 @@ public class SocialTests(KutaFactory factory) : IClassFixture<KutaFactory>
             Assert.Null(detail.AvgHr);
             Assert.Null(detail.MaxHr);
             Assert.Null(detail.Device);
+            Assert.Equal((null, null), (detail.AerobicTrainingEffect, detail.AnaerobicTrainingEffect));
             Assert.Null(detail.Streams!.Hr);
             Assert.Null(detail.Streams.Lat);
             Assert.Null(detail.Streams.Lon);
@@ -279,6 +281,7 @@ public class SocialTests(KutaFactory factory) : IClassFixture<KutaFactory>
             Assert.Empty(detail.EquipmentIds);
             var ownDetail = (await owner.GetFromJsonAsync<ActivityDetail>($"/api/activities/{activityId}", ct))!;
             Assert.Equal((short)140, ownDetail.AvgHr);
+            Assert.Equal((3.1f, 0.5f), (ownDetail.AerobicTrainingEffect, ownDetail.AnaerobicTrainingEffect));
             Assert.NotNull(ownDetail.Streams!.Lat);
             Assert.Null(Assert.Single((await viewer.GetFromJsonAsync<ActivityBestEffort[]>($"/api/activities/{activityId}/best-efforts", ct))!).RecordStatus);
             var update = new { title = "Shared test", tags = Array.Empty<string>(), equipmentIds = Array.Empty<Guid>(), privacy = "public" };

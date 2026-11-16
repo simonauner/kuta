@@ -40,9 +40,9 @@ public class FitUploadTests(KutaFactory factory) : IClassFixture<KutaFactory>
             var created = await upload.Content.ReadFromJsonAsync<JsonElement>(ct);
             var id = created.GetProperty("id").GetGuid();
             Assert.Equal(JsonValueKind.Null, created.GetProperty("avgHr").ValueKind);
-            var row = await conn.QuerySingleAsync<(string Sport, string? Title, int DurationS, double DistanceM, short? AvgHr, string? RawFileKey, bool HasRoute)>(
-                "select sport, title, duration_s, distance_m, avg_hr, raw_file_key, route is not null from activities where id = @id", new { id });
-            Assert.Equal(("running", (string?)"Morgonrunda", 600, 1800d, (short?)null, (string?)null, true), row);
+            var row = await conn.QuerySingleAsync<(string Sport, string? Title, int DurationS, double DistanceM, short? AvgHr, string? RawFileKey, bool HasRoute, float? TrainingEffect)>(
+                "select sport, title, duration_s, distance_m, avg_hr, raw_file_key, route is not null, aerobic_training_effect from activities where id = @id", new { id });
+            Assert.Equal(("running", (string?)"Morgonrunda", 600, 1800d, (short?)null, (string?)null, true, (float?)null), row);
             Assert.Equal("Lugnt pass\nMed vänner", (await client.GetFromJsonAsync<ActivityDetail>($"/api/activities/{id}", ct))!.Description);
             // The visibility chosen in the form wins over the default (private)
             Assert.Equal("followers", await conn.QuerySingleAsync<string>("select privacy from activities where id = @id", new { id }));
@@ -75,10 +75,12 @@ public class FitUploadTests(KutaFactory factory) : IClassFixture<KutaFactory>
             Assert.True((await consent.Content.ReadFromJsonAsync<JsonElement>(ct)).GetProperty("hrConsent").GetBoolean());
             var evening = await Upload(client, FitFile.Run(start.AddHours(12), seconds: 300), ct);
             var eveningId = (await evening.Content.ReadFromJsonAsync<JsonElement>(ct)).GetProperty("id").GetGuid();
-            var hr = await conn.QuerySingleAsync<(short? AvgHr, short? MaxHr, int? Points)>(
-                "select a.avg_hr, a.max_hr, cardinality(s.hr) from activities a join activity_streams s on s.activity_id = a.id where a.id = @eveningId",
-                new { eveningId });
-            Assert.Equal(((short?)150, (short?)165, (int?)301), hr);
+            var hr = await conn.QuerySingleAsync<(short? AvgHr, short? MaxHr, int? Points, float? Aerobic, float? Anaerobic)>(
+                """
+                select a.avg_hr, a.max_hr, cardinality(s.hr), a.aerobic_training_effect, a.anaerobic_training_effect
+                from activities a join activity_streams s on s.activity_id = a.id where a.id = @eveningId
+                """, new { eveningId });
+            Assert.Equal(((short?)150, (short?)165, (int?)301, (float?)3.1f, (float?)0f), hr);
             Assert.Equal(5, await conn.ExecuteScalarAsync<int>(
                 "select count(avg_hr) from activity_laps where activity_id = @eveningId", new { eveningId }));
             Assert.Equal(1, await StoredFiles(conn, runner));
@@ -98,6 +100,7 @@ public class FitUploadTests(KutaFactory factory) : IClassFixture<KutaFactory>
                 select count(*) from activities a join activity_streams s on s.activity_id = a.id
                 where a.user_id = (select id from auth.users where email = @runner)
                   and (a.avg_hr is not null or s.hr is not null or a.raw_file_key is not null or a.aerobic_hr is not null
+                       or a.aerobic_training_effect is not null or a.anaerobic_training_effect is not null
                        or exists (select 1 from activity_laps l where l.activity_id = a.id and l.avg_hr is not null))
                 """, new { runner }));
             Assert.Equal(0, await StoredFiles(conn, runner));
@@ -281,7 +284,7 @@ static class FitFile
         }
     }
 
-    public static byte[] Run(System.DateTime start, int seconds, double latitude = 59.33)
+    public static byte[] Run(System.DateTime start, int seconds, double latitude = 59.33, float trainingEffect = 3.1f)
     {
         using var stream = new MemoryStream();
         var encoder = new Encode(ProtocolVersion.V20);
@@ -338,6 +341,8 @@ static class FitFile
         session.SetAvgHeartRate(150);
         session.SetMaxHeartRate(165);
         session.SetTotalAscent(0);
+        session.SetTotalTrainingEffect(trainingEffect);
+        session.SetTotalAnaerobicTrainingEffect(0f);
         encoder.Write(session);
 
         encoder.Close();
