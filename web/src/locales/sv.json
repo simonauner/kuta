@@ -192,6 +192,8 @@
   "records": {
     "helpLabel": "Hjälp om löprekord",
     "help": "Ser något fel ut? En aktivitet med felaktiga siffror kan undantas från löprekord genom att redigera aktiviteten.",
+    "byYear": "År för år",
+    "byYearDescription": "Bläddra bland dina bästa insatser genom alla år eller för ett enskilt år.",
     "bestEfforts": "Bästa insatser",
     "title": "Löprekord",
     "description": "Bästa insatser ur dina löprundor med tidsserier från fil. Tid inkluderar pauser.",

@@ -192,6 +192,8 @@
   "records": {
     "helpLabel": "Help with running records",
     "help": "Does something look wrong? You can exclude an activity with incorrect data from running records by editing the activity.",
+    "byYear": "Year by year",
+    "byYearDescription": "Browse your best efforts of all time or for a single year.",
     "bestEfforts": "Best efforts",
     "title": "Running records",
     "description": "Best efforts from your runs with recorded data from a file. Time includes pauses.",

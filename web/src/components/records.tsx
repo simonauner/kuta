@@ -4,6 +4,8 @@ import { Heading } from '@/components/ui/heading'
 import { useState } from 'react'
 import { keepPreviousData, useQuery } from '@tanstack/react-query'
 import { Link, useRouterState } from '@tanstack/react-router'
+import { ArrowRight } from 'lucide-react'
+import { Button } from '@/components/ui/button'
 import { useTranslation } from 'react-i18next'
 import { HelpPopover } from '@/components/help-popover'
 import { RecordAward } from '@/components/record-award'
@@ -24,7 +26,7 @@ import { Loader } from '@/components/loader'
 import { Select } from '@/components/ui/select'
 import { QueryError } from '@/components/query-error'
 
-function EffortLink({ effort }: { effort: { activityId: string; elapsedS: number } }) {
+export function EffortLink({ effort }: { effort: { activityId: string; elapsedS: number } }) {
   const returnTo = useRouterState({ select: (s) => s.location.href })
   return (
     <Link
@@ -67,11 +69,19 @@ export function RecordsSection({ year }: { year: number }) {
 
   return (
     <section className="mt-10" aria-labelledby="records-title">
-      <div className="flex items-center justify-between gap-4">
-        <Heading level={2} id="records-title">
-          {t('records.title')}
-        </Heading>
-        <HelpPopover label={t('records.helpLabel')}>{t('records.help')}</HelpPopover>
+      <div className="flex flex-wrap items-center justify-between gap-x-4">
+        <div className="flex items-center gap-2">
+          <Heading level={2} id="records-title">
+            {t('records.title')}
+          </Heading>
+          <HelpPopover label={t('records.helpLabel')}>{t('records.help')}</HelpPopover>
+        </div>
+        <Button asChild variant="link">
+          <Link to="/app/stats/records">
+            {t('records.byYear')}
+            <ArrowRight aria-hidden="true" />
+          </Link>
+        </Button>
       </div>
       <p className="mt-2 text-body text-muted-foreground">{t('records.description')}</p>
 
