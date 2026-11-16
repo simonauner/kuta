@@ -10,13 +10,14 @@ public sealed record ParsedActivity(
     short? AvgHr, short? MaxHr, float? AvgSpeedMps, float? ElevationGainM, LineString? Route,
     int[] T, float?[]? Dist, short?[]? Hr, float?[]? Speed, float?[]? Alt, double?[]? Lat, double?[]? Lon,
     string? Device = null, short?[]? Cadence = null, short?[]? Temp = null, ParsedLap[]? Laps = null, ActivityPart[]? Parts = null,
-    float? AerobicTrainingEffect = null, float? AnaerobicTrainingEffect = null)
+    float? AerobicTrainingEffect = null, float? AnaerobicTrainingEffect = null,
+    short[]? HrZones = null)
 {
     // Without consent no heart rate (health data) is stored: neither summary, stream nor lap heart rate, nor the
     // watch's training effect, which it derives from heart rate.
     public ParsedActivity WithoutHeartRate() => this with
     {
-        AvgHr = null, MaxHr = null, Hr = null, AerobicTrainingEffect = null, AnaerobicTrainingEffect = null, Laps = Laps?.Select(l => l with { AvgHr = null, MaxHr = null }).ToArray(),
+        AvgHr = null, MaxHr = null, Hr = null, AerobicTrainingEffect = null, AnaerobicTrainingEffect = null, HrZones = null, Laps = Laps?.Select(l => l with { AvgHr = null, MaxHr = null }).ToArray(),
     };
 }
 
@@ -57,6 +58,7 @@ public static class FitImport
         var records = new List<Sample>();
         var laps = new List<LapMesg>();
         var devices = new List<DeviceInfoMesg>();
+        var zones = new List<TimeInZoneMesg>();
         FileIdMesg? fileId = null;
         decoder.MesgEvent += broadcaster.OnMesg;
         decoder.MesgDefinitionEvent += broadcaster.OnMesgDefinition;
@@ -69,12 +71,15 @@ public static class FitImport
         broadcaster.RecordMesgEvent += (_, e) => Add(records, Sample.From((RecordMesg)e.mesg), MaxRecords);
         broadcaster.LapMesgEvent += (_, e) => Add(laps, (LapMesg)e.mesg, MaxMessages);
         broadcaster.DeviceInfoMesgEvent += (_, e) => Add(devices, (DeviceInfoMesg)e.mesg, MaxMessages);
+        broadcaster.TimeInZoneMesgEvent += (_, e) => Add(zones, (TimeInZoneMesg)e.mesg, MaxMessages);
         broadcaster.FileIdMesgEvent += (_, e) => fileId ??= (FileIdMesg)e.mesg;
         stream.Position = 0;
         try { if (!decoder.Read(stream) || sessions.Count == 0) return null; }
         catch (TooLargeException) { return null; }
 
-        if (sessions.Count == 1) return ParseSession(sessions[0], records, laps, fileId, devices);
+        var hrZones = HrZones(zones);
+        if (sessions.Count == 1) return ParseSession(sessions[0], records, laps, fileId, devices) is { } single
+            ? single with { HrZones = hrZones } : null;
         if (sessions.Count > 200) return null;
         var ordered = sessions.OrderBy(s => s.GetStartTime()?.GetDateTime()).ToArray();
         var legs = ordered.Select(session =>
@@ -142,7 +147,22 @@ public static class FitImport
             Cadence = Merge(l => l.Cadence), Temp = Merge(l => l.Temp),
             Laps = legs.Zip(parts).SelectMany(p => (p.First.Laps ?? []).Select(l => l with { StartS = l.StartS + p.Second.StartS })).ToArray(),
             Parts = parts,
+            HrZones = hrZones,
         };
+    }
+
+    // The watch's zone boundaries for the first session: the upper limit below zone 1, then the upper limit of each zone
+    // except the last. Null unless strictly increasing within a plausible range.
+    // shortcut: one set per activity, so a multisport file uses the first sport's zones; store per part if watches differ.
+    private static short[]? HrZones(List<TimeInZoneMesg> zones)
+    {
+        var session = zones.FirstOrDefault(z => z.GetReferenceMesg() == MesgNum.Session && z.GetNumHrZoneHighBoundary() > 0);
+        if (session is null) return null;
+        var bounds = Enumerable.Range(0, session.GetNumHrZoneHighBoundary())
+            .Select(i => session.GetHrZoneHighBoundary(i)).ToArray();
+        if (bounds.Length is < 2 or > 10 || bounds.Any(b => b is null or 0 or >= 255)) return null;
+        var values = bounds.Select(b => (short)b!.Value).ToArray();
+        return values.Zip(values.Skip(1)).All(p => p.First < p.Second) ? values : null;
     }
 
     private static ParsedActivity? ParseSession(SessionMesg session, List<Sample> records, List<LapMesg> laps,

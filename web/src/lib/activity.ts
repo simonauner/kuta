@@ -228,6 +228,8 @@ export type ActivityDetail = Activity & {
   partsEdited: boolean
   canSplit: boolean
   laps: ActivityLap[]
+  // The watch's zone boundaries (owner only): upper limit below zone 1, then of each zone but the last
+  hrZones: number[] | null
 }
 
 // Mean of the measured values in a channel (gaps don't count), rounded

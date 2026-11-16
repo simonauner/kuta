@@ -1,6 +1,12 @@
 import assert from 'node:assert/strict'
 import { test } from 'node:test'
-import { gradeFactor, heartRateDrift, intervals, pacing } from '../src/lib/activity-analysis.ts'
+import {
+  gradeFactor,
+  heartRateDrift,
+  heartRateZones,
+  intervals,
+  pacing,
+} from '../src/lib/activity-analysis.ts'
 
 // One sample per second; speed(s) and hr(s) give the value at each second.
 function run(seconds, speed, hr = () => 150, alt = null) {
@@ -178,4 +184,12 @@ test('a long run with slow hill or walking laps is not intervals', () => {
     intervals([lap(1000, 220), lap(3000, 900), lap(1000, 220), lap(200, 90), lap(1000, 220)]),
     null,
   )
+})
+
+test('heart rate zones count time by the upper boundaries and skip pauses', () => {
+  const bounds = [100, 120, 140, 160, 175]
+  // Boundary values belong to the zone below; above the last boundary is the top zone
+  const streams = { ...run(4, () => 3), t: [0, 1, 2, 3, 4, 100], hr: [90, 100, 121, 160, 176, 130] }
+  assert.deepEqual(heartRateZones(streams, bounds), [1, 0, 1, 1, 0, 1])
+  assert.equal(heartRateZones({ ...streams, hr: null }, bounds), null)
 })

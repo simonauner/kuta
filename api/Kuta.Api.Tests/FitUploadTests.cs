@@ -41,7 +41,7 @@ public class FitUploadTests(KutaFactory factory) : IClassFixture<KutaFactory>
             var id = created.GetProperty("id").GetGuid();
             Assert.Equal(JsonValueKind.Null, created.GetProperty("avgHr").ValueKind);
             var row = await conn.QuerySingleAsync<(string Sport, string? Title, int DurationS, double DistanceM, short? AvgHr, string? RawFileKey, bool HasRoute, float? TrainingEffect)>(
-                "select sport, title, duration_s, distance_m, avg_hr, raw_file_key, route is not null, aerobic_training_effect from activities where id = @id", new { id });
+                "select sport, title, duration_s, distance_m, coalesce(avg_hr, hr_zones[1]), raw_file_key, route is not null, aerobic_training_effect from activities where id = @id", new { id });
             Assert.Equal(("running", (string?)"Morgonrunda", 600, 1800d, (short?)null, (string?)null, true, (float?)null), row);
             Assert.Equal("Lugnt pass\nMed vänner", (await client.GetFromJsonAsync<ActivityDetail>($"/api/activities/{id}", ct))!.Description);
             // The visibility chosen in the form wins over the default (private)
@@ -81,6 +81,8 @@ public class FitUploadTests(KutaFactory factory) : IClassFixture<KutaFactory>
                 from activities a join activity_streams s on s.activity_id = a.id where a.id = @eveningId
                 """, new { eveningId });
             Assert.Equal(((short?)150, (short?)165, (int?)301, (float?)3.1f, (float?)0f), hr);
+            Assert.Equal(new short[] { 100, 120, 140, 160, 175 },
+                await conn.QuerySingleAsync<short[]>("select hr_zones from activities where id = @eveningId", new { eveningId }));
             Assert.Equal(5, await conn.ExecuteScalarAsync<int>(
                 "select count(avg_hr) from activity_laps where activity_id = @eveningId", new { eveningId }));
             Assert.Equal(1, await StoredFiles(conn, runner));
@@ -101,6 +103,7 @@ public class FitUploadTests(KutaFactory factory) : IClassFixture<KutaFactory>
                 where a.user_id = (select id from auth.users where email = @runner)
                   and (a.avg_hr is not null or s.hr is not null or a.raw_file_key is not null or a.aerobic_hr is not null
                        or a.aerobic_training_effect is not null or a.anaerobic_training_effect is not null
+                       or a.hr_zones is not null
                        or exists (select 1 from activity_laps l where l.activity_id = a.id and l.avg_hr is not null))
                 """, new { runner }));
             Assert.Equal(0, await StoredFiles(conn, runner));
@@ -284,7 +287,10 @@ static class FitFile
         }
     }
 
-    public static byte[] Run(System.DateTime start, int seconds, double latitude = 59.33, float trainingEffect = 3.1f)
+    public static readonly byte[] HrZones = [100, 120, 140, 160, 175];
+
+    public static byte[] Run(System.DateTime start, int seconds, double latitude = 59.33, float trainingEffect = 3.1f,
+        byte[]? hrZones = null)
     {
         using var stream = new MemoryStream();
         var encoder = new Encode(ProtocolVersion.V20);
@@ -344,6 +350,15 @@ static class FitFile
         session.SetTotalTrainingEffect(trainingEffect);
         session.SetTotalAnaerobicTrainingEffect(0f);
         encoder.Write(session);
+
+        // The watch's heart rate zones, as Garmin writes them after the session
+        var zones = new TimeInZoneMesg();
+        zones.SetTimestamp(new Dynastream.Fit.DateTime(start.AddSeconds(seconds)));
+        zones.SetReferenceMesg(MesgNum.Session);
+        zones.SetReferenceIndex(0);
+        var bounds = hrZones ?? HrZones;
+        for (var i = 0; i < bounds.Length; i++) zones.SetHrZoneHighBoundary(i, bounds[i]);
+        encoder.Write(zones);
 
         encoder.Close();
         return stream.ToArray();

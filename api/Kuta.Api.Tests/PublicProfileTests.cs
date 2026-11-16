@@ -50,7 +50,7 @@ public class PublicProfileTests(KutaFactory factory) : IClassFixture<KutaFactory
 
             // The same filtering as for signed-in viewers: no heart rate, device or GPS streams
             var detail = await visitor.GetFromJsonAsync<ActivityDetail>($"/api/public/activities/{ids["public"]}", ct);
-            Assert.Equal((null, null, null, null), (detail!.AvgHr, detail.Device, detail.Streams?.Hr, detail.Streams?.Lat));
+            Assert.Equal((null, null, null, null, null), (detail!.AvgHr, detail.Device, detail.Streams?.Hr, detail.Streams?.Lat, detail.HrZones));
             Assert.Equal(HttpStatusCode.NotFound, (await visitor.GetAsync($"/api/public/activities/{ids["followers"]}", ct)).StatusCode);
             Assert.Equal(HttpStatusCode.NotFound, (await visitor.GetAsync($"/api/public/activities/{ids["private"]}", ct)).StatusCode);
             // The signed-in API stays closed to visitors

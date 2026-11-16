@@ -1096,6 +1096,14 @@
     "rep": "Rep",
     "recovery": "Recovery"
   },
+  "hrZones": {
+    "title": "Heart rate zones",
+    "help": "About heart rate zones",
+    "helpText": "Time in each zone is counted from the activity's heart rate, without pauses. The zone boundaries are the ones the watch had when the activity was recorded. Percentages are of all time with heart rate, including time below zone 1.",
+    "zone": "Zone {{number}}",
+    "range": "{{from}}–{{to}} bpm",
+    "above": "> {{from}} bpm"
+  },
   "aerobic": {
     "title": "Aerobic efficiency",
     "methodLabel": "How is aerobic efficiency calculated?",

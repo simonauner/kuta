@@ -1096,6 +1096,14 @@
     "rep": "Rep.",
     "recovery": "Vila"
   },
+  "hrZones": {
+    "title": "Pulszoner",
+    "help": "Om pulszonerna",
+    "helpText": "Tiden i varje zon räknas från pulsen i aktiviteten, utan pauser. Zongränserna är de som klockan hade när aktiviteten spelades in. Procenten räknas på all tid med puls, även tid under zon 1.",
+    "zone": "Zon {{number}}",
+    "range": "{{from}}–{{to}} slag/min",
+    "above": "> {{from}} slag/min"
+  },
   "aerobic": {
     "title": "Aerob effektivitet",
     "methodLabel": "Hur räknas aerob effektivitet?",
