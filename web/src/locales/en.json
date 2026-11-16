@@ -419,6 +419,16 @@
     "chartTemp": "Temperature (°C)",
     "avgCadence": "Avg cadence",
     "avgTemp": "Avg temperature",
+    "trainingEffect": {
+      "aerobic": "Aerobic training effect",
+      "anaerobic": "Anaerobic training effect",
+      "none": "No benefit",
+      "minor": "Minor benefit",
+      "maintaining": "Maintaining",
+      "improving": "Improving",
+      "highlyImproving": "Highly improving",
+      "overreaching": "Overreaching"
+    },
     "cadence": "Cadence",
     "lap": "Lap",
     "tab": {
