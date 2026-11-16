@@ -20,7 +20,9 @@ test('buttons get their appearance from variants, with className only for layout
   const offenders = []
   for (const file of files(src)) {
     if (file.endsWith('ui/button.tsx')) continue
-    for (const [, attributes] of readFileSync(file, 'utf8').matchAll(/<Button\b([^<]*?)>/gs)) {
+    for (const [, attributes] of readFileSync(file, 'utf8').matchAll(
+      /<Button\b([^<]*?)(?:>|render=\{)/gs,
+    )) {
       const className = attributes.match(/className="([^"]*)"/)?.[1]
       for (const name of className?.split(/\s+/).filter(Boolean) ?? [])
         if (!layout.test(name)) offenders.push(`${file.slice(src.length)}: ${name}`)

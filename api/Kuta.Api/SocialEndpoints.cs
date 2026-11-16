@@ -247,8 +247,7 @@ public static class SocialEndpoints
         var rows = (await conn.QueryAsync<FeedItem>($"""
             with page as materialized (
                 select a.id, a.user_id, u.display_name, a.sport, a.title, a.started_at, a.duration_s, a.moving_s,
-                    coalesce((select sum(p.distance_m) from activity_parts p where p.activity_id = a.id
-                        and p.original = not a.parts_edited), a.distance_m) as distance_m, a.privacy, a.route, u.privacy_seed,
+                    {Multisport.DistanceSql("a")} as distance_m, a.privacy, a.route, u.privacy_seed,
                     {Supporters.VisibleTier} as supporter_tier, {GarminAttribution.Sql("a")} as attribution, u.avatar_id
                 from activities a join users u on u.id = a.user_id
                 where {CanRead} and (

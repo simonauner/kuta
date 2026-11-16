@@ -83,11 +83,9 @@ export function TopRoutesSection() {
           {t('topRoutes.title')}
         </Heading>
         {items.length > 3 && (
-          <Button asChild variant="link">
-            <Link to="/app/stats/routes">
-              {t('topRoutes.all')}
-              <ArrowRight aria-hidden="true" />
-            </Link>
+          <Button variant="link" render={<Link to="/app/stats/routes" />}>
+            {t('topRoutes.all')}
+            <ArrowRight aria-hidden="true" />
           </Button>
         )}
       </div>

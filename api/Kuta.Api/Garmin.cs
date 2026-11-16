@@ -203,8 +203,10 @@ public static class Garmin
             cancellationToken: ct));
         foreach (var userId in expiring)
         {
+            // One failing connection must not stop the others, nor the job worker that runs this cleanup.
             try { await AccessTokenAsync(conn, garmin, provider, userId, ct, forceRefresh: true); }
-            catch (GarminUnavailableException) { }
+            catch (Exception e) when (e is GarminUnavailableException or HttpRequestException or System.Text.Json.JsonException
+                or System.Security.Cryptography.CryptographicException) { }
         }
     }
 }

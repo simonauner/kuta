@@ -31,10 +31,11 @@ swap_size_mb = 512
 [http_service]
   internal_port = 8080
   force_https = true
-  # Stops when nobody uses the app (cheapest before launch); the first request wakes it.
+  # Always one machine: background jobs (Strava imports) run in the API process and are not traffic, so an auto-stopped
+  # machine would kill them and lose the archive on its local disk.
   auto_stop_machines = 'stop'
   auto_start_machines = true
-  min_machines_running = 0
+  min_machines_running = 1
 
   [[http_service.checks]]
     grace_period = '30s'

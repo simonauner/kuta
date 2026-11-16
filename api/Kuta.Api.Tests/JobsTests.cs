@@ -75,6 +75,42 @@ public class JobsTests(KutaFactory factory) : IClassFixture<KutaFactory>
         }
     }
 
+    // One worker runs everyone's jobs, so a job blocked by a long request (a data export holds the profile) is handed
+    // back for later instead of holding the worker or using up its attempts.
+    [Fact]
+    public async Task Job_waiting_on_a_locked_profile_is_handed_back_without_using_an_attempt()
+    {
+        var ct = TestContext.Current.CancellationToken;
+        var db = factory.Services.GetRequiredService<NpgsqlDataSource>();
+        await using var conn = await db.OpenConnectionAsync(ct);
+        var userId = Guid.NewGuid();
+        try
+        {
+            await conn.ExecuteAsync("""
+                insert into auth.users (id) values (@userId);
+                insert into users (id, display_name) values (@userId, 'Synthetic runner');
+                insert into activities (user_id, source, sport, started_at, duration_s, distance_m, route)
+                values (@userId, 'manual', 'running', now(), 900, 2900,
+                    st_geogfromtext('LINESTRING(18.0 59.3, 18.01 59.3, 18.02 59.3)'))
+                """, new { userId });
+            var job = (await JobQueue.EnqueueAsync(conn, userId, JobKinds.Routes, ct: ct))!;
+
+            await using var export = await db.OpenConnectionAsync(ct);
+            await using var tx = await export.BeginTransactionAsync(ct);
+            await export.ExecuteAsync("select id from users where id = @userId for share", new { userId }, tx);
+            Assert.True(await JobWorker.RunNextAsync(factory.Services, userId, ct));
+            await tx.RollbackAsync(ct);
+
+            var released = (await JobQueue.GetAsync(conn, job.Id, userId, ct))!;
+            Assert.Equal(("queued", 0, (string?)null), (released.Status, released.Attempts, released.ErrorCode));
+            Assert.True(await conn.ExecuteScalarAsync<bool>("select run_after > now() from jobs where id = @Id", job));
+        }
+        finally
+        {
+            await conn.ExecuteAsync("delete from auth.users where id = @userId", new { userId });
+        }
+    }
+
     [Fact]
     public async Task Recalculation_replaces_derived_values_for_the_owners_activities_and_resumes_after_the_saved_activity()
     {

@@ -333,7 +333,7 @@ public static class ActivityEndpoints
     {
         await using var command = new NpgsqlCommand(
             $"""
-            select a.id, a.sport, a.title, a.started_at, a.duration_s, a.moving_s, coalesce((select sum(p.distance_m) from activity_parts p where p.activity_id = a.id and p.original = not a.parts_edited), a.distance_m), a.avg_hr, a.max_hr,
+            select a.id, a.sport, a.title, a.started_at, a.duration_s, a.moving_s, {Multisport.DistanceSql("a")}, a.avg_hr, a.max_hr,
                    a.avg_speed_mps, a.elevation_gain_m, a.device, s.t, s.dist, s.hr, s.speed, s.alt, s.lat, s.lon,
                    s.cadence, s.temp, a.tags,
                    array(select equipment_id from activity_equipment where activity_id = a.id order by equipment_id) as equipment_ids, a.parts_edited, a.description, coalesce(a.original_sport, a.sport), a.user_id, u.display_name, a.privacy, a.exclude_from_records,

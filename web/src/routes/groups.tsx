@@ -1,4 +1,4 @@
-import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
+import { useInfiniteQuery, useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
 import { Link, Navigate, useNavigate, useParams } from '@tanstack/react-router'
 import { useState, type FormEvent, type ReactNode } from 'react'
 import { Settings } from 'lucide-react'
@@ -33,6 +33,7 @@ import { meQuery } from '@/lib/auth'
 import { formatGoalAmount, goalMetrics, type GoalMetric } from '@/lib/goals'
 import {
   clubSearchQuery,
+  groupMembersQuery,
   groupQuery,
   groupsQuery,
   inviteLink,
@@ -461,14 +462,18 @@ function GroupContent({ group }: { group: GroupDetail }) {
         <Heading level={1} className="min-w-0 break-words">
           {group.name}
         </Heading>
-        <Button asChild variant="ghost" size="icon">
-          <Link
-            to="/app/groups/$groupId/settings"
-            params={{ groupId: group.id }}
-            aria-label={t('groups.settingsLink')}
-          >
-            <Settings aria-hidden="true" />
-          </Link>
+        <Button
+          variant="ghost"
+          size="icon"
+          render={
+            <Link
+              to="/app/groups/$groupId/settings"
+              params={{ groupId: group.id }}
+              aria-label={t('groups.settingsLink')}
+            />
+          }
+        >
+          <Settings aria-hidden="true" />
         </Button>
       </div>
       <LeaderboardSection groupId={group.id} sharing={group.shareTotals} />
@@ -752,6 +757,7 @@ function MemberSection({
   change: ReturnType<typeof useGroupChange>
 }) {
   const { t } = useTranslation()
+  const members = useInfiniteQuery(groupMembersQuery(group.id))
   return (
     <>
       {group.requests.length > 0 && (
@@ -767,20 +773,41 @@ function MemberSection({
         </section>
       )}
       <section aria-labelledby="members-heading" className="space-y-3">
-        <Heading level={2} id="members-heading">
-          {t('groups.members')}
-        </Heading>
-        <ul className={card({ padding: 'none', className: 'divide-y' })}>
-          {group.members.map((member) => (
-            <MemberRow
-              key={member.id}
-              group={group}
-              member={member}
-              change={change}
-              request={false}
-            />
-          ))}
-        </ul>
+        <div>
+          <Heading level={2} id="members-heading">
+            {t('groups.members')}
+          </Heading>
+          <p className="text-metadata text-muted-foreground">
+            {t('groups.memberCount', { count: group.memberCount })}
+          </p>
+        </div>
+        <SlowLoading loading={members.isPending}>
+          {!members.data && <QueryError query={members} />}
+          {members.data && (
+            <ul className={card({ padding: 'none', className: 'divide-y' })}>
+              {members.data.pages.flat().map((member) => (
+                <MemberRow
+                  key={member.id}
+                  group={group}
+                  member={member}
+                  change={change}
+                  request={false}
+                />
+              ))}
+            </ul>
+          )}
+        </SlowLoading>
+        <SlowLoading loading={members.isFetchingNextPage}>
+          {members.hasNextPage && (
+            <Button
+              variant="secondary-outline"
+              disabled={members.isFetching}
+              onClick={() => void members.fetchNextPage()}
+            >
+              {members.isFetchNextPageError ? t('groups.retryMembers') : t('groups.moreMembers')}
+            </Button>
+          )}
+        </SlowLoading>
       </section>
     </>
   )

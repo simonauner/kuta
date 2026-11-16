@@ -100,9 +100,7 @@ export function BulkUpload({
       </p>
       {done && (
         <div className="mt-4 flex flex-wrap gap-3">
-          <Button asChild>
-            <Link to="/app/activities">{t('newActivity.showActivities')}</Link>
-          </Button>
+          <Button render={<Link to="/app/activities" />}>{t('newActivity.showActivities')}</Button>
           <Button variant="secondary-outline" onClick={onReset}>
             {t('newActivity.uploadMore')}
           </Button>

@@ -65,17 +65,19 @@ public class GroupsTests(KutaFactory factory) : IClassFixture<KutaFactory>
         {
             Assert.Null(await Board(viewer, null, "count"));
             Assert.Null(await Groups.ReadAsync(conn, viewer, group, ct));
+            Assert.Null(await Groups.ReadMembersAsync(conn, viewer, group, 0, ct));
         }
         var detail = (await Groups.ReadAsync(conn, admin, group, ct))!;
-        Assert.Equal(3, detail.Members.Count);
+        Assert.Equal(3, detail.MemberCount);
         Assert.Equal(pending, Assert.Single(detail.Requests).Id);
         Assert.Empty((await Groups.ReadAsync(conn, silent, group, ct))!.Requests);
 
         // A member who blocked the viewer disappears from the viewer's group; the blocker still sees the blocked member.
         await conn.ExecuteAsync("insert into follow_blocks (blocker_id, blocked_id) values (@sharing, @admin)", new { sharing, admin }, tx);
         Assert.Equal(new[] { admin }, (await Board(admin, null, "count"))!.Keys);
-        Assert.DoesNotContain((await Groups.ReadAsync(conn, admin, group, ct))!.Members, m => m.Id == sharing);
-        Assert.Contains((await Groups.ReadAsync(conn, sharing, group, ct))!.Members, m => m.Id == admin);
+        Assert.DoesNotContain((await Groups.ReadMembersAsync(conn, admin, group, 0, ct))!, m => m.Id == sharing);
+        Assert.Equal(2, (await Groups.ReadAsync(conn, admin, group, ct))!.MemberCount);
+        Assert.Contains((await Groups.ReadMembersAsync(conn, sharing, group, 0, ct))!, m => m.Id == admin);
 
         foreach (var table in new[] { "groups", "group_members" })
         {
@@ -84,6 +86,33 @@ public class GroupsTests(KutaFactory factory) : IClassFixture<KutaFactory>
                 Assert.False(await conn.ExecuteScalarAsync<bool>("select has_table_privilege(@role, @table, 'SELECT,INSERT,UPDATE,DELETE')",
                     new { role, table }, tx));
         }
+        await tx.RollbackAsync(ct);
+    }
+
+    // A club can have 1000 members, so the list comes a page at a time, admins first.
+    [Fact]
+    public async Task Members_are_paged_with_admins_first()
+    {
+        var ct = TestContext.Current.CancellationToken;
+        await using var conn = await factory.Services.GetRequiredService<NpgsqlDataSource>().OpenConnectionAsync(ct);
+        await using var tx = await conn.BeginTransactionAsync(ct);
+        var ids = Enumerable.Range(0, Groups.MemberPageSize + 1).Select(_ => Guid.NewGuid()).ToArray();
+        await conn.ExecuteAsync("""
+            insert into auth.users (id) select unnest(@ids);
+            insert into users (id, display_name) select id, 'A member' from unnest(@ids) as id
+            """, new { ids }, tx);
+        var admin = ids[^1];
+        await conn.ExecuteAsync("update users set display_name = 'Zed admin' where id = @admin", new { admin }, tx);
+        var group = await CreateGroupAsync(conn, tx, admin);
+        foreach (var member in ids[..^1]) await AddMemberAsync(conn, tx, group, member, accepted: true, share: false);
+
+        var first = (await Groups.ReadMembersAsync(conn, admin, group, 0, ct))!;
+        Assert.Equal(Groups.MemberPageSize, first.Count);
+        Assert.Equal(admin, first[0].Id);
+        var rest = (await Groups.ReadMembersAsync(conn, admin, group, Groups.MemberPageSize, ct))!;
+        Assert.Single(rest);
+        Assert.Equal(ids.ToHashSet(), first.Concat(rest).Select(m => m.Id).ToHashSet());
+        Assert.Equal(ids.Length, (await Groups.ReadAsync(conn, admin, group, ct))!.MemberCount);
         await tx.RollbackAsync(ct);
     }
 
@@ -187,6 +216,8 @@ public class GroupsTests(KutaFactory factory) : IClassFixture<KutaFactory>
             Assert.Equal(joinerId, Assert.Single((await admin.GetFromJsonAsync<GroupDetail>($"/api/groups/{id}", ct))!.Requests).Id);
             Assert.Equal(HttpStatusCode.NoContent, (await admin.PostAsync($"/api/groups/{id}/members/{joinerId}/accept", null, ct)).StatusCode);
             Assert.Equal(HttpStatusCode.NoContent, (await joiner.PutAsJsonAsync($"/api/groups/{id}/me", new ShareTotalsRequest(true), ct)).StatusCode);
+            var members = await joiner.GetFromJsonAsync<GroupMember[]>($"/api/groups/{id}/members", ct);
+            Assert.Equal([("Admin", "admin"), ("Joiner", "member")], members!.Select(m => (m.DisplayName, m.Role)));
             var board = await joiner.GetFromJsonAsync<Leaderboard>($"/api/groups/{id}/leaderboard?sportGroup=running&metric=distance", ct);
             Assert.Equal(joinerId, Assert.Single(board!.Rows).UserId);
             Assert.Equal(HttpStatusCode.BadRequest, (await joiner.GetAsync($"/api/groups/{id}/leaderboard?metric=pace", ct)).StatusCode);

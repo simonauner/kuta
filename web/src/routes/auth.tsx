@@ -228,8 +228,8 @@ export function ResetPasswordPage() {
     return (
       <AuthShell title={t('auth.passwordChanged')}>
         <p className="text-muted-foreground">{t('auth.signInAgain')}</p>
-        <Button asChild className="mt-6 w-full">
-          <a href="/app">{t('auth.toLogin')}</a>
+        <Button className="mt-6 w-full" render={<a href="/app" />}>
+          {t('auth.toLogin')}
         </Button>
       </AuthShell>
     )
@@ -263,8 +263,8 @@ export function ResetPasswordPage() {
           {save.isPending ? t('auth.saving') : t('auth.savePassword')}
         </Button>
       </form>
-      <Button asChild variant="link" className="mt-4 w-full">
-        <a href="/app?reset=failed">{t('auth.newLink')}</a>
+      <Button variant="link" className="mt-4 w-full" render={<a href="/app?reset=failed" />}>
+        {t('auth.newLink')}
       </Button>
     </AuthShell>
   )

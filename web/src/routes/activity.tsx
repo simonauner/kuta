@@ -533,14 +533,19 @@ export function ActivityPage() {
           />
         </Heading>
         {original.userId === me?.id && (
-          <Button asChild size="sm" variant="secondary-outline" className="ml-auto">
-            <Link
-              to="/app/activities/$activityId/edit"
-              params={{ activityId: a.id }}
-              search={search}
-            >
-              {t('activity.edit')}
-            </Link>
+          <Button
+            size="sm"
+            variant="secondary-outline"
+            className="ml-auto"
+            render={
+              <Link
+                to="/app/activities/$activityId/edit"
+                params={{ activityId: a.id }}
+                search={search}
+              />
+            }
+          >
+            {t('activity.edit')}
           </Button>
         )}
       </div>

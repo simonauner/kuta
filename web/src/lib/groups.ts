@@ -1,4 +1,4 @@
-import { queryOptions } from '@tanstack/react-query'
+import { infiniteQueryOptions, queryOptions } from '@tanstack/react-query'
 import { api } from './api.ts'
 import type { GoalMetric } from './goals.ts'
 
@@ -35,7 +35,8 @@ export type GroupDetail = {
   inviteCode: string
   role: GroupRole
   shareTotals: boolean
-  members: GroupMember[]
+  // The members themselves come a page at a time (groupMembersQuery): a club can have up to 1000.
+  memberCount: number
   requests: GroupMember[]
 }
 export type GroupInvite = {
@@ -68,6 +69,20 @@ export const groupQuery = (id: string) =>
   queryOptions({
     queryKey: ['groups', id],
     queryFn: () => api.get<GroupDetail>(`/api/groups/${id}`),
+    retry: false,
+  })
+
+const memberPageSize = 50
+
+export const groupMembersQuery = (id: string) =>
+  infiniteQueryOptions({
+    queryKey: ['groups', id, 'members'],
+    initialPageParam: 0,
+    queryFn: ({ pageParam }) =>
+      api.get<GroupMember[]>(`/api/groups/${id}/members?offset=${pageParam}`),
+    // shortcut: a full last page costs one extra request that comes back empty
+    getNextPageParam: (page, pages) =>
+      page.length === memberPageSize ? pages.length * memberPageSize : undefined,
     retry: false,
   })
 

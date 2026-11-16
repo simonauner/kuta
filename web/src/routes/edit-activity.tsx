@@ -89,8 +89,8 @@ function EditActivityForm({ activity }: { activity: ActivityDetail }) {
           {t('activity.cancel')}
         </Button>
       ) : (
-        <Button asChild variant="secondary-outline">
-          <Link {...destination}>{t('activity.cancel')}</Link>
+        <Button variant="secondary-outline" render={<Link {...destination} />}>
+          {t('activity.cancel')}
         </Button>
       )}
     </div>

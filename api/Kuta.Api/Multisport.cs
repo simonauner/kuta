@@ -8,6 +8,11 @@ public record MultisportRequest(string Kind, ActivityPartInput[] Parts);
 
 public static class Multisport
 {
+    // The distance shown for an activity: the current split's parts when it has any (an edited split can differ from the
+    // watch's total), otherwise the activity's own distance. Every read of an activity distance uses this.
+    public static string DistanceSql(string a) =>
+        $"coalesce((select sum(p.distance_m) from activity_parts p where p.activity_id = {a}.id and p.original = not {a}.parts_edited), {a}.distance_m)";
+
     public static readonly string[] Kinds = ["triathlon", "swimrun", "multisport"];
     public static readonly string[] Sports = ["running", "cycling", "swimming", "walking", "hiking", "transition", "other"];
     public static readonly ApiError InvalidParts = new("Kontrollera sporter och gränser. Delarna måste täcka hela inspelningen utan luckor eller överlapp.", "invalidActivityParts");

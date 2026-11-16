@@ -49,6 +49,34 @@ public class RunnerProfileTests(KutaFactory factory) : IClassFixture<KutaFactory
         await tx.RollbackAsync(ct);
     }
 
+    // An edited split can differ from the watch's total; the profile shows the same distance as the feed and statistics.
+    [Fact]
+    public async Task Summary_uses_the_distance_of_an_edited_split()
+    {
+        var ct = TestContext.Current.CancellationToken;
+        await using var conn = await factory.Services.GetRequiredService<NpgsqlDataSource>().OpenConnectionAsync(ct);
+        await using var tx = await conn.BeginTransactionAsync(ct);
+        var owner = Guid.NewGuid();
+        await conn.ExecuteAsync("""
+            insert into auth.users (id) values (@owner);
+            insert into users (id, display_name) values (@owner, 'Owner');
+            with a as (
+                insert into activities (user_id, source, sport, started_at, duration_s, distance_m, parts_edited)
+                values (@owner, 'manual', 'triathlon', now() - interval '1 day', 3600, 20000, true) returning id
+            )
+            insert into activity_parts (activity_id, original, part_index, sport, start_s, end_s, distance_m)
+            select id, original, part_index, sport, start_s, end_s, distance_m from a, (values
+                (false, 0, 'swimming', 0, 900, 1500.0), (false, 1, 'cycling', 900, 3600, 20000.0),
+                (true, 0, 'swimming', 0, 900, 0.0), (true, 1, 'cycling', 900, 3600, 20000.0)
+            ) as p(original, part_index, sport, start_s, end_s, distance_m)
+            """, new { owner }, tx);
+
+        var summary = await RunnerProfile.ReadAsync(conn, owner, owner, "UTC", ct);
+        Assert.Equal(21500, summary.AllTime.DistanceM);
+        Assert.Equal(21500, Assert.Single(summary.Days).DistanceM);
+        await tx.RollbackAsync(ct);
+    }
+
     [Fact]
     public async Task Records_come_from_readable_activities_that_count_for_records()
     {

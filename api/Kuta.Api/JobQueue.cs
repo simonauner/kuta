@@ -106,12 +106,13 @@ public static class JobQueue
             returning status = 'failed'
             """, new { id, code, retry, maxAttempts = MaxAttempts }, cancellationToken: ct));
 
-    // On shutdown: hand the job back immediately without counting the attempt.
-    public static Task ReleaseAsync(NpgsqlConnection conn, Guid id) =>
+    // Hands the job back without counting the attempt: on shutdown immediately, after a lock wait a little later.
+    public static Task ReleaseAsync(NpgsqlConnection conn, Guid id, TimeSpan? delay = null) =>
         conn.ExecuteAsync("""
-            update jobs set status = 'queued', attempts = greatest(attempts - 1, 0), locked_until = null
+            update jobs set status = 'queued', attempts = greatest(attempts - 1, 0), locked_until = null,
+                run_after = now() + @delay
             where id = @id and status = 'running'
-            """, new { id });
+            """, new { id, delay = delay ?? TimeSpan.Zero });
 
     public static Task<int> PruneAsync(NpgsqlConnection conn, CancellationToken ct = default) =>
         conn.ExecuteAsync(new CommandDefinition(

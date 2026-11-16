@@ -129,7 +129,7 @@ public static class Routes
             return null;
         var grouping = await QueuePendingAsync(conn, userId, ct);
         return new((await conn.QueryAsync<SimilarRouteActivity>(new CommandDefinition($"""
-            select a.id, a.sport, a.title, a.started_at, a.duration_s, a.moving_s, a.distance_m,
+            select a.id, a.sport, a.title, a.started_at, a.duration_s, a.moving_s, {Multisport.DistanceSql("a")} as distance_m,
                 {GarminAttribution.Sql("a")} as attribution
             from activities t join activities a on a.route_id = t.route_id and a.user_id = @userId
             where t.id = @activityId and t.user_id = @userId
@@ -146,12 +146,12 @@ public static class Routes
     {
         var grouping = await QueuePendingAsync(conn, userId, ct);
         return new((await conn.QueryAsync<RouteSummary>(new CommandDefinition($"""
-            select r.id, r.sport_group, count(*)::int as count, sum(a.distance_m) as distance_m,
+            select r.id, r.sport_group, count(*)::int as count, sum({Multisport.DistanceSql("a")}) as distance_m,
                 min(a.duration_s) as best_duration_s, (array_agg(a.id order by a.started_at desc))[1] as latest_activity_id,
                 max(a.started_at) as latest_started_at, st_asgeojson(st_simplify(r.route::geometry, 0.00005), 5) as route_geo_json,
                 -- Garmin's rule: data from Garmin is marked wherever it is shown
                 case when bool_or(a.source = 'garmin') then 'Garmin' end as attribution,
-                avg(a.distance_m) as route_distance_m
+                avg({Multisport.DistanceSql("a")}) as route_distance_m
             from routes r join activities a on a.route_id = r.id
             where r.user_id = @userId
                 and (@sportGroup::text is null or r.sport_group = @sportGroup)

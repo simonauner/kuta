@@ -76,11 +76,9 @@ export function RecordsSection({ year }: { year: number }) {
           </Heading>
           <HelpPopover label={t('records.helpLabel')}>{t('records.help')}</HelpPopover>
         </div>
-        <Button asChild variant="link">
-          <Link to="/app/stats/records">
-            {t('records.byYear')}
-            <ArrowRight aria-hidden="true" />
-          </Link>
+        <Button variant="link" render={<Link to="/app/stats/records" />}>
+          {t('records.byYear')}
+          <ArrowRight aria-hidden="true" />
         </Button>
       </div>
       <p className="mt-2 text-body text-muted-foreground">{t('records.description')}</p>

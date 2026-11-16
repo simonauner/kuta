@@ -1,3 +1,4 @@
+using Dapper;
 using Microsoft.AspNetCore.DataProtection;
 using Npgsql;
 
@@ -47,6 +48,7 @@ public sealed class JobWorker(IServiceProvider services, IConfiguration configur
 {
     static readonly TimeSpan IdleDelay = TimeSpan.FromSeconds(2);
     static readonly TimeSpan CleanupInterval = TimeSpan.FromHours(1);
+    static readonly TimeSpan LockRetryDelay = TimeSpan.FromSeconds(30);
 
     protected override async Task ExecuteAsync(CancellationToken stoppingToken)
     {
@@ -59,8 +61,9 @@ public sealed class JobWorker(IServiceProvider services, IConfiguration configur
             {
                 if (DateTime.UtcNow - lastCleanup > CleanupInterval)
                 {
-                    await CleanupAsync(services, stoppingToken);
+                    // Set first: a cleanup that keeps failing must wait an hour, not run instead of every job.
                     lastCleanup = DateTime.UtcNow;
+                    await CleanupAsync(services, stoppingToken);
                 }
                 if (!await RunNextAsync(services, null, stoppingToken, diagnostics))
                     await Task.Delay(IdleDelay, stoppingToken);
@@ -94,6 +97,9 @@ public sealed class JobWorker(IServiceProvider services, IConfiguration configur
     {
         var db = services.GetRequiredService<NpgsqlDataSource>();
         await using var conn = await db.OpenConnectionAsync(ct);
+        // There is one worker for everyone, so a job must not wait long on a lock held by a request (a long data export
+        // holds the profile). Npgsql resets the setting when the connection goes back to the pool.
+        await conn.ExecuteAsync("set lock_timeout = '5s'");
         var job = await JobQueue.ClaimAsync(conn, userId, ct);
         if (job is null) return false;
         var files = services.GetRequiredService<ImportFiles>();
@@ -123,6 +129,11 @@ public sealed class JobWorker(IServiceProvider services, IConfiguration configur
         catch (OperationCanceledException) when (ct.IsCancellationRequested)
         {
             await JobQueue.ReleaseAsync(conn, job.Id);
+        }
+        catch (PostgresException e) when (e.SqlState == PostgresErrorCodes.LockNotAvailable)
+        {
+            // Busy, not broken: try again later without using up an attempt.
+            await JobQueue.ReleaseAsync(conn, job.Id, LockRetryDelay);
         }
         catch (JobFailedException e)
         {
