@@ -132,7 +132,9 @@ export function TrainingLoadSection() {
                     hint:
                       data.rampPerWeek === null
                         ? null
-                        : t(`trainingLoad.rampZone.${rampZone(data.rampPerWeek)}`),
+                        : t(`trainingLoad.rampZone.${rampZone(data.rampPerWeek)}`, {
+                            weekLoad: number.format(today.fitness * 7),
+                          }),
                     help: (
                       <>
                         <p>{t('trainingLoad.help.ramp')}</p>
@@ -141,6 +143,11 @@ export function TrainingLoadSection() {
                             <li key={zone}>{t(`trainingLoad.help.rampZones.${zone}`)}</li>
                           ))}
                         </ul>
+                        <p className="mt-2">
+                          {t('trainingLoad.help.rampAdvice', {
+                            weekLoad: number.format(today.fitness * 7),
+                          })}
+                        </p>
                         <p className="mt-2">{t('trainingLoad.help.rulesOfThumb')}</p>
                       </>
                     ),

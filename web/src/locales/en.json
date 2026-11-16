@@ -161,7 +161,7 @@
     "rampZone": {
       "fast": "Fast increase – risk of overload.",
       "building": "You are building up at a calm pace.",
-      "steady": "Steady level. Add 2–5 per week to improve.",
+      "steady": "Steady level. About {{weekLoad}} load per week keeps it; add at most about 10% a week to improve.",
       "falling": "Fitness is dropping – rest or fewer runs."
     },
     "help": {
@@ -179,9 +179,10 @@
       "rampZones": {
         "fast": "Above 7: fast increase, risk of overload.",
         "building": "From +2: building up at a calm pace.",
-        "steady": "Between −2 and +2: steady level. Add 2–5 per week to improve.",
+        "steady": "Between −2 and +2: steady level.",
         "falling": "Below −2: fitness is dropping."
       },
+      "rampAdvice": "Fitness holds when your weekly load is about seven times your fitness, for you about {{weekLoad}}. Increase gradually, by at most about 10% a week – especially when your fitness is low.",
       "rulesOfThumb": "The limits are common rules of thumb, not medical advice."
     },
     "dailyLoad": "Daily load",
