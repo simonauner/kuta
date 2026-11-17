@@ -109,6 +109,22 @@ godkännande → delat pass → återkallelse, svarens dataskydd, ägarskap vid 
 validering av sidmarkör. Dessa
 kontroller behöver HTTP för att visa att rätt användare, statuskod och svar kopplas ihop.
 
+## Pushnotiser
+
+Webbpush (`Push.cs`, migrering 044, `components/push-notifications.tsx`, `web/public/push-sw.js`) meddelar när någon vill följa dig och när din förfrågan godkänts. Varje webbläsare väljer själv under Inställningar → Notiser på den här enheten.
+
+- **Prenumeration:** `PUT /api/me/push-subscriptions` (`endpoint`, `p256dh`, `auth`, `locale` `sv`/`en`) sparar en rad i `push_subscriptions` per webbläsare, högst tio per konto, och `DELETE` med `endpoint` tar bort den. Raden hör till inloggningssessionen (`session_id`): utloggning, lösenordsbyte eller utgången session stoppar notiserna, och webben skickar prenumerationen igen vid besök på Inställningar, vilket flyttar den till aktuell session och aktuellt språk. Webben avregistrerar även webbläsaren vid utloggning, så att nästa konto väljer själv. Den första enheten markerar äldre förfrågningar som hanterade, så att de inte kommer i klump.
+- **Bara webbläsarnas pushtjänster:** API:t postar till adressen webbläsaren anger, så `Push.IsPushService` godtar bara https mot FCM (`fcm.googleapis.com`), Mozilla, Microsoft (`*.notify.windows.com`) och Apple (`*.push.apple.com`); annat ger `invalidPushSubscription`. Chrome for Testing och Chromium utan Googles nycklar får en låtsasadress och kan därför inte slå på notiser.
+- **Leverans:** `follows.request_notified`/`accept_notified` säger vad som redan meddelats. Ny förfrågan och godkännande köar jobbet `push` för mottagaren om den har en aktiv prenumeration; jobbet markerar först och skickar sedan, så en notis kan gå förlorad men upprepas aldrig, och köar om sig själv om något kommit under körningen. Blockerade förfrågningar meddelas inte. Notistexten byggs i API:t på prenumerationens språk (som mejlmallarna, eftersom service workern saknar översättningar), krypteras enligt RFC 8291 (aes128gcm) och signeras med VAPID (RFC 8292); pushtjänsten ser bara chiffertext. Svar 404/410 tar bort prenumerationen.
+- **Nyckel:** `Push__PrivateKey` är en P-256-nyckel i SEC1 DER, base64 på en rad; den publika nyckeln räknas fram och ges av `GET /api/push/key` (null när push är av). `Push__Subject` är kontaktadressen i VAPID-token, förval `https://kutaapp.com`. Utvecklingsnyckeln ligger i `appsettings.Development.json`. Skapa nyckeln för drift och lägg den i fältet `Push__PrivateKey` i 1Password innan `scripts/fly-secrets.sh` körs:
+
+  ```bash
+  openssl ecparam -name prime256v1 -genkey -noout | openssl ec -outform DER 2>/dev/null | base64 | pbcopy
+  ```
+
+  Byts nyckeln slutar befintliga prenumerationer att fungera; webbläsarna behöver slå på notiserna igen.
+- **Prova lokalt:** service workern finns bara i den byggda webben, så använd `vite preview` (BAS+1, med `KUTA_WEB_PORT`/`KUTA_API_PORT`) i en vanlig Chrome eller Firefox, inte i ett inkognitofönster. iPhone och iPad kräver att Kuta lagts till på hemskärmen (iOS 16.4 eller senare); det är inte verifierat på riktig enhet.
+
 ## Grupper
 
 Grupper (`Groups.cs`, migrering 036, `routes/groups.tsx`) nås bara via inbjudningslänk
@@ -341,7 +357,7 @@ Långa jobb körs i en egen kö i Postgres (`JobQueue`, `JobWorker`, migrering 0
 Wolverine valdes bort: Hangfire sparar undantagstexter och stackspår i egna tabeller, vilket strider mot den privata
 loggningen, och Wolverine är ett helt meddelanderamverk. Kön är en tabell `jobs`:
 
-- **Rader:** `kind` (`strava_import`, `recalculate`, `garmin_import` eller `routes`), `status` (`queued`, `running`, `succeeded`, `failed`),
+- **Rader:** `kind` (`strava_import`, `recalculate`, `garmin_import`, `routes` eller `push`), `status` (`queued`, `running`, `succeeded`, `failed`),
   `progress` och `result` som JSON, en stabil `error_code`, försök och tider. Aldrig filinnehåll eller undantagstexter.
   Högst ett aktivt jobb av varje slag per användare (unikt delindex). Jobben kaskadraderas med kontot, och avslutade
   jobb rensas efter 30 dagar.
@@ -791,6 +807,7 @@ till fältet; redan importerade dubbletter hoppas fortfarande över vid Strava-i
 - `equipment.json`: all egen utrustning, även pensionerad, med startvärden och total användning.
 - `privacy-places.json`: egna dolda platser med namn, mittpunkt och radie. Listan ingår även utan pass.
 - `groups.json`: egna gruppmedlemskap och förfrågningar med gruppens namn, roll, godkännande och om veckosummorna delas.
+- `push-subscriptions.json`: enheter med pushnotiser (pushadress, språk, tid), utan krypteringsnycklarna.
 - `goals.json`: egna träningsmål med sportgrupp, typ, period, mål i SI-enheter, upprepning, startdatum och synlighet.
 - `achievements-seen.json`: vilka utmärkelser användaren har sett och när.
 - `activities/<id>.json`: källa, skapandetid, synlighet, Strava-ID, sökväg till råfilen (eller `null`), `activity` med samma passdetaljer som passsidan och `bestEfforts` med passets bästa insatser. Detaljerna innehåller beskrivning, taggar, utrustnings-ID:n, tidsserier, varv samt originaldelar och redigerade multisportdelar.
@@ -883,6 +900,7 @@ En egen Fly-app (`kuta`, region `arn`). `Dockerfile` bygger webben och API:t til
 | `ConnectionStrings__Default` | Supabase → Connect → Session pooler, i Npgsql-format: `Host=…;Port=5432;Database=postgres;Username=postgres.<ref>;Password=…;SSL Mode=Require;Maximum Pool Size=10` |
 | `Supabase__SecretKey` | Supabase → Project Settings → API Keys → secret key (`sb_secret_…`) |
 | `Turnstile__SecretKey` | Cloudflare → Turnstile → Kutas widget → secret key (se Turnstile ovan) |
+| `Push__PrivateKey` | VAPID-nyckeln för webbpush (se Pushnotiser) |
 | `DataProtection__Certificate` | Certifikatet som krypterar Data Protection-nycklarna, base64 på en rad (se nedan) |
 | `Storage__AccessKeyId`, `Storage__SecretAccessKey` | S3-nyckel för bucketen med råa FIT-filer (se nedan) |
 
