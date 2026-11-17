@@ -8,6 +8,7 @@ import { ErrorMessage, ErrorText } from '@/components/error-message'
 import { QueryError } from '@/components/query-error'
 import { SlowLoading } from '@/components/slow-loading'
 import { GroupList } from '@/components/profile-groups'
+import { GoalCard, GoalDialog } from '@/components/goals'
 import { VisitorNotice } from '@/components/visitor-notice'
 import {
   Breadcrumb,
@@ -30,7 +31,7 @@ import { Textarea } from '@/components/ui/textarea'
 import { sportGroupsQuery } from '@/lib/activity-query'
 import { ApiError, api } from '@/lib/api'
 import { meQuery } from '@/lib/auth'
-import { formatGoalAmount, goalMetrics, type GoalMetric } from '@/lib/goals'
+import { formatGoalAmount, goalMetrics, type Goal, type GoalMetric } from '@/lib/goals'
 import {
   clubSearchQuery,
   groupMembersQuery,
@@ -46,6 +47,7 @@ import {
   type GroupMember,
 } from '@/lib/groups'
 import { sportGroupLabel } from '@/lib/sport-groups'
+import { cn } from '@/lib/utils'
 import { useVisitor } from '@/lib/visitor'
 
 // Groups → the group → the current page; the last given level is the current page.
@@ -476,6 +478,7 @@ function GroupContent({ group }: { group: GroupDetail }) {
           <Settings aria-hidden="true" />
         </Button>
       </div>
+      <GroupGoalSection group={group} />
       <LeaderboardSection groupId={group.id} sharing={group.shareTotals} />
       <MemberSection group={group} change={change} />
       <ErrorText error={change.error} />
@@ -519,6 +522,80 @@ function GroupSettings({ group }: { group: GroupDetail }) {
       {group.role === 'admin' && <AdminSection group={group} />}
       <LeaveSection group={group} />
     </div>
+  )
+}
+
+// Hidden from members until an admin sets a goal.
+function GroupGoalSection({ group }: { group: GroupDetail }) {
+  const { t, i18n } = useTranslation()
+  const groups = useQuery(sportGroupsQuery)
+  // null = closed, 'new' = new goal, otherwise the goal being edited
+  const [editing, setEditing] = useState<Goal | 'new' | null>(null)
+  const admin = group.role === 'admin'
+  if (group.goals.length === 0 && !admin) return null
+  const amount = (metric: GoalMetric, value: number) =>
+    metric === 'count'
+      ? t('goals.sessions', { count: value })
+      : formatGoalAmount(metric, value, i18n.resolvedLanguage)
+  return (
+    <section aria-labelledby="group-goal-heading" className="space-y-3">
+      <div className="flex items-center justify-between gap-4">
+        <Heading level={2} id="group-goal-heading">
+          {t('groups.goals')}
+        </Heading>
+        {admin && (
+          <Button size="sm" variant="secondary-outline" onClick={() => setEditing('new')}>
+            {t('goals.new')}
+          </Button>
+        )}
+      </div>
+      <p className="text-metadata text-muted-foreground">{t('groups.goalHint')}</p>
+      {group.goals.length > 0 && (
+        <ul className="grid gap-3 sm:grid-cols-2">
+          {group.goals.map(({ progress: goal, ownValue }) => (
+            <li key={goal.id}>
+              <GoalCard
+                goal={goal}
+                iconSport={
+                  goal.sportGroup &&
+                  (groups.data?.find((g) => g.key === goal.sportGroup)?.sports[0] ??
+                    goal.sportGroup)
+                }
+                onSelect={admin ? () => setEditing(goal) : undefined}
+                showPrivacy={false}
+                ownValue={group.shareTotals ? ownValue : undefined}
+              >
+                <p className="mt-1 text-xs text-muted-foreground">
+                  {group.shareTotals ? (
+                    <>
+                      {/* Explains the solid segment of the bar. */}
+                      <span
+                        aria-hidden="true"
+                        className={cn(
+                          'mr-1.5 inline-block size-2 rounded-full align-middle',
+                          goal.current.achieved ? 'bg-emerald-500' : 'bg-primary',
+                        )}
+                      />
+                      {t('groups.ownPart', { amount: amount(goal.metric, ownValue) })}
+                    </>
+                  ) : (
+                    t('groups.goalNotSharing')
+                  )}
+                </p>
+              </GoalCard>
+            </li>
+          ))}
+        </ul>
+      )}
+      {editing && (
+        <GoalDialog
+          key={editing === 'new' ? 'new' : editing.id}
+          goal={editing === 'new' ? null : editing}
+          groupId={group.id}
+          onClose={() => setEditing(null)}
+        />
+      )}
+    </section>
   )
 }
 

@@ -1,6 +1,6 @@
 import { infiniteQueryOptions, queryOptions } from '@tanstack/react-query'
 import { api } from './api.ts'
-import type { GoalMetric } from './goals.ts'
+import type { Goal, GoalMetric } from './goals.ts'
 
 // From /api/groups. Membership gives no access to activities: the leaderboard only has the weekly totals that members
 // chose to share with the group.
@@ -38,6 +38,8 @@ export type GroupDetail = {
   // The members themselves come a page at a time (groupMembersQuery): a club can have up to 1000.
   memberCount: number
   requests: GroupMember[]
+  // Shared goals, oldest first, counted like the leaderboard, with the viewer's own part of the current period.
+  goals: { progress: Goal; ownValue: number }[]
 }
 export type GroupInvite = {
   id: string
