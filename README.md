@@ -136,7 +136,7 @@ ersätta länken så att den gamla slutar fungera och radera gruppen. Den som sk
 administratör. Lämnar sista administratören (även via kontoradering) blir den som varit medlem
 längst administratör, och en grupp utan medlemmar raderas (trigger i databasen).
 
-Medlemskap ger ingen läsrätt till pass; `SocialEndpoints.CanRead` är oförändrad. Godkända medlemmar
+Medlemskap ger ingen läsrätt till pass; `SocialEndpoints.CanRead` är oförändrad. Gruppflödet (`GET /api/groups/{id}/feed`, bara för godkända medlemmar, annars 404) visar därför bara godkända medlemmars pass med synligheten `public`, som redan kan läsas av alla inloggade, med samma kort, sidindelning, kartklippning och blockeringsregler som flödet (`SocialEndpoints.ReadFeedAsync` med `groupId`). Pass för följare och privata pass visas aldrig där. Godkända medlemmar
 ser varandra och en veckotopplista per sportgrupp och mått (distans, tid eller antal pass) över
 medlemmar som själva slagit på **Dela mina summor** (av som standard, ett val per grupp).
 Summorna räknas som statistiken (`SportGroups.Effective`, multisportdelar per sportgrupp) från alla
@@ -147,7 +147,7 @@ medlemslistan eller topplistan. Gränser: högst 100 medlemmar per grupp och 20 
 förfrågningar) per användare; uppslag av en länk har samma rate limit som profillänkar och
 förfrågningar samma som följförfrågningar. Medlemskap ingår i exporten (`groups.json`) och
 kaskadraderas med kontot. Profilen listar egna grupper och länkar till `/app/groups`, där grupper
-skapas. Gruppsidan visar gruppens mål, topplistan och medlemmarna, 50 åt gången (administratörer först); delningsvalet, inbjudningslänken,
+skapas. Gruppsidan visar gruppens mål, topplistan, gruppflödet och medlemmarna, 50 åt gången (administratörer först); delningsvalet, inbjudningslänken,
 administrationen och Lämna gruppen finns under kugghjulet på `/app/groups/{id}/settings`.
 
 | Metod | Sökväg | Svar |
@@ -155,6 +155,7 @@ administrationen och Lämna gruppen finns under kugghjulet på `/app/groups/{id}
 | GET/POST | `/api/groups` | Egna grupper och förfrågningar / skapa (`{ name, timeZone }`) |
 | GET/PUT/DELETE | `/api/groups/{id}` | Gruppen med antal medlemmar och, för administratörer, förfrågningar / byt namn / radera (administratör) |
 | GET | `/api/groups/{id}/members?offset=` | 50 medlemmar från `offset`, administratörer först |
+| GET | `/api/groups/{id}/feed?beforeStartedAt=&beforeId=` | Godkända medlemmars publika pass, 25 åt gången (som `/api/feed`) |
 | POST | `/api/groups/{id}/invite-code/replace` | Ny länk (administratör) |
 | PUT | `/api/groups/{id}/me` | `{ shareTotals }` |
 | POST | `/api/groups/{id}/members/{userId}/accept`, `/admin` | Godkänn / gör till administratör |
