@@ -584,6 +584,7 @@
     "invalidStatisticsBucket": "Choose week or month.",
     "invalidGroupName": "Enter a name of at most 100 characters.",
     "groupLimit": "You can be in at most 20 groups.",
+    "groupGoalLimit": "A group can have at most 10 goals.",
     "groupFull": "The group cannot take more members.",
     "invalidLeaderboard": "Check sport, type and week.",
     "invalidGroupSettings": "Check visibility, place (at most 100 characters), sport and description (at most 500 characters).",

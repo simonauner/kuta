@@ -14,7 +14,9 @@ public record GroupMember(Guid Id, string DisplayName, string Role, Guid? Avatar
 // The members themselves are paged (GET /api/groups/{id}/members): a club can have up to 1000.
 public record GroupDetail(Guid Id, string Name, string TimeZone, string InviteCode, string Role, bool ShareTotals,
     int MemberCount, IReadOnlyList<GroupMember> Requests, string Visibility, string? Description,
-    string? Place, string? SportGroup);
+    string? Place, string? SportGroup, IReadOnlyList<GroupGoal>? Goals = null);
+// A shared goal with the same progress shape as a personal goal, and the viewer's own part of the current period.
+public record GroupGoal(GoalProgress Progress, double OwnValue);
 // What anyone signed in may see of an open club. Status for the viewer: "none", "pending" or "member".
 public record ClubSummary(Guid Id, string Name, string? Place, string? SportGroup, string? Description, int MemberCount,
     DateTime CreatedAt, string Status);
@@ -33,6 +35,7 @@ public static class Groups
     public const int MaxClubMembers = 1000;
     public const int MaxGroupsPerUser = 20;
     public const int MemberPageSize = 50;
+    public const int MaxGoals = 10;
 
     static readonly ApiError InvalidName = new("Ange ett namn på högst 100 tecken.", "invalidGroupName");
     static readonly ApiError GroupLimit = new($"Du kan vara med i högst {MaxGroupsPerUser} grupper.", "groupLimit");
@@ -42,6 +45,7 @@ public static class Groups
     static readonly ApiError InvalidClubSearch = new("Sök på minst tre bokstäver eller siffror.", "invalidClubSearch");
     static readonly ApiError NameRequired = new("Välj ett namn först.", "nameRequired");
     static readonly ApiError InvalidLeaderboard = new("Kontrollera sport, typ och vecka.", "invalidLeaderboard");
+    static readonly ApiError GoalLimit = new($"En grupp kan ha högst {MaxGoals} mål.", "groupGoalLimit");
     static readonly ApiError InvalidTimeZone = new("Tidszonen är ogiltig. Kontrollera enhetens inställningar.", "invalidTimeZone");
 
     public static string? NormalizeName(string? name) => name?.Trim() is { Length: >= 1 and <= 100 } trimmed ? trimmed : null;
@@ -193,6 +197,50 @@ public static class Groups
                 delete from group_members where group_id = @id and user_id = @memberId
                     and (@memberId = @userId or ({Membership}) = 'admin')
                 """, new { id, memberId, userId }, cancellationToken: ct)) > 0 ? Results.NoContent() : Results.NotFound();
+        });
+        groups.MapPost("/{id:guid}/goals", async (Guid id, GoalRequest req, NpgsqlDataSource db, ClaimsPrincipal user,
+            CancellationToken ct) =>
+        {
+            if (Goals.Validate(req with { Privacy = null }) is { } invalid) return Results.BadRequest(invalid);
+            await using var conn = await db.OpenConnectionAsync(ct);
+            await using var tx = await conn.BeginTransactionAsync(ct);
+            // Locking the group serialises concurrent creates, so the limit holds.
+            var count = await conn.ExecuteScalarAsync<int?>(new CommandDefinition($"""
+                select (select count(*) from group_goals where group_id = g.id)::int from groups g
+                where g.id = @id and ({Membership}) = 'admin' for update of g
+                """, new { id, userId = user.GetUserId() }, tx, cancellationToken: ct));
+            if (count is null) return Results.NotFound();
+            if (count >= MaxGoals) return Results.Conflict(GoalLimit);
+            var goalId = await conn.ExecuteScalarAsync<Guid>(new CommandDefinition("""
+                insert into group_goals (group_id, sport_group, metric, period, target, starts_on)
+                select g.id, @SportGroup, @Metric, @Period, @Target, (@now at time zone g.time_zone)::date
+                from groups g where g.id = @id
+                returning id
+                """, new { id, req.SportGroup, req.Metric, req.Period, req.Target, now = DateTimeOffset.UtcNow }, tx,
+                cancellationToken: ct));
+            await tx.CommitAsync(ct);
+            return Results.Created($"/api/groups/{id}/goals/{goalId}", new { id = goalId });
+        });
+        // The start date is kept on edit, as for personal goals.
+        groups.MapPut("/{id:guid}/goals/{goalId:guid}", async (Guid id, Guid goalId, GoalRequest req, NpgsqlDataSource db,
+            ClaimsPrincipal user, CancellationToken ct) =>
+        {
+            if (Goals.Validate(req with { Privacy = null }) is { } invalid) return Results.BadRequest(invalid);
+            await using var conn = await db.OpenConnectionAsync(ct);
+            return await conn.ExecuteAsync(new CommandDefinition($"""
+                update group_goals set sport_group = @SportGroup, metric = @Metric, period = @Period, target = @Target
+                where id = @goalId and group_id = @id and ({Membership}) = 'admin'
+                """, new { id, goalId, userId = user.GetUserId(), req.SportGroup, req.Metric, req.Period, req.Target },
+                cancellationToken: ct)) > 0 ? Results.NoContent() : Results.NotFound();
+        });
+        groups.MapDelete("/{id:guid}/goals/{goalId:guid}", async (Guid id, Guid goalId, NpgsqlDataSource db, ClaimsPrincipal user,
+            CancellationToken ct) =>
+        {
+            await using var conn = await db.OpenConnectionAsync(ct);
+            return await conn.ExecuteAsync(new CommandDefinition($"""
+                delete from group_goals where id = @goalId and group_id = @id and ({Membership}) = 'admin'
+                """, new { id, goalId, userId = user.GetUserId() }, cancellationToken: ct)) > 0
+                ? Results.NoContent() : Results.NotFound();
         });
         groups.MapGet("/{id:guid}/leaderboard", async (Guid id, string? sportGroup, string? metric, DateOnly? week,
             NpgsqlDataSource db, ClaimsPrincipal user, CancellationToken ct) =>
@@ -349,7 +397,8 @@ public static class Groups
             }
         }
         return new(group.Id, group.Name, group.TimeZone, group.InviteCode, group.Role, group.ShareTotals, group.MemberCount,
-            requests, group.Visibility, group.Description, group.Place, group.SportGroup);
+            requests, group.Visibility, group.Description, group.Place, group.SportGroup,
+            await ReadGoalsAsync(conn, userId, id, group.TimeZone, DateTimeOffset.UtcNow, ct));
     }
 
     // One page of a group's members, admins first; null when the viewer is not a member.
@@ -371,6 +420,62 @@ public static class Groups
     record GroupRow(Guid Id, string Name, string TimeZone, string InviteCode, string Role, bool ShareTotals, string Visibility,
         string? Description, string? Place, string? SportGroup, int MemberCount);
 
+    // The members whose totals count for the viewer: those who share them, except anyone who blocked the viewer. The
+    // goal uses the same rows as the leaderboard, so its total never reveals a hidden member's totals.
+    static readonly string SharingMembers = $"""
+        members as (
+            select m.user_id from group_members m
+            where m.group_id = @id and m.accepted_at is not null and m.share_totals
+                and {SocialEndpoints.NotBlocked("m.user_id", "@userId")}
+        )
+        """;
+
+    static string MetricValue(string filter = "") => $"""
+        (case g.metric when 'distance' then sum(e.distance_m){filter} when 'duration' then sum(e.duration_s){filter}
+            else count(distinct e.id){filter} end)
+        """;
+
+    // The viewer is a member. Oldest goal first.
+    public static async Task<IReadOnlyList<GroupGoal>> ReadGoalsAsync(NpgsqlConnection conn, Guid userId, Guid id, string timeZone,
+        DateTimeOffset now, CancellationToken ct)
+    {
+        var goals = (await conn.QueryAsync<StoredGoal>(new CommandDefinition("""
+            select id, sport_group, metric, period, target, true as recurring, starts_on, 'private' as privacy
+            from group_goals where group_id = @id
+            order by created_at, id
+            """, new { id }, cancellationToken: ct))).ToList();
+        if (goals.Count == 0) return [];
+        // Same as Goals.LoadAsync, over the sharing members, with the viewer's own part beside each total. The activities
+        // are limited to the year of the earliest goal start, which covers every goal's first period.
+        var buckets = (await conn.QueryAsync<(Guid GoalId, DateOnly Start, double Value, double Own)>(new CommandDefinition($"""
+            with {SharingMembers}, {SportGroups.Cte}, {SportGroups.Effective("""
+                a.user_id in (select user_id from members) and a.source <> 'garmin'
+                    and a.started_at >= (select min(date_trunc('year', starts_on::timestamp)) from group_goals
+                        where group_id = @id) at time zone @timeZone
+                """)}
+            select g.id, b.period_start, b.value, b.own
+            from group_goals g
+            cross join lateral (
+                select date_trunc(g.period, e.started_at at time zone @timeZone)::date as period_start,
+                    {MetricValue()}::double precision as value,
+                    coalesce({MetricValue(" filter (where e.user_id = @userId)")}, 0)::double precision as own
+                from effective e
+                where (case when g.sport_group is null then not e.part else e.sport_group = g.sport_group end)
+                    and e.started_at >= date_trunc(g.period, g.starts_on::timestamp) at time zone @timeZone
+                group by 1
+            ) b
+            where g.group_id = @id
+            """, new { id, userId, timeZone, groupedSports = SportGroups.GroupedSports, sportGroupKeys = SportGroups.GroupKeys },
+            cancellationToken: ct))).ToLookup(b => b.GoalId);
+        var today = await conn.ExecuteScalarAsync<DateOnly>(new CommandDefinition(
+            "select (@now at time zone @timeZone)::date", new { now, timeZone }, cancellationToken: ct));
+        return goals.Select(goal =>
+        {
+            var progress = Goals.Evaluate(goal, today, buckets[goal.Id].ToDictionary(b => b.Start, b => b.Value));
+            return new GroupGoal(progress, buckets[goal.Id].FirstOrDefault(b => b.Start == progress.Current.Start).Own);
+        }).ToList();
+    }
+
     const string WeekActivities = """
         a.user_id in (select user_id from members) and a.source <> 'garmin'
             and a.started_at >= @weekStart::timestamp at time zone @timeZone
@@ -388,11 +493,7 @@ public static class Groups
         var weekStart = Goals.PeriodStart("week", week ?? await conn.ExecuteScalarAsync<DateOnly>(new CommandDefinition(
             "select (@now at time zone @timeZone)::date", new { now, timeZone }, cancellationToken: ct)));
         var rows = await conn.QueryAsync<LeaderboardRow>(new CommandDefinition($"""
-            with members as (
-                select m.user_id from group_members m
-                where m.group_id = @id and m.accepted_at is not null and m.share_totals
-                    and {SocialEndpoints.NotBlocked("m.user_id", "@userId")}
-            ), {SportGroups.Cte}, {SportGroups.Effective(WeekActivities)}
+            with {SharingMembers}, {SportGroups.Cte}, {SportGroups.Effective(WeekActivities)}
             select u.id as user_id, u.display_name, u.avatar_id, coalesce(t.value, 0) as value
             from members join users u on u.id = members.user_id
             left join (

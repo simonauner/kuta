@@ -584,6 +584,7 @@
     "invalidStatisticsBucket": "Välj vecka eller månad.",
     "invalidGroupName": "Ange ett namn på högst 100 tecken.",
     "groupLimit": "Du kan vara med i högst 20 grupper.",
+    "groupGoalLimit": "En grupp kan ha högst 10 mål.",
     "groupFull": "Gruppen kan inte ta emot fler medlemmar.",
     "invalidLeaderboard": "Kontrollera sport, typ och vecka.",
     "invalidGroupSettings": "Kontrollera synlighet, ort (högst 100 tecken), sport och beskrivning (högst 500 tecken).",
