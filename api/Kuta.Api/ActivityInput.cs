@@ -10,7 +10,7 @@ public static class ActivityInput
     public static bool IsValidPrivacy(string? privacy) => privacy is "private" or "followers" or "public";
 
     public static readonly string[] Sports = [.. ActivitySports.All, .. Multisport.Kinds];
-    public static readonly string[] Tags = ["race", "workout", "long_run", "easy"];
+    public static readonly string[] Tags = ["race", "workout", "long_run", "easy", "commute"];
 
     public static ApiError? ValidateTags(string[]? tags) =>
         tags is null || tags.All(tag => Tags.Contains(tag)) ? null

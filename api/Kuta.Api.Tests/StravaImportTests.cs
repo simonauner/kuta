@@ -284,7 +284,7 @@ public class StravaUploadTests(KutaFactory factory) : IClassFixture<KutaFactory>
             Assert.Equal(("Garmin Fenix 5s", (short)170, (short)18), details);
             var detail = (await client.GetFromJsonAsync<ActivityDetail>($"/api/activities/{fitId}", ct))!;
             Assert.Equal("Strava description\nSecond line", detail.Description);
-            Assert.Equal(new[] { "race", "long_run" }, detail.Tags);
+            Assert.Equal(new[] { "race", "long_run", "commute" }, detail.Tags);
             Assert.Equal(3, await conn.ExecuteScalarAsync<int>(
                 "select count(*) from activities where user_id=(select id from auth.users where email=@runner) and description=@description",
                 new { runner, description = "Strava description\nSecond line" }));
@@ -491,7 +491,7 @@ static class StravaFixture
                 if (gzip) { using var gz = new GZipStream(entry, CompressionLevel.Fastest); gz.Write(bytes); }
                 else entry.Write(bytes);
             }
-            Write("activities.csv", Encoding.UTF8.GetBytes(Csv(Row("1", "activities/1.fit.gz") + ",,,,\"Strava description\nSecond line\",running|race|long_run",
+            Write("activities.csv", Encoding.UTF8.GetBytes(Csv(Row("1", "activities/1.fit.gz") + ",,,,\"Strava description\nSecond line\",running|race|long_run|commute",
                 Row("2", "activities/2.gpx.gz") + ",,,,\"Strava description\nSecond line\"",
                 Row("3", "") + ",123.0,Brand Model Custom,,\"Strava description\nSecond line\"", Row("4", "activities/missing.gpx"), Row("5", "activities/broken.fit"))));
             Write("shoes.csv", "Shoe Name,Shoe Brand,Shoe Model\nCustom,Brand,Model"u8.ToArray());

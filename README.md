@@ -673,10 +673,13 @@ Avbryt. Spara uppdaterar allt i samma transaktion; Avbryt lämnar passet oförä
 ## Taggar på aktiviteter
 
 Ett pass kan ha flera taggar: `race` (Lopp), `workout` (Intervaller/kvalitet),
-`long_run` (Långpass) och `easy` (Lugnt). Välj dem vid manuell registrering eller
+`long_run` (Långpass), `easy` (Lugnt) och `commute` (Pendling). Välj dem vid manuell registrering eller
 FIT-uppladdning, ändra dem via passsidans Redigera aktivitet och filtrera passlistan efter en tagg.
 Listans taggfilter sparas i URL:en (`/app/activities?tag=race`), kan kombineras
 med `year` och följer med till pass, skapandeformulär och tillbaka till listan.
+Flödet har kryssrutan Dölj pendling, som sparas i webbläsaren och skickar
+`GET /api/feed?hideCommutes=true`; då utelämnas pass med taggen `commute`, även andras.
+Profilernas passlistor visar alltid alla läsbara pass.
 
 `activities.tags` är `text[]`, med tom array som standard och GIN-index.
 API:t validerar mot `ActivityInput.Tags` och tar bort dubbletter; databasen har
@@ -786,7 +789,7 @@ Exportens innehåll, åtkomst mellan två användare, råfilernas bytes och samo
 
 Träningsformen bevaras även för exempelvis terränglöpning, elcykling och virtuella pass. Namn från Stravas CSV och kompakta sportnamn normaliseras vid importen; okända framtida namn sparas också. Äldre importer slog ihop Run/Trail Run/Virtual Run respektive Ride/Virtual Ride/E-Bike Ride. Dessa redan sparade pass får ikonen för sin sparade sport; återimport av dubbletter ändrar inte sporten. Rekord beräknas för löpning, terränglöpning och virtuell löpning.
 
-Importen behåller passnamn, beskrivning (kolumnen `Activity Description`), taggarna `race` och `long_run` ur kolumnen `Tag` (Stravas övriga taggar som `running` och `commute` hoppas över), sport, starttid (UTC), distans i meter, tid och tillgängliga sammanfattningar från CSV. FIT och GPX, inklusive `.fit.gz` och `.gpx.gz`, ger tidsserier och rutter. Pass utan aktivitetsfil får en sammanfattning utan rutt. GPX-avstånd beräknas från GPS-punkterna; CSV-distansen behålls i sammanfattningen, så de kan skilja sig. Foton, kontakter, privata anteckningar och cyklar importeras inte. Detta använder användarens arkiv, utan anslutning till Stravas API.
+Importen behåller passnamn, beskrivning (kolumnen `Activity Description`), taggarna `race`, `long_run` och `commute` ur kolumnen `Tag` (Stravas övriga taggar som `running` hoppas över), sport, starttid (UTC), distans i meter, tid och tillgängliga sammanfattningar från CSV. FIT och GPX, inklusive `.fit.gz` och `.gpx.gz`, ger tidsserier och rutter. Pass utan aktivitetsfil får en sammanfattning utan rutt. GPX-avstånd beräknas från GPS-punkterna; CSV-distansen behålls i sammanfattningen, så de kan skilja sig. Foton, kontakter, privata anteckningar och cyklar importeras inte. Detta använder användarens arkiv, utan anslutning till Stravas API.
 
 Alla importerade pass är privata. Puls och de enskilda råfilerna sparas bara med samtycke; ZIP-arkivet sparas inte som råfil. Återkallat samtycke raderar puls och råfiler även från importerade pass. Importen fyller inte på puls i redan importerade pass: ta bort och importera dem igen om de först laddades upp utan samtycke.
 

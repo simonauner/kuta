@@ -52,6 +52,24 @@ public class SocialTests(KutaFactory factory) : IClassFixture<KutaFactory>
     }
 
     [Fact]
+    public async Task Feed_can_hide_commutes()
+    {
+        var ct = TestContext.Current.CancellationToken;
+        await using var conn = await factory.Services.GetRequiredService<NpgsqlDataSource>().OpenConnectionAsync(ct);
+        await using var tx = await conn.BeginTransactionAsync(ct);
+        var owner = Guid.NewGuid();
+        await conn.ExecuteAsync("""
+            insert into auth.users (id) values (@owner);
+            insert into users (id, display_name) values (@owner, 'Owner');
+            insert into activities (user_id, source, started_at, duration_s, distance_m, tags)
+            values (@owner, 'manual', now(), 1800, 5000, '{commute,easy}'), (@owner, 'manual', now(), 1800, 5000, '{easy}')
+            """, new { owner }, tx);
+        Assert.Equal(2, (await SocialEndpoints.ReadFeedAsync(conn, owner)).Items.Count);
+        Assert.Single((await SocialEndpoints.ReadFeedAsync(conn, owner, hideCommutes: true)).Items);
+        await tx.RollbackAsync(ct);
+    }
+
+    [Fact]
     public async Task Garmin_attribution_shows_watch_and_Garmin_activities_stay_hidden_from_followers()
     {
         var ct = TestContext.Current.CancellationToken;

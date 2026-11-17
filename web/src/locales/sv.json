@@ -49,6 +49,7 @@
     "socialTitle": "Träna tillsammans",
     "socialDescription": "Be en kompis dela sin profillänk för att börja följa dem, eller dela din egen.",
     "shareProfileLink": "Dela min profillänk",
+    "hideCommutes": "Dölj pendling",
     "summary": {
       "following": "Följer",
       "followers": "Följare",
@@ -681,7 +682,8 @@
     "race": "Lopp",
     "workout": "Intervaller/kvalitet",
     "long_run": "Långpass",
-    "easy": "Lugnt"
+    "easy": "Lugnt",
+    "commute": "Pendling"
   },
   "tags": {
     "label": "Taggar",
