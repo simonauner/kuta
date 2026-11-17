@@ -67,6 +67,7 @@ public class StravaParserTests
         }
         Assert.True(ActivitySports.IsRunning("trail run"));
         Assert.True(ActivitySports.IsRunning("virtual run"));
+        Assert.True(ActivitySports.IsRunning("orienteering"));
         Assert.False(ActivitySports.IsRunning("virtual ride"));
     }
 

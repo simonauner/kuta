@@ -66,6 +66,7 @@ public static class ActivitySports
         [Normalize("Wheelchair")] = "wheelchair",
         [Normalize("Workout")] = "workout",
         [Normalize("Yoga")] = "yoga",
+        [Normalize("Orienteering")] = "orienteering",
         [Normalize("Other")] = "other",
     };
 
@@ -77,6 +78,7 @@ public static class ActivitySports
     public static string FromStrava(string value) =>
         StravaNames.GetValueOrDefault(Normalize(value), value.ToLowerInvariant());
 
-    public static bool IsRunning(string sport) => sport is "running" or "trail run" or "virtual run";
+    // Orienteering counts as running for records, training load and aerobic efficiency.
+    public static bool IsRunning(string sport) => sport is "running" or "trail run" or "virtual run" or "orienteering";
 
 }

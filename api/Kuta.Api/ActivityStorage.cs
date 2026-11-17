@@ -40,13 +40,14 @@ public static class ActivityStorage
         var id = await conn.ExecuteScalarAsync<Guid>(new CommandDefinition(
             """
             insert into activities (user_id, source, sport, title, started_at, duration_s, distance_m, avg_hr,
-                                    avg_speed_mps, elevation_gain_m, tags, description, privacy)
+                                    avg_speed_mps, elevation_gain_m, tags, description, privacy, course_length_m)
             values (@userId, 'manual', @Sport, @title, @startedAt, @DurationS, @DistanceM, @avgHr,
-                    @avgSpeedMps, @ElevationGainM, @tags, @description, @DefaultActivityPrivacy)
+                    @avgSpeedMps, @ElevationGainM, @tags, @description, @DefaultActivityPrivacy,
+                    case when @Sport = 'orienteering' then @CourseLengthM end)
             returning id
             """, new
             {
-                userId, req.Sport, title, startedAt, req.DurationS, req.DistanceM, avgHr, tags,
+                userId, req.Sport, title, startedAt, req.DurationS, req.DistanceM, avgHr, tags, req.CourseLengthM,
                 // A choice in the form wins over the default
                 DefaultActivityPrivacy = req.Privacy ?? profile.DefaultActivityPrivacy,
                 description = ActivityInput.NormalizeDescription(req.Description),
@@ -62,7 +63,7 @@ public static class ActivityStorage
     public static async Task<Guid?> SaveAsync(NpgsqlConnection conn, RawFileStore store, Guid userId,
         ParsedActivity parsed, string source, string? title, string? stravaId, byte[]? bytes, string extension,
         CancellationToken ct, string[]? tags = null, Guid[]? equipmentIds = null, string? description = null, MultisportRequest? split = null,
-        string? privacy = null)
+        string? privacy = null, double? courseLengthM = null)
     {
         var hash = bytes is null ? null : SHA256.HashData(bytes);
         await using var tx = await conn.BeginTransactionAsync(ct);
@@ -76,17 +77,18 @@ public static class ActivityStorage
             """
             insert into activities (user_id, source, sport, title, started_at, duration_s, moving_s, distance_m,
                                     avg_hr, max_hr, hr_zones, avg_speed_mps, elevation_gain_m, route, device, raw_file_key, raw_file_sha256, strava_activity_id, tags, description, privacy, reviewed_at,
-                                    aerobic_training_effect, anaerobic_training_effect)
+                                    aerobic_training_effect, anaerobic_training_effect, course_length_m)
             values (@userId, @source, @Sport, @title, @StartedAt, @DurationS, @MovingS, @DistanceM,
                     @AvgHr, @MaxHr, @HrZones, @AvgSpeedMps, @ElevationGainM, @route::geography, @Device, @key, @hash, @stravaId, @tags, @description, @privacy,
-                    case when @source = 'garmin' then null else now() end, @AerobicTrainingEffect, @AnaerobicTrainingEffect)
+                    case when @source = 'garmin' then null else now() end, @AerobicTrainingEffect, @AnaerobicTrainingEffect,
+                    case when @Sport = 'orienteering' then @courseLengthM end)
             on conflict do nothing returning id
             """,
             new
             {
                 userId, source, title, stravaId, description = ActivityInput.NormalizeDescription(description), parsed.Sport, parsed.StartedAt, parsed.DurationS, parsed.MovingS,
                 parsed.DistanceM, parsed.AvgHr, parsed.MaxHr, parsed.HrZones, parsed.AvgSpeedMps, parsed.ElevationGainM,
-                route = (object?)parsed.Route ?? DBNull.Value, parsed.Device, parsed.AerobicTrainingEffect, parsed.AnaerobicTrainingEffect, key, hash, tags = ActivityInput.NormalizeTags(tags),
+                route = (object?)parsed.Route ?? DBNull.Value, parsed.Device, parsed.AerobicTrainingEffect, parsed.AnaerobicTrainingEffect, key, hash, tags = ActivityInput.NormalizeTags(tags), courseLengthM,
                 // Garmin activities are private until Garmin has had 30 days' notice of showing them to others (constraint in migration 025).
                 privacy = source == "garmin" ? "private" : privacy ?? profile.DefaultActivityPrivacy,
             }, tx);

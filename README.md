@@ -133,6 +133,14 @@ Passsidan visar "Tillsammans med" och länkar till andra löpares pass från sam
 - **Avstängning per pass:** Redigera aktivitet → "Visa vilka jag tränade tillsammans med" (`activities.hide_companions`, migrering 046, `hideCompanions` i `PUT /api/activities/{id}`). Ett avstängt pass kopplas varken till andra eller andra till det.
 - **Matchning:** kandidater är andra användares pass med GPS-linje som överlappar i tid och kommer inom 100 m från linjen (rutt- och tidsindex). Därefter jämförs positionerna var tionde sekund under överlappet i `Companions.RanTogether`: passen räknas som tillsammans om de var inom 100 m från varandra i minst 10 minuter och under minst halva tiden båda spelade in. Den som ansluter en del av vägen räknas, medan ett lopp med olika tempo eller en parallell gata inte gör det. Pass utan GPS matchas aldrig. Värdena är okalibrerade utgångsvärden; ingenting sparas, så en ändring slår igenom direkt.
 
+## Orientering
+
+Sporten `orientering` räknas i löpgruppen för mål och statistik och som löpning för rekord, träningsbelastning, aerob effektivitet och passets löpanalys (`ActivitySports.IsRunning`, `isRunningSport` i webben), så orienteringsträningen syns i all statistik. Ett enskilt pass kan undantas från rekorden som andra pass. Det finns ingen orienteringskarta; analysen bygger på klockans varv och GPS-spåret (`lib/orienteering.ts`, `components/orienteering.tsx`).
+
+- **Banlängd:** valfri i Ny aktivitet och Redigera aktivitet (`activities.course_length_m`, migrering 047; `courseLengthM` i `POST /api/activities/manual` och `PUT /api/activities/{id}`, formulärfältet `courseLengthM` i meter vid filuppladdning; högst 100 km). Sparas bara för sporten orientering. Passsidan visar km-tid (tid per km banlängd) och överdistans (löpt distans mot banlängd).
+- **Sträckor:** varje varv är en sträcka, så löparen trycker varv vid varje kontroll. Tabellen visar tid, löpt distans och stillatid (varvets tid minus klockans rörelsetid). Med GPS (bara ägaren) visas även fågelväg mellan varvets start och slut och överdistans per sträcka, och en sträcka markeras som möjlig bom när tiden per km fågelväg är minst 1,5 gånger medianen. Sträckor under 50 m fågelväg bedöms inte, och minst tre bedömda sträckor krävs. Värdena är okalibrerade utgångsvärden.
+- **Samma bana:** på någon annans orienteringspass kan tittaren koppla ett eget pass med "Jag sprang samma bana" (`PUT /api/activities/{id}/same-course` med `{ activityId }` på det egna passet, `null` tar bort kopplingen; `activities.same_course_as`). Det andra passet måste vara läsbart enligt `SocialEndpoints.CanRead`, annars 404. Pass som är kopplade direkt eller via andra bildar en bana, och `GET /api/activities/{id}/same-course` visar sträcktiderna sida vid sida. Banan följs bara genom pass som tittaren får läsa, så en koppling via ett dolt pass avslöjar ingenting. Raderas det andra passet försvinner kopplingen. Kopplingen är tänkt som grund för en senare uppspelning av flera spår, som kräver att ägarna uttryckligen delar sina GPS-spår.
+
 ## Grupper
 
 Grupper (`Groups.cs`, migrering 036, `routes/groups.tsx`) nås bara via inbjudningslänk
@@ -549,7 +557,7 @@ att en annan inloggad bara får löparens publika mål.
 ## Sportgrupper
 
 Mål och statistik räknar grupper av träningsformer, inte exakta sporter: Löpning räknar löpning,
-terränglöpning och virtuell löpning; Cykling alla cykeltyper inklusive virtuell; Gång och
+terränglöpning, virtuell löpning och orientering; Cykling alla cykeltyper inklusive virtuell; Gång och
 vandring även snöskovandring; Längdskidåkning även topptur och rullskidor; Paddling kanot, kajak
 och SUP; Rodd även virtuell rodd. Simning i bassäng och öppet vatten är samma sport (`swimming`),
 eftersom Garmin anger vattentypen som undertyp och Strava inte skiljer dem åt. Övriga sporter är

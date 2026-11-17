@@ -8,6 +8,8 @@ import {
   type ActivityPart,
 } from '@/lib/multisport'
 import { MultisportEditor } from '@/components/multisport-editor'
+import { CourseLengthField } from '@/components/orienteering'
+import { courseLengthM } from '@/lib/orienteering'
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
 import { useNavigate, useSearch } from '@tanstack/react-router'
 import { useState, type FormEvent } from 'react'
@@ -90,6 +92,7 @@ export function NewActivityPage() {
   const [duration, setDuration] = useState('')
   const [elevation, setElevation] = useState('')
   const [avgHr, setAvgHr] = useState('')
+  const [courseLength, setCourseLength] = useState('')
   const [privacy, setPrivacy] = useState<Privacy | null>(null)
   const visibility = privacy ?? me?.defaultActivityPrivacy ?? 'private'
 
@@ -125,6 +128,8 @@ export function NewActivityPage() {
         tags.forEach((tag) => form.append('tags', tag))
         if (sport) form.append('sport', sport)
         form.append('privacy', visibility)
+        const length = courseLengthM(selectedSport, courseLength)
+        if (length !== null) form.append('courseLengthM', String(length))
         return api.upload<Activity>('/api/activities', form)
       }
       return api.send<Activity>('POST', '/api/activities/manual', {
@@ -139,6 +144,7 @@ export function NewActivityPage() {
         elevationGainM: elevation === '' ? null : Number(elevation),
         avgHr: avgHr === '' ? null : Number(avgHr),
         privacy: visibility,
+        courseLengthM: courseLengthM(selectedSport, courseLength),
       })
     },
     onSuccess: async (activity) => {
@@ -279,6 +285,13 @@ export function NewActivityPage() {
                   </Select>
                 )}
               </FormField>
+              {selectedSport === 'orienteering' && (
+                <CourseLengthField
+                  value={courseLength}
+                  onChange={setCourseLength}
+                  className="col-span-2"
+                />
+              )}
               <ErrorText error={lastUsedShoe.error} className="col-span-2" />
               <FormField label={t('newActivity.startedAt')}>
                 {(id) => (

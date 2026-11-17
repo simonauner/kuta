@@ -58,6 +58,7 @@ export const sportIcons = {
   wheelchair: 'wheelchair',
   workout: 'fitness',
   yoga: 'yoga',
+  orienteering: 'compass',
   other: 'fitness',
 } as const
 
@@ -66,6 +67,11 @@ export const sports = Object.keys(sportIcons) as Sport[]
 
 export function knownSport(sport: string): Sport {
   return (sports as readonly string[]).includes(sport) ? (sport as Sport) : 'other'
+}
+
+// Running for records and analysis, as ActivitySports.IsRunning in the API
+export function isRunningSport(sport: string) {
+  return sportIcons[knownSport(sport)] === 'run' || sport === 'orienteering'
 }
 
 export function isCyclingSport(sport: string) {

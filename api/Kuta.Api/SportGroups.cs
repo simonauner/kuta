@@ -7,7 +7,7 @@ public static class SportGroups
 {
     public static readonly SportGroup[] Named =
     [
-        new("running", ["running", "trail run", "virtual run"]),
+        new("running", ["running", "trail run", "virtual run", "orienteering"]),
         new("cycling", ["cycling", "mountain bike ride", "gravel ride", "e-bike ride", "e-mountain bike ride",
             "virtual ride", "velomobile", "handcycle", "ebiking"]),
         new("swimming", ["swimming"]),
