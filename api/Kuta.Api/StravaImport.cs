@@ -68,8 +68,8 @@ public static class StravaImport
                     null, [], null, null, null, null, null, null),
                 ShoeId(Field("Gear")), string.IsNullOrWhiteSpace(Field("Activity Gear")) ? null : Field("Activity Gear").Trim(),
                 ActivityInput.NormalizeDescription(description),
-                // Strava's other tags (running, riding, offroad, commute) describe the sport or have no Kuta tag.
-                [.. Field("Tag").Split('|').Intersect(["race", "long_run"])]));
+                // Strava's other tags (running, riding, offroad) describe the sport.
+                [.. Field("Tag").Split('|').Intersect(["race", "long_run", "commute"])]));
         }
         if (result.Select(r => r.Id).Distinct().Count() != result.Count) throw new InvalidDataException("Duplicate activity IDs.");
         return result;

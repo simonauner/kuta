@@ -681,7 +681,8 @@
     "race": "Lopp",
     "workout": "Intervaller/kvalitet",
     "long_run": "Långpass",
-    "easy": "Lugnt"
+    "easy": "Lugnt",
+    "commute": "Pendling"
   },
   "tags": {
     "label": "Taggar",

@@ -681,7 +681,8 @@
     "race": "Race",
     "workout": "Intervals/quality",
     "long_run": "Long run",
-    "easy": "Easy"
+    "easy": "Easy",
+    "commute": "Commute"
   },
   "tags": {
     "label": "Tags",
