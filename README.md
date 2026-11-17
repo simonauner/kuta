@@ -677,6 +677,9 @@ Ett pass kan ha flera taggar: `race` (Lopp), `workout` (Intervaller/kvalitet),
 FIT-uppladdning, ändra dem via passsidans Redigera aktivitet och filtrera passlistan efter en tagg.
 Listans taggfilter sparas i URL:en (`/app/activities?tag=race`), kan kombineras
 med `year` och följer med till pass, skapandeformulär och tillbaka till listan.
+Flödet har kryssrutan Dölj pendling, som sparas i webbläsaren och skickar
+`GET /api/feed?hideCommutes=true`; då utelämnas pass med taggen `commute`, även andras.
+Profilernas passlistor visar alltid alla läsbara pass.
 
 `activities.tags` är `text[]`, med tom array som standard och GIN-index.
 API:t validerar mot `ActivityInput.Tags` och tar bort dubbletter; databasen har

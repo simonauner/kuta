@@ -1,6 +1,8 @@
 import { Stat } from '@/components/stat'
 import { SlowLoading } from '@/components/slow-loading'
-import type { ReactNode } from 'react'
+import { useState, type ReactNode } from 'react'
+import { Checkbox } from '@/components/ui/checkbox'
+import { FormField } from '@/components/ui/form-field'
 import { FeedEmptyState } from '@/components/feed-empty-state'
 import { ActivityMapPreview } from '@/components/activity-map-preview'
 import { useInfiniteQuery } from '@tanstack/react-query'
@@ -48,6 +50,8 @@ type FeedItem = {
 }
 type FeedPage = { items: FeedItem[]; nextCursor: ActivityCursor | null }
 
+const hideCommutesKey = 'kuta.feed.hideCommutes'
+
 export function ActivityFeed({
   runnerId,
   viewAs,
@@ -65,12 +69,32 @@ export function ActivityFeed({
 }) {
   const { t, i18n } = useTranslation()
   const returnTo = useRouterState({ select: (s) => s.location.href })
+  // Only the own feed can hide commutes; the choice is remembered in this browser.
+  const [hideCommutesSaved, setHideCommutes] = useState(() => {
+    try {
+      return localStorage.getItem(hideCommutesKey) === 'true'
+    } catch {
+      return false
+    }
+  })
+  const hideCommutes = !runnerId && hideCommutesSaved
+  const toggleCommutes = (hide: boolean) => {
+    setHideCommutes(hide)
+    try {
+      localStorage.setItem(hideCommutesKey, String(hide))
+    } catch {
+      // Blocked storage only forgets the choice.
+    }
+  }
   const feed = useInfiniteQuery({
-    queryKey: runnerId ? ['feed', runnerId, visitor, ...(viewAs ? [viewAs] : [])] : ['feed'],
+    queryKey: runnerId
+      ? ['feed', runnerId, visitor, ...(viewAs ? [viewAs] : [])]
+      : ['feed', hideCommutes],
     initialPageParam: null as ActivityCursor | null,
     queryFn: ({ pageParam }) => {
       const params = new URLSearchParams()
       if (viewAs) params.set('viewAs', viewAs)
+      if (hideCommutes) params.set('hideCommutes', 'true')
       if (pageParam) {
         params.set('beforeStartedAt', pageParam.startedAt)
         params.set('beforeId', pageParam.id)
@@ -115,10 +139,21 @@ export function ActivityFeed({
   return (
     <SlowLoading loading={feed.isPending}>
       <QueryError query={feed} />
+      {!runnerId && (hideCommutes || feed.data?.pages[0].items.length !== 0) && (
+        <FormField layout="choice" label={t('feed.hideCommutes')} className="mb-4 text-sm">
+          {(id) => (
+            <Checkbox
+              id={id}
+              checked={hideCommutes}
+              onChange={(e) => toggleCommutes(e.target.checked)}
+            />
+          )}
+        </FormField>
+      )}
       {feed.isSuccess &&
         feed.data.pages[0].items.length === 0 &&
         (emptyState ??
-          (runnerId ? (
+          (runnerId || hideCommutes ? (
             <p className="text-muted-foreground">{t('social.noActivities')}</p>
           ) : (
             <FeedEmptyState />
