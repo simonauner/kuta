@@ -290,8 +290,10 @@ static async Task<int> RunAsync(string[] args)
     app.MapFallbackToFile("/privacy", "privacy.html", staticFiles);
     app.MapFallbackToFile("/terms", "terms.html", staticFiles);
     app.MapFallbackToFile("/features", "features.html", staticFiles);
+    app.MapFallbackToFile("/strava", "strava.html", staticFiles);
     app.MapFallbackToFile("/en", "en/index.html", staticFiles);
     app.MapFallbackToFile("/en/features", "en/features.html", staticFiles);
+    app.MapFallbackToFile("/en/strava", "en/strava.html", staticFiles);
 
     // The public pages are static; only the app's known paths get the React shell.
     foreach (var path in new[] { "/app", "/app/activities", "/app/activities/new", "/app/activities/{activityId:guid}", "/app/activities/{activityId:guid}/edit", "/app/stats", "/app/stats/analysis", "/app/stats/routes", "/app/stats/records", "/app/stats/records/years", "/app/stats/year/{year:int}", "/app/profile", "/app/profile/achievements", "/app/settings/equipment", "/app/settings/followers", "/app/settings/privacy-places", "/app/settings/notifications", "/app/settings/import", "/app/settings/profile", "/app/settings/data", "/app/runners/{runnerId:guid}", "/app/r/{code:length(8)}", "/app/settings", "/app/groups", "/app/groups/{groupId:guid}", "/app/groups/{groupId:guid}/settings", "/app/clubs/{clubId:guid}", "/app/g/{code:length(8)}", "/app/admin" })

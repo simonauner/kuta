@@ -13,9 +13,11 @@ public class WebRoutingTests
         var ct = TestContext.Current.CancellationToken;
         await File.WriteAllTextAsync(Path.Combine(webRoot, "index.html"), "<h1>Public landing</h1>", ct);
         await File.WriteAllTextAsync(Path.Combine(webRoot, "features.html"), "<h1>Available features</h1>", ct);
+        await File.WriteAllTextAsync(Path.Combine(webRoot, "strava.html"), "<h1>From Strava</h1>", ct);
         Directory.CreateDirectory(Path.Combine(webRoot, "en"));
         await File.WriteAllTextAsync(Path.Combine(webRoot, "en", "index.html"), "<h1>English landing</h1>", ct);
         await File.WriteAllTextAsync(Path.Combine(webRoot, "en", "features.html"), "<h1>English features</h1>", ct);
+        await File.WriteAllTextAsync(Path.Combine(webRoot, "en", "strava.html"), "<h1>English Strava</h1>", ct);
         await File.WriteAllTextAsync(Path.Combine(webRoot, "privacy.html"), "<h1>Privacy policy</h1>", ct);
         await File.WriteAllTextAsync(Path.Combine(webRoot, "terms.html"), "<h1>Terms of use</h1>", ct);
         await File.WriteAllTextAsync(Path.Combine(webRoot, "app.html"), "<meta name=\"robots\" content=\"noindex\"><div>App shell</div>", ct);
@@ -43,10 +45,18 @@ public class WebRoutingTests
                 Assert.Contains("Available features", html);
                 Assert.DoesNotContain("App shell", html);
             }
+            foreach (var path in new[] { "/strava", "/strava/" })
+            {
+                var html = await client.GetStringAsync(path, ct);
+                Assert.Contains("From Strava", html);
+                Assert.DoesNotContain("App shell", html);
+            }
             foreach (var path in new[] { "/en", "/en/" })
                 Assert.Contains("English landing", await client.GetStringAsync(path, ct));
             foreach (var path in new[] { "/en/features", "/en/features/" })
                 Assert.Contains("English features", await client.GetStringAsync(path, ct));
+            foreach (var path in new[] { "/en/strava", "/en/strava/" })
+                Assert.Contains("English Strava", await client.GetStringAsync(path, ct));
             foreach (var path in new[] { "/app", "/app/", "/app/activities", "/app/activities/new", $"/app/activities/{Guid.NewGuid()}", $"/app/activities/{Guid.NewGuid()}/edit", "/app/stats", "/app/stats/analysis", "/app/stats/routes", "/app/stats/records", "/app/stats/records/years", "/app/stats/year/2026", "/app/profile", "/app/profile/achievements", "/app/settings/equipment", "/app/settings/followers", $"/app/runners/{Guid.NewGuid()}", "/app/r/k7m2qx9p", "/app/settings", "/app/settings/privacy-places", "/app/settings/notifications", "/app/settings/import", "/app/settings/profile", "/app/settings/data", "/app/admin", "/app/groups", $"/app/groups/{Guid.NewGuid()}", $"/app/groups/{Guid.NewGuid()}/settings", $"/app/clubs/{Guid.NewGuid()}", "/app/g/k7m2qx9p", "/app?confirm=failed", "/app?confirm=ok", "/app?reset=password", "/app?reset=failed" })
             {
                 var html = await client.GetStringAsync(path, ct);
