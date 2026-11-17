@@ -1,4 +1,5 @@
 import assert from 'node:assert/strict'
+import { gapFactor } from '../src/lib/activity-analysis.ts'
 import { test } from 'node:test'
 import {
   activitySearch,
@@ -82,6 +83,7 @@ test('splits per full kilometre plus the remainder', () => {
   for (const split of result) assert.ok(Math.abs(split.durationS - split.distanceM / 3) < 1e-9)
   assert.equal(result[0].elevationM, 10)
   assert.equal(result[0].avgHr, 150)
+  assert.ok(Math.abs(result[0].adjustedM - 1000 * gapFactor(0.01)) < 1e-6)
 })
 
 test('a few metres after the last kilometre are noise, not a split', () => {

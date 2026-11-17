@@ -404,6 +404,16 @@ som passsidan redan får:
   20 % snabbare och ge minst två repetitioner, och ingen repetition får vara längre än 25 minuter eller vilan mellan två repetitioner längre än 10 minuter (annars är det ett långpass med backar, gång eller stopp, till exempel ett terrängmaraton med autovarv). Tabellen visar distans, tid, tempo, puls och vila; texten snabbaste
   och långsammaste tempo och sista repetitionen mot snittet av de andra.
 
+**Lutningsjusterat tempo (GAP)** visas för löpning med höjddata, i statistiken och som kolumn i kilometersplits
+(`adjustedDistance` och `gapFactor` i `lib/activity-analysis.ts`). Faktorn följer Stravas pulsbaserade modell
+([Robb 2017](https://medium.com/strava-engineering/an-improved-gap-model-8b07ae8886c3)) i stället för Minettis
+energikostnad, som överskattar nedförsfördelen upp till tre gånger: uppför som Minetti, nedför en parabel med störst
+fördel 0,88 vid −9 %, ingen fördel vid −18 % och långsammare än platt brantare än så (begränsad vid −30 %).
+Träningsbelastningen och pulsdriften använder fortfarande Minetti. Varje bit om ca 30 s skalas med faktorn för bitens
+lutning, så höjdbrus mellan enskilda mätpunkter inte räknas som backe; saknad höjd räknas som platt. Passets GAP är
+rörelsetiden delad med distansen gånger splitsens lutningsjusterade andel. Andra än ägaren saknar höjd nära start
+och mål, och den delen räknas då som platt.
+
 **Aerob effektivitet** (Statistik → Analys, `AerobicEfficiency.cs`, migrering 031): `BestEfforts.ReplaceAsync`
 sparar `activities.aerobic_speed_m_s` och `aerobic_hr` för vanliga löppass (inte multisport) med samma fönster,
 uppvärmning och jämnhetskrav som pulsdriften, med Minettis backjustering som träningsbelastningen. Värdena härleds ur
