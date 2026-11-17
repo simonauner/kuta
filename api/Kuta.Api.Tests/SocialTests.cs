@@ -70,7 +70,7 @@ public class SocialTests(KutaFactory factory) : IClassFixture<KutaFactory>
     }
 
     [Fact]
-    public async Task Garmin_attribution_shows_watch_and_Garmin_activities_stay_hidden_from_followers()
+    public async Task Garmin_attribution_shows_the_watch_to_everyone_and_Garmin_activities_stay_hidden_from_followers()
     {
         var ct = TestContext.Current.CancellationToken;
         await using var conn = await factory.Services.GetRequiredService<NpgsqlDataSource>().OpenConnectionAsync(ct);
@@ -86,7 +86,10 @@ public class SocialTests(KutaFactory factory) : IClassFixture<KutaFactory>
             values (@id, @owner, 'garmin', 'Forerunner 965', now(), 1800, 5000, 'private')
             """, new { owner, viewer, id }, tx);
         Assert.Equal("Garmin Forerunner 965", Assert.Single((await SocialEndpoints.ReadFeedAsync(conn, owner)).Items).Attribution);
-        // Garmin activities stay private until Garmin approves showing them to others (constraint in migration 025).
+        // Garmin's guidelines want the model for every viewer, not only the owner.
+        Assert.Equal("Garmin Forerunner 965", await conn.ExecuteScalarAsync<string>(
+            $"select {GarminAttribution.Sql("a")} from activities a where a.id = @id", new { id, userId = viewer }, tx));
+        // Garmin activities stay private until Garmin has had 30 days' notice of showing them to others (constraint in migration 025).
         Assert.Empty((await SocialEndpoints.ReadFeedAsync(conn, viewer)).Items);
         Assert.Null(await ActivityEndpoints.ReadDetailAsync(conn, viewer, id, ct, tx));
         // Without a product name, manufacturer + code is stored, which already starts with Garmin.

@@ -99,7 +99,7 @@ public class GarminTests(KutaFactory factory) : IClassFixture<KutaFactory>
                 (activity.Privacy, activity.Device, activity.Title, activity.Unreviewed));
             Assert.Equal([shoe], await conn.QueryAsync<Guid>(
                 "select equipment_id from activity_equipment where activity_id = @id", new { id = activity.Id }));
-            // Privacy policy: Garmin activities may not be shared until Garmin approves showing them to others.
+            // Privacy policy: Garmin activities are not shared until Garmin has had 30 days' notice of showing them to others.
             var error = await Assert.ThrowsAsync<PostgresException>(() => conn.ExecuteAsync(
                 "update activities set privacy = 'followers' where id = @id", new { id = activity.Id }));
             Assert.Equal(PostgresErrorCodes.CheckViolation, error.SqlState);
