@@ -2,6 +2,7 @@ import type { ActivityPart } from './multisport.ts'
 import type { TFunction } from 'i18next'
 import sv from '../locales/sv.json' with { type: 'json' }
 import { knownSport, isCyclingSport, sports, type Sport } from './sports.ts'
+import { adjustedDistance } from './activity-analysis.ts'
 
 export type ActivityTag = keyof typeof import('@/locales/sv.json').tagNames
 
@@ -326,6 +327,8 @@ export type Split = {
   distanceM: number
   durationS: number
   elevationM: number | null
+  // Grade-adjusted distance; time divided by it is the grade-adjusted pace. Null without altitude.
+  adjustedM: number | null
   avgHr: number | null
 }
 
@@ -340,6 +343,8 @@ export function splits(streams: ActivityStreams): Split[] {
   let fromD = dist[first]!
   let fromT = t[first]
   let fromAlt = alt?.[first] ?? null
+  const adj = adjustedDistance(streams)
+  let fromAdj = adj?.[first] ?? null
   let km = Math.floor(fromD / 1000) + 1
   let hrTotal = 0
   let hrSeconds = 0
@@ -348,17 +353,19 @@ export function splits(streams: ActivityStreams): Split[] {
     b: number | null | undefined,
     ratio: number,
   ) => (a == null || b == null ? null : a + (b - a) * ratio)
-  function finish(d: number, time: number, elevation: number | null) {
+  function finish(d: number, time: number, elevation: number | null, adjusted: number | null) {
     result.push({
       km,
       distanceM: d - fromD,
       durationS: time - fromT,
       elevationM: fromAlt !== null && elevation !== null ? elevation - fromAlt : null,
+      adjustedM: fromAdj !== null && adjusted !== null ? adjusted - fromAdj : null,
       avgHr: hrSeconds > 0 ? Math.round(hrTotal / hrSeconds) : null,
     })
     fromD = d
     fromT = time
     fromAlt = elevation
+    fromAdj = adjusted
     hrTotal = hrSeconds = 0
     km++
   }
@@ -386,12 +393,14 @@ export function splits(streams: ActivityStreams): Split[] {
           boundary,
           t[previous] + ratio * (t[i] - t[previous]),
           interpolate(alt?.[previous], alt?.[i], ratio),
+          interpolate(adj?.[previous], adj?.[i], ratio),
         )
       fromRatio = ratio
     }
     previous = i
   }
   // A final remainder of a few meters is noise, not a split.
-  if (dist[previous]! - fromD >= 50) finish(dist[previous]!, t[previous], alt?.[previous] ?? null)
+  if (dist[previous]! - fromD >= 50)
+    finish(dist[previous]!, t[previous], alt?.[previous] ?? null, adj?.[previous] ?? null)
   return result
 }

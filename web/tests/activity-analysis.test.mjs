@@ -1,6 +1,8 @@
 import assert from 'node:assert/strict'
 import { test } from 'node:test'
 import {
+  adjustedDistance,
+  gapFactor,
   gradeFactor,
   heartRateDrift,
   heartRateZones,
@@ -32,6 +34,57 @@ function run(seconds, speed, hr = () => 150, alt = null) {
     temp: null,
   }
 }
+
+test('grade-adjusted distance follows the climb, ignores altitude noise and needs altitude', () => {
+  const total = (stream) => adjustedDistance(stream).at(-1)
+  // 3 m/s for 10 min: flat, 1 % uphill, and flat with 1 m of noise between every other sample.
+  assert.equal(
+    total(
+      run(
+        600,
+        () => 3,
+        undefined,
+        () => 5,
+      ),
+    ),
+    1800,
+  )
+  assert.ok(
+    Math.abs(
+      total(
+        run(
+          600,
+          () => 3,
+          undefined,
+          (s) => s * 0.03,
+        ),
+      ) -
+        1800 * gapFactor(0.01),
+    ) < 1e-6,
+  )
+  assert.equal(
+    total(
+      run(
+        600,
+        () => 3,
+        undefined,
+        (s) => s % 2,
+      ),
+    ),
+    1800,
+  )
+  assert.equal(adjustedDistance(run(600, () => 3)), null)
+})
+
+test('GAP follows Minetti uphill and gives at most a 12 % downhill benefit, gone by −18 %', () => {
+  assert.equal(gapFactor(0.1), gradeFactor(0.1))
+  assert.equal(gapFactor(0), 1)
+  assert.ok(Math.abs(gapFactor(-0.09) - 0.88) < 1e-9)
+  assert.ok(gapFactor(-0.05) > 0.88 && gapFactor(-0.13) > 0.88)
+  assert.ok(Math.abs(gapFactor(-0.18) - 1) < 1e-9)
+  assert.ok(gapFactor(-0.25) > 1)
+  assert.equal(gapFactor(-0.5), gapFactor(-0.3))
+})
 
 test('grade factor matches the API on flat ground and makes climbing cost more', () => {
   assert.equal(gradeFactor(0), 1)

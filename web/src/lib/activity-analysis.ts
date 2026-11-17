@@ -9,11 +9,66 @@ export function gradeFactor(grade: number) {
   return ((((155.4 * i - 30.4) * i - 43.3) * i + 46.3) * i + 19.5) * (i / 3.6) + 1
 }
 
+// Grade-adjusted pace follows Strava's heart-rate-based model (Robb 2017) instead of Minetti's energy cost, which
+// overstates the downhill benefit up to 3×: uphill as Minetti; downhill the benefit peaks at 0.88 at −9 % and is gone
+// by −18 %, steeper is slower than flat. A parabola through those points, clamped at −30 % where data is sparse.
+export function gapFactor(grade: number) {
+  if (grade >= 0) return gradeFactor(grade)
+  const g = Math.max(-0.3, grade)
+  return 0.88 + (0.12 / 0.09 ** 2) * (g + 0.09) ** 2
+}
+
 // Shared limits: samples further apart than the watch's auto-pause break the stream, and slower than a
 // brisk walk counts as standing still.
 const gapS = 10
 const windowS = 30
 const movingSpeed = 1.5
+
+// Cumulative grade-adjusted distance per sample (null where distance is missing). Each ~30 s chunk is scaled
+// by its GAP factor, so altitude noise between single samples does not count as hills; missing altitude
+// counts as flat. Grade-adjusted pace over any range is its time divided by the change in this value.
+export function adjustedDistance({ t, dist, alt }: ActivityStreams): (number | null)[] | null {
+  if (!dist || !alt || dist.length !== t.length || alt.length !== t.length) return null
+  const result: (number | null)[] = dist.map(() => null)
+  let base = 0
+  let start = -1
+  let previous = -1
+  const close = () => {
+    if (start < 0) return
+    const d = dist[previous]! - dist[start]!
+    const from = alt[start]
+    const to = alt[previous]
+    const factor =
+      d > 0 && from != null && to != null && Number.isFinite(from) && Number.isFinite(to)
+        ? gapFactor((to - from) / d)
+        : 1
+    for (let j = start; j <= previous; j++)
+      if (dist[j] !== null && Number.isFinite(dist[j]))
+        result[j] = base + (dist[j]! - dist[start]!) * factor
+    base = result[previous]!
+  }
+  for (let i = 0; i < t.length; i++) {
+    const d = dist[i]
+    if (d === null || !Number.isFinite(d)) continue
+    if (start < 0) {
+      start = previous = i
+      continue
+    }
+    // A reset distance starts over from the current total; splits are not drawn for such streams anyway.
+    if (d < dist[previous]!) {
+      close()
+      start = previous = i
+      continue
+    }
+    previous = i
+    if (t[i] - t[start] >= windowS) {
+      close()
+      start = i
+    }
+  }
+  close()
+  return result
+}
 
 type Window = { durationS: number; distanceM: number; adjustedM: number; hrS: number | null }
 
