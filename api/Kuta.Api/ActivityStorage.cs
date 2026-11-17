@@ -87,7 +87,7 @@ public static class ActivityStorage
                 userId, source, title, stravaId, description = ActivityInput.NormalizeDescription(description), parsed.Sport, parsed.StartedAt, parsed.DurationS, parsed.MovingS,
                 parsed.DistanceM, parsed.AvgHr, parsed.MaxHr, parsed.HrZones, parsed.AvgSpeedMps, parsed.ElevationGainM,
                 route = (object?)parsed.Route ?? DBNull.Value, parsed.Device, parsed.AerobicTrainingEffect, parsed.AnaerobicTrainingEffect, key, hash, tags = ActivityInput.NormalizeTags(tags),
-                // Garmin activities are private until Garmin approves showing them to others (constraint in migration 025).
+                // Garmin activities are private until Garmin has had 30 days' notice of showing them to others (constraint in migration 025).
                 privacy = source == "garmin" ? "private" : privacy ?? profile.DefaultActivityPrivacy,
             }, tx);
         if (id is null) return null;

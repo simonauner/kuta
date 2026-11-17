@@ -26,8 +26,8 @@ public record LeaderboardRow(Guid UserId, string DisplayName, Guid? AvatarId, do
 public record Leaderboard(DateOnly WeekStart, IReadOnlyList<LeaderboardRow> Rows);
 
 // Groups are joined through an invite link or, for open clubs, from search; an admin approves every request. Membership never grants access to activities: members see each other and a weekly leaderboard of
-// the totals each member chose to share (all own activities, also private ones, but never Garmin activities, which may
-// not be shown to others before Garmin approves it).
+// the totals each member chose to share (all own activities, also private ones, but never Garmin activities, which are
+// shown only to their owner until Garmin has had 30 days' notice of showing them to others).
 public static class Groups
 {
     public const int MaxMembers = 100;
