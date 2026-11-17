@@ -784,6 +784,16 @@ JSON använder lowerCamelCase, SI-enheter och UTC-tid. Lösenord, sessionscookie
 
 Exportens innehåll, åtkomst mellan två användare, råfilernas bytes och samordningen med återkallat samtycke testas på databas-/lagringsnivå. HTTP-testet verifierar den nya routens autentisering, ZIP-svar och cache-/nedladdningsheaders; det upprepar inte innehållstesterna.
 
+## Uppladdning av GPX
+
+Ny aktivitet tar även GPX-filer, en eller flera, i samma yta och via samma `POST /api/activities` och
+`/api/activities/preview` som FIT. Filer utan FIT-huvudet (`.FIT` på byte 8) tolkas som GPX med samma tolk som
+Strava-importen (`StravaImport.ParseGpx`) och sparas med källan `gpx` (migrering 042). GPX saknar sammanfattning, så
+den räknas ur spåret: start vid första punkten, tid till sista punkten, distans längs spåret (utan att räkna glappet
+mellan två `trkseg`), snitt- och maxpuls ur pulsvärdena och höjdmeter där en stigning räknas först när den når 3 m över
+lägsta punkten sedan förra stigningen. Sporten är löpning tills den ändras i formuläret; flera filer sparas som löpning.
+Rörelsetid, klocka, kadens och varv finns inte i GPX. Puls och råfil följer samma samtycke som för FIT.
+
 ## Importera en Strava-export
 
 Öppna **Profil → Inställningar → Import och anslutningar** via kugghjulet. Sidan visar stegen för att beställa arkivet hos Strava, med direktlänk. Under **Importera från Strava** väljer du Stravas kompletta ZIP-export (högst 500 MB) och trycker **Importera pass**. Ta ställning till pulssamtycket först. Uppladdningen köar importen, som sedan körs på servern (se [Jobbkö](#jobbkö)). Under importen visas antal bearbetade pass och löpande räknare för importerade, dubbletter och misslyckade. Sidan kan lämnas; förloppet och det senaste resultatet visas igen när du kommer tillbaka. Exporten måste innehålla `activities.csv` i roten och filerna på sökvägarna i kolumnen `Filename`.

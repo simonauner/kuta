@@ -174,9 +174,9 @@ public static class ActivityEndpoints
             CancellationToken cancellationToken) =>
         {
             await using var conn = await db.OpenConnectionAsync(cancellationToken);
-            var (fit, error) = await ReadFitAsync(file, conn, user.GetUserId(), cancellationToken);
-            if (fit is null) return error!;
-            var p = fit.Parsed;
+            var (upload, error) = await ReadFileAsync(file, conn, user.GetUserId(), cancellationToken);
+            if (upload is null) return error!;
+            var p = upload.Parsed;
             return Results.Ok(new ActivityPreview(
                 p.Sport, p.StartedAt, p.DurationS, p.MovingS, p.DistanceM, p.AvgHr, p.MaxHr, p.ElevationGainM, p.Device,
                 new ActivityStreams(p.T, p.Dist, p.Hr, p.Speed, p.Alt, p.Lat, p.Lon, p.Cadence, p.Temp),
@@ -200,7 +200,7 @@ public static class ActivityEndpoints
                 : Results.Created($"/api/activities/{activity.Id}", activity);
         });
 
-        // FIT file upload: parse it, store the raw file (only with heart rate consent) and write the activity with streams
+        // FIT or GPX file upload: parse it, store the raw file (only with heart rate consent) and write the activity with streams
         // in one transaction. The same file again gives 409 (raw_file_sha256 is unique per user).
         // Title and sport can be changed in the form; the measurements always come from the file.
         activities.MapPost("", async (IFormFile? file, [FromForm] string? title, [FromForm] string? sport, IFormCollection form,
@@ -220,9 +220,9 @@ public static class ActivityEndpoints
                 return Results.BadRequest(invalid);
             var userId = user.GetUserId();
             await using var conn = await db.OpenConnectionAsync(cancellationToken);
-            var (fit, error) = await ReadFitAsync(file, conn, userId, cancellationToken);
-            if (fit is null) return error!;
-            var (bytes, sha256, parsed, hrConsent) = fit;
+            var (upload, error) = await ReadFileAsync(file, conn, userId, cancellationToken);
+            if (upload is null) return error!;
+            var (bytes, sha256, parsed, hrConsent, gpx) = upload;
             if (sport is not null && parsed.Parts is not { Length: > 0 }) parsed = parsed with { Sport = sport };
             MultisportRequest? split = null;
             if (form.ContainsKey("parts"))
@@ -237,7 +237,7 @@ public static class ActivityEndpoints
             Guid? id;
             try
             {
-                id = await ActivityStorage.SaveAsync(conn, store, userId, parsed, "fit", title, null, bytes, ".fit",
+                id = await ActivityStorage.SaveAsync(conn, store, userId, parsed, gpx ? "gpx" : "fit", title, null, bytes, gpx ? ".gpx" : ".fit",
                     cancellationToken, tags, equipmentIds.ToArray(), description, split, privacy);
             }
             catch (InvalidEquipmentException)
@@ -384,26 +384,26 @@ public static class ActivityEndpoints
     private record OwnedActivity(Guid Id, string? RawFileKey);
     private record EditedActivity(string Sport, System.DateTime StartedAt, bool HasParts);
 
-    // A parsed FIT file; without heart rate consent the heart rate is already removed
-    private record FitUpload(byte[] Bytes, byte[] Sha256, ParsedActivity Parsed, bool HrConsent);
+    // A parsed FIT or GPX file; without heart rate consent the heart rate is already removed
+    private record FileUpload(byte[] Bytes, byte[] Sha256, ParsedActivity Parsed, bool HrConsent, bool Gpx);
 
-    private static async Task<(FitUpload? Fit, IResult? Error)> ReadFitAsync(IFormFile? file, NpgsqlConnection conn,
+    private static async Task<(FileUpload? Upload, IResult? Error)> ReadFileAsync(IFormFile? file, NpgsqlConnection conn,
         Guid userId, CancellationToken cancellationToken)
     {
         if (file is null || file.Length == 0)
-            return (null, Results.BadRequest(new ApiError("Välj en FIT-fil att ladda upp.", "fileRequired")));
+            return (null, Results.BadRequest(new ApiError("Välj en FIT- eller GPX-fil att ladda upp.", "fileRequired")));
         if (file.Length > MaxFitFileBytes)
             return (null, Results.BadRequest(new ApiError("Filen är för stor (högst 20 MB).", "fileTooLarge")));
 
         // A 20 MB file takes over 100 MB to buffer and parse, so parallel uploads must not run all at once on a small machine.
         await FitParsing.WaitAsync(cancellationToken);
-        try { return await ParseFitAsync(file, conn, userId, cancellationToken); }
+        try { return await ParseFileAsync(file, conn, userId, cancellationToken); }
         finally { FitParsing.Release(); }
     }
 
     private static readonly SemaphoreSlim FitParsing = new(2);
 
-    private static async Task<(FitUpload? Fit, IResult? Error)> ParseFitAsync(IFormFile file, NpgsqlConnection conn,
+    private static async Task<(FileUpload? Upload, IResult? Error)> ParseFileAsync(IFormFile file, NpgsqlConnection conn,
         Guid userId, CancellationToken cancellationToken)
     {
         using var buffer = new MemoryStream();
@@ -418,12 +418,15 @@ public static class ActivityEndpoints
                 new { userId, sha256 }))
             return (null, Results.Conflict(new ApiError("Den här aktiviteten är redan uppladdad.", "duplicateActivity")));
 
+        // A FIT file has ".FIT" at byte 8 of its header; anything else is tried as GPX.
+        var gpx = bytes.Length < 12 || !bytes.AsSpan(8, 4).SequenceEqual(".FIT"u8);
         ParsedActivity? parsed;
-        // The SDK throws more than FitException for a corrupt file with a valid checksum (as in the Garmin import).
-        try { parsed = FitImport.Parse(bytes); }
+        // The SDK throws more than FitException for a corrupt file with a valid checksum (as in the Garmin import),
+        // and the GPX parser throws XmlException as well as InvalidDataException.
+        try { parsed = gpx ? StravaImport.ParseGpx(bytes) : FitImport.Parse(bytes); }
         catch (Exception e) when (e is not OperationCanceledException) { parsed = null; }
         if (parsed is null)
-            return (null, Results.BadRequest(new ApiError("Filen kunde inte läsas som en aktivitet från en FIT-fil.", "invalidFit")));
-        return (new FitUpload(bytes, sha256, profile.HrConsent ? parsed : parsed.WithoutHeartRate(), profile.HrConsent), null);
+            return (null, Results.BadRequest(new ApiError("Filen kunde inte läsas som en aktivitet från en FIT- eller GPX-fil.", "invalidActivityFile")));
+        return (new FileUpload(bytes, sha256, profile.HrConsent ? parsed : parsed.WithoutHeartRate(), profile.HrConsent, gpx), null);
     }
 }
