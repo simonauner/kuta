@@ -272,10 +272,10 @@ public static class Push
             "followAccepted" => new { title = sv ? "Förfrågan godkänd" : "Request accepted",
                 body = sv ? $"{n.Name} godkände din följförfrågan." : $"{n.Name} accepted your follow request.",
                 url = $"/app/runners/{n.ActorId}", tag = $"follow-accepted-{n.ActorId}" },
-            "groupJoinRequest" => new { title = n.GroupName,
+            "groupJoinRequest" => new { title = n.GroupName ?? "Kuta",
                 body = sv ? $"{n.Name} vill gå med i gruppen." : $"{n.Name} wants to join the group.",
                 url = $"/app/groups/{n.GroupId}", tag = $"group-request-{n.GroupId}" },
-            _ => new { title = n.GroupName,
+            _ => new { title = n.GroupName ?? "Kuta",
                 body = sv ? "Du är nu med i gruppen." : "You are now a member of the group.",
                 url = $"/app/groups/{n.GroupId}", tag = $"group-accepted-{n.GroupId}" },
         };

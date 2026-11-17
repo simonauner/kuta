@@ -17,7 +17,7 @@ public record ActivityDetail(
     short? AvgHr, short? MaxHr, float? AvgSpeedMps, float? ElevationGainM, string? Device, ActivityStreams? Streams,
     IEnumerable<ActivityLap> Laps, string[] Tags, Guid[] EquipmentIds, ActivityPart[] Parts, bool PartsEdited, bool CanSplit, string? Description, ActivityPart[] OriginalParts, string OriginalSport, Guid UserId, string DisplayName, string Privacy, bool ExcludeFromRecords, string? Attribution,
     float? AerobicTrainingEffect, float? AnaerobicTrainingEffect,
-    short[]? HrZones);
+    short[]? HrZones, bool HideCompanions);
 
 // What the form is prefilled with from a FIT file
 public record ActivityPreview(
@@ -37,7 +37,7 @@ public record ActivityLap(
 public record UnreviewedActivities(int Count, UnreviewedActivity? Latest);
 public record UnreviewedActivity(Guid Id, string? Title, string Sport, System.DateTime StartedAt);
 
-public record ActivityUpdateRequest(string? Title, string? Description, string[] Tags, Guid[] EquipmentIds, MultisportRequest? Multisport = null, bool RestoreParts = false, string? Privacy = null, bool? ExcludeFromRecords = null, string? Sport = null);
+public record ActivityUpdateRequest(string? Title, string? Description, string[] Tags, Guid[] EquipmentIds, MultisportRequest? Multisport = null, bool RestoreParts = false, string? Privacy = null, bool? ExcludeFromRecords = null, string? Sport = null, bool? HideCompanions = null);
 
 public static class ActivityEndpoints
 {
@@ -294,8 +294,8 @@ public static class ActivityEndpoints
             await conn.ExecuteAsync("delete from activity_equipment where activity_id = @id and user_id = @userId",
                 new { id, userId }, tx);
             await EquipmentEndpoints.AttachAsync(conn, tx, id, userId, req.EquipmentIds);
-            await conn.ExecuteAsync("update activities set title = @title, description = @description, tags = @tags, privacy = case when source = 'garmin' then privacy else coalesce(@Privacy, privacy) end, exclude_from_records = coalesce(@ExcludeFromRecords, exclude_from_records), reviewed_at = coalesce(reviewed_at, now()) where id = @id and user_id = @userId",
-                new { id, userId, req.Privacy, req.ExcludeFromRecords, title = ActivityInput.NormalizeTitle(req.Title), description = ActivityInput.NormalizeDescription(req.Description), tags = ActivityInput.NormalizeTags(req.Tags) }, tx);
+            await conn.ExecuteAsync("update activities set title = @title, description = @description, tags = @tags, privacy = case when source = 'garmin' then privacy else coalesce(@Privacy, privacy) end, exclude_from_records = coalesce(@ExcludeFromRecords, exclude_from_records), hide_companions = coalesce(@HideCompanions, hide_companions), reviewed_at = coalesce(reviewed_at, now()) where id = @id and user_id = @userId",
+                new { id, userId, req.Privacy, req.ExcludeFromRecords, req.HideCompanions, title = ActivityInput.NormalizeTitle(req.Title), description = ActivityInput.NormalizeDescription(req.Description), tags = ActivityInput.NormalizeTags(req.Tags) }, tx);
             await tx.CommitAsync();
             return Results.NoContent();
         });
@@ -339,7 +339,8 @@ public static class ActivityEndpoints
                    a.avg_speed_mps, a.elevation_gain_m, a.device, s.t, s.dist, s.hr, s.speed, s.alt, s.lat, s.lon,
                    s.cadence, s.temp, a.tags,
                    array(select equipment_id from activity_equipment where activity_id = a.id order by equipment_id) as equipment_ids, a.parts_edited, a.description, coalesce(a.original_sport, a.sport), a.user_id, u.display_name, a.privacy, a.exclude_from_records,
-                   {GarminAttribution.Sql("a")}, a.aerobic_training_effect, a.anaerobic_training_effect, a.hr_zones
+                   {GarminAttribution.Sql("a")}, a.aerobic_training_effect, a.anaerobic_training_effect, a.hr_zones,
+                   a.hide_companions
             from activities a join users u on u.id = a.user_id left join activity_streams s on s.activity_id = a.id
             where a.id = @id and {SocialEndpoints.CanRead}
             """, conn, tx);
@@ -362,7 +363,7 @@ public static class ActivityEndpoints
                 reader.GetGuid(0), reader.GetString(1), Value<string>(2),
                 System.DateTime.SpecifyKind(reader.GetDateTime(3), DateTimeKind.Utc), reader.GetInt32(4),
                 Value<int?>(5), reader.GetDouble(6), Value<short?>(7), Value<short?>(8), Value<float?>(9),
-                Value<float?>(10), Value<string>(11), streams, [], reader.GetFieldValue<string[]>(21), reader.GetFieldValue<Guid[]>(22), [], reader.GetBoolean(23), streams is not null && Multisport.CanSplit(streams.T, streams.Dist), Value<string>(24), [], reader.GetString(25), ownerId, reader.GetString(27), reader.GetString(28), reader.GetBoolean(29), Value<string>(30), Value<float?>(31), Value<float?>(32), Value<short[]>(33));
+                Value<float?>(10), Value<string>(11), streams, [], reader.GetFieldValue<string[]>(21), reader.GetFieldValue<Guid[]>(22), [], reader.GetBoolean(23), streams is not null && Multisport.CanSplit(streams.T, streams.Dist), Value<string>(24), [], reader.GetString(25), ownerId, reader.GetString(27), reader.GetString(28), reader.GetBoolean(29), Value<string>(30), Value<float?>(31), Value<float?>(32), Value<short[]>(33), reader.GetBoolean(34));
         }
         var places = ownerId == userId ? [] : await PrivacyPlaces.LoadAsync(conn, ownerId, cancellationToken, tx);
         detail = detail with { Streams = RoutePrivacy.ForViewer(detail.Streams, ownerId, userId, places) };

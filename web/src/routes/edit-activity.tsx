@@ -51,6 +51,7 @@ function EditActivityForm({ activity }: { activity: ActivityDetail }) {
   const [description, setDescription] = useState(activity.description ?? '')
   const [tags, setTags] = useState(activity.tags)
   const [excludeFromRecords, setExcludeFromRecords] = useState(activity.excludeFromRecords)
+  const [hideCompanions, setHideCompanions] = useState(activity.hideCompanions)
   const [privacy, setPrivacy] = useState(activity.privacy)
   const [sport, setSport] = useState(activity.sport)
   const [equipmentIds, setEquipmentIds] = useState(activity.equipmentIds)
@@ -66,6 +67,7 @@ function EditActivityForm({ activity }: { activity: ActivityDetail }) {
         // A split activity takes its sport from the parts
         sport: sport !== activity.sport && draft === undefined ? sport : undefined,
         excludeFromRecords,
+        hideCompanions,
         title,
         description,
         tags,
@@ -169,6 +171,21 @@ function EditActivityForm({ activity }: { activity: ActivityDetail }) {
               )}
             </FormField>
             <p className="text-xs text-muted-foreground">{t('activity.excludeFromRecordsHint')}</p>
+          </div>
+        )}
+        {activity.streams?.lat && (
+          <div className="space-y-2">
+            <FormField label={t('companions.show')} layout="choice">
+              {(id) => (
+                <Checkbox
+                  id={id}
+                  checked={!hideCompanions}
+                  onChange={(event) => setHideCompanions(!event.currentTarget.checked)}
+                  disabled={save.isPending}
+                />
+              )}
+            </FormField>
+            <p className="text-xs text-muted-foreground">{t('companions.showHint')}</p>
           </div>
         )}
         <MultisportEditor

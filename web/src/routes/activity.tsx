@@ -42,6 +42,7 @@ import { card } from '@/components/ui/card-variants'
 import { VisitorNotice } from '@/components/visitor-notice'
 import { ConfirmationModal } from '@/components/ui/confirmation-modal'
 import { SimilarRoutes } from '@/components/similar-routes'
+import { Companions } from '@/components/companions'
 
 // Pace from speed, smoothed over ~15 s so GPS noise doesn't cause spikes; standing still becomes a gap.
 function paceSeries(speed: (number | null)[], minSpeed = 0.5) {
@@ -619,6 +620,7 @@ export function ActivityPage() {
       {original.userId === me?.id && original.excludeFromRecords && (
         <p className="mt-4 text-sm text-muted-foreground">{t('activity.excludedFromRecords')}</p>
       )}
+      {!visitor && <Companions activityId={original.id} own={original.userId === me?.id} />}
       <MultisportEditor
         key={`${original.id}:${original.partsEdited}:${JSON.stringify(original.parts)}`}
         activity={original}

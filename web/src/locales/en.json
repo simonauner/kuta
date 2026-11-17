@@ -1371,5 +1371,13 @@
       "groupJoinRequest": "Someone wants to join a group you administer",
       "groupJoinAccepted": "You are accepted into a group"
     }
+  },
+  "companions": {
+    "title": "Together with",
+    "show": "Show who I trained with",
+    "showHint": "Kuta shows others who were in the same place at the same time, but only to people who can already see both activities. If you turn it off, this activity is not linked to anyone else’s, in either direction.",
+    "helpLabel": "About Together with",
+    "help": "Others who were in the same place at the same time. Shown only to people who can see both activities.",
+    "ownHelp": "You can turn it off under Edit activity."
   }
 }

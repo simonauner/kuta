@@ -213,6 +213,7 @@ export type ActivityDetail = Activity & {
   displayName: string
   privacy: 'private' | 'followers' | 'public'
   excludeFromRecords: boolean
+  hideCompanions: boolean
   description: string | null
   movingS: number | null
   maxHr: number | null
