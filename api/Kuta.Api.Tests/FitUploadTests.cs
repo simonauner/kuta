@@ -67,7 +67,7 @@ public class FitUploadTests(KutaFactory factory) : IClassFixture<KutaFactory>
             using (var corrupt = await Upload(client, FitFile.CorruptWithValidChecksum(start), ct))
             {
                 Assert.Equal(HttpStatusCode.BadRequest, corrupt.StatusCode);
-                Assert.Equal("invalidFit", (await corrupt.Content.ReadFromJsonAsync<ApiError>(ct))!.Code);
+                Assert.Equal("invalidActivityFile", (await corrupt.Content.ReadFromJsonAsync<ApiError>(ct))!.Code);
             }
 
             // With consent: heart rate is saved, both summary and time series
@@ -249,6 +249,28 @@ public class FitUploadTests(KutaFactory factory) : IClassFixture<KutaFactory>
         select count(*) from storage.objects
         where bucket_id = 'fit-files' and name like 'fit/' || (select id from auth.users where email = @email) || '/%'
         """, new { email });
+
+    [Fact]
+    public async Task Upload_accepts_a_gpx_file()
+    {
+        var ct = TestContext.Current.CancellationToken;
+        var runner = $"gpx-{Guid.NewGuid():N}@example.com";
+        var client = factory.CreateClient();
+        await using var conn = await factory.Services.GetRequiredService<NpgsqlDataSource>().OpenConnectionAsync(ct);
+        try
+        {
+            await CreateRunnerAsync(factory, client, conn, runner, "Löparen", ct);
+            var gpx = System.Text.Encoding.UTF8.GetBytes(StravaFixture.Gpx);
+            var upload = await Upload(client, gpx, ct);
+            Assert.Equal(HttpStatusCode.Created, upload.StatusCode);
+            var id = (await upload.Content.ReadFromJsonAsync<JsonElement>(ct)).GetProperty("id").GetGuid();
+            var row = await conn.QuerySingleAsync<(string Source, int DurationS, bool HasRoute)>(
+                "select source, duration_s, route is not null from activities where id = @id", new { id });
+            Assert.Equal(("gpx", 120, true), row);
+            Assert.Equal(HttpStatusCode.Conflict, (await Upload(client, gpx, ct)).StatusCode);
+        }
+        finally { await conn.ExecuteAsync("delete from auth.users where email = @runner", new { runner }); }
+    }
 
     static async Task<HttpResponseMessage> Upload(HttpClient client, byte[] fit, CancellationToken ct,
         string path = "/api/activities", string? title = null, string? description = null, string? privacy = null)

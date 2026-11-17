@@ -32,7 +32,7 @@ export function FitDrop({
         event.preventDefault()
         setDragging(false)
         const files = [...event.dataTransfer.files].filter((file) =>
-          file.name.toLowerCase().endsWith('.fit'),
+          /\.(fit|gpx)$/i.test(file.name),
         )
         if (!disabled && files.length > 0) onFiles(files)
       }}
@@ -54,7 +54,7 @@ export function FitDrop({
       <input
         ref={input}
         type="file"
-        accept=".fit"
+        accept=".fit,.gpx"
         multiple
         hidden
         aria-label={t('newActivity.file')}
