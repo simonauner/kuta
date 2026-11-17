@@ -362,8 +362,8 @@ konditionen ökar snabbt. Modellen är TrainingPeaks förenkling av Banisters im
   snittfarten, `distans² / tid`, utan backjustering.
 - **Backar:** varje avsnitts fart multipliceras med samma lutningsfaktor som GAP (`TrainingLoad.GradeFactor`, se
   Lutningsjusterat tempo nedan) vid lutningen `i = Δhöjd / Δdistans` ur höjdströmmen. Uppför ger högre belastning,
-  svag nedförslutning något lägre och brant nedför högre. Saknad höjd räknas som plan mark. Äldre pass får justeringen
-  vid omberäkning av rekord.
+  svag nedförslutning något lägre och brant nedför högre. Saknad höjd räknas som plan mark. Migrering 041 köade en
+  omberäkning när kurvan byttes från Minettis energikostnad.
 - **Tröskelfart:** `users.threshold_speed_m_s` om användaren angett den, annars farten som VDOT-prognosen räcker
   till i en timme (`RacePredictor.ThresholdSpeed`). Utan någon av dem finns ingen belastning. Samma tröskel gäller
   hela historiken.
