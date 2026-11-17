@@ -1,29 +1,29 @@
 using Dapper;
 using Npgsql;
 
-public sealed record StravaShoe(string Id, string Name, string? Brand);
+public sealed record StravaGear(string Id, string Kind, string Name, string? Brand);
 
 public static class StravaEquipment
 {
     public static async Task<(Dictionary<string, Guid> Ids, int Imported)> ImportAsync(
-        NpgsqlConnection conn, Guid userId, IReadOnlyList<StravaShoe> shoes, CancellationToken ct)
+        NpgsqlConnection conn, Guid userId, IReadOnlyList<StravaGear> gear, CancellationToken ct)
     {
         var ids = new Dictionary<string, Guid>();
         var imported = 0;
         await using var tx = await conn.BeginTransactionAsync(ct);
-        foreach (var shoe in shoes)
+        foreach (var item in gear)
         {
             var id = await conn.QuerySingleOrDefaultAsync<Guid?>(
                 """
                 insert into equipment (user_id, name, brand, kind, strava_gear_id)
-                values (@userId, @Name, @Brand, 'shoe', @Id)
+                values (@userId, @Name, @Brand, @Kind, @Id)
                 on conflict (user_id, strava_gear_id) where strava_gear_id is not null do nothing
                 returning id
-                """, new { userId, shoe.Id, shoe.Name, shoe.Brand }, tx);
+                """, new { userId, item.Id, item.Name, item.Brand, item.Kind }, tx);
             if (id is not null) imported++;
             // Keep the user's name, starting values and retirement on reimport.
-            ids.Add(shoe.Id, id ?? await conn.QuerySingleAsync<Guid>(
-                "select id from equipment where user_id=@userId and strava_gear_id=@Id", new { userId, shoe.Id }, tx));
+            ids.Add(item.Id, id ?? await conn.QuerySingleAsync<Guid>(
+                "select id from equipment where user_id=@userId and strava_gear_id=@Id", new { userId, item.Id }, tx));
         }
         await tx.CommitAsync(ct);
         return (ids, imported);

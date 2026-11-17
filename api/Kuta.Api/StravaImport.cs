@@ -66,7 +66,7 @@ public static class StravaImport
                 new ParsedActivity(sport, start, duration, moving, Number("Distance") ?? 0,
                     HeartRate("Average Heart Rate"), HeartRate("Max Heart Rate"), Single("Average Speed"), Single("Elevation Gain"),
                     null, [], null, null, null, null, null, null),
-                ShoeId(Field("Gear")), string.IsNullOrWhiteSpace(Field("Activity Gear")) ? null : Field("Activity Gear").Trim(),
+                GearId(Field("Gear"), 'g') ?? GearId(Field("Bike"), 'b'), string.IsNullOrWhiteSpace(Field("Activity Gear")) ? null : Field("Activity Gear").Trim(),
                 ActivityInput.NormalizeDescription(description),
                 // Strava's other tags (running, riding, offroad) describe the sport.
                 [.. Field("Tag").Split('|').Intersect(["race", "long_run", "commute"])]));
@@ -75,53 +75,62 @@ public static class StravaImport
         return result;
     }
 
-    private static string? ShoeId(string value)
+    // Strava gear IDs are "g123" for shoes and "b123" for bikes; the export may drop the prefix.
+    private static string? GearId(string value, char prefix)
     {
         value = value.Trim();
         if (value.Length == 0) return null;
-        if (value.StartsWith('g')) value = value[1..];
+        if (value[0] == prefix) value = value[1..];
         if (!decimal.TryParse(value, NumberStyles.Float, Invariant, out var id) || id <= 0 || decimal.Truncate(id) != id)
-            throw new InvalidDataException("Invalid shoe ID.");
-        return "g" + id.ToString("0", Invariant);
+            throw new InvalidDataException("Invalid gear ID.");
+        return prefix + id.ToString("0", Invariant);
     }
 
-    public static List<StravaShoe> ReadShoes(Stream? csv, IReadOnlyList<StravaActivity> activities)
+    private static string Label(string value) => string.Join(' ', value.Split((char[]?)null, StringSplitOptions.RemoveEmptyEntries));
+
+    // Reads shoes.csv or bikes.csv ("Shoe Brand" or "Bike Brand" and so on) into the brands per "Activity Gear" label.
+    // Strava labels shoes "Brand Model Name" but bikes by their name alone.
+    private static Dictionary<string, string?[]> ReadGearBrands(Stream? csv, string prefix, bool labelIsName)
     {
-        static string Label(string value) => string.Join(' ', value.Split((char[]?)null, StringSplitOptions.RemoveEmptyEntries));
-        var metadata = new List<(string Label, string Name, string? Brand)>();
+        var metadata = new List<(string Label, string? Brand)>();
         if (csv is not null)
         {
             using var parser = new TextFieldParser(csv) { HasFieldsEnclosedInQuotes = true };
             parser.SetDelimiters(",");
-            var header = parser.ReadFields() ?? throw new InvalidDataException("Missing shoe header.");
-            var columns = new[] { "Shoe Brand", "Shoe Model", "Shoe Name" }.Select(n => Array.IndexOf(header, n)).ToArray();
-            if (columns.Any(i => i < 0)) throw new InvalidDataException("Missing shoe column.");
+            var header = parser.ReadFields() ?? throw new InvalidDataException("Missing gear header.");
+            var columns = new[] { "Brand", "Model", "Name" }.Select(n => Array.IndexOf(header, $"{prefix} {n}")).ToArray();
+            if (columns.Any(i => i < 0)) throw new InvalidDataException("Missing gear column.");
             while (!parser.EndOfData)
             {
-                if (metadata.Count >= MaxActivities) throw new InvalidDataException("Too many shoes.");
+                if (metadata.Count >= MaxActivities) throw new InvalidDataException("Too much gear.");
                 var row = parser.ReadFields()!;
                 var parts = columns.Select(i => i < row.Length ? row[i].Trim() : "").ToArray();
-                var label = Label(string.Join(' ', parts.Where(p => p.Length > 0)));
+                var label = Label(labelIsName && parts[2].Length > 0 ? parts[2] : string.Join(' ', parts.Where(p => p.Length > 0)));
                 if (label.Length == 0) continue;
-                var name = parts[2].Length > 0 ? parts[2] : parts[1].Length > 0 ? parts[1] : parts[0];
-                metadata.Add((label, name, parts[0].Length == 0 ? null : parts[0]));
+                metadata.Add((label, parts[0].Length == 0 ? null : parts[0]));
             }
         }
-        var byLabel = metadata.GroupBy(m => m.Label, StringComparer.Ordinal).ToDictionary(
-            g => g.Key, g => g.Select(m => (m.Name, m.Brand)).Distinct().ToArray(), StringComparer.Ordinal);
-        var result = new List<StravaShoe>();
-        // shoes.csv has no IDs: only shoes referenced from activities can be identified reliably.
+        return metadata.GroupBy(m => m.Label, StringComparer.Ordinal).ToDictionary(
+            g => g.Key, g => g.Select(m => m.Brand).Distinct().ToArray(), StringComparer.Ordinal);
+    }
+
+    public static List<StravaGear> ReadGear(Stream? shoesCsv, Stream? bikesCsv, IReadOnlyList<StravaActivity> activities)
+    {
+        var shoes = ReadGearBrands(shoesCsv, "Shoe", labelIsName: false);
+        var bikes = ReadGearBrands(bikesCsv, "Bike", labelIsName: true);
+        var result = new List<StravaGear>();
+        // shoes.csv and bikes.csv have no IDs: only gear referenced from activities can be identified reliably.
         foreach (var group in activities.Where(a => a.GearId is not null).GroupBy(a => a.GearId!))
         {
+            var (kind, byLabel) = group.Key[0] == 'b' ? ("bike", bikes) : ("shoe", shoes);
+            // The name as Strava shows it, e.g. "Nike Free 4.0 Flyknit 2016 Orange".
             var label = group.OrderByDescending(a => a.Summary.StartedAt).FirstOrDefault(a => a.GearName is not null)?.GearName
                 ?? $"Strava {group.Key}";
-            var matches = byLabel.GetValueOrDefault(Label(label));
-            var shoe = matches is { Length: 1 }
-                ? new StravaShoe(group.Key, matches[0].Name, matches[0].Brand)
-                : new StravaShoe(group.Key, label, null);
-            if (EquipmentEndpoints.Validate(new EquipmentRequest(shoe.Name, shoe.Brand, "shoe")) is not null)
-                throw new InvalidDataException("Invalid shoe details.");
-            result.Add(shoe);
+            var brands = byLabel.GetValueOrDefault(Label(label));
+            var gear = new StravaGear(group.Key, kind, label, brands is { Length: 1 } ? brands[0] : null);
+            if (EquipmentEndpoints.Validate(new EquipmentRequest(gear.Name, gear.Brand, kind)) is not null)
+                throw new InvalidDataException("Invalid gear details.");
+            result.Add(gear);
         }
         return result;
     }
