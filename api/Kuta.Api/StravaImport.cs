@@ -189,7 +189,9 @@ public static class StravaImport
         };
     }
 
-    public static ParsedActivity ParseGpx(byte[] bytes, ParsedActivity summary)
+    // Without a summary (a standalone upload rather than Strava's CSV) it is derived from the track: start at the first
+    // point, distance along the track, and sport running until the form changes it.
+    public static ParsedActivity ParseGpx(byte[] bytes, ParsedActivity? summary = null)
     {
         using var input = new MemoryStream(bytes);
         using var reader = XmlReader.Create(input, new XmlReaderSettings
@@ -207,6 +209,7 @@ public static class StravaImport
         var speed = new List<float?>();
         double distance = 0;
         int segment = 0, previousSegment = -1;
+        var start = summary?.StartedAt;
         while (reader.Read())
         {
             if (reader.NodeType != XmlNodeType.Element) continue;
@@ -236,7 +239,8 @@ public static class StravaImport
             }
             if (!DateTime.TryParse(time, Invariant, DateTimeStyles.AssumeUniversal | DateTimeStyles.AdjustToUniversal, out var stamp))
                 throw new InvalidDataException("Missing GPX time.");
-            var seconds = checked((int)Math.Round((stamp - summary.StartedAt).TotalSeconds));
+            start ??= stamp;
+            var seconds = checked((int)Math.Round((stamp - start.Value).TotalSeconds));
             if (seconds < 0 || t.Count > 0 && seconds < t[^1]) throw new InvalidDataException("Unordered GPX times.");
             static double Coordinate(string? text, double max)
             {
@@ -263,6 +267,14 @@ public static class StravaImport
             alt.Add(elevation is null ? null : float.Parse(elevation, Invariant));
             hr.Add(pulse is null ? null : short.Parse(pulse, Invariant));
         }
+        if (summary is null)
+        {
+            if (t.Count < 2 || t[^1] == 0) throw new InvalidDataException("Empty GPX track.");
+            var pulses = hr.OfType<short>().ToArray();
+            summary = new ParsedActivity("running", start!.Value, t[^1], null, distance,
+                pulses.Length == 0 ? null : (short)Math.Round(pulses.Average(p => p)), pulses.Length == 0 ? null : pulses.Max(),
+                (float)(distance / t[^1]), ElevationGain(alt), null, [], null, null, null, null, null, null);
+        }
         return summary with
         {
             T = t.ToArray(), Lat = lat.Count == 0 ? null : lat.ToArray(), Lon = lon.Count == 0 ? null : lon.ToArray(),
@@ -271,6 +283,24 @@ public static class StravaImport
             Speed = speed.Any(v => v is not null) ? speed.ToArray() : null,
             Route = FitImport.Route(lat.ToArray(), lon.ToArray()),
         };
+    }
+
+    // GPS elevation wobbles by a few metres, so a climb only counts once it rises 3 m above the lowest point since the
+    // last counted climb (FIT files carry the watch's own total instead).
+    public static float? ElevationGain(IEnumerable<float?> alt)
+    {
+        float? low = null, gain = null;
+        foreach (var a in alt.OfType<float>())
+        {
+            gain ??= 0;
+            if (low is null || a < low) low = a;
+            else if (a - low >= 3)
+            {
+                gain += a - low;
+                low = a;
+            }
+        }
+        return gain;
     }
 
     private static double Distance(double lat1, double lon1, double lat2, double lon2)

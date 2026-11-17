@@ -166,6 +166,24 @@ public class StravaParserTests
         Assert.Null(parsed.WithoutHeartRate().Hr);
     }
 
+    [Fact]
+    public void Standalone_gpx_derives_its_summary_from_the_track()
+    {
+        var parsed = StravaImport.ParseGpx(Encoding.UTF8.GetBytes(StravaFixture.Gpx));
+        Assert.Equal(("running", new System.DateTime(2026, 10, 1, 6, 30, 0, DateTimeKind.Utc), 120, (short?)150, (short?)150, 0f),
+            (parsed.Sport, parsed.StartedAt, parsed.DurationS, parsed.AvgHr, parsed.MaxHr, parsed.ElevationGainM));
+        Assert.Equal(parsed.Dist![^1]!.Value, parsed.DistanceM, precision: 2);
+        Assert.Equal(new[] { 0, 60, 120 }, parsed.T);
+        Assert.Throws<InvalidDataException>(() => StravaImport.ParseGpx("<gpx><trk><trkseg></trkseg></trk></gpx>"u8.ToArray()));
+    }
+
+    [Fact]
+    public void Elevation_gain_ignores_wobble_below_three_metres()
+    {
+        Assert.Equal(12f, StravaImport.ElevationGain([0, 2, 0, 2, 0, 5, 3, 10, null]));
+        Assert.Null(StravaImport.ElevationGain([null, null]));
+    }
+
     [Theory]
     [InlineData("../private.fit")]
     [InlineData("/activities/file.fit")]
