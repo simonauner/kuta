@@ -7,6 +7,7 @@ import { DangerZone } from '@/components/danger-zone'
 import { ErrorText } from '@/components/error-message'
 import { HeartRateConsent } from '@/components/heart-rate-consent'
 import { LanguageSelect } from '@/components/language-select'
+import { PushNotifications, unsubscribeThisDevice } from '@/components/push-notifications'
 import { Recalculation } from '@/components/strava-import'
 import { ReplaceProfileLink } from '@/components/share-profile'
 import { SupporterSection } from '@/components/supporter'
@@ -24,7 +25,11 @@ export function SettingsPage() {
   const { data: me } = useQuery(meQuery)
   const sessionChanged = useSessionChanged()
   const logout = useMutation({
-    mutationFn: () => api.send('POST', '/api/auth/logout'),
+    mutationFn: async () => {
+      // The next account on this browser chooses for itself; the server stops sending either way.
+      await unsubscribeThisDevice().catch(() => {})
+      await api.send('POST', '/api/auth/logout')
+    },
     onSuccess: sessionChanged,
   })
   return (
@@ -58,6 +63,7 @@ export function SettingsPage() {
           </Link>
         ))}
       </nav>
+      <PushNotifications className="mt-6" />
       <SupporterSection />
       <section aria-labelledby="account-heading" className="mt-8 border-t pt-6">
         <Heading level={2} id="account-heading">

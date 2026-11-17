@@ -78,6 +78,10 @@ public static class DataExport
                     select g.id, g.name, m.role, m.accepted_at, m.share_totals, m.created_at
                     from group_members m join groups g on g.id = m.group_id where m.user_id = @userId order by m.created_at, g.id
                     """, new { userId }, tx, cancellationToken: ct)), ct);
+                // The keys only decrypt notifications for that browser.
+                await WriteJsonAsync(zip, "push-subscriptions.json", await conn.QueryAsync<ExportPushSubscription>(new CommandDefinition(
+                    "select endpoint, locale, created_at from push_subscriptions where user_id = @userId order by created_at",
+                    new { userId }, tx, cancellationToken: ct)), ct);
                 await WriteJsonAsync(zip, "goals.json", await Goals.LoadStoredAsync(conn, userId, ct, tx), ct);
                 await WriteJsonAsync(zip, "achievements-seen.json", await Achievements.LoadViewsAsync(conn, userId, ct, tx), ct);
                 // Tokens are not exported; they grant access to the Garmin account.
@@ -124,6 +128,7 @@ public static class DataExport
     }
 
     private record ExportGarmin(string GarminUserId, string Permissions, DateTime CreatedAt);
+    private record ExportPushSubscription(string Endpoint, string Locale, DateTime CreatedAt);
     private record ExportGroup(Guid Id, string Name, string Role, DateTime? AcceptedAt, bool ShareTotals, DateTime CreatedAt);
     private record ExportFollow(Guid FollowerId, Guid FollowingId, DateTime? AcceptedAt, DateTime CreatedAt);
     private record ExportProfile(Guid Id, string? Email, string DisplayName, string? PreviousDisplayName,

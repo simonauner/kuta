@@ -158,6 +158,7 @@ export default defineConfig(({ mode }) => {
         registerType: 'autoUpdate',
         // Only app navigations get the app shell; the landing page and the API must reach the server.
         workbox: {
+          importScripts: ['/push-sw.js'],
           navigateFallback: '/app.html',
           navigateFallbackAllowlist: [
             /^\/app(?:\/(?:activities|stats|profile|runners\/[0-9a-f-]{36}|settings(?:\/(?:equipment|followers|privacy-places))?))?\/?(?:\?|$)/,

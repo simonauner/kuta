@@ -116,6 +116,8 @@ public sealed class JobWorker(IServiceProvider services, IConfiguration configur
                     conn, services.GetRequiredService<RawFileStore>(), files, job, ct)),
                 JobKinds.Recalculate => JobQueue.Serialize(await RecalculationJob.RunAsync(conn, job, ct)),
                 JobKinds.Routes => JobQueue.Serialize(await Routes.RunJobAsync(conn, job, ct)),
+                JobKinds.Push => JobQueue.Serialize(await Push.RunJobAsync(conn,
+                    services.GetRequiredService<WebPushSender>(), job, ct)),
                 JobKinds.GarminImport => JobQueue.Serialize(await Garmin.RunImportAsync(conn,
                     services.GetRequiredService<RawFileStore>(), services.GetRequiredService<GarminClient>(),
                     services.GetRequiredService<IDataProtectionProvider>(), job, ct)),
@@ -125,6 +127,7 @@ public sealed class JobWorker(IServiceProvider services, IConfiguration configur
             if (job.Kind == JobKinds.StravaImport) files.Delete(job.Id);
             // Notices that arrived while the job ran got no job of their own (at most one active per user).
             if (job.Kind == JobKinds.GarminImport) await Garmin.EnqueueIfPendingAsync(conn, job.UserId, CancellationToken.None);
+            if (job.Kind == JobKinds.Push) await Push.EnqueueIfPendingAsync(conn, job.UserId, CancellationToken.None);
         }
         catch (OperationCanceledException) when (ct.IsCancellationRequested)
         {
