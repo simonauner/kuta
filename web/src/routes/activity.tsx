@@ -287,6 +287,14 @@ export function ActivityPage() {
         ] as const
       )[Math.min(5, Math.floor(value))],
     )}`
+  // Grade-adjusted pace for running: the activity's pace scaled by the splits' grade-adjusted share of distance.
+  const gapSplits =
+    sportIcons[knownSport(a.sport)] === 'run' && view?.splits.every((s) => s.adjustedM !== null)
+      ? view.splits
+      : []
+  const adjustedShare =
+    gapSplits.reduce((sum, s) => sum + s.adjustedM!, 0) /
+    gapSplits.reduce((sum, s) => sum + s.distanceM, 0)
   const stats = [
     [t('activity.distance'), `${number.format(a.distanceM / 1000)} km`],
     [t('activity.time'), formatDuration(a.durationS)],
@@ -294,6 +302,16 @@ export function ActivityPage() {
       t(isCyclingSport(a.sport) ? 'activity.speed' : 'activity.pace'),
       formatSportPace(a.sport, a.movingS ?? a.durationS, a.distanceM, i18n.resolvedLanguage),
     ],
+    !mixed &&
+      gapSplits.length > 0 && [
+        t('activity.gap'),
+        formatSportPace(
+          a.sport,
+          a.movingS ?? a.durationS,
+          a.distanceM * adjustedShare,
+          i18n.resolvedLanguage,
+        ),
+      ],
     a.elevationGainM !== null && [t('activity.elevation'), `${Math.round(a.elevationGainM)} m`],
     a.movingS !== null && [t('activity.movingTime'), formatDuration(a.movingS)],
     a.avgHr !== null && [t('activity.avgHr'), `${a.avgHr} bpm`],
@@ -316,6 +334,13 @@ export function ActivityPage() {
         <tr>
           <th className="py-1 font-normal">{t('activity.splitKm')}</th>
           <th className="py-1 font-normal">{t('activity.splitPace')}</th>
+          {gapSplits.length > 0 && (
+            <th className="py-1 font-normal">
+              <abbr title={t('activity.gap')} className="no-underline">
+                {t('activity.splitGap')}
+              </abbr>
+            </th>
+          )}
           <th className="py-1 font-normal">{t('activity.splitElevation')}</th>
           {a.streams?.hr && <th className="py-1 font-normal">{t('activity.splitHr')}</th>}
         </tr>
@@ -329,6 +354,11 @@ export function ActivityPage() {
             <td className="py-1.5">
               {formatSportPace(a.sport, s.durationS, s.distanceM, i18n.resolvedLanguage)}
             </td>
+            {gapSplits.length > 0 && (
+              <td className="py-1.5">
+                {formatSportPace(a.sport, s.durationS, s.adjustedM!, i18n.resolvedLanguage)}
+              </td>
+            )}
             <td className="py-1.5">
               {s.elevationM === null ? '–' : `${Math.round(s.elevationM)} m`}
             </td>
