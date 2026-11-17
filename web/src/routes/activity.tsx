@@ -43,7 +43,7 @@ import { VisitorNotice } from '@/components/visitor-notice'
 import { ConfirmationModal } from '@/components/ui/confirmation-modal'
 import { SimilarRoutes } from '@/components/similar-routes'
 import { Companions } from '@/components/companions'
-import { OrienteeringLegs } from '@/components/orienteering'
+import { OrienteeringLegs, SameCourse } from '@/components/orienteering'
 import { courseStats } from '@/lib/orienteering'
 
 // Pace from speed, smoothed over ~15 s so GPS noise doesn't cause spikes; standing still becomes a gap.
@@ -731,6 +731,7 @@ export function ActivityPage() {
             <p className="mt-4 text-sm text-muted-foreground">{t('orienteering.noCourseLength')}</p>
           )}
           <OrienteeringLegs activity={a} own={original.userId === me?.id} />
+          {!visitor && me && <SameCourse activity={original} meId={me.id} />}
         </>
       )}
       <HeartRateZones streams={a.streams} bounds={a.hrZones} sourceNote={sourceNote} />

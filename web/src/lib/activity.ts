@@ -214,8 +214,9 @@ export type ActivityDetail = Activity & {
   privacy: 'private' | 'followers' | 'public'
   excludeFromRecords: boolean
   hideCompanions: boolean
-  // Orienteering: the course length (straight line between the controls)
+  // Orienteering: the course length (straight line between the controls) and the own link to another runner's activity
   courseLengthM: number | null
+  sameCourseAs: string | null
   description: string | null
   movingS: number | null
   maxHr: number | null

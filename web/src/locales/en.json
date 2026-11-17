@@ -1397,6 +1397,15 @@
     "courseLengthHint": "The course length from the map. Gives km time and overdistance.",
     "kmTime": "Km time",
     "courseOverdistance": "Overdistance",
-    "noCourseLength": "Add the course length under Edit activity to see km time and overdistance."
+    "noCourseLength": "Add the course length under Edit activity to see km time and overdistance.",
+    "sameCourse": "Same course",
+    "total": "Total",
+    "differentLegCount": "The number of legs differs, so the legs may not match each other.",
+    "unlink": "Remove the same course link",
+    "ranSame": "I ran the same course",
+    "ranSameHelp": "Choose your own activity. Leg times are compared for everyone who can see the activities.",
+    "ownActivity": "Your activity",
+    "noOwnActivities": "You have no activity with the sport orienteering.",
+    "link": "Link"
   }
 }

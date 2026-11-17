@@ -1397,6 +1397,15 @@
     "courseLengthHint": "Banans längd enligt kartan. Ger km-tid och överdistans.",
     "kmTime": "Km-tid",
     "courseOverdistance": "Överdistans",
-    "noCourseLength": "Ange banlängden under Redigera aktivitet för att se km-tid och överdistans."
+    "noCourseLength": "Ange banlängden under Redigera aktivitet för att se km-tid och överdistans.",
+    "sameCourse": "Samma bana",
+    "total": "Totalt",
+    "differentLegCount": "Antalet sträckor skiljer sig åt, så sträckorna kanske inte motsvarar varandra.",
+    "unlink": "Ta bort kopplingen till samma bana",
+    "ranSame": "Jag sprang samma bana",
+    "ranSameHelp": "Välj din egen aktivitet. Sträcktiderna jämförs för alla som får se aktiviteterna.",
+    "ownActivity": "Din aktivitet",
+    "noOwnActivities": "Du har ingen aktivitet med sporten orientering.",
+    "link": "Koppla ihop"
   }
 }
