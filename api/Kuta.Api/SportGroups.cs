@@ -45,18 +45,18 @@ public static class SportGroups
             select a.id, a.user_id, a.started_at, coalesce(m.sport_group, a.sport) as sport_group,
                 a.duration_s::double precision as duration_s,
                 {Multisport.DistanceSql("a")} as distance_m,
-                false as part
+                false as part, a.source
             from activities a left join sport_groups m on m.sport = a.sport
             where {activities}
             union all
             select a.id, a.user_id, a.started_at, coalesce(pm.sport_group, p.sport),
-                sum(p.end_s - p.start_s)::double precision, sum(p.distance_m), true
+                sum(p.end_s - p.start_s)::double precision, sum(p.distance_m), true, a.source
             from activities a
             join activity_parts p on p.activity_id = a.id and p.original = not a.parts_edited
             left join sport_groups am on am.sport = a.sport
             left join sport_groups pm on pm.sport = p.sport
             where {activities} and coalesce(pm.sport_group, p.sport) <> coalesce(am.sport_group, a.sport)
-            group by a.id, a.user_id, a.started_at, coalesce(pm.sport_group, p.sport)
+            group by a.id, a.user_id, a.started_at, coalesce(pm.sport_group, p.sport), a.source
         )
         """;
     public static readonly string[] GroupedSports = Named.SelectMany(g => g.Sports).ToArray();

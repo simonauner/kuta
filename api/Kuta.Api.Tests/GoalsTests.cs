@@ -109,7 +109,7 @@ public class GoalsTests(KutaFactory factory) : IClassFixture<KutaFactory>
                 (@owner, 'manual', 'running', '2026-03-03T12:00:00Z', 3600, 10000),
                 (@owner, 'manual', 'running', '2026-03-08T23:30:00Z', 1200, 3000),
                 (@owner, 'manual', 'running', '2026-03-09T10:00:00Z', 1800, 5000),
-                (@owner, 'manual', 'cycling', '2026-03-10T10:00:00Z', 2400, 20000),
+                (@owner, 'garmin', 'cycling', '2026-03-10T10:00:00Z', 2400, 20000),
                 (@owner, 'manual', 'trail run', '2026-03-10T16:00:00Z', 300, 500),
                 (@other, 'manual', 'running', '2026-03-09T10:00:00Z', 9000, 50000);
                 with triathlon as (
@@ -139,6 +139,9 @@ public class GoalsTests(KutaFactory factory) : IClassFixture<KutaFactory>
             Assert.Null(stockholm[sessions].Previous);
             Assert.Equal(1, stockholm[sessions].Streak);
             Assert.Equal((true, 0d), (stockholm[oneTime].Ended, stockholm[oneTime].Current.Value));
+            // Garmin's attribution only where a shown period counts the Garmin ride: not for running, and not for the
+            // January cycling goal, whose only period ended before the ride.
+            Assert.Equal((false, true, false), (stockholm[running].GarminData, stockholm[sessions].GarminData, stockholm[oneTime].GarminData));
 
             var utc = (await Goals.LoadAsync(conn, owner, "UTC", now, ct)).ToDictionary(g => g.Id);
             Assert.Equal((9_500d, 13_000d, 2), (utc[running].Current.Value, utc[running].Previous!.Value, utc[running].Streak));

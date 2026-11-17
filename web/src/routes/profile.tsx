@@ -9,7 +9,6 @@ import { FormField } from '@/components/ui/form-field'
 import { Heading } from '@/components/ui/heading'
 import { ActivitiesEmptyState } from '@/components/activities-empty-state'
 import { ActivityFeed } from '@/components/activity-feed'
-import { GarminDerivedNote } from '@/components/garmin'
 import { GoalList, OwnGoals } from '@/components/goals'
 import { AchievementList } from '@/components/achievements'
 import {
@@ -90,8 +89,11 @@ export function ProfilePage() {
           <ProfileStats runnerId={me.id} viewAs={viewAs} />
           <ActivityCalendar runnerId={me.id} viewAs={viewAs} />
           <RecordShelf runnerId={me.id} viewAs={viewAs} />
-          {!viewAs && <GarminDerivedNote />}
-          {viewAs ? <GoalList runnerId={me.id} viewAs={viewAs} /> : <OwnGoals />}
+          {viewAs ? (
+            <GoalList runnerId={me.id} viewAs={viewAs} garminNote={false} />
+          ) : (
+            <OwnGoals garminNote={false} />
+          )}
           {!viewAs && <AchievementList />}
           {!viewAs && <ProfileGroups />}
           <div className="flex items-baseline justify-between gap-4">

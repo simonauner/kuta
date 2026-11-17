@@ -10,12 +10,12 @@ import { refreshActivityQueries } from '@/lib/activity-query'
 import { api } from '@/lib/api'
 import { meQuery } from '@/lib/auth'
 
-// Garmin requires attribution on statistics and anything else derived from their data; own views only,
-// since hasGarminData applies to the signed-in user.
-export function GarminDerivedNote({ className }: { className?: string }) {
+// Garmin requires attribution on statistics and anything else derived from their data. Without show, it follows
+// hasGarminData, which applies to the signed-in user's own views; views of someone else's data pass the API's flag.
+export function GarminDerivedNote({ className, show }: { className?: string; show?: boolean }) {
   const { data: me } = useQuery(meQuery)
   const { t } = useTranslation()
-  if (!me?.hasGarminData) return null
+  if (!(show ?? me?.hasGarminData)) return null
   return <p className={`text-xs text-muted-foreground ${className ?? ''}`}>{t('garmin.derived')}</p>
 }
 

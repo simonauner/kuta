@@ -77,6 +77,28 @@ public class RunnerProfileTests(KutaFactory factory) : IClassFixture<KutaFactory
         await tx.RollbackAsync(ct);
     }
 
+    // Garmin's attribution is shown only when what the viewer sees includes Garmin activities.
+    [Fact]
+    public async Task Garmin_flag_follows_the_activities_the_viewer_may_read()
+    {
+        var ct = TestContext.Current.CancellationToken;
+        await using var conn = await factory.Services.GetRequiredService<NpgsqlDataSource>().OpenConnectionAsync(ct);
+        await using var tx = await conn.BeginTransactionAsync(ct);
+        var (owner, stranger) = (Guid.NewGuid(), Guid.NewGuid());
+        await conn.ExecuteAsync("""
+            insert into auth.users (id) values (@owner), (@stranger);
+            insert into users (id, display_name) values (@owner, 'Owner'), (@stranger, 'Stranger');
+            insert into activities (user_id, source, started_at, duration_s, distance_m, privacy)
+            values (@owner, 'manual', now() - interval '2 days', 1500, 5000, 'public'),
+                   (@owner, 'garmin', now() - interval '1 day', 1200, 5000, 'private')
+            """, new { owner, stranger }, tx);
+
+        // The owner reads the Garmin activity; the stranger reads only the manual one.
+        Assert.True((await RunnerProfile.ReadAsync(conn, owner, owner, "UTC", ct)).GarminData);
+        Assert.False((await RunnerProfile.ReadAsync(conn, stranger, owner, "UTC", ct)).GarminData);
+        await tx.RollbackAsync(ct);
+    }
+
     [Fact]
     public async Task Records_come_from_readable_activities_that_count_for_records()
     {

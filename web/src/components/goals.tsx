@@ -36,6 +36,17 @@ import { Select } from '@/components/ui/select'
 
 // Under 'activities' so that new, edited and deleted activities also refresh the goals.
 const goalsQueryKey = (timeZone: string) => ['activities', 'goals', timeZone]
+
+// A runner's goals as the viewer may see them; under 'runner' so that follow/unfollow refetches the shared goals.
+export function runnerGoalsQuery(runnerId: string, viewAs?: 'followers' | 'public') {
+  const timeZone = Intl.DateTimeFormat().resolvedOptions().timeZone
+  const params = new URLSearchParams({ timeZone })
+  if (viewAs) params.set('viewAs', viewAs)
+  return {
+    queryKey: ['runner', runnerId, 'goals', timeZone, viewAs],
+    queryFn: () => api.get<Goal[]>(`/api/runners/${runnerId}/goals?${params}`),
+  }
+}
 function useGoalText() {
   const { t, i18n } = useTranslation()
   const amount = (metric: GoalMetric, value: number) =>
@@ -63,24 +74,25 @@ export function GoalList({
   runnerId,
   viewAs,
   action,
+  garminNote = true,
 }: {
   onSelect?: (goal: Goal) => void
   runnerId?: string
   viewAs?: 'followers' | 'public'
   // Shown beside the heading, and keeps the heading when there are no goals yet.
   action?: ReactNode
+  // Off on profiles, which attribute Garmin once at the top of the page.
+  garminNote?: boolean
 }) {
   const timeZone = Intl.DateTimeFormat().resolvedOptions().timeZone
-  const params = new URLSearchParams({ timeZone })
-  if (viewAs) params.set('viewAs', viewAs)
-  const goals = useQuery({
-    // Under 'runner' so that follow/unfollow refetches the shared goals.
-    queryKey: runnerId ? ['runner', runnerId, 'goals', timeZone, viewAs] : goalsQueryKey(timeZone),
-    queryFn: () =>
-      api.get<Goal[]>(
-        runnerId ? `/api/runners/${runnerId}/goals?${params}` : `/api/goals?${params}`,
-      ),
-  })
+  const goals = useQuery(
+    runnerId
+      ? runnerGoalsQuery(runnerId, viewAs)
+      : {
+          queryKey: goalsQueryKey(timeZone),
+          queryFn: () => api.get<Goal[]>(`/api/goals?${new URLSearchParams({ timeZone })}`),
+        },
+  )
   const groups = useQuery(sportGroupsQuery)
   const { t } = useTranslation()
   if (goals.error) return <ErrorText error={goals.error} className="mt-4" />
@@ -95,7 +107,10 @@ export function GoalList({
           </Heading>
           {action}
         </div>
-        {!runnerId && goals.data.length > 0 && <GarminDerivedNote className="-mt-2 mb-3" />}
+        <GarminDerivedNote
+          show={garminNote && goals.data.some((goal) => goal.garminData)}
+          className="-mt-2 mb-3"
+        />
         <ul className="grid gap-3 sm:grid-cols-2">
           {goals.data.map((goal) => (
             <li key={goal.id}>
@@ -117,13 +132,14 @@ export function GoalList({
 }
 
 // The signed-in runner's own goals on Profile and Activities, where they are created and edited.
-export function OwnGoals() {
+export function OwnGoals({ garminNote }: { garminNote?: boolean }) {
   const { t } = useTranslation()
   // null = closed, 'new' = new goal, otherwise the goal being edited
   const [goalForm, setGoalForm] = useState<Goal | 'new' | null>(null)
   return (
     <>
       <GoalList
+        garminNote={garminNote}
         onSelect={setGoalForm}
         action={
           <Button size="sm" variant="secondary-outline" onClick={() => setGoalForm('new')}>

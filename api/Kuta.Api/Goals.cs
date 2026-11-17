@@ -10,8 +10,10 @@ public record GoalRequest(string? SportGroup, string? Metric, string? Period, do
 public record StoredGoal(Guid Id, string? SportGroup, string Metric, string Period, double Target, bool Recurring, DateOnly StartsOn,
     string Privacy = "private");
 public record GoalPeriodProgress(DateOnly Start, DateOnly End, double Value, bool Achieved);
+// GarminData: the counted activities include Garmin activities, so the goal needs Garmin's attribution.
 public record GoalProgress(Guid Id, string? SportGroup, string Metric, string Period, double Target, bool Recurring,
-    DateOnly StartsOn, string Privacy, bool Ended, GoalPeriodProgress Current, GoalPeriodProgress? Previous, int Streak);
+    DateOnly StartsOn, string Privacy, bool Ended, GoalPeriodProgress Current, GoalPeriodProgress? Previous, int Streak,
+    bool GarminData = false);
 
 public static class Goals
 {
@@ -180,13 +182,14 @@ public static class Goals
         // of multisport activities. Without a group each activity counts once.
         var buckets = await conn.QueryAsync<GoalBucket>(new CommandDefinition($"""
             with {SportGroups.Cte}, {SportGroups.EffectiveCte}
-            select g.id as goal_id, b.period_start, b.value
+            select g.id as goal_id, b.period_start, b.value, b.garmin
             from goals g
             cross join lateral (
                 select date_trunc(g.period, e.started_at at time zone @timeZone)::date as period_start,
                     (case g.metric when 'distance' then sum(e.distance_m)
                         when 'duration' then sum(e.duration_s)
-                        else count(distinct e.id) end)::double precision as value
+                        else count(distinct e.id) end)::double precision as value,
+                    bool_or(e.source = 'garmin') as garmin
                 from effective e
                 where (case when g.sport_group is null then not e.part else e.sport_group = g.sport_group end)
                     and e.started_at >= (date_trunc(g.period, g.starts_on::timestamp) at time zone @timeZone)
@@ -195,9 +198,14 @@ public static class Goals
             where g.user_id = @userId
             """, new { userId, timeZone, groupedSports = SportGroups.GroupedSports, sportGroupKeys = SportGroups.GroupKeys }, cancellationToken: ct));
         var byGoal = buckets.ToLookup(b => b.GoalId);
-        return goals.Select(goal => Evaluate(goal, today,
-            byGoal[goal.Id].ToDictionary(b => b.PeriodStart, b => b.Value))).ToArray();
+        return goals.Select(goal => WithGarmin(Evaluate(goal, today,
+            byGoal[goal.Id].ToDictionary(b => b.PeriodStart, b => b.Value)), byGoal[goal.Id].Select(b => (b.PeriodStart, b.Garmin))))
+            .ToArray();
     }
 
-    record GoalBucket(Guid GoalId, DateOnly PeriodStart, double Value);
+    record GoalBucket(Guid GoalId, DateOnly PeriodStart, double Value, bool Garmin);
+
+    // Only the periods the goal shows count: up to the current one (the only one for a one-time goal).
+    public static GoalProgress WithGarmin(GoalProgress progress, IEnumerable<(DateOnly PeriodStart, bool Garmin)> buckets) =>
+        progress with { GarminData = buckets.Any(b => b.Garmin && b.PeriodStart <= progress.Current.Start) };
 }

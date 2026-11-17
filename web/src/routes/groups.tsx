@@ -1,6 +1,6 @@
 import { useInfiniteQuery, useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
 import { Link, Navigate, useNavigate, useParams } from '@tanstack/react-router'
-import { useState, type FormEvent, type ReactNode } from 'react'
+import { useEffect, useState, type FormEvent, type ReactNode } from 'react'
 import { Settings } from 'lucide-react'
 import { useTranslation } from 'react-i18next'
 import { Avatar } from '@/components/avatar'
@@ -9,6 +9,7 @@ import { QueryError } from '@/components/query-error'
 import { SlowLoading } from '@/components/slow-loading'
 import { GroupList } from '@/components/profile-groups'
 import { GoalCard, GoalDialog } from '@/components/goals'
+import { GarminDerivedNote } from '@/components/garmin'
 import { VisitorNotice } from '@/components/visitor-notice'
 import {
   Breadcrumb,
@@ -458,12 +459,21 @@ function useGroupChange() {
 function GroupContent({ group }: { group: GroupDetail }) {
   const { t } = useTranslation()
   const change = useGroupChange()
+  // The leaderboard's week, sport and measure live in its section, which reports whether they include Garmin data.
+  const [boardGarmin, setBoardGarmin] = useState(false)
   return (
     <div className="space-y-8">
       <div className="flex items-start justify-between gap-4">
-        <Heading level={1} className="min-w-0 break-words">
-          {group.name}
-        </Heading>
+        <div className="min-w-0">
+          <Heading level={1} className="break-words">
+            {group.name}
+          </Heading>
+          {/* One attribution for the goals and the leaderboard, above the fold as Garmin's guidelines require. */}
+          <GarminDerivedNote
+            show={boardGarmin || group.goals.some(({ progress }) => progress.garminData)}
+            className="mt-1"
+          />
+        </div>
         <Button
           variant="ghost"
           size="icon"
@@ -479,7 +489,11 @@ function GroupContent({ group }: { group: GroupDetail }) {
         </Button>
       </div>
       <GroupGoalSection group={group} />
-      <LeaderboardSection groupId={group.id} sharing={group.shareTotals} />
+      <LeaderboardSection
+        groupId={group.id}
+        sharing={group.shareTotals}
+        onGarminData={setBoardGarmin}
+      />
       <MemberSection group={group} change={change} />
       <ErrorText error={change.error} />
     </div>
@@ -599,7 +613,15 @@ function GroupGoalSection({ group }: { group: GroupDetail }) {
   )
 }
 
-function LeaderboardSection({ groupId, sharing }: { groupId: string; sharing: boolean }) {
+function LeaderboardSection({
+  groupId,
+  sharing,
+  onGarminData,
+}: {
+  groupId: string
+  sharing: boolean
+  onGarminData: (garminData: boolean) => void
+}) {
   const { t, i18n } = useTranslation()
   const [sportGroup, setSportGroup] = useState('running')
   const [metric, setMetric] = useState<GoalMetric>('distance')
@@ -610,6 +632,8 @@ function LeaderboardSection({ groupId, sharing }: { groupId: string; sharing: bo
     ...leaderboardQuery(groupId, sportGroup, metric, week),
     placeholderData: (previous) => previous,
   })
+  const garminData = !!board.data?.garminData
+  useEffect(() => onGarminData(garminData), [garminData, onGarminData])
   const weekStart = board.data?.weekStart
   const weekLabel =
     weekStart &&

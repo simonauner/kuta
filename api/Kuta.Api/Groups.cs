@@ -23,7 +23,8 @@ public record ClubSummary(Guid Id, string Name, string? Place, string? SportGrou
 // Status for the visitor: "none", "pending" or "member".
 public record GroupInvite(Guid Id, string Name, int MemberCount, string Status);
 public record LeaderboardRow(Guid UserId, string DisplayName, Guid? AvatarId, double Value);
-public record Leaderboard(DateOnly WeekStart, IReadOnlyList<LeaderboardRow> Rows);
+// GarminData: the totals include Garmin activities, so the leaderboard needs Garmin's attribution.
+public record Leaderboard(DateOnly WeekStart, IReadOnlyList<LeaderboardRow> Rows, bool GarminData = false);
 
 // Groups are joined through an invite link or, for open clubs, from search; an admin approves every request. Membership never grants access to activities: members see each other and a weekly leaderboard of
 // the totals each member chose to share (all own activities, also private ones, but never Garmin activities, which are
@@ -447,18 +448,19 @@ public static class Groups
         if (goals.Count == 0) return [];
         // Same as Goals.LoadAsync, over the sharing members, with the viewer's own part beside each total. The activities
         // are limited to the year of the earliest goal start, which covers every goal's first period.
-        var buckets = (await conn.QueryAsync<(Guid GoalId, DateOnly Start, double Value, double Own)>(new CommandDefinition($"""
+        var buckets = (await conn.QueryAsync<(Guid GoalId, DateOnly Start, double Value, double Own, bool Garmin)>(new CommandDefinition($"""
             with {SharingMembers}, {SportGroups.Cte}, {SportGroups.Effective("""
                 a.user_id in (select user_id from members) and a.source <> 'garmin'
                     and a.started_at >= (select min(date_trunc('year', starts_on::timestamp)) from group_goals
                         where group_id = @id) at time zone @timeZone
                 """)}
-            select g.id, b.period_start, b.value, b.own
+            select g.id, b.period_start, b.value, b.own, b.garmin
             from group_goals g
             cross join lateral (
                 select date_trunc(g.period, e.started_at at time zone @timeZone)::date as period_start,
                     {MetricValue()}::double precision as value,
-                    coalesce({MetricValue(" filter (where e.user_id = @userId)")}, 0)::double precision as own
+                    coalesce({MetricValue(" filter (where e.user_id = @userId)")}, 0)::double precision as own,
+                    bool_or(e.source = 'garmin') as garmin
                 from effective e
                 where (case when g.sport_group is null then not e.part else e.sport_group = g.sport_group end)
                     and e.started_at >= date_trunc(g.period, g.starts_on::timestamp) at time zone @timeZone
@@ -471,7 +473,8 @@ public static class Groups
             "select (@now at time zone @timeZone)::date", new { now, timeZone }, cancellationToken: ct));
         return goals.Select(goal =>
         {
-            var progress = Goals.Evaluate(goal, today, buckets[goal.Id].ToDictionary(b => b.Start, b => b.Value));
+            var progress = Goals.WithGarmin(Goals.Evaluate(goal, today, buckets[goal.Id].ToDictionary(b => b.Start, b => b.Value)),
+                buckets[goal.Id].Select(b => (b.Start, b.Garmin)));
             return new GroupGoal(progress, buckets[goal.Id].FirstOrDefault(b => b.Start == progress.Current.Start).Own);
         }).ToList();
     }
@@ -492,20 +495,24 @@ public static class Groups
         if (timeZone is null) return null;
         var weekStart = Goals.PeriodStart("week", week ?? await conn.ExecuteScalarAsync<DateOnly>(new CommandDefinition(
             "select (@now at time zone @timeZone)::date", new { now, timeZone }, cancellationToken: ct)));
-        var rows = await conn.QueryAsync<LeaderboardRow>(new CommandDefinition($"""
+        var rows = (await conn.QueryAsync<BoardRow>(new CommandDefinition($"""
             with {SharingMembers}, {SportGroups.Cte}, {SportGroups.Effective(WeekActivities)}
-            select u.id as user_id, u.display_name, u.avatar_id, coalesce(t.value, 0) as value
+            select u.id as user_id, u.display_name, u.avatar_id, coalesce(t.value, 0) as value, coalesce(t.garmin, false) as garmin
             from members join users u on u.id = members.user_id
             left join (
                 select e.user_id, (case @metric when 'distance' then sum(e.distance_m) when 'duration' then sum(e.duration_s)
-                    else count(distinct e.id) end)::double precision as value
+                    else count(distinct e.id) end)::double precision as value, bool_or(e.source = 'garmin') as garmin
                 from effective e
                 where case when @sportGroup::text is null then not e.part else e.sport_group = @sportGroup end
                 group by e.user_id
             ) t on t.user_id = u.id
             order by value desc, u.display_name, u.id
             """, new { id, userId, timeZone, weekStart, metric, sportGroup,
-            groupedSports = SportGroups.GroupedSports, sportGroupKeys = SportGroups.GroupKeys }, cancellationToken: ct));
-        return new(weekStart, rows.ToList());
+            groupedSports = SportGroups.GroupedSports, sportGroupKeys = SportGroups.GroupKeys }, cancellationToken: ct))).ToList();
+        // Which member's totals include Garmin data is not exposed, only whether the leaderboard does.
+        return new(weekStart, rows.Select(r => new LeaderboardRow(r.UserId, r.DisplayName, r.AvatarId, r.Value)).ToList(),
+            rows.Any(r => r.Garmin));
     }
+
+    record BoardRow(Guid UserId, string DisplayName, Guid? AvatarId, double Value, bool Garmin);
 }

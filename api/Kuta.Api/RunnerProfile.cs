@@ -5,10 +5,11 @@ using Npgsql;
 public sealed record CalendarDay(DateOnly Day, int Count, double DistanceM);
 public sealed record SummaryTotals(int Count, double DistanceM, double DurationS);
 public sealed record SportCount(string Sport, int Count);
-// JoinedAt is rounded to the month: enough to show how long someone has run with Kuta.
+// JoinedAt is rounded to the month: enough to show how long someone has run with Kuta. GarminData says whether the
+// activities behind the summary (totals, calendar, personal bests) include Garmin ones, which need Garmin's attribution.
 public sealed record RunnerSummary(DateTime JoinedAt, SummaryTotals ThisYear, SummaryTotals AllTime,
     IReadOnlyList<SportCount> TopSports, IReadOnlyList<CalendarDay> Days, IReadOnlyList<StoredBestEffort> Records,
-    int FollowerCount, int FollowingCount);
+    int FollowerCount, int FollowingCount, bool GarminData);
 
 // What a profile shows beyond the activity list, computed only from activities the viewer may read.
 public static class RunnerProfile
@@ -85,7 +86,10 @@ public static class RunnerProfile
             where a.user_id = @runnerId and not a.exclude_from_records and {SocialEndpoints.CanRead}
             order by b.distance_m, b.elapsed_s, b.achieved_at, b.activity_id
             """, args, cancellationToken: ct))).ToList();
+        var garminData = await conn.ExecuteScalarAsync<bool>(new CommandDefinition($"""
+            select exists(select 1 from activities a where a.user_id = @runnerId and a.source = 'garmin' and {SocialEndpoints.CanRead})
+            """, args, cancellationToken: ct));
         return new RunnerSummary(joinedAt, await Totals(true), await Totals(false), topSports, days, records,
-            followerCount, followingCount);
+            followerCount, followingCount, garminData);
     }
 }
