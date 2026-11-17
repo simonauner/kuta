@@ -10,7 +10,8 @@ using Npgsql;
 public record PushSubscriptionRequest(string? Endpoint, string? P256dh, string? Auth, string? Locale);
 public record PushUnsubscribeRequest(string? Endpoint);
 sealed record PushTarget(Guid Id, string Endpoint, string P256dh, string Auth, string Locale);
-sealed record PushNote(string Kind, Guid ActorId, string Name, bool Skip);
+sealed record PushNote(string Kind, Guid? ActorId, string? Name, Guid? GroupId, string? GroupName);
+public record PushPreferences(string[]? Disabled);
 public sealed record PushJobResult(int Notifications, int Sent);
 
 // Payload encryption (RFC 8291, aes128gcm from RFC 8188) and the VAPID signature (RFC 8292).
@@ -154,10 +155,7 @@ public static class Push
                 """, new { userId, sessionId, req.Endpoint, req.P256dh, req.Auth, req.Locale, max = MaxSubscriptions });
             // The first device should not get a burst of old requests and approvals at the next event.
             if (first)
-                await conn.ExecuteAsync("""
-                    update follows set request_notified = true where following_id = @userId and not request_notified;
-                    update follows set accept_notified = true where follower_id = @userId and not accept_notified;
-                    """, new { userId });
+                await conn.ExecuteAsync("update users set push_notified_until = now() where id = @userId", new { userId });
             return Results.NoContent();
         });
         push.MapDelete("", async ([Microsoft.AspNetCore.Mvc.FromBody] PushUnsubscribeRequest req, NpgsqlDataSource db, ClaimsPrincipal user) =>
@@ -167,6 +165,24 @@ public static class Push
                 new { userId = user.GetUserId(), req.Endpoint });
             return Results.NoContent();
         });
+
+        // The types the user has turned off apply to every device.
+        var preferences = api.MapGroup("/me/push-preferences").RequireAuthorization();
+        preferences.MapGet("", async (NpgsqlDataSource db, ClaimsPrincipal user) =>
+        {
+            await using var conn = await db.OpenConnectionAsync();
+            return Results.Ok(new PushPreferences(await conn.QuerySingleAsync<string[]>(
+                "select push_disabled from users where id = @userId", new { userId = user.GetUserId() })));
+        });
+        preferences.MapPut("", async (PushPreferences req, NpgsqlDataSource db, ClaimsPrincipal user) =>
+        {
+            if (req.Disabled is null || req.Disabled.Any(t => !Types.Contains(t)))
+                return Results.BadRequest(new ApiError("Okänd notistyp.", "invalidPushPreferences"));
+            await using var conn = await db.OpenConnectionAsync();
+            await conn.ExecuteAsync("update users set push_disabled = @disabled where id = @userId",
+                new { disabled = req.Disabled.Distinct().ToArray(), userId = user.GetUserId() });
+            return Results.Ok(req with { Disabled = req.Disabled.Distinct().ToArray() });
+        });
     }
 
     const string ActiveTargets = """
@@ -174,36 +190,59 @@ public static class Push
         where s.user_id = @userId and us.ended_at is null and us.expires_at > now()
         """;
 
+    public static readonly string[] Types = ["followRequest", "followAccepted", "groupJoinRequest", "groupJoinAccepted"];
+
+    // What the user has to hear about after @since, up to @until. Group creators are accepted when the row is created,
+    // which is not an approval.
+    static string Events(string since, string until) => $"""
+        select 'followRequest' as kind, u.id as actor_id, coalesce(u.display_name, '') as name, null::uuid as group_id, null as group_name
+        from follows f join users u on u.id = f.follower_id
+        where f.following_id = @userId and f.accepted_at is null and f.created_at > {since} and f.created_at <= {until}
+            -- A blocked request stays hidden from the blocker.
+            and {SocialEndpoints.NotBlocked("@userId", "f.follower_id")}
+        union all
+        select 'followAccepted', u.id, coalesce(u.display_name, ''), null, null
+        from follows f join users u on u.id = f.following_id
+        where f.follower_id = @userId and f.accepted_at > {since} and f.accepted_at <= {until}
+        union all
+        select 'groupJoinRequest', u.id, coalesce(u.display_name, ''), g.id, g.name
+        from group_members m join groups g on g.id = m.group_id join users u on u.id = m.user_id
+        where m.accepted_at is null and m.created_at > {since} and m.created_at <= {until}
+            and exists (select 1 from group_members a where a.group_id = m.group_id and a.user_id = @userId and a.role = 'admin')
+        union all
+        select 'groupJoinAccepted', null, null, g.id, g.name
+        from group_members m join groups g on g.id = m.group_id
+        where m.user_id = @userId and m.accepted_at > m.created_at and m.accepted_at > {since} and m.accepted_at <= {until}
+        """;
+
     // Queues a push job when the user has something new to hear about and a device to hear it on.
     public static async Task EnqueueIfPendingAsync(NpgsqlConnection conn, Guid userId, CancellationToken ct = default)
     {
         if (await conn.ExecuteScalarAsync<bool>(new CommandDefinition($"""
-                select exists (select 1 {ActiveTargets})
-                    and (exists (select 1 from follows where following_id = @userId and not request_notified)
-                        or exists (select 1 from follows where follower_id = @userId and not accept_notified))
+                select exists (select 1 {ActiveTargets}) and exists (
+                    select 1 from users n, lateral ({Events("n.push_notified_until", "'infinity'")}) e where n.id = @userId)
                 """, new { userId }, cancellationToken: ct)))
             await JobQueue.EnqueueAsync(conn, userId, JobKinds.Push, ct: ct);
     }
 
-    // Marks before sending: a notification may be lost, but is never repeated.
+    // Moves the cursor before sending: a notification may be lost, but is never repeated.
+    // shortcut: an event whose transaction commits after the job read it, with a timestamp before the cursor, is missed;
+    // the window is that transaction's length (milliseconds). Store events in an outbox if that ever matters.
     public static async Task<PushJobResult> RunJobAsync(NpgsqlConnection conn, WebPushSender sender, JobRow job,
         CancellationToken ct)
     {
         var userId = job.UserId;
-        var notes = (await conn.QueryAsync<PushNote>(new CommandDefinition($"""
-            with requests as (
-                update follows f set request_notified = true where f.following_id = @userId and not f.request_notified
-                returning f.follower_id as actor_id, f.accepted_at is not null as accepted),
-            accepts as (
-                update follows f set accept_notified = true where f.follower_id = @userId and not f.accept_notified
-                returning f.following_id as actor_id)
-            select 'followRequest' as kind, u.id as actor_id, coalesce(u.display_name, '') as name,
-                -- Already handled, or a blocked request, which stays hidden from the blocker.
-                (r.accepted or not {SocialEndpoints.NotBlocked("@userId", "u.id")}) as skip
-            from requests r join users u on u.id = r.actor_id
-            union all
-            select 'followAccepted', u.id, coalesce(u.display_name, ''), false from accepts a join users u on u.id = a.actor_id
-            """, new { userId }, cancellationToken: ct))).Where(n => !n.Skip).ToList();
+        List<PushNote> notes;
+        await using (var tx = await conn.BeginTransactionAsync(ct))
+        {
+            notes = (await conn.QueryAsync<PushNote>(new CommandDefinition($"""
+                select e.* from users n, lateral ({Events("n.push_notified_until", "now()")}) e
+                where n.id = @userId and e.kind <> all (n.push_disabled)
+                """, new { userId }, tx, cancellationToken: ct))).ToList();
+            await conn.ExecuteAsync(new CommandDefinition(
+                "update users set push_notified_until = now() where id = @userId", new { userId }, tx, cancellationToken: ct));
+            await tx.CommitAsync(ct);
+        }
         if (notes.Count == 0) return new(0, 0);
 
         var targets = await conn.QueryAsync<PushTarget>(new CommandDefinition(
@@ -223,11 +262,22 @@ public static class Push
     }
 
     // The notification texts are rendered here, like the email templates, since the service worker has no translations.
-    static object Message(PushNote note, string locale) => (note.Kind, locale) switch
+    static object Message(PushNote n, string locale)
     {
-        ("followRequest", "sv") => new { title = "Ny följförfrågan", body = $"{note.Name} vill följa dig.", url = "/app", tag = "follow-request" },
-        ("followRequest", _) => new { title = "New follow request", body = $"{note.Name} wants to follow you.", url = "/app", tag = "follow-request" },
-        (_, "sv") => new { title = "Förfrågan godkänd", body = $"{note.Name} godkände din följförfrågan.", url = $"/app/runners/{note.ActorId}", tag = $"follow-accepted-{note.ActorId}" },
-        _ => new { title = "Request accepted", body = $"{note.Name} accepted your follow request.", url = $"/app/runners/{note.ActorId}", tag = $"follow-accepted-{note.ActorId}" },
-    };
+        var sv = locale == "sv";
+        return n.Kind switch
+        {
+            "followRequest" => new { title = sv ? "Ny följförfrågan" : "New follow request",
+                body = sv ? $"{n.Name} vill följa dig." : $"{n.Name} wants to follow you.", url = "/app", tag = "follow-request" },
+            "followAccepted" => new { title = sv ? "Förfrågan godkänd" : "Request accepted",
+                body = sv ? $"{n.Name} godkände din följförfrågan." : $"{n.Name} accepted your follow request.",
+                url = $"/app/runners/{n.ActorId}", tag = $"follow-accepted-{n.ActorId}" },
+            "groupJoinRequest" => new { title = n.GroupName,
+                body = sv ? $"{n.Name} vill gå med i gruppen." : $"{n.Name} wants to join the group.",
+                url = $"/app/groups/{n.GroupId}", tag = $"group-request-{n.GroupId}" },
+            _ => new { title = n.GroupName,
+                body = sv ? "Du är nu med i gruppen." : "You are now a member of the group.",
+                url = $"/app/groups/{n.GroupId}", tag = $"group-accepted-{n.GroupId}" },
+        };
+    }
 }

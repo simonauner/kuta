@@ -177,7 +177,9 @@ public static class Groups
                 update group_members set accepted_at = coalesce(accepted_at, now()) where group_id = @id and user_id = @memberId
                 """, new { id, memberId }, tx, cancellationToken: ct));
             await tx.CommitAsync(ct);
-            return updated > 0 ? Results.NoContent() : Results.NotFound();
+            if (updated == 0) return Results.NotFound();
+            await Push.EnqueueIfPendingAsync(conn, memberId, ct);
+            return Results.NoContent();
         });
         groups.MapPost("/{id:guid}/members/{memberId:guid}/admin", async (Guid id, Guid memberId, NpgsqlDataSource db,
             ClaimsPrincipal user, CancellationToken ct) =>
@@ -323,9 +325,10 @@ public static class Groups
         var id = await conn.ExecuteScalarAsync<Guid?>(new CommandDefinition(
             $"select id from groups where {condition}", args, tx, cancellationToken: ct));
         if (id is null) return Results.NotFound();
-        if (!await conn.ExecuteScalarAsync<bool>(new CommandDefinition(
-                "select exists(select 1 from group_members where group_id = @id and user_id = @userId)",
-                new { id, userId }, tx, cancellationToken: ct)))
+        var requested = !await conn.ExecuteScalarAsync<bool>(new CommandDefinition(
+            "select exists(select 1 from group_members where group_id = @id and user_id = @userId)",
+            new { id, userId }, tx, cancellationToken: ct));
+        if (requested)
         {
             if (await LockMemberAsync(conn, tx, userId, ct) is { } error) return error;
             await conn.ExecuteAsync(new CommandDefinition("""
@@ -333,6 +336,10 @@ public static class Groups
                 """, new { id, userId }, tx, cancellationToken: ct));
         }
         await tx.CommitAsync(ct);
+        if (requested)
+            foreach (var admin in await conn.QueryAsync<Guid>(new CommandDefinition(
+                "select user_id from group_members where group_id = @id and role = 'admin'", new { id }, cancellationToken: ct)))
+                await Push.EnqueueIfPendingAsync(conn, admin, ct);
         return Results.Ok(new { id });
     }
 

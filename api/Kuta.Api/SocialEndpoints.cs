@@ -191,8 +191,7 @@ public static class SocialEndpoints
         {
             await using var conn = await db.OpenConnectionAsync();
             var count = await conn.ExecuteAsync($"""
-                update follows set accepted_at = coalesce(accepted_at, now()),
-                    accept_notified = accept_notified and accepted_at is not null
+                update follows set accepted_at = coalesce(accepted_at, now())
                 where following_id = @userId and follower_id = @id and {NotBlocked("@userId", "@id")}
                 """, new { id, userId = user.GetUserId() });
             if (count == 0) return Results.NotFound();
