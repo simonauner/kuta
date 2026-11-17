@@ -1,3 +1,4 @@
+using System.Text.Json;
 using System.Globalization;
 using System.Net;
 using System.Net.Http.Json;
@@ -221,5 +222,32 @@ public class SessionTests
                 }),
             };
         }
+    }
+}
+
+public class OtherSessionsTests(KutaFactory factory) : IClassFixture<KutaFactory>
+{
+    [Fact]
+    public async Task Signing_out_other_sessions_keeps_only_the_current_one()
+    {
+        var ct = TestContext.Current.CancellationToken;
+        await using var conn = await factory.Services.GetRequiredService<NpgsqlDataSource>().OpenConnectionAsync(ct);
+        using var phone = factory.CreateClient();
+        using var laptop = factory.CreateClient();
+        var email = $"sessions-{Guid.NewGuid():N}@example.com";
+        await TestSession.CreateRunnerAsync(factory, phone, conn, email, "Runner", ct);
+        var userId = await conn.ExecuteScalarAsync<Guid>("select id from auth.users where email = @email", new { email });
+        using (var scope = factory.Services.CreateScope())
+        {
+            var http = new DefaultHttpContext { RequestServices = scope.ServiceProvider };
+            await SupabaseCookieSession.SignInAsync(http, new AuthSession(userId, email, "synthetic-access", "synthetic-refresh",
+                DateTimeOffset.UtcNow.AddHours(1)), ct);
+            laptop.DefaultRequestHeaders.Add("Cookie", string.Join("; ", http.Response.Headers.SetCookie.Select(c => c!.Split(';')[0])));
+        }
+
+        var response = await phone.DeleteAsync("/api/me/sessions/others", ct);
+        Assert.Equal(1, (await response.Content.ReadFromJsonAsync<JsonElement>(ct)).GetProperty("ended").GetInt32());
+        Assert.Equal(HttpStatusCode.OK, (await phone.GetAsync("/api/me", ct)).StatusCode);
+        Assert.Equal(HttpStatusCode.Unauthorized, (await laptop.GetAsync("/api/me", ct)).StatusCode);
     }
 }
