@@ -2,9 +2,10 @@ using System.Security.Claims;
 using Dapper;
 using Npgsql;
 
-public record EquipmentRequest(string? Name, string? Brand, string? Kind, double InitialDistanceM = 0, long InitialDurationS = 0);
+public record EquipmentRequest(string? Name, string? Brand, string? Kind, double InitialDistanceM = 0, long InitialDurationS = 0,
+    double? DistanceLimitM = null);
 public record EquipmentSummary(Guid Id, string Name, string? Brand, string Kind, bool Retired,
-    double InitialDistanceM, long InitialDurationS, double DistanceM, long DurationS);
+    double InitialDistanceM, long InitialDurationS, double DistanceM, long DurationS, double? DistanceLimitM);
 public record LastUsedShoe(Guid? Id);
 public sealed class InvalidEquipmentException : Exception;
 
@@ -18,6 +19,7 @@ public static class EquipmentEndpoints
         || req.Kind is null || !Kinds.Contains(req.Kind)
         || !double.IsFinite(req.InitialDistanceM) || req.InitialDistanceM is < 0 or > 1_000_000_000
         || req.InitialDurationS is < 0 or > 100L * 365 * 24 * 3600
+        || req.DistanceLimitM is { } limit && (!double.IsFinite(limit) || limit is <= 0 or > 1_000_000_000)
             ? new ApiError("Kontrollera namn, typ och tidigare användning.", "invalidEquipmentInput") : null;
 
     // The active shoe on the most recent activity; the activity form and the Garmin import preselect it.
@@ -68,10 +70,12 @@ public static class EquipmentEndpoints
             var updated = await conn.ExecuteAsync(
                 """
                 update equipment set name = @name, brand = @brand, kind = @Kind,
-                    initial_distance_m = @InitialDistanceM, initial_duration_s = @InitialDurationS
+                    initial_distance_m = @InitialDistanceM, initial_duration_s = @InitialDurationS,
+                    distance_limit_m = @DistanceLimitM
                 where id = @id and user_id = @userId
                 """, new { id, userId = user.GetUserId(), name = req.Name!.Trim(),
-                    brand = ActivityInput.NormalizeTitle(req.Brand), req.Kind, req.InitialDistanceM, req.InitialDurationS });
+                    brand = ActivityInput.NormalizeTitle(req.Brand), req.Kind, req.InitialDistanceM, req.InitialDurationS,
+                    req.DistanceLimitM });
             return updated == 0 ? Results.NotFound() : Results.NoContent();
         });
         equipment.MapPost("", async (EquipmentRequest req, NpgsqlDataSource db, ClaimsPrincipal user) =>
@@ -83,13 +87,13 @@ public static class EquipmentEndpoints
                 return Results.Conflict(new ApiError("Välj ett namn först.", "nameRequired"));
             var id = await conn.ExecuteScalarAsync<Guid>(
                 """
-                insert into equipment (user_id, name, brand, kind, initial_distance_m, initial_duration_s)
-                values (@userId, @name, @brand, @Kind, @InitialDistanceM, @InitialDurationS) returning id
+                insert into equipment (user_id, name, brand, kind, initial_distance_m, initial_duration_s, distance_limit_m)
+                values (@userId, @name, @brand, @Kind, @InitialDistanceM, @InitialDurationS, @DistanceLimitM) returning id
                 """, new { userId, name = req.Name!.Trim(), brand = ActivityInput.NormalizeTitle(req.Brand),
-                    req.Kind, req.InitialDistanceM, req.InitialDurationS });
+                    req.Kind, req.InitialDistanceM, req.InitialDurationS, req.DistanceLimitM });
             return Results.Created($"/api/equipment/{id}", new EquipmentSummary(id, req.Name!.Trim(),
                 ActivityInput.NormalizeTitle(req.Brand), req.Kind!, false, req.InitialDistanceM, req.InitialDurationS,
-                req.InitialDistanceM, req.InitialDurationS));
+                req.InitialDistanceM, req.InitialDurationS, req.DistanceLimitM));
         });
 
 
@@ -101,7 +105,8 @@ public static class EquipmentEndpoints
             """
             select e.id, e.name, e.brand, e.kind, e.retired, e.initial_distance_m, e.initial_duration_s,
                    e.initial_distance_m + coalesce(sum(coalesce(usage.distance_m, a.distance_m)), 0) as distance_m,
-                   e.initial_duration_s + coalesce(sum(coalesce(usage.duration_s, a.duration_s)), 0)::bigint as duration_s
+                   e.initial_duration_s + coalesce(sum(coalesce(usage.duration_s, a.duration_s)), 0)::bigint as duration_s,
+                   e.distance_limit_m
             from equipment e
             left join activity_equipment ae on ae.equipment_id = e.id and ae.user_id = e.user_id
             left join activities a on a.id = ae.activity_id and a.user_id = e.user_id
