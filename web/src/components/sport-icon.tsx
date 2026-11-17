@@ -5,6 +5,7 @@ import {
   Accessibility,
   Bike,
   CircleDot,
+  Compass,
   Dumbbell,
   Flag,
   Footprints,
@@ -39,6 +40,7 @@ const icons = {
   health: HeartPulse,
   stairs: TrendingUp,
   wheelchair: Accessibility,
+  compass: Compass,
 }
 
 function Run({ className }: { className?: string }) {

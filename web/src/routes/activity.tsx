@@ -1,6 +1,6 @@
 import { Stat } from '@/components/stat'
 import { SlowLoading } from '@/components/slow-loading'
-import { isCyclingSport, knownSport, sportIcons } from '@/lib/sports'
+import { isCyclingSport, isRunningSport } from '@/lib/sports'
 import { SportIcon } from '@/components/sport-icon'
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
 import { Link, useNavigate, useParams, useSearch } from '@tanstack/react-router'
@@ -290,9 +290,7 @@ export function ActivityPage() {
     )}`
   // Grade-adjusted pace for running: the activity's pace scaled by the splits' grade-adjusted share of distance.
   const gapSplits =
-    sportIcons[knownSport(a.sport)] === 'run' && view?.splits.every((s) => s.adjustedM !== null)
-      ? view.splits
-      : []
+    isRunningSport(a.sport) && view?.splits.every((s) => s.adjustedM !== null) ? view.splits : []
   const adjustedShare =
     gapSplits.reduce((sum, s) => sum + s.adjustedM!, 0) /
     gapSplits.reduce((sum, s) => sum + s.distanceM, 0)
@@ -708,15 +706,13 @@ export function ActivityPage() {
           </ul>
         </section>
       )}
-      {!mixed && sportIcons[knownSport(a.sport)] === 'run' && (
+      {!mixed && isRunningSport(a.sport) && (
         <ActivityAnalysis streams={a.streams} laps={a.laps} sourceNote={sourceNote} />
       )}
       <HeartRateZones streams={a.streams} bounds={a.hrZones} sourceNote={sourceNote} />
-      {original.userId === me?.id &&
-        a.streams === null &&
-        sportIcons[knownSport(a.sport)] === 'run' && (
-          <p className="mt-4 text-sm text-muted-foreground">{t('activity.noRecordsWithoutFile')}</p>
-        )}
+      {original.userId === me?.id && a.streams === null && isRunningSport(a.sport) && (
+        <p className="mt-4 text-sm text-muted-foreground">{t('activity.noRecordsWithoutFile')}</p>
+      )}
       <QueryError query={bestEfforts} className="mt-4" />
 
       {!tablesBeside && tablePanels && <div className="mt-8">{tablePanels}</div>}
