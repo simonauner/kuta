@@ -4,7 +4,7 @@ import { SlowLoading } from '@/components/slow-loading'
 import { FormField } from '@/components/ui/form-field'
 import { Menu } from '@base-ui/react/menu'
 import { Select } from '@base-ui/react/select'
-import { Check, ChevronDown, EllipsisVertical } from 'lucide-react'
+import { Check, ChevronDown, EllipsisVertical, TriangleAlert } from 'lucide-react'
 import { Modal } from '@/components/ui/modal'
 import { createPortal } from 'react-dom'
 import { useEffect, useId, useRef, useState, type FormEvent } from 'react'
@@ -13,7 +13,7 @@ import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
 import { useTranslation } from 'react-i18next'
 import { api } from '@/lib/api'
 import { formatDuration, parseDuration } from '@/lib/activity'
-import { equipmentQuery, equipmentKindsQuery, type Equipment } from '@/lib/equipment'
+import { equipmentQuery, equipmentKindsQuery, isWorn, type Equipment } from '@/lib/equipment'
 import { Button } from '@/components/ui/button'
 import { ConfirmationModal } from '@/components/ui/confirmation-modal'
 import { Input } from '@/components/ui/input'
@@ -136,7 +136,11 @@ export function EquipmentSection() {
                   <dl className="mt-2 flex gap-8 text-sm tabular-nums">
                     <Stat
                       label={t('equipment.distance')}
-                      value={`${km.format(item.distanceM / 1000)} km`}
+                      value={
+                        item.distanceLimitM === null
+                          ? `${km.format(item.distanceM / 1000)} km`
+                          : `${km.format(item.distanceM / 1000)} / ${km.format(item.distanceLimitM / 1000)} km`
+                      }
                       size="sm"
                     />
                     <Stat
@@ -145,6 +149,12 @@ export function EquipmentSection() {
                       size="sm"
                     />
                   </dl>
+                  {isWorn(item) && (
+                    <p className="mt-2 flex items-center gap-1.5 text-sm text-amber-700 dark:text-amber-300">
+                      <TriangleAlert className="size-4 shrink-0" aria-hidden="true" />
+                      {t('equipment.worn')}
+                    </p>
+                  )}
                 </li>
               ))}
             </ul>
@@ -195,6 +205,7 @@ function EquipmentFormModal({
   const selectedKind = singleKind ? kinds.data![0] : kind
   const [distanceKm, setDistanceKm] = useState('')
   const [duration, setDuration] = useState('')
+  const [limitKm, setLimitKm] = useState('')
   const save = useMutation({
     mutationFn: () => {
       const request = {
@@ -203,6 +214,7 @@ function EquipmentFormModal({
         kind: selectedKind,
         initialDistanceM: distanceKm === '' ? 0 : Number(distanceKm) * 1000,
         initialDurationS: duration === '' ? 0 : parseDuration(duration),
+        distanceLimitM: limitKm === '' ? null : Number(limitKm) * 1000,
       }
       return editing
         ? api.send('PUT', `/api/equipment/${editing.id}`, request).then(() => null)
@@ -232,6 +244,7 @@ function EquipmentFormModal({
     setKind(editing?.kind ?? 'shoe')
     setDistanceKm(editing?.initialDistanceM ? String(editing.initialDistanceM / 1000) : '')
     setDuration(editing?.initialDurationS ? formatDuration(editing.initialDurationS) : '')
+    setLimitKm(editing?.distanceLimitM ? String(editing.distanceLimitM / 1000) : '')
     reset()
     formDialog.current?.showModal()
   }, [open, editing, reset])
@@ -325,6 +338,23 @@ function EquipmentFormModal({
               />
             )}
           </FormField>
+          <FormField
+            label={t('equipment.distanceLimit')}
+            className="col-span-2 text-sm font-medium"
+          >
+            {(id) => (
+              <Input
+                id={id}
+                type="number"
+                inputMode="decimal"
+                min={0.001}
+                step="any"
+                placeholder="700"
+                value={limitKm}
+                onChange={(e) => setLimitKm(e.currentTarget.value)}
+              />
+            )}
+          </FormField>
           <ErrorText error={kinds.error} className="col-span-2" />
 
           <ErrorText error={save.error} className="col-span-2" />
@@ -362,7 +392,7 @@ export function EquipmentPicker({
       (item) => !item.retired || value.includes(item.id) || initialIds.includes(item.id),
     ) ?? []
   const label = (item: Equipment) =>
-    `${item.name}${item.retired ? ` · ${t('equipment.retired')}` : ''}`
+    `${item.name}${item.retired ? ` · ${t('equipment.retired')}` : ''}${isWorn(item) ? ` · ${t('equipment.wornShort')}` : ''}`
   return (
     <fieldset disabled={disabled}>
       <legend className="mb-2 flex w-full items-center justify-between gap-2 text-sm font-medium">

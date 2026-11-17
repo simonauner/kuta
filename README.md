@@ -635,6 +635,8 @@ och raderade pass slår igenom direkt. Radering av alla pass behåller utrustnin
 och dess startvärden. Tidigare användning ska bara avse sådant som inte redan
 finns i kopplade Kuta-pass, annars räknas den dubbelt.
 
+Valfri `distanceLimitM` (migrering 040) är distansen där ägaren vill byta, exempelvis 700 km för skor. När aktiv utrustning når gränsen visar Utrustning en varning och utrustningsväljaren märker den som sliten; pensionerad utrustning varnar inte. `null` betyder ingen gräns.
+
 Alla anrop kräver inloggning; skrivningar kräver `X-CSRF-TOKEN`:
 
 | Anrop | Resultat |
@@ -646,7 +648,7 @@ Alla anrop kräver inloggning; skrivningar kräver `X-CSRF-TOKEN`:
 | `DELETE /api/equipment/{id}/retire` | Återaktiverar egen utrustning så att den kan väljas igen; historik och totaler behålls. |
 | `DELETE /api/equipment/{id}` | Raderar egen utrustning och dess kopplingar, men behåller passen. |
 | `GET /api/equipment/kinds` | Tillåtna typer. |
-| `POST /api/equipment` | Skapar utrustning med `name`, `kind`, valfritt `brand`, `initialDistanceM` och `initialDurationS`. Båda startvärdena är 0 om de utelämnas. |
+| `POST /api/equipment` | Skapar utrustning med `name`, `kind`, valfritt `brand`, `initialDistanceM`, `initialDurationS` och `distanceLimitM`. Båda startvärdena är 0 och gränsen `null` om de utelämnas. |
 | `PUT /api/activities/{id}` | Sparar titel, beskrivning, taggar och utrustning tillsammans med `{"title":"Morgonpass","description":null,"tags":["race"],"equipmentIds":["uuid"]}`; tomma listor tar bort respektive val. Annans eller okänt pass ger 404. |
 
 Vid skapande av pass skickas `equipmentIds` som JSON-array (manuellt) eller

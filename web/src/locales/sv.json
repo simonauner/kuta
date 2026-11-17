@@ -711,7 +711,10 @@
     "addInProfile": "Lägg till på din profil.",
     "loading": "Hämtar utrustning…",
     "choose": "Välj utrustning",
-    "addInSettings": "Lägg till i Inställningar."
+    "addInSettings": "Lägg till i Inställningar.",
+    "distanceLimit": "Påminn om byte vid (km, valfritt)",
+    "worn": "Har nått din gräns. Dags att pensionera?",
+    "wornShort": "Sliten"
   },
   "equipmentKinds": {
     "shoe": "Skor"

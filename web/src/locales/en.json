@@ -711,7 +711,10 @@
     "addInProfile": "Add it on your profile.",
     "loading": "Loading equipment…",
     "choose": "Choose equipment",
-    "addInSettings": "Add it in Settings."
+    "addInSettings": "Add it in Settings.",
+    "distanceLimit": "Remind me to replace at (km, optional)",
+    "worn": "Has reached your limit. Time to retire it?",
+    "wornShort": "Worn out"
   },
   "equipmentKinds": {
     "shoe": "Shoes"
