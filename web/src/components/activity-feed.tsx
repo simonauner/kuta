@@ -56,12 +56,15 @@ const hideCommutesKey = 'kuta.feed.hideCommutes'
 
 export function ActivityFeed({
   runnerId,
+  groupId,
   viewAs,
   emptyState,
   visitor = false,
   limit,
 }: {
   runnerId?: string
+  // A group's feed: the members' public activities.
+  groupId?: string
   viewAs?: 'followers' | 'public'
   emptyState?: ReactNode
   // Without an account: the runner's public activities through the public API
@@ -79,7 +82,8 @@ export function ActivityFeed({
       return false
     }
   })
-  const hideCommutes = !runnerId && hideCommutesSaved
+  const ownFeed = !runnerId && !groupId
+  const hideCommutes = ownFeed && hideCommutesSaved
   const toggleCommutes = (hide: boolean) => {
     setHideCommutes(hide)
     try {
@@ -89,9 +93,11 @@ export function ActivityFeed({
     }
   }
   const feed = useInfiniteQuery({
-    queryKey: runnerId
-      ? ['feed', runnerId, visitor, ...(viewAs ? [viewAs] : [])]
-      : ['feed', hideCommutes],
+    queryKey: groupId
+      ? ['feed', 'group', groupId]
+      : runnerId
+        ? ['feed', runnerId, visitor, ...(viewAs ? [viewAs] : [])]
+        : ['feed', hideCommutes],
     initialPageParam: null as ActivityCursor | null,
     queryFn: ({ pageParam }) => {
       const params = new URLSearchParams()
@@ -102,7 +108,7 @@ export function ActivityFeed({
         params.set('beforeId', pageParam.id)
       }
       return api.get<FeedPage>(
-        `${runnerId ? `/api/${visitor ? 'public/' : ''}runners/${runnerId}/activities` : '/api/feed'}?${params}`,
+        `${groupId ? `/api/groups/${groupId}/feed` : runnerId ? `/api/${visitor ? 'public/' : ''}runners/${runnerId}/activities` : '/api/feed'}?${params}`,
       )
     },
     getNextPageParam: (page) => page.nextCursor,
@@ -141,7 +147,7 @@ export function ActivityFeed({
   return (
     <SlowLoading loading={feed.isPending}>
       <QueryError query={feed} />
-      {!runnerId && (hideCommutes || feed.data?.pages[0].items.length !== 0) && (
+      {ownFeed && (hideCommutes || feed.data?.pages[0].items.length !== 0) && (
         <div className="mb-2 flex justify-end">
           <Popover.Root>
             <Popover.Trigger
@@ -175,7 +181,7 @@ export function ActivityFeed({
       {feed.isSuccess &&
         feed.data.pages[0].items.length === 0 &&
         (emptyState ??
-          (runnerId || hideCommutes ? (
+          (!ownFeed || hideCommutes ? (
             <p className="text-muted-foreground">{t('social.noActivities')}</p>
           ) : (
             <FeedEmptyState />

@@ -1352,7 +1352,10 @@
     "similarClubs": "Det finns redan öppna klubbar med liknande namn. Menar du någon av dem? Annars kan du fortsätta ändå.",
     "saveAnyway": "Spara ändå",
     "saved": "Ändringarna är sparade.",
-    "createAnyway": "Skapa ändå"
+    "createAnyway": "Skapa ändå",
+    "feedTitle": "Aktiviteter",
+    "feedHint": "Medlemmarnas publika aktiviteter. Aktiviteter som bara följare eller ägaren ser visas aldrig här.",
+    "feedEmpty": "Inga publika aktiviteter från medlemmarna ännu."
   },
   "push": {
     "title": "Notiser på den här enheten.",
