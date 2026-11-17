@@ -8,6 +8,8 @@ import { ActivityMapPreview } from '@/components/activity-map-preview'
 import { useInfiniteQuery } from '@tanstack/react-query'
 import { Link, useRouterState } from '@tanstack/react-router'
 import { useTranslation } from 'react-i18next'
+import { Settings } from 'lucide-react'
+import { Popover } from '@base-ui/react/popover'
 import { QueryError } from '@/components/query-error'
 import { SportIcon } from '@/components/sport-icon'
 import { Avatar } from '@/components/avatar'
@@ -140,15 +142,35 @@ export function ActivityFeed({
     <SlowLoading loading={feed.isPending}>
       <QueryError query={feed} />
       {!runnerId && (hideCommutes || feed.data?.pages[0].items.length !== 0) && (
-        <FormField layout="choice" label={t('feed.hideCommutes')} className="mb-4 text-sm">
-          {(id) => (
-            <Checkbox
-              id={id}
-              checked={hideCommutes}
-              onChange={(e) => toggleCommutes(e.target.checked)}
-            />
-          )}
-        </FormField>
+        <div className="mb-2 flex justify-end">
+          <Popover.Root>
+            <Popover.Trigger
+              render={
+                <Button type="button" variant="ghost" size="icon" aria-label={t('feed.settings')} />
+              }
+            >
+              <Settings aria-hidden="true" className="size-5 text-muted-foreground" />
+            </Popover.Trigger>
+            <Popover.Portal>
+              <Popover.Positioner align="end" sideOffset={8} collisionPadding={16} className="z-50">
+                <Popover.Popup
+                  aria-label={t('feed.settings')}
+                  className="rounded-md border bg-background p-4 text-sm text-foreground shadow-md outline-none"
+                >
+                  <FormField layout="choice" label={t('feed.hideCommutes')}>
+                    {(id) => (
+                      <Checkbox
+                        id={id}
+                        checked={hideCommutes}
+                        onChange={(e) => toggleCommutes(e.target.checked)}
+                      />
+                    )}
+                  </FormField>
+                </Popover.Popup>
+              </Popover.Positioner>
+            </Popover.Portal>
+          </Popover.Root>
+        </div>
       )}
       {feed.isSuccess &&
         feed.data.pages[0].items.length === 0 &&
