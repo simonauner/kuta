@@ -60,7 +60,7 @@ public class DataExportTests(KutaFactory factory) : IClassFixture<KutaFactory>
 
                 await using var archive = await DataExport.CreateAsync(conn, store, userId, ct);
                 using var zip = new ZipArchive(archive, ZipArchiveMode.Read, leaveOpen: true);
-                Assert.Equal(12, zip.Entries.Count);
+                Assert.Equal(13, zip.Entries.Count);
                 var group = Assert.Single((await ReadJsonAsync(zip, "groups.json", ct)).EnumerateArray());
                 Assert.Equal((groupId, "admin"), (group.GetProperty("id").GetGuid(), group.GetProperty("role").GetString()));
                 var seen = await ReadJsonAsync(zip, "achievements-seen.json", ct);
@@ -209,7 +209,7 @@ public class DataExportTests(KutaFactory factory) : IClassFixture<KutaFactory>
             Assert.Contains("kuta-export.zip", response.Content.Headers.ContentDisposition!.ToString());
             await using var stream = await response.Content.ReadAsStreamAsync(ct);
             using var zip = new ZipArchive(stream);
-            Assert.Equal(8, zip.Entries.Count);
+            Assert.Equal(9, zip.Entries.Count);
             Assert.Equal(email, (await ReadJsonAsync(zip, "profile.json", ct)).GetProperty("email").GetString());
             // More exports than the two global slots: each finished download frees its slot, until the hourly limit.
             for (var i = 0; i < 4; i++)

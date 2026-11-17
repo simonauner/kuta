@@ -9,3 +9,4 @@ DataProtection__Certificate=op://Development/fly-kuta-new/DataProtection__Certif
 Garmin__ClientId=op://Development/fly-kuta-new/Garmin__ClientId
 Garmin__ClientSecret=op://Development/fly-kuta-new/Garmin__ClientSecret
 Turnstile__SecretKey=op://Development/fly-kuta-new/Turnstile__SecretKey
+Push__PrivateKey=op://Development/fly-kuta-new/Push__PrivateKey

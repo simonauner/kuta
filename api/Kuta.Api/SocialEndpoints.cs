@@ -159,6 +159,7 @@ public static class SocialEndpoints
                 insert into follows (follower_id, following_id) values (@userId, @id)
                 on conflict (follower_id, following_id) do nothing
                 """, new { id, userId });
+            await Push.EnqueueIfPendingAsync(conn, id);
             return Results.NoContent();
         }).RequireRateLimiting("follows");
         // Blocking removes the person's follow or request and stops new requests.
@@ -190,10 +191,13 @@ public static class SocialEndpoints
         {
             await using var conn = await db.OpenConnectionAsync();
             var count = await conn.ExecuteAsync($"""
-                update follows set accepted_at = coalesce(accepted_at, now())
+                update follows set accepted_at = coalesce(accepted_at, now()),
+                    accept_notified = accept_notified and accepted_at is not null
                 where following_id = @userId and follower_id = @id and {NotBlocked("@userId", "@id")}
                 """, new { id, userId = user.GetUserId() });
-            return count == 0 ? Results.NotFound() : Results.NoContent();
+            if (count == 0) return Results.NotFound();
+            await Push.EnqueueIfPendingAsync(conn, id);
+            return Results.NoContent();
         });
         social.MapDelete("/following/{id:guid}", async (Guid id, NpgsqlDataSource db, ClaimsPrincipal user) =>
         {

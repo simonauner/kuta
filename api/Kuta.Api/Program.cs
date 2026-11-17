@@ -54,6 +54,7 @@ static async Task<int> RunAsync(string[] args)
     builder.Services.AddHttpClient<SupabaseAuthClient>();
     builder.Services.AddHttpClient<TurnstileVerifier>(client => client.Timeout = TimeSpan.FromSeconds(10));
     builder.Services.AddHttpClient<GarminClient>();
+    builder.Services.AddHttpClient<WebPushSender>(client => client.Timeout = TimeSpan.FromSeconds(10));
     builder.Services.AddSingleton<SharedTokenRefresh>();
     builder.Services.AddSingleton<RawFileStore>();
     builder.Services.AddSingleton<ImportFiles>();
@@ -282,6 +283,7 @@ static async Task<int> RunAsync(string[] args)
     api.MapAchievements();
     api.MapYearReview();
     api.MapGarmin();
+    api.MapPush();
     api.MapAdmin();
     app.MapGarminPush();
 

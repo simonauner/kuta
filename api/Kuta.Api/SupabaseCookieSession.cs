@@ -59,6 +59,13 @@ public static class SupabaseCookieSession
         await http.SignOutAsync(CookieAuthenticationDefaults.AuthenticationScheme);
     }
 
+    // The sign-in session of the current request, for data that should end with it.
+    public static async Task<Guid?> SessionIdAsync(HttpContext http)
+    {
+        var result = await http.AuthenticateAsync(CookieAuthenticationDefaults.AuthenticationScheme);
+        return result.Properties is { } properties && TryReadSession(properties, out var sessionId) ? sessionId : null;
+    }
+
     public static async Task ValidatePrincipalAsync(CookieValidatePrincipalContext context)
     {
         var properties = context.Properties;
