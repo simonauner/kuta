@@ -7,7 +7,7 @@ import { DangerZone } from '@/components/danger-zone'
 import { ErrorText } from '@/components/error-message'
 import { HeartRateConsent } from '@/components/heart-rate-consent'
 import { LanguageSelect } from '@/components/language-select'
-import { PushNotifications, unsubscribeThisDevice } from '@/components/push-notifications'
+import { unsubscribeThisDevice } from '@/components/push-notifications'
 import { Recalculation } from '@/components/strava-import'
 import { ReplaceProfileLink } from '@/components/share-profile'
 import { SupporterSection } from '@/components/supporter'
@@ -44,6 +44,7 @@ export function SettingsPage() {
           [
             ['/app/settings/profile', t('settings.profileTitle')],
             ['/app/settings/followers', t('settings.followers')],
+            ['/app/settings/notifications', t('push.pageTitle')],
             ['/app/settings/equipment', t('equipment.title')],
             ['/app/settings/privacy-places', t('privacyPlaces.title')],
             ['/app/settings/import', t('settings.importTitle')],
@@ -63,7 +64,6 @@ export function SettingsPage() {
           </Link>
         ))}
       </nav>
-      <PushNotifications className="mt-6" />
       <SupporterSection />
       <section aria-labelledby="account-heading" className="mt-8 border-t pt-6">
         <Heading level={2} id="account-heading">
