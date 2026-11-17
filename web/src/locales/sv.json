@@ -1380,5 +1380,23 @@
     "helpLabel": "Om Tillsammans med",
     "help": "Andra som var på samma plats samtidigt. Visas bara för den som får se båda aktiviteterna.",
     "ownHelp": "Du kan stänga av det under Redigera aktivitet."
+  },
+  "orienteering": {
+    "legs": "Sträckor",
+    "leg": "Sträcka",
+    "run": "Löpt",
+    "straight": "Fågelväg",
+    "overdistance": "Överdistans",
+    "still": "Stilla",
+    "miss": "Möjlig bom",
+    "legsHelpLabel": "Om sträckor",
+    "legsHelp": "Varje varv på klockan räknas som en sträcka, så tryck varv vid varje kontroll. Stilla är tiden klockan inte räknade som rörelse.",
+    "missHelp": "Fågelvägen går mellan varvens start och slut. En sträcka markeras som möjlig bom när den tog minst 50 % längre tid per km fågelväg än den typiska sträckan.",
+    "noLegs": "Tryck varv på klockan vid varje kontroll så visas sträcktiderna här.",
+    "courseLength": "Banlängd (km)",
+    "courseLengthHint": "Banans längd enligt kartan. Ger km-tid och överdistans.",
+    "kmTime": "Km-tid",
+    "courseOverdistance": "Överdistans",
+    "noCourseLength": "Ange banlängden under Redigera aktivitet för att se km-tid och överdistans."
   }
 }

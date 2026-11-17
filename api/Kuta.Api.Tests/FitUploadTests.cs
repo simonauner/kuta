@@ -272,6 +272,33 @@ public class FitUploadTests(KutaFactory factory) : IClassFixture<KutaFactory>
         finally { await conn.ExecuteAsync("delete from auth.users where email = @runner", new { runner }); }
     }
 
+    // Orienteering from the form: the course length is kept and the run still gets best efforts.
+    [Fact]
+    public async Task Upload_as_orienteering_keeps_the_course_length_and_records()
+    {
+        var ct = TestContext.Current.CancellationToken;
+        var runner = $"orienteering-{Guid.NewGuid():N}@example.com";
+        var client = factory.CreateClient();
+        await using var conn = await factory.Services.GetRequiredService<NpgsqlDataSource>().OpenConnectionAsync(ct);
+        try
+        {
+            await CreateRunnerAsync(factory, client, conn, runner, "Löparen", ct);
+            using var form = new MultipartFormDataContent();
+            var file = new ByteArrayContent(FitFile.Run(new System.DateTime(2026, 5, 3, 8, 0, 0, DateTimeKind.Utc), 600));
+            file.Headers.ContentType = new MediaTypeHeaderValue("application/octet-stream");
+            form.Add(file, "file", "pass.fit");
+            form.Add(new StringContent("orienteering"), "sport");
+            form.Add(new StringContent("1500.5"), "courseLengthM");
+            var upload = await client.PostAsync("/api/activities", form, ct);
+            Assert.Equal(HttpStatusCode.Created, upload.StatusCode);
+            var id = (await upload.Content.ReadFromJsonAsync<JsonElement>(ct)).GetProperty("id").GetGuid();
+            Assert.Equal(("orienteering", 1500.5, true), await conn.QuerySingleAsync<(string, double?, bool)>(
+                "select sport, course_length_m, exists (select 1 from best_efforts where activity_id = a.id) from activities a where id = @id",
+                new { id }));
+        }
+        finally { await conn.ExecuteAsync("delete from auth.users where email = @runner", new { runner }); }
+    }
+
     static async Task<HttpResponseMessage> Upload(HttpClient client, byte[] fit, CancellationToken ct,
         string path = "/api/activities", string? title = null, string? description = null, string? privacy = null)
     {

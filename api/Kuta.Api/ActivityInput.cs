@@ -2,7 +2,7 @@
 public record ManualActivityRequest(
     string? Sport, string? Title, DateTimeOffset? StartedAt, int? DurationS, double? DistanceM,
     float? ElevationGainM, short? AvgHr, string[]? Tags = null, Guid[]? EquipmentIds = null, string? Description = null,
-    string? Privacy = null);
+    string? Privacy = null, double? CourseLengthM = null);
 
 // What the runner fills in, validated before it is saved
 public static class ActivityInput
@@ -47,7 +47,12 @@ public static class ActivityInput
         ?? (r.DurationS is not (> 0 and <= 7 * 24 * 3600) ? InvalidActivity : null)
         ?? (r.DistanceM is not (>= 0 and <= 1_000_000) ? InvalidActivity : null)
         ?? (r.ElevationGainM is < 0 or > 20_000 ? InvalidActivity : null)
-        ?? (r.AvgHr is < 30 or > 250 ? InvalidActivity : null);
+        ?? (r.AvgHr is < 30 or > 250 ? InvalidActivity : null)
+        ?? ValidateCourseLength(r.CourseLengthM);
 
-    static readonly ApiError InvalidActivity = new("Kontrollera sport, datum, tid och distans.", "invalidActivity");
+    // Orienteering course length in metres; stored only for the sport orienteering.
+    public static ApiError? ValidateCourseLength(double? courseLengthM) =>
+        courseLengthM is <= 0 or > 100_000 ? InvalidActivity : null;
+
+    public static readonly ApiError InvalidActivity = new("Kontrollera sport, datum, tid och distans.", "invalidActivity");
 }

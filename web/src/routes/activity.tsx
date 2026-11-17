@@ -43,6 +43,8 @@ import { VisitorNotice } from '@/components/visitor-notice'
 import { ConfirmationModal } from '@/components/ui/confirmation-modal'
 import { SimilarRoutes } from '@/components/similar-routes'
 import { Companions } from '@/components/companions'
+import { OrienteeringLegs } from '@/components/orienteering'
+import { courseStats } from '@/lib/orienteering'
 
 // Pace from speed, smoothed over ~15 s so GPS noise doesn't cause spikes; standing still becomes a gap.
 function paceSeries(speed: (number | null)[], minSpeed = 0.5) {
@@ -294,6 +296,11 @@ export function ActivityPage() {
   const adjustedShare =
     gapSplits.reduce((sum, s) => sum + s.adjustedM!, 0) /
     gapSplits.reduce((sum, s) => sum + s.distanceM, 0)
+  const orienteering = !mixed && a.sport === 'orienteering'
+  const course =
+    orienteering && a.courseLengthM !== null
+      ? courseStats(a.durationS, a.distanceM, a.courseLengthM)
+      : null
   const stats = [
     [t('activity.distance'), `${number.format(a.distanceM / 1000)} km`],
     [t('activity.time'), formatDuration(a.durationS)],
@@ -311,6 +318,15 @@ export function ActivityPage() {
           i18n.resolvedLanguage,
         ),
       ],
+    course && [t('orienteering.kmTime'), `${formatDuration(course.kmTimeS)} /km`],
+    course && [
+      t('orienteering.courseOverdistance'),
+      new Intl.NumberFormat(i18n.resolvedLanguage, {
+        style: 'percent',
+        signDisplay: 'always',
+        maximumFractionDigits: 0,
+      }).format(course.overdistance),
+    ],
     a.elevationGainM !== null && [t('activity.elevation'), `${Math.round(a.elevationGainM)} m`],
     a.movingS !== null && [t('activity.movingTime'), formatDuration(a.movingS)],
     a.avgHr !== null && [t('activity.avgHr'), `${a.avgHr} bpm`],
@@ -708,6 +724,14 @@ export function ActivityPage() {
       )}
       {!mixed && isRunningSport(a.sport) && (
         <ActivityAnalysis streams={a.streams} laps={a.laps} sourceNote={sourceNote} />
+      )}
+      {orienteering && (
+        <>
+          {original.userId === me?.id && a.courseLengthM === null && (
+            <p className="mt-4 text-sm text-muted-foreground">{t('orienteering.noCourseLength')}</p>
+          )}
+          <OrienteeringLegs activity={a} own={original.userId === me?.id} />
+        </>
       )}
       <HeartRateZones streams={a.streams} bounds={a.hrZones} sourceNote={sourceNote} />
       {original.userId === me?.id && a.streams === null && isRunningSport(a.sport) && (

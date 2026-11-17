@@ -1,6 +1,8 @@
 import { Checkbox } from '@/components/ui/checkbox'
 import { FormField } from '@/components/ui/form-field'
 import { MultisportEditor } from '@/components/multisport-editor'
+import { CourseLengthField } from '@/components/orienteering'
+import { courseLengthM } from '@/lib/orienteering'
 import { multisportView, partsFromForm, type MultisportDraft } from '@/lib/multisport'
 import { useState } from 'react'
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
@@ -54,6 +56,9 @@ function EditActivityForm({ activity }: { activity: ActivityDetail }) {
   const [hideCompanions, setHideCompanions] = useState(activity.hideCompanions)
   const [privacy, setPrivacy] = useState(activity.privacy)
   const [sport, setSport] = useState(activity.sport)
+  const [courseLength, setCourseLength] = useState(
+    activity.courseLengthM === null ? '' : String(activity.courseLengthM / 1000),
+  )
   const [equipmentIds, setEquipmentIds] = useState(activity.equipmentIds)
   const destination = {
     to: '/app/activities/$activityId' as const,
@@ -68,6 +73,7 @@ function EditActivityForm({ activity }: { activity: ActivityDetail }) {
         sport: sport !== activity.sport && draft === undefined ? sport : undefined,
         excludeFromRecords,
         hideCompanions,
+        courseLengthM: courseLengthM(sport, courseLength),
         title,
         description,
         tags,
@@ -157,6 +163,13 @@ function EditActivityForm({ activity }: { activity: ActivityDetail }) {
             </Select>
           )}
         </FormField>
+        {sport === 'orienteering' && (
+          <CourseLengthField
+            value={courseLength}
+            onChange={setCourseLength}
+            disabled={save.isPending}
+          />
+        )}
         <VisibilityField value={privacy} onChange={setPrivacy} disabled={save.isPending} />
         {activity.streams && (
           <div className="space-y-2">
