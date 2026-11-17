@@ -26,7 +26,7 @@ public record LeaderboardRow(Guid UserId, string DisplayName, Guid? AvatarId, do
 // GarminData: the totals include Garmin activities, so the leaderboard needs Garmin's attribution.
 public record Leaderboard(DateOnly WeekStart, IReadOnlyList<LeaderboardRow> Rows, bool GarminData = false);
 
-// Groups are joined through an invite link or, for open clubs, from search; an admin approves every request. Membership never grants access to activities: members see each other and a weekly leaderboard of
+// Groups are joined through an invite link or, for open clubs, from search; an admin approves every request. Membership never grants access to activities (the group feed shows only public ones): members see each other and a weekly leaderboard of
 // the totals each member chose to share (all own activities, also private ones, but never Garmin activities, which are
 // shown only to their owner until Garmin has had 30 days' notice of showing them to others).
 public static class Groups
@@ -112,6 +112,18 @@ public static class Groups
             await using var conn = await db.OpenConnectionAsync(ct);
             var detail = await ReadAsync(conn, user.GetUserId(), id, ct);
             return detail is null ? Results.NotFound() : Results.Ok(detail);
+        });
+        // Only members see the group's activities.
+        groups.MapGet("/{id:guid}/feed", async (Guid id, DateTimeOffset? beforeStartedAt, Guid? beforeId, NpgsqlDataSource db,
+            ClaimsPrincipal user, CancellationToken ct) =>
+        {
+            if (beforeStartedAt.HasValue != beforeId.HasValue)
+                return Results.BadRequest(new ApiError("Sidmarkören är ogiltig. Ladda om sidan.", "invalidActivityPage"));
+            await using var conn = await db.OpenConnectionAsync(ct);
+            var userId = user.GetUserId();
+            if (await conn.ExecuteScalarAsync<string?>(new CommandDefinition(Membership, new { id, userId }, cancellationToken: ct)) is null)
+                return Results.NotFound();
+            return Results.Ok(await SocialEndpoints.ReadFeedAsync(conn, userId, beforeStartedAt, beforeId, groupId: id));
         });
         groups.MapGet("/{id:guid}/members", async (Guid id, int? offset, NpgsqlDataSource db, ClaimsPrincipal user,
             CancellationToken ct) =>

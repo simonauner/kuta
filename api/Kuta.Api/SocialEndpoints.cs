@@ -241,7 +241,8 @@ public static class SocialEndpoints
         $"(('x' || substr(md5(page.privacy_seed::text || ':' || {key}), {start}, 8))::bit(32)::bigint / 4294967296.0)";
 
     public static async Task<FeedPage> ReadFeedAsync(NpgsqlConnection conn, Guid userId,
-        DateTimeOffset? beforeStartedAt = null, Guid? beforeId = null, Guid? runnerId = null, bool hideCommutes = false)
+        DateTimeOffset? beforeStartedAt = null, Guid? beforeId = null, Guid? runnerId = null, bool hideCommutes = false,
+        Guid? groupId = null)
     {
         // Limit before route processing. Every zone centre is moved by a secret, stable offset (ZoneShift) and the radius
         // grows by the largest offset, so the true point stays at least 500 m (or the place's radius) inside the zone and
@@ -254,8 +255,11 @@ public static class SocialEndpoints
                     {Supporters.VisibleTier} as supporter_tier, {GarminAttribution.Sql("a")} as attribution, u.avatar_id
                 from activities a join users u on u.id = a.user_id
                 where {CanRead} and (
-                    (@runnerId::uuid is not null and a.user_id = @runnerId) or
-                    (@runnerId::uuid is null and (a.user_id = @userId or exists (select 1 from follows f
+                    -- A group shows its members' public activities only: membership never grants read access.
+                    (@groupId::uuid is not null and a.privacy = 'public' and exists (select 1 from group_members m
+                        where m.group_id = @groupId and m.user_id = a.user_id and m.accepted_at is not null)) or
+                    (@groupId::uuid is null and @runnerId::uuid is not null and a.user_id = @runnerId) or
+                    (@groupId::uuid is null and @runnerId::uuid is null and (a.user_id = @userId or exists (select 1 from follows f
                         where f.follower_id = @userId and f.following_id = a.user_id and f.accepted_at is not null))))
                   and (@beforeStartedAt::timestamptz is null or (a.started_at, a.id) < (@beforeStartedAt, @beforeId))
                   and not (@hideCommutes and a.tags @> array['commute'])
@@ -316,7 +320,7 @@ public static class SocialEndpoints
                     zones.areas), 2) end as route
             ) preview
             order by started_at desc, id desc
-            """, new { userId, beforeStartedAt, beforeId, runnerId, hideCommutes })).ToList();
+            """, new { userId, beforeStartedAt, beforeId, runnerId, hideCommutes, groupId })).ToList();
         var items = rows.Take(25).ToList();
         return new FeedPage(items, rows.Count > 25 ? new ActivityCursor(items[^1].StartedAt, items[^1].Id) : null);
     }
