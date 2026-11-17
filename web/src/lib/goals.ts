@@ -23,6 +23,8 @@ export type Goal = {
   current: GoalPeriodProgress
   previous: GoalPeriodProgress | null
   streak: number
+  // The counted activities include Garmin activities, so the goal needs Garmin's attribution.
+  garminData: boolean
 }
 
 export function goalFraction(value: number, target: number) {

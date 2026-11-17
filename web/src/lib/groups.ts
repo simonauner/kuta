@@ -60,6 +60,8 @@ export type ClubSummary = {
 export type Leaderboard = {
   weekStart: string
   rows: { userId: string; displayName: string; avatarId: string | null; value: number }[]
+  // The totals include Garmin activities, so the leaderboard needs Garmin's attribution.
+  garminData: boolean
 }
 
 export const groupsQuery = queryOptions({

@@ -117,7 +117,7 @@ export function AchievementList() {
           <ArrowRight aria-hidden="true" />
         </Button>
       </div>
-      <GarminDerivedNote className="mt-1" />
+      {/* Only on the profile, which attributes Garmin once at the top of the page. */}
       <Card className="mt-3">
         <ul className="space-y-4">
           {achievements.data.slice(0, shownAtFirst).map((a) => (

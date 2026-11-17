@@ -108,7 +108,7 @@ export function RunnerPage() {
                 <ProfileStats runnerId={runnerId} />
                 <ActivityCalendar runnerId={runnerId} />
                 <RecordShelf runnerId={runnerId} />
-                <GoalList key={`goals-${runnerId}`} runnerId={runnerId} />
+                <GoalList key={`goals-${runnerId}`} runnerId={runnerId} garminNote={false} />
               </>
             )}
             <Heading level={2}>{t('nav.activities')}</Heading>

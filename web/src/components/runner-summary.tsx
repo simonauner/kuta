@@ -3,6 +3,8 @@ import { Link, useRouterState } from '@tanstack/react-router'
 import { Trophy } from 'lucide-react'
 import { useTranslation } from 'react-i18next'
 import { ErrorText } from '@/components/error-message'
+import { GarminDerivedNote } from '@/components/garmin'
+import { runnerGoalsQuery } from '@/components/goals'
 import { SportIcon } from '@/components/sport-icon'
 import { card } from '@/components/ui/card-variants'
 import { Heading } from '@/components/ui/heading'
@@ -22,6 +24,8 @@ type RunnerSummary = {
   records: StoredBestEffort[]
   followerCount: number
   followingCount: number
+  // The activities behind the summary include Garmin ones, which need Garmin's attribution.
+  garminData: boolean
 }
 
 const levelClass = ['bg-muted', 'bg-primary/25', 'bg-primary/50', 'bg-primary/75', 'bg-primary']
@@ -45,7 +49,12 @@ export function ProfileStats({ runnerId, viewAs }: ProfileProps) {
   const { t, i18n } = useTranslation()
   const { data } = useQuery(runnerSummaryQuery(runnerId, viewAs))
   const { data: me } = useQuery(meQuery)
+  // Goals count all the runner's activities, also ones the viewer may not read, so they can need Garmin's attribution
+  // when the summary does not. The owner reads every activity, so the summary flag covers their own goals.
+  const own = me?.id === runnerId && !viewAs
+  const goals = useQuery({ ...runnerGoalsQuery(runnerId, viewAs), enabled: !!me && !own })
   if (!data) return null
+  const garminData = data.garminData || !!goals.data?.some((goal) => goal.garminData)
   const follows = `${t('profile.stats.followers', { count: data.followerCount })} · ${t('profile.stats.following', { count: data.followingCount })}`
   const language = i18n.resolvedLanguage
   const km = new Intl.NumberFormat(language, {
@@ -85,6 +94,8 @@ export function ProfileStats({ runnerId, viewAs }: ProfileProps) {
           follows
         )}
       </p>
+      {/* One attribution for every derived view on the profile, above the fold as Garmin's guidelines require. */}
+      <GarminDerivedNote show={garminData} />
       <div className="grid grid-cols-2 gap-3">
         {tile(t('profile.stats.thisYear'), data.thisYear)}
         {tile(t('profile.stats.allTime'), data.allTime)}
