@@ -12,7 +12,12 @@ export type Equipment = {
   initialDurationS: number
   distanceM: number
   durationS: number
+  distanceLimitM: number | null
 }
+
+// Active equipment that has reached the owner's replacement distance.
+export const isWorn = (item: Equipment) =>
+  !item.retired && item.distanceLimitM !== null && item.distanceM >= item.distanceLimitM
 
 export const equipmentQuery = queryOptions({
   queryKey: ['equipment'],

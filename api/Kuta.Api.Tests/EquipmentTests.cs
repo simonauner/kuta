@@ -74,10 +74,10 @@ public class EquipmentTests(KutaFactory factory) : IClassFixture<KutaFactory>
             using var other = await Client(otherId, ct);
             using var anonymous = factory.CreateClient();
             Assert.Equal(HttpStatusCode.Unauthorized, (await anonymous.GetAsync("/api/equipment", ct)).StatusCode);
-            using var created = await owner.PostAsJsonAsync("/api/equipment", new EquipmentRequest(" Test shoe ", " Brand ", "shoe", 1000, 600), ct);
+            using var created = await owner.PostAsJsonAsync("/api/equipment", new EquipmentRequest(" Test shoe ", " Brand ", "shoe", 1000, 600, 700_000), ct);
             Assert.Equal(HttpStatusCode.Created, created.StatusCode);
             var gear = (await created.Content.ReadFromJsonAsync<EquipmentSummary>(ct))!;
-            Assert.Equal(("Test shoe", "Brand", "shoe", 1000d, 600L), (gear.Name, gear.Brand, gear.Kind, gear.DistanceM, gear.DurationS));
+            Assert.Equal(("Test shoe", "Brand", "shoe", 1000d, 600L, 700_000d), (gear.Name, gear.Brand, gear.Kind, gear.DistanceM, gear.DurationS, gear.DistanceLimitM));
             Assert.Empty((await other.GetFromJsonAsync<EquipmentSummary[]>("/api/equipment", ct))!);
             var manual = new ManualActivityRequest("running", "Synthetic run", DateTimeOffset.UtcNow, 1800, 5000, null, null,
                 EquipmentIds: [gear.Id]);
@@ -156,7 +156,7 @@ public class EquipmentTests(KutaFactory factory) : IClassFixture<KutaFactory>
             await conn.ExecuteAsync("update equipment set retired = true where id = @id", new { id });
             using var owner = await Client(ownerId, ct);
             using var other = await Client(otherId, ct);
-            var request = new EquipmentRequest(" Renamed shoe ", " Brand ", "shoe", 1234.5, 900);
+            var request = new EquipmentRequest(" Renamed shoe ", " Brand ", "shoe", 1234.5, 900, 800_000);
             Assert.Equal(HttpStatusCode.NotFound, (await other.PutAsJsonAsync($"/api/equipment/{id}", request, ct)).StatusCode);
             Assert.Equal("Old shoe", Assert.Single(await EquipmentEndpoints.LoadAsync(conn, ownerId)).Name);
             Assert.Empty((await other.GetFromJsonAsync<EquipmentSummary[]>("/api/equipment", ct))!);
@@ -167,8 +167,10 @@ public class EquipmentTests(KutaFactory factory) : IClassFixture<KutaFactory>
             Assert.Equal(HttpStatusCode.NoContent, (await owner.PutAsJsonAsync($"/api/equipment/{id}", request, ct)).StatusCode);
             var updated = Assert.Single((await owner.GetFromJsonAsync<EquipmentSummary[]>("/api/equipment", ct))!);
             Assert.Equal(("Renamed shoe", "Brand", "shoe", true), (updated.Name, updated.Brand, updated.Kind, updated.Retired));
-            Assert.Equal((1234.5, 900L, 6234.5, 2700L),
-                (updated.InitialDistanceM, updated.InitialDurationS, updated.DistanceM, updated.DurationS));
+            Assert.Equal((1234.5, 900L, 6234.5, 2700L, 800_000d),
+                (updated.InitialDistanceM, updated.InitialDurationS, updated.DistanceM, updated.DurationS, updated.DistanceLimitM));
+            Assert.Equal(HttpStatusCode.NoContent, (await owner.PutAsJsonAsync($"/api/equipment/{id}", request with { DistanceLimitM = null }, ct)).StatusCode);
+            Assert.Null(Assert.Single(await EquipmentEndpoints.LoadAsync(conn, ownerId)).DistanceLimitM);
             Assert.Equal(id, Assert.Single((await owner.GetFromJsonAsync<ActivityDetail>($"/api/activities/{activityId}", ct))!.EquipmentIds));
         }
         finally { await conn.ExecuteAsync("delete from auth.users where id = any(@ids)", new { ids = new[] { ownerId, otherId } }); }
@@ -289,6 +291,7 @@ public class EquipmentInputTests
     {
         Assert.Null(EquipmentEndpoints.Validate(Valid));
         Assert.Null(EquipmentEndpoints.Validate(Valid with { InitialDistanceM = 1234.5, InitialDurationS = 3600 }));
+        Assert.Null(EquipmentEndpoints.Validate(Valid with { DistanceLimitM = 700_000 }));
     }
     public static TheoryData<EquipmentRequest> Invalid => new()
     {
@@ -297,6 +300,7 @@ public class EquipmentInputTests
         Valid with { InitialDistanceM = -1 }, Valid with { InitialDistanceM = double.NaN },
         Valid with { InitialDistanceM = double.PositiveInfinity }, Valid with { InitialDurationS = -1 },
         Valid with { InitialDistanceM = 1_000_000_001 }, Valid with { InitialDurationS = 100L * 365 * 24 * 3600 + 1 },
+        Valid with { DistanceLimitM = 0 }, Valid with { DistanceLimitM = double.NaN }, Valid with { DistanceLimitM = 1_000_000_001 },
     };
     [Theory, MemberData(nameof(Invalid))]
     public void Invalid_equipment_is_rejected(EquipmentRequest request) =>
