@@ -589,7 +589,8 @@
     "invalidLeaderboard": "Check sport, type and week.",
     "invalidGroupSettings": "Check visibility, place (at most 100 characters), sport and description (at most 500 characters).",
     "invalidClubSearch": "Search with at least three letters or digits.",
-    "invalidPushSubscription": "Notifications cannot be turned on in this browser."
+    "invalidPushSubscription": "Notifications cannot be turned on in this browser.",
+    "invalidPushPreferences": "Unknown notification type."
   },
   "home": "Kuta – home",
   "footer": {
@@ -1350,8 +1351,17 @@
   },
   "push": {
     "title": "Notifications on this device.",
-    "description": "Get a notification when someone wants to follow you or accepts your request.",
+    "description": "Show the notifications you choose below on this device.",
     "unsupported": "This browser cannot show notifications from Kuta. On iPhone and iPad: first add Kuta to the home screen and open the app from there.",
-    "denied": "Notifications are blocked for Kuta. Allow them in the browser or device settings."
+    "denied": "Notifications are blocked for Kuta. Allow them in the browser or device settings.",
+    "pageTitle": "Notifications",
+    "typesTitle": "What you get notified about",
+    "typesDescription": "Applies to every device with notifications turned on.",
+    "types": {
+      "followRequest": "Someone wants to follow you",
+      "followAccepted": "Someone accepts your follow request",
+      "groupJoinRequest": "Someone wants to join a group you administer",
+      "groupJoinAccepted": "You are accepted into a group"
+    }
   }
 }

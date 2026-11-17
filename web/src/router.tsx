@@ -194,6 +194,15 @@ const privacyPlacesRoute = createRoute({
   component: lazyRouteComponent(() => import('@/routes/privacy-places'), 'PrivacyPlacesPage'),
 })
 
+const notificationSettingsRoute = createRoute({
+  getParentRoute: () => rootRoute,
+  path: '/app/settings/notifications',
+  component: lazyRouteComponent(
+    () => import('@/routes/notification-settings'),
+    'NotificationSettingsPage',
+  ),
+})
+
 const importRoute = createRoute({
   getParentRoute: () => rootRoute,
   path: '/app/settings/import',
@@ -234,6 +243,7 @@ const routeTree = rootRoute.addChildren([
   dataSettingsRoute,
   followersRoute,
   privacyPlacesRoute,
+  notificationSettingsRoute,
   importRoute,
 ])
 

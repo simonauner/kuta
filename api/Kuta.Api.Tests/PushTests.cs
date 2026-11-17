@@ -135,5 +135,47 @@ public class PushTests(KutaFactory factory) : IClassFixture<KutaFactory>
         Assert.Empty(pushService.Requests);
     }
 
+    [Fact]
+    public async Task Group_requests_reach_the_admins_unless_the_type_is_off_and_approval_reaches_the_member()
+    {
+        var ct = TestContext.Current.CancellationToken;
+        var pushService = new FakePushService();
+        await using var app = factory.WithWebHostBuilder(b => b.ConfigureServices(s =>
+            s.AddHttpClient<WebPushSender>().ConfigurePrimaryHttpMessageHandler(() => pushService)));
+        await using var conn = await factory.Services.GetRequiredService<NpgsqlDataSource>().OpenConnectionAsync(ct);
+        using var anna = app.CreateClient();
+        using var bo = app.CreateClient();
+        using var cia = app.CreateClient();
+        await TestSession.CreateRunnerAsync(factory, anna, conn, $"anna-{Guid.NewGuid():N}@example.com", "Anna", ct);
+        await TestSession.CreateRunnerAsync(factory, bo, conn, $"bo-{Guid.NewGuid():N}@example.com", "Bo", ct);
+        await TestSession.CreateRunnerAsync(factory, cia, conn, $"cia-{Guid.NewGuid():N}@example.com", "Cia", ct);
+        var annaId = (await anna.GetFromJsonAsync<MeResponse>("/api/me", ct))!.Id;
+        var boId = (await bo.GetFromJsonAsync<MeResponse>("/api/me", ct))!.Id;
+        var ciaId = (await cia.GetFromJsonAsync<MeResponse>("/api/me", ct))!.Id;
+        var code = ShareCodes.Generate();
+        var groupId = await conn.ExecuteScalarAsync<Guid>("""
+            with g as (insert into groups (name, invite_code, time_zone) values ('Synthetic group', @code, 'UTC') returning id)
+            insert into group_members (group_id, user_id, role, accepted_at)
+            select id, @annaId, 'admin', now() from g union all select id, @boId, 'admin', now() from g
+            returning group_id
+            """, new { code, annaId, boId });
+        foreach (var (client, service) in new[] { (anna, "fcm.googleapis.com/fcm/send"), (bo, "updates.push.services.mozilla.com/wpush/v2"), (cia, "web.push.apple.com") })
+            await client.PutAsJsonAsync("/api/me/push-subscriptions", Subscription($"https://{service}/{Guid.NewGuid():N}"), ct);
+        Assert.Equal(HttpStatusCode.BadRequest,
+            (await bo.PutAsJsonAsync("/api/me/push-preferences", new { disabled = new[] { "everything" } }, ct)).StatusCode);
+        Assert.Equal(HttpStatusCode.OK,
+            (await bo.PutAsJsonAsync("/api/me/push-preferences", new { disabled = new[] { "groupJoinRequest" } }, ct)).StatusCode);
+
+        Assert.Equal(HttpStatusCode.OK, (await cia.PostAsync($"/api/group-invites/{code}", null, ct)).StatusCode);
+        await JobWorker.RunAllAsync(app.Services, annaId, ct);
+        await JobWorker.RunAllAsync(app.Services, boId, ct);
+        Assert.Contains("fcm.googleapis.com", Assert.Single(pushService.Requests).Endpoint);
+
+        await anna.PostAsync($"/api/groups/{groupId}/members/{ciaId}/accept", null, ct);
+        await JobWorker.RunAllAsync(app.Services, ciaId, ct);
+        Assert.Equal(2, pushService.Requests.Count);
+        Assert.Contains("web.push.apple.com", pushService.Requests[^1].Endpoint);
+    }
+
     sealed record MeResponse(Guid Id);
 }
