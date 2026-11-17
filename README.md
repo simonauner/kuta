@@ -360,9 +360,10 @@ konditionen ökar snabbt. Modellen är TrainingPeaks förenkling av Banisters im
   omberäkning av rekord. Farten jämnas ut över minst 30 s, ett uppehåll över 10 s (autopaus) bildar ett eget
   avsnitt, och trasiga värden bryter strömmen. Pass utan distansström (manuella och äldre pass) uppskattas ur
   snittfarten, `distans² / tid`, utan backjustering.
-- **Backar:** varje avsnitts fart multipliceras med `C(i) / 3,6`, där `C(i)` är Minettis energikostnad för löpning
-  (J/kg/m) vid lutningen `i = Δhöjd / Δdistans` ur höjdströmmen, begränsad till ±45 %. Uppför ger högre belastning
-  och svag nedförslutning lägre. Saknad höjd räknas som plan mark. Äldre pass får justeringen vid omberäkning av rekord.
+- **Backar:** varje avsnitts fart multipliceras med samma lutningsfaktor som GAP (`TrainingLoad.GradeFactor`, se
+  Lutningsjusterat tempo nedan) vid lutningen `i = Δhöjd / Δdistans` ur höjdströmmen. Uppför ger högre belastning,
+  svag nedförslutning något lägre och brant nedför högre. Saknad höjd räknas som plan mark. Migrering 041 köade en
+  omberäkning när kurvan byttes från Minettis energikostnad.
 - **Tröskelfart:** `users.threshold_speed_m_s` om användaren angett den, annars farten som VDOT-prognosen räcker
   till i en timme (`RacePredictor.ThresholdSpeed`). Utan någon av dem finns ingen belastning. Samma tröskel gäller
   hela historiken.
@@ -405,18 +406,18 @@ som passsidan redan får:
   och långsammaste tempo och sista repetitionen mot snittet av de andra.
 
 **Lutningsjusterat tempo (GAP)** visas för löpning med höjddata, i statistiken och som kolumn i kilometersplits
-(`adjustedDistance` och `gapFactor` i `lib/activity-analysis.ts`). Faktorn följer Stravas pulsbaserade modell
+(`adjustedDistance` och `gradeFactor` i `lib/activity-analysis.ts`). Faktorn följer Stravas pulsbaserade modell
 ([Robb 2017](https://medium.com/strava-engineering/an-improved-gap-model-8b07ae8886c3)) i stället för Minettis
 energikostnad, som överskattar nedförsfördelen upp till tre gånger: uppför som Minetti, nedför en parabel med störst
 fördel 0,88 vid −9 %, ingen fördel vid −18 % och långsammare än platt brantare än så (begränsad vid −30 %).
-Träningsbelastningen och pulsdriften använder fortfarande Minetti. Varje bit om ca 30 s skalas med faktorn för bitens
+Samma faktor (`TrainingLoad.GradeFactor` i API:t) justerar träningsbelastning, pulsdrift och aerob effektivitet. Varje bit om ca 30 s skalas med faktorn för bitens
 lutning, så höjdbrus mellan enskilda mätpunkter inte räknas som backe; saknad höjd räknas som platt. Passets GAP är
 rörelsetiden delad med distansen gånger splitsens lutningsjusterade andel. Andra än ägaren saknar höjd nära start
 och mål, och den delen räknas då som platt.
 
 **Aerob effektivitet** (Statistik → Analys, `AerobicEfficiency.cs`, migrering 031): `BestEfforts.ReplaceAsync`
 sparar `activities.aerobic_speed_m_s` och `aerobic_hr` för vanliga löppass (inte multisport) med samma fönster,
-uppvärmning och jämnhetskrav som pulsdriften, med Minettis backjustering som träningsbelastningen. Värdena härleds ur
+uppvärmning och jämnhetskrav som pulsdriften, med samma backjustering som träningsbelastningen. Värdena härleds ur
 puls och nollställs när pulssamtycket återkallas. Äldre pass får dem vid omberäkning av rekord.
 `GET /api/aerobic-efficiency?timeZone=` ger det senaste årets egna pass som `[{ activityId, day, speedMS, hr }]`.
 Webben (`lib/aerobic-efficiency.ts`) väljer referenspulsen som medianen avrundad till 5, tar bara pass inom ±10 slag,

@@ -18,11 +18,18 @@ public static class TrainingLoad
     const int WindowS = 30;
     const int GapS = 10;
 
-    // Minetti's energy cost of running (J/kg/m) as a function of grade, measured between −45 % and +45 %.
-    // The ratio to flat ground (3.6) makes the speed grade-adjusted: uphill costs more, gentle downhill less.
+    // Effort relative to flat ground, after Strava's heart-rate-based model (Robb 2017), as gradeFactor in the web.
+    // Uphill: Minetti's energy cost of running (J/kg/m) over its flat value 3.6, measured up to +45 %. Downhill Minetti
+    // overstates the benefit up to 3×, so a parabola peaks at 0.88 at −9 %, is gone by −18 % and costs more than flat
+    // beyond that, clamped at −30 % where data is sparse.
     public static double GradeFactor(double grade)
     {
-        var i = Math.Clamp(grade, -0.45, 0.45);
+        if (grade < 0)
+        {
+            var g = Math.Max(-0.3, grade) + 0.09;
+            return 0.88 + 0.12 / (0.09 * 0.09) * g * g;
+        }
+        var i = Math.Min(grade, 0.45);
         return ((((155.4 * i - 30.4) * i - 43.3) * i + 46.3) * i + 19.5) * i / 3.6 + 1;
     }
 

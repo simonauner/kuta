@@ -2,7 +2,6 @@ import assert from 'node:assert/strict'
 import { test } from 'node:test'
 import {
   adjustedDistance,
-  gapFactor,
   gradeFactor,
   heartRateDrift,
   heartRateZones,
@@ -59,7 +58,7 @@ test('grade-adjusted distance follows the climb, ignores altitude noise and need
           (s) => s * 0.03,
         ),
       ) -
-        1800 * gapFactor(0.01),
+        1800 * gradeFactor(0.01),
     ) < 1e-6,
   )
   assert.equal(
@@ -76,21 +75,15 @@ test('grade-adjusted distance follows the climb, ignores altitude noise and need
   assert.equal(adjustedDistance(run(600, () => 3)), null)
 })
 
-test('GAP follows Minetti uphill and gives at most a 12 % downhill benefit, gone by −18 %', () => {
-  assert.equal(gapFactor(0.1), gradeFactor(0.1))
-  assert.equal(gapFactor(0), 1)
-  assert.ok(Math.abs(gapFactor(-0.09) - 0.88) < 1e-9)
-  assert.ok(gapFactor(-0.05) > 0.88 && gapFactor(-0.13) > 0.88)
-  assert.ok(Math.abs(gapFactor(-0.18) - 1) < 1e-9)
-  assert.ok(gapFactor(-0.25) > 1)
-  assert.equal(gapFactor(-0.5), gapFactor(-0.3))
-})
-
-test('grade factor matches the API on flat ground and makes climbing cost more', () => {
+test('grade factor follows Minetti uphill as the API and gives at most a 12 % downhill benefit, gone by −18 %', () => {
   assert.equal(gradeFactor(0), 1)
-  assert.ok(gradeFactor(0.1) > 1.5)
-  assert.ok(gradeFactor(-0.05) < 1)
+  assert.ok(Math.abs(gradeFactor(0.1) * 3.6 - 5.968) < 1e-3)
   assert.equal(gradeFactor(1), gradeFactor(0.45))
+  assert.ok(Math.abs(gradeFactor(-0.09) - 0.88) < 1e-9)
+  assert.ok(gradeFactor(-0.05) > 0.88 && gradeFactor(-0.13) > 0.88)
+  assert.ok(Math.abs(gradeFactor(-0.18) - 1) < 1e-9)
+  assert.ok(gradeFactor(-0.25) > 1)
+  assert.equal(gradeFactor(-0.5), gradeFactor(-0.3))
 })
 
 test('steady heart rate gives no drift and a rising one is reported in steps', () => {

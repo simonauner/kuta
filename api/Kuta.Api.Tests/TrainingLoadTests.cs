@@ -35,12 +35,14 @@ public class TrainingLoadTests
     }
 
     [Fact]
-    public void Hills_scale_the_speed_by_minettis_cost_of_running()
+    public void Hills_scale_the_speed_by_minetti_uphill_and_a_small_downhill_benefit()
     {
         Assert.Equal(1, TrainingLoad.GradeFactor(0));
         Assert.Equal(5.968, TrainingLoad.GradeFactor(0.1) * 3.6, precision: 3);
-        Assert.Equal(2.152, TrainingLoad.GradeFactor(-0.1) * 3.6, precision: 3);
         Assert.Equal(TrainingLoad.GradeFactor(0.45), TrainingLoad.GradeFactor(2));
+        Assert.Equal(0.88, TrainingLoad.GradeFactor(-0.09), precision: 9);
+        Assert.Equal(1, TrainingLoad.GradeFactor(-0.18), precision: 9);
+        Assert.Equal(TrainingLoad.GradeFactor(-0.3), TrainingLoad.GradeFactor(-0.5));
 
         // 10 % uphill at 3 m/s; missing or incomplete elevation counts as flat ground.
         var (t, dist) = Steady(600, 3);

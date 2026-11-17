@@ -3,19 +3,14 @@ import type { ActivityLap, ActivityStreams } from './activity.ts'
 // Fixed rules for one running activity, computed from the streams and laps the activity page already has.
 // Heart rate is only present for the owner (with consent), so the drift is never shown to anyone else.
 
-// Minetti's energy cost of running relative to flat ground, as TrainingLoad.GradeFactor in the API.
+// Effort relative to flat ground, after Strava's heart-rate-based model (Robb 2017), as TrainingLoad.GradeFactor in
+// the API. Uphill: Minetti's energy cost of running, measured up to +45 %. Downhill Minetti overstates the benefit up
+// to 3×, so a parabola peaks at 0.88 at −9 %, is gone by −18 % and costs more than flat beyond that, clamped at −30 %
+// where data is sparse.
 export function gradeFactor(grade: number) {
-  const i = Math.min(0.45, Math.max(-0.45, grade))
+  if (grade < 0) return 0.88 + (0.12 / 0.09 ** 2) * (Math.max(-0.3, grade) + 0.09) ** 2
+  const i = Math.min(0.45, grade)
   return ((((155.4 * i - 30.4) * i - 43.3) * i + 46.3) * i + 19.5) * (i / 3.6) + 1
-}
-
-// Grade-adjusted pace follows Strava's heart-rate-based model (Robb 2017) instead of Minetti's energy cost, which
-// overstates the downhill benefit up to 3×: uphill as Minetti; downhill the benefit peaks at 0.88 at −9 % and is gone
-// by −18 %, steeper is slower than flat. A parabola through those points, clamped at −30 % where data is sparse.
-export function gapFactor(grade: number) {
-  if (grade >= 0) return gradeFactor(grade)
-  const g = Math.max(-0.3, grade)
-  return 0.88 + (0.12 / 0.09 ** 2) * (g + 0.09) ** 2
 }
 
 // Shared limits: samples further apart than the watch's auto-pause break the stream, and slower than a
@@ -40,7 +35,7 @@ export function adjustedDistance({ t, dist, alt }: ActivityStreams): (number | n
     const to = alt[previous]
     const factor =
       d > 0 && from != null && to != null && Number.isFinite(from) && Number.isFinite(to)
-        ? gapFactor((to - from) / d)
+        ? gradeFactor((to - from) / d)
         : 1
     for (let j = start; j <= previous; j++)
       if (dist[j] !== null && Number.isFinite(dist[j]))
