@@ -588,7 +588,8 @@
     "groupFull": "Gruppen kan inte ta emot fler medlemmar.",
     "invalidLeaderboard": "Kontrollera sport, typ och vecka.",
     "invalidGroupSettings": "Kontrollera synlighet, ort (högst 100 tecken), sport och beskrivning (högst 500 tecken).",
-    "invalidClubSearch": "Sök på minst tre bokstäver eller siffror."
+    "invalidClubSearch": "Sök på minst tre bokstäver eller siffror.",
+    "invalidPushSubscription": "Notiser kan inte slås på i den här webbläsaren."
   },
   "home": "Kuta – startsida",
   "footer": {
@@ -1346,5 +1347,11 @@
     "saveAnyway": "Spara ändå",
     "saved": "Ändringarna är sparade.",
     "createAnyway": "Skapa ändå"
+  },
+  "push": {
+    "title": "Notiser på den här enheten.",
+    "description": "Få en notis när någon vill följa dig eller godkänner din förfrågan.",
+    "unsupported": "Den här webbläsaren kan inte visa notiser från Kuta. På iPhone och iPad: lägg först till Kuta på hemskärmen och öppna appen därifrån.",
+    "denied": "Notiser är blockerade för Kuta. Tillåt dem i webbläsarens eller enhetens inställningar."
   }
 }
