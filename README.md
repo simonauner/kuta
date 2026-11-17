@@ -678,7 +678,7 @@ Ett pass kan ha flera taggar: `race` (Lopp), `workout` (Intervaller/kvalitet),
 FIT-uppladdning, ändra dem via passsidans Redigera aktivitet och filtrera passlistan efter en tagg.
 Listans taggfilter sparas i URL:en (`/app/activities?tag=race`), kan kombineras
 med `year` och följer med till pass, skapandeformulär och tillbaka till listan.
-Flödet har kryssrutan Dölj pendling, som sparas i webbläsaren och skickar
+Flödet har kryssrutan Dölj pendling under kugghjulet ovanför flödet; valet sparas i webbläsaren och skickar
 `GET /api/feed?hideCommutes=true`; då utelämnas pass med taggen `commute`, även andras.
 Profilernas passlistor visar alltid alla läsbara pass.
 
