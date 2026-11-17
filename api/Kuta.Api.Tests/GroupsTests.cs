@@ -54,6 +54,8 @@ public class GroupsTests(KutaFactory factory) : IClassFixture<KutaFactory>
                 .ToDictionary(r => r.UserId, r => r.Value);
 
         Assert.Equal(new() { [sharing] = 5000, [admin] = 4000 }, await Board(admin, "running", "distance"));
+        // Garmin activities are left out, so the leaderboard needs no Garmin attribution yet.
+        Assert.False((await Groups.ReadLeaderboardAsync(conn, admin, group, "running", "distance", null, now, ct))!.GarminData);
         Assert.Equal(new() { [sharing] = 2, [admin] = 1 }, await Board(silent, null, "count"));
         Assert.Equal(new() { [sharing] = 20000, [admin] = 0 }, await Board(admin, "cycling", "distance"));
         // Any day of the week gives the week from Monday.
@@ -134,6 +136,7 @@ public class GroupsTests(KutaFactory factory) : IClassFixture<KutaFactory>
         Assert.Equal((new DateOnly(2026, 3, 1), 9000d, true, 4000d), (goal.Progress.Current.Start, goal.Progress.Current.Value,
             goal.Progress.Current.Achieved, goal.OwnValue));
         Assert.Equal((6000d, false, 1), (goal.Progress.Previous!.Value, goal.Progress.Previous.Achieved, goal.Progress.Streak));
+        Assert.False(goal.Progress.GarminData);
         // A member who doesn't share still sees the total but contributes nothing.
         Assert.Equal((9000d, 0d), ((await Read(silent)).Progress.Current.Value, (await Read(silent)).OwnValue));
         // Like the leaderboard, a member who blocked the viewer is left out of the viewer's total.
