@@ -121,7 +121,7 @@ längst administratör, och en grupp utan medlemmar raderas (trigger i databasen
 
 Medlemskap ger ingen läsrätt till pass; `SocialEndpoints.CanRead` är oförändrad. Godkända medlemmar
 ser varandra och en veckotopplista per sportgrupp och mått (distans, tid eller antal pass) över
-medlemmar som själva slagit på **Dela mina veckosummor** (av som standard, ett val per grupp).
+medlemmar som själva slagit på **Dela mina summor** (av som standard, ett val per grupp).
 Summorna räknas som statistiken (`SportGroups.Effective`, multisportdelar per sportgrupp) från alla
 medlemmens pass, även privata, men aldrig pass med `source = 'garmin'`, som inte får visas för
 andra innan Garmin godkänt det. Veckan börjar på måndag i gruppens tidszon, som sätts när gruppen
@@ -130,7 +130,7 @@ medlemslistan eller topplistan. Gränser: högst 100 medlemmar per grupp och 20 
 förfrågningar) per användare; uppslag av en länk har samma rate limit som profillänkar och
 förfrågningar samma som följförfrågningar. Medlemskap ingår i exporten (`groups.json`) och
 kaskadraderas med kontot. Profilen listar egna grupper och länkar till `/app/groups`, där grupper
-skapas. Gruppsidan visar topplistan och medlemmarna, 50 åt gången (administratörer först); delningsvalet, inbjudningslänken,
+skapas. Gruppsidan visar gruppens mål, topplistan och medlemmarna, 50 åt gången (administratörer först); delningsvalet, inbjudningslänken,
 administrationen och Lämna gruppen finns under kugghjulet på `/app/groups/{id}/settings`.
 
 | Metod | Sökväg | Svar |
@@ -142,12 +142,27 @@ administrationen och Lämna gruppen finns under kugghjulet på `/app/groups/{id}
 | PUT | `/api/groups/{id}/me` | `{ shareTotals }` |
 | POST | `/api/groups/{id}/members/{userId}/accept`, `/admin` | Godkänn / gör till administratör |
 | DELETE | `/api/groups/{id}/members/{userId}` | Lämna, dra tillbaka förfrågan eller (administratör) ta bort |
+| POST | `/api/groups/{id}/goals` | Nytt mål (`{ sportGroup, metric, period, target }`, administratör); 409 `groupGoalLimit` vid fler än 10 |
+| PUT/DELETE | `/api/groups/{id}/goals/{goalId}` | Ändra / ta bort ett mål (administratör) |
 | GET | `/api/groups/{id}/leaderboard?sportGroup=&metric=&week=` | `{ weekStart, rows }`; utelämnad vecka = aktuell |
 | GET/POST | `/api/group-invites/{kod}` | Namn, antal och status / be om att gå med |
 
 Andra än godkända medlemmar får 404 på gruppens endpoints. Topplistans summering, synlighet för
 väntande och utomstående, blockering och administratörstriggern testas mot databasen; HTTP-testet
 kör huvudflödet från länk till topplista och att administratörsåtgärder nekas medlemmar.
+
+**Gruppens mål** (`group_goals`, migrering 043): administratörer kan sätta upp till tio gemensamma
+mål, var och ett för distans, tid eller antal pass per vecka, månad eller år och för en sportgrupp eller
+alla, så att gruppen exempelvis kan ha både 100 km och 12 pass per månad. Målen upprepas varje period
+i gruppens tidszon och räknas från perioden då de sattes; en ändring behåller startdatumet. Förloppet
+räknar samma rader som topplistan (`Groups.SharingMembers`): bara medlemmar som delar sina summor,
+aldrig Garmin-pass, och utan den som blockerat tittaren, så att summan aldrig avslöjar en dold
+medlems siffror. `GET /api/groups/{id}` ger `goals`, äldst först, med samma form som personliga mål
+(`progress`, med förra perioden och antal perioder i rad) och tittarens eget bidrag (`ownValue`).
+Gruppsidan visar målen ovanför topplistan med samma kort och dialog som personliga mål, utan
+upprepning och synlighet; stapeln visar tittarens bidrag som ett mättat segment och resten av
+summan ljusare. För andra än administratörer döljs avsnittet tills ett mål finns. Målen hör till
+gruppen, ingår inte i den personliga exporten och raderas med gruppen.
 
 ### Öppna klubbar
 

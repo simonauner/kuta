@@ -142,14 +142,22 @@ export function OwnGoals() {
   )
 }
 
-function GoalCard({
+export function GoalCard({
   goal,
   iconSport,
   onSelect,
+  showPrivacy = true,
+  ownValue,
+  children,
 }: {
   goal: Goal
   iconSport: string | null
   onSelect?: () => void
+  // A group's goal has no visibility of its own: it is shown to the group's members.
+  showPrivacy?: boolean
+  // A group goal: the viewer's own part is drawn as a solid segment at the start, the rest of the total in a lighter tone.
+  ownValue?: number
+  children?: ReactNode
 }) {
   const { t, amount, title, groupLabel, privacyLabel } = useGoalText()
   const reduceMotion = useReducedMotion()
@@ -181,7 +189,7 @@ function GoalCard({
             {groupLabel(goal.sportGroup)}
             {' · '}
             {goal.ended ? t('goals.ended') : t('goals.daysLeft', { count: daysLeft })}
-            {onSelect && ` · ${privacyLabel(goal.privacy)}`}
+            {onSelect && showPrivacy && ` · ${privacyLabel(goal.privacy)}`}
           </p>
         </div>
         {current.achieved && (
@@ -202,14 +210,34 @@ function GoalCard({
         aria-valuemin={0}
         aria-valuemax={100}
         aria-valuenow={Math.round(fraction * 100)}
-        className="mt-3 h-2.5 overflow-hidden rounded-full bg-muted"
+        className="relative mt-3 h-2.5 overflow-hidden rounded-full bg-muted"
       >
         <motion.div
-          className={cn('h-full rounded-full', current.achieved ? 'bg-emerald-500' : 'bg-primary')}
+          className={cn(
+            'h-full rounded-full',
+            current.achieved
+              ? ownValue === undefined
+                ? 'bg-emerald-500'
+                : 'bg-emerald-500/40'
+              : ownValue === undefined
+                ? 'bg-primary'
+                : 'bg-primary/40',
+          )}
           initial={reduceMotion ? false : { width: 0 }}
           animate={{ width: `${fraction * 100}%` }}
           transition={{ duration: reduceMotion ? 0 : 0.6, ease: 'easeOut' }}
         />
+        {ownValue !== undefined && (
+          <motion.div
+            className={cn(
+              'absolute inset-y-0 left-0 rounded-full',
+              current.achieved ? 'bg-emerald-500' : 'bg-primary',
+            )}
+            initial={reduceMotion ? false : { width: 0 }}
+            animate={{ width: `${goalFraction(ownValue, goal.target) * 100}%` }}
+            transition={{ duration: reduceMotion ? 0 : 0.6, ease: 'easeOut' }}
+          />
+        )}
       </div>
       <p className="mt-2 text-sm tabular-nums">
         {t('goals.progress', {
@@ -233,11 +261,21 @@ function GoalCard({
           )}
         </p>
       )}
+      {children}
     </Root>
   )
 }
 
-export function GoalDialog({ goal, onClose }: { goal: Goal | null; onClose: () => void }) {
+// With groupId: one of the group's shared goals, always recurring and shown to its members, so neither repeat nor visibility.
+export function GoalDialog({
+  goal,
+  onClose,
+  groupId,
+}: {
+  goal: Goal | null
+  onClose: () => void
+  groupId?: string
+}) {
   const { t, i18n, title, groupLabel } = useGoalText()
   const groups = useQuery(sportGroupsQuery)
   const queryClient = useQueryClient()
@@ -261,25 +299,43 @@ export function GoalDialog({ goal, onClose }: { goal: Goal | null; onClose: () =
 
   useEffect(() => dialog.current?.showModal(), [])
 
-  const refresh = () => refreshGoalQueries(queryClient)
+  const refresh = () =>
+    groupId
+      ? queryClient.invalidateQueries({ queryKey: ['groups', groupId] })
+      : refreshGoalQueries(queryClient)
   const save = useMutation({
     mutationFn: () =>
-      api.send(goal ? 'PUT' : 'POST', goal ? `/api/goals/${goal.id}` : '/api/goals', {
-        sportGroup: sportGroup || null,
-        metric,
-        period,
-        target: parsedTarget,
-        recurring,
-        privacy,
-        timeZone: Intl.DateTimeFormat().resolvedOptions().timeZone,
-      }),
+      groupId
+        ? api.send(
+            goal ? 'PUT' : 'POST',
+            `/api/groups/${groupId}/goals${goal ? `/${goal.id}` : ''}`,
+            {
+              sportGroup: sportGroup || null,
+              metric,
+              period,
+              target: parsedTarget,
+            },
+          )
+        : api.send(goal ? 'PUT' : 'POST', goal ? `/api/goals/${goal.id}` : '/api/goals', {
+            sportGroup: sportGroup || null,
+            metric,
+            period,
+            target: parsedTarget,
+            recurring,
+            privacy,
+            timeZone: Intl.DateTimeFormat().resolvedOptions().timeZone,
+          }),
     onSuccess: async () => {
       await refresh()
       dialog.current?.close()
     },
   })
   const remove = useMutation({
-    mutationFn: () => api.send('DELETE', `/api/goals/${goal!.id}`),
+    mutationFn: () =>
+      api.send(
+        'DELETE',
+        groupId ? `/api/groups/${groupId}/goals/${goal!.id}` : `/api/goals/${goal!.id}`,
+      ),
     onSuccess: async () => {
       await refresh()
       dialog.current?.close()
@@ -387,45 +443,49 @@ export function GoalDialog({ goal, onClose }: { goal: Goal | null; onClose: () =
               </Select>
             )}
           </FormField>
-          <FormField label={t('goals.repeat')} className="text-sm font-medium">
-            {(id) => (
-              <Select
-                id={id}
-                value={recurring ? 'recurring' : 'once'}
-                onChange={(e) => setRecurring(e.currentTarget.value === 'recurring')}
-              >
-                <option value="recurring">{t(`goals.recurring.${period}`)}</option>
-                <option value="once">
-                  {goal && !goal.recurring
-                    ? t('goals.onceSaved')
-                    : t(`goals.onceCurrent.${period}`)}
-                </option>
-              </Select>
-            )}
-          </FormField>
-          <FormField label={t('goals.visibility')} className="text-sm font-medium col-span-2">
-            {(id) => (
-              <>
-                <PrivacySelect
+          {!groupId && (
+            <FormField label={t('goals.repeat')} className="text-sm font-medium">
+              {(id) => (
+                <Select
                   id={id}
-                  value={privacy}
-                  aria-describedby="goal-visibility-help"
-                  onChange={setPrivacy}
-                />
-                <span
-                  id="goal-visibility-help"
-                  className="mt-2 block text-xs font-normal text-muted-foreground"
+                  value={recurring ? 'recurring' : 'once'}
+                  onChange={(e) => setRecurring(e.currentTarget.value === 'recurring')}
                 >
-                  {t('goals.visibilityHelp')}
-                </span>
-                {revealsHiddenActivities && (
-                  <span role="status" className="mt-2 block text-xs font-normal text-destructive">
-                    {t('goals.visibilityRevealsActivities')}
+                  <option value="recurring">{t(`goals.recurring.${period}`)}</option>
+                  <option value="once">
+                    {goal && !goal.recurring
+                      ? t('goals.onceSaved')
+                      : t(`goals.onceCurrent.${period}`)}
+                  </option>
+                </Select>
+              )}
+            </FormField>
+          )}
+          {!groupId && (
+            <FormField label={t('goals.visibility')} className="text-sm font-medium col-span-2">
+              {(id) => (
+                <>
+                  <PrivacySelect
+                    id={id}
+                    value={privacy}
+                    aria-describedby="goal-visibility-help"
+                    onChange={setPrivacy}
+                  />
+                  <span
+                    id="goal-visibility-help"
+                    className="mt-2 block text-xs font-normal text-muted-foreground"
+                  >
+                    {t('goals.visibilityHelp')}
                   </span>
-                )}
-              </>
-            )}
-          </FormField>
+                  {revealsHiddenActivities && (
+                    <span role="status" className="mt-2 block text-xs font-normal text-destructive">
+                      {t('goals.visibilityRevealsActivities')}
+                    </span>
+                  )}
+                </>
+              )}
+            </FormField>
+          )}
           <ErrorText error={save.error ?? remove.error} className="col-span-2" />
           {confirmingDelete ? (
             <div

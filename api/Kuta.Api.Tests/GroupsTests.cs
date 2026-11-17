@@ -91,6 +91,58 @@ public class GroupsTests(KutaFactory factory) : IClassFixture<KutaFactory>
 
     // A club can have 1000 members, so the list comes a page at a time, admins first.
     [Fact]
+    public async Task Group_goal_counts_the_leaderboards_rows_per_period_with_the_viewers_part()
+    {
+        var ct = TestContext.Current.CancellationToken;
+        await using var conn = await factory.Services.GetRequiredService<NpgsqlDataSource>().OpenConnectionAsync(ct);
+        await using var tx = await conn.BeginTransactionAsync(ct);
+        var (admin, sharing, silent) = (Guid.NewGuid(), Guid.NewGuid(), Guid.NewGuid());
+        await conn.ExecuteAsync("""
+            insert into auth.users (id) select unnest(@ids);
+            insert into users (id, display_name) select id, 'Runner ' || n from unnest(@ids) with ordinality as t(id, n);
+            insert into activities (user_id, source, sport, started_at, duration_s, distance_m) values
+                -- Feb 28 23:30 UTC is March 1 in Stockholm: the current month.
+                (@sharing, 'manual', 'running', '2026-02-28T23:30:00Z', 1500, 5000),
+                (@sharing, 'manual', 'running', '2026-02-10T07:00:00Z', 1800, 6000),
+                (@sharing, 'garmin', 'running', '2026-03-05T07:00:00Z', 3000, 10000),
+                (@sharing, 'manual', 'cycling', '2026-03-06T07:00:00Z', 2400, 20000),
+                (@admin, 'manual', 'running', '2026-03-03T07:00:00Z', 1200, 4000),
+                (@silent, 'manual', 'running', '2026-03-04T07:00:00Z', 300, 1000),
+                (@admin, 'manual', 'cycling', '2026-03-10T07:00:00Z', 600, 3000),
+                (@sharing, 'manual', 'cycling', '2026-03-11T07:00:00Z', 600, 3000),
+                (@sharing, 'garmin', 'cycling', '2026-03-12T07:00:00Z', 600, 3000)
+            """, new { ids = new[] { admin, sharing, silent }, admin, sharing, silent }, tx);
+        var group = await CreateGroupAsync(conn, tx, admin, "Europe/Stockholm");
+        await conn.ExecuteAsync("update group_members set share_totals = true where user_id = @admin", new { admin }, tx);
+        await AddMemberAsync(conn, tx, group, sharing, accepted: true, share: true);
+        await AddMemberAsync(conn, tx, group, silent, accepted: true, share: false);
+        var now = DateTimeOffset.Parse("2026-03-13T12:00:00Z");
+        async Task<GroupGoal> Read(Guid viewer) => (await Groups.ReadGoalsAsync(conn, viewer, group, "Europe/Stockholm", now, ct))[0];
+
+        Assert.Empty(await Groups.ReadGoalsAsync(conn, admin, group, "Europe/Stockholm", now, ct));
+        await conn.ExecuteAsync("""
+            insert into group_goals (group_id, sport_group, metric, period, target, starts_on, created_at)
+            values (@group, 'running', 'distance', 'month', 9000, '2026-02-15', now()),
+                (@group, null, 'count', 'week', 2, '2026-03-09', now() + interval '1 second')
+            """, new { group }, tx);
+        var goal = await Read(admin);
+        // Each goal has its own sport, metric and period: the weekly count for all sports (from Monday March 9) has the
+        // two cycling activities that week, not the Garmin one, and one of them is the viewer's.
+        var weekly = (await Groups.ReadGoalsAsync(conn, admin, group, "Europe/Stockholm", now, ct))[1];
+        Assert.Equal((new DateOnly(2026, 3, 9), 2d, 1d, true), (weekly.Progress.Current.Start, weekly.Progress.Current.Value,
+            weekly.OwnValue, weekly.Progress.Current.Achieved));
+        Assert.Equal((new DateOnly(2026, 3, 1), 9000d, true, 4000d), (goal.Progress.Current.Start, goal.Progress.Current.Value,
+            goal.Progress.Current.Achieved, goal.OwnValue));
+        Assert.Equal((6000d, false, 1), (goal.Progress.Previous!.Value, goal.Progress.Previous.Achieved, goal.Progress.Streak));
+        // A member who doesn't share still sees the total but contributes nothing.
+        Assert.Equal((9000d, 0d), ((await Read(silent)).Progress.Current.Value, (await Read(silent)).OwnValue));
+        // Like the leaderboard, a member who blocked the viewer is left out of the viewer's total.
+        await conn.ExecuteAsync("insert into follow_blocks (blocker_id, blocked_id) values (@sharing, @admin)", new { sharing, admin }, tx);
+        Assert.Equal(4000d, (await Read(admin)).Progress.Current.Value);
+        await tx.RollbackAsync(ct);
+    }
+
+    [Fact]
     public async Task Members_are_paged_with_admins_first()
     {
         var ct = TestContext.Current.CancellationToken;
@@ -221,6 +273,25 @@ public class GroupsTests(KutaFactory factory) : IClassFixture<KutaFactory>
             var board = await joiner.GetFromJsonAsync<Leaderboard>($"/api/groups/{id}/leaderboard?sportGroup=running&metric=distance", ct);
             Assert.Equal(joinerId, Assert.Single(board!.Rows).UserId);
             Assert.Equal(HttpStatusCode.BadRequest, (await joiner.GetAsync($"/api/groups/{id}/leaderboard?metric=pace", ct)).StatusCode);
+
+            // Shared goals are set by an admin and shown to every member, at most MaxGoals per group.
+            var goal = new GoalRequest("running", "distance", "month", 100_000);
+            Assert.Equal(HttpStatusCode.NotFound, (await joiner.PostAsJsonAsync($"/api/groups/{id}/goals", goal, ct)).StatusCode);
+            Assert.Equal(HttpStatusCode.BadRequest, (await admin.PostAsJsonAsync($"/api/groups/{id}/goals", goal with { Metric = "pace" }, ct)).StatusCode);
+            using var createdGoal = await admin.PostAsJsonAsync($"/api/groups/{id}/goals", goal, ct);
+            Assert.Equal(HttpStatusCode.Created, createdGoal.StatusCode);
+            var goalId = (await createdGoal.Content.ReadFromJsonAsync<JsonElement>(ct)).GetProperty("id").GetGuid();
+            for (var i = 1; i < Groups.MaxGoals; i++)
+                Assert.Equal(HttpStatusCode.Created, (await admin.PostAsJsonAsync($"/api/groups/{id}/goals", goal with { Metric = "count", Target = i }, ct)).StatusCode);
+            using var overLimit = await admin.PostAsJsonAsync($"/api/groups/{id}/goals", goal, ct);
+            Assert.Equal("groupGoalLimit", (await overLimit.Content.ReadFromJsonAsync<JsonElement>(ct)).GetProperty("code").GetString());
+            Assert.Equal(HttpStatusCode.NotFound, (await joiner.PutAsJsonAsync($"/api/groups/{id}/goals/{goalId}", goal, ct)).StatusCode);
+            Assert.Equal(HttpStatusCode.NoContent, (await admin.PutAsJsonAsync($"/api/groups/{id}/goals/{goalId}", goal with { Target = 50_000 }, ct)).StatusCode);
+            var goals = (await joiner.GetFromJsonAsync<GroupDetail>($"/api/groups/{id}", ct))!.Goals!;
+            Assert.Equal((Groups.MaxGoals, goalId, 50_000d), (goals.Count, goals[0].Progress.Id, goals[0].Progress.Target));
+            Assert.Equal(HttpStatusCode.NotFound, (await joiner.DeleteAsync($"/api/groups/{id}/goals/{goalId}", ct)).StatusCode);
+            Assert.Equal(HttpStatusCode.NoContent, (await admin.DeleteAsync($"/api/groups/{id}/goals/{goalId}", ct)).StatusCode);
+            Assert.Equal(Groups.MaxGoals - 1, (await joiner.GetFromJsonAsync<GroupDetail>($"/api/groups/{id}", ct))!.Goals!.Count);
 
             // Admin actions are not available to members.
             Assert.Equal(HttpStatusCode.NotFound, (await joiner.PutAsJsonAsync($"/api/groups/{id}", new GroupRequest("Mine"), ct)).StatusCode);
