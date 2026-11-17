@@ -80,6 +80,19 @@ public static class MeEndpoints
     {
         var me = api.MapGroup("/me").RequireAuthorization();
 
+        // Signs out every other device at once. Sessions are checked on every request, so it takes effect immediately,
+        // and the push subscriptions of those sessions stop with them.
+        me.MapDelete("/sessions/others", async (HttpContext http, NpgsqlDataSource db, ClaimsPrincipal user) =>
+        {
+            if (await SupabaseCookieSession.SessionIdAsync(http) is not { } sessionId) return Results.Unauthorized();
+            await using var conn = await db.OpenConnectionAsync();
+            var ended = await conn.ExecuteAsync("""
+                update user_sessions set ended_at = now()
+                where user_id = @userId and id <> @sessionId and ended_at is null and expires_at > now()
+                """, new { userId = user.GetUserId(), sessionId });
+            return Results.Ok(new { ended });
+        });
+
         // Requires the password: an unlocked phone or an injected script must not be able to delete everything.
         // The Supabase session the check creates goes away with the account.
         me.MapDelete("", async ([FromBody] DeleteAccountRequest req, NpgsqlDataSource db, RawFileStore store, ImportFiles files,

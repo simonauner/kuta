@@ -32,6 +32,9 @@ export function SettingsPage() {
     },
     onSuccess: sessionChanged,
   })
+  const signOutOthers = useMutation({
+    mutationFn: () => api.send<{ ended: number }>('DELETE', '/api/me/sessions/others'),
+  })
   return (
     <section>
       <SettingsBreadcrumb />
@@ -79,6 +82,26 @@ export function SettingsPage() {
           {t('settings.logout')}
         </Button>
         <ErrorText error={logout.error} className="mt-4" />
+        <div className="mt-6">
+          <Button
+            variant="secondary-outline"
+            disabled={signOutOthers.isPending}
+            onClick={() => signOutOthers.mutate()}
+          >
+            {t('settings.signOutOthers')}
+          </Button>
+          <p className="mt-2 text-metadata text-muted-foreground">
+            {t('settings.signOutOthersHint')}
+          </p>
+          {signOutOthers.data && (
+            <p role="status" className="mt-2 text-sm">
+              {signOutOthers.data.ended === 0
+                ? t('settings.signedOutOthersNone')
+                : t('settings.signedOutOthers', { count: signOutOthers.data.ended })}
+            </p>
+          )}
+          <ErrorText error={signOutOthers.error} className="mt-2" />
+        </div>
       </section>
     </section>
   )
