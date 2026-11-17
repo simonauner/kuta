@@ -1371,5 +1371,13 @@
       "groupJoinRequest": "Någon vill gå med i en grupp du administrerar",
       "groupJoinAccepted": "Du blir godkänd i en grupp"
     }
+  },
+  "companions": {
+    "title": "Tillsammans med",
+    "show": "Visa vilka jag tränade tillsammans med",
+    "showHint": "Kuta visar andra som var på samma plats samtidigt, men bara för den som redan får se båda aktiviteterna. Stänger du av det kopplas aktiviteten inte ihop med någon annans, åt något håll.",
+    "helpLabel": "Om Tillsammans med",
+    "help": "Andra som var på samma plats samtidigt. Visas bara för den som får se båda aktiviteterna.",
+    "ownHelp": "Du kan stänga av det under Redigera aktivitet."
   }
 }
