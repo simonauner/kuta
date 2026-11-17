@@ -277,6 +277,7 @@ static async Task<int> RunAsync(string[] args)
     api.MapEquipment();
     api.MapBestEfforts();
     api.MapRoutes();
+    api.MapCompanions();
     api.MapJobs();
     api.MapGoals();
     api.MapGroups();
