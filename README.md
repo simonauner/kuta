@@ -125,6 +125,14 @@ Webbpush (`Push.cs`, migrering 044–045, `routes/notification-settings.tsx`, `c
   Byts nyckeln slutar befintliga prenumerationer att fungera; webbläsarna behöver slå på notiserna igen.
 - **Prova lokalt:** service workern finns bara i den byggda webben, så använd `vite preview` (BAS+1, med `KUTA_WEB_PORT`/`KUTA_API_PORT`) i en vanlig Chrome eller Firefox, inte i ett inkognitofönster. iPhone och iPad kräver att Kuta lagts till på hemskärmen (iOS 16.4 eller senare); det är inte verifierat på riktig enhet.
 
+## Tränade tillsammans
+
+Passsidan visar "Tillsammans med" och länkar till andra löpares pass från samma plats och tid (`Companions.cs`, `GET /api/activities/{id}/companions`, `components/companions.tsx`). Inget sparas; det räknas när sidan läses.
+
+- **Synlighet:** bara pass som tittaren får läsa enligt `SocialEndpoints.CanRead`, och bara när tittaren får läsa passet som visas (annars 404). Kopplingen visar alltså aldrig något som tittaren inte redan kan se. Den som följer båda löparna, eller ser två publika pass, ser kopplingen åt båda håll. Webben visar den inte för besökare utan konto.
+- **Avstängning per pass:** Redigera aktivitet → "Visa vilka jag tränade tillsammans med" (`activities.hide_companions`, migrering 046, `hideCompanions` i `PUT /api/activities/{id}`). Ett avstängt pass kopplas varken till andra eller andra till det.
+- **Matchning:** kandidater är andra användares pass med GPS-linje som överlappar i tid och kommer inom 100 m från linjen (rutt- och tidsindex). Därefter jämförs positionerna var tionde sekund under överlappet i `Companions.RanTogether`: passen räknas som tillsammans om de var inom 100 m från varandra i minst 10 minuter och under minst halva tiden båda spelade in. Den som ansluter en del av vägen räknas, medan ett lopp med olika tempo eller en parallell gata inte gör det. Pass utan GPS matchas aldrig. Värdena är okalibrerade utgångsvärden; ingenting sparas, så en ändring slår igenom direkt.
+
 ## Grupper
 
 Grupper (`Groups.cs`, migrering 036, `routes/groups.tsx`) nås bara via inbjudningslänk
