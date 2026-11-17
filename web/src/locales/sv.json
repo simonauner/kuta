@@ -42,7 +42,7 @@
       "garminTitle": "Koppla Garmin",
       "garminDescription": "Nya aktiviteter från klockan kommer in automatiskt, från och med nu.",
       "stravaTitle": "Ta med din historik från Strava",
-      "stravaDescription": "Beställ ditt arkiv hos Strava. Det kommer som en ZIP-fil via mejl, ofta inom några timmar. Ladda sedan upp filen här, så följer gamla aktiviteter och skor med.",
+      "stravaDescription": "Beställ ditt arkiv hos Strava. Det kommer som en ZIP-fil via mejl, ofta inom några timmar. Ladda sedan upp filen här, så följer gamla aktiviteter, skor och cyklar med.",
       "stravaAction": "Importera från Strava",
       "stravaRequest": "Beställ arkivet hos Strava"
     },
@@ -618,7 +618,7 @@
     "importWait": "Importen körs på servern. Du kan lämna sidan och komma tillbaka; förloppet visas här.",
     "importHelp": "Högst 500 MB. Dubbletter hoppas över, så importen går att köra igen.",
     "importResult": "Importerade: {{imported}}. Dubbletter: {{duplicates}}. Misslyckade: {{failed}}.",
-    "importEquipmentResult": "Skor importerade: {{imported}}. Tidigare aktiviteter kompletterade med skor: {{linked}}.",
+    "importEquipmentResult": "Utrustning importerad: {{imported}}. Tidigare aktiviteter kompletterade med utrustning: {{linked}}.",
     "failedImports": "Strava-ID för aktiviteter som inte kunde importeras",
     "exportTitle": "Exportera data",
     "exportHelp": "Ladda ner en ZIP med alla dina aktiviteter, din profil, dina rekord och dolda platser.",
@@ -639,7 +639,7 @@
     "exportDetailsLabel": "Vad ingår i exporten?",
     "exportDetails": "Aktiviteterna sparas som JSON med mätserier, varv, taggar och utrustning, och sparade originalfiler följer med. Manuella aktiviteter saknar originalfil, och filer som inte sparats eller raderats när pulssamtycket återkallades kan inte exporteras.",
     "importDetailsLabel": "Vad importeras?",
-    "importDetails": "Namn, beskrivningar, sammanfattningar och tillgängliga mätserier importeras. Skor importeras först och kopplas till aktiviteterna, så att distans och tid per sko stämmer. Puls sparas bara med ditt pulssamtycke. Foton, kontakter och privata anteckningar importeras inte.",
+    "importDetails": "Namn, beskrivningar, sammanfattningar och tillgängliga mätserier importeras. Skor och cyklar importeras först och kopplas till aktiviteterna, så att distans och tid per sko och cykel stämmer. Puls sparas bara med ditt pulssamtycke. Foton, kontakter och privata anteckningar importeras inte.",
     "importTitle": "Import och anslutningar",
     "importIntro": "Hämta nya aktiviteter automatiskt från din Garminklocka och ta med din historik från Strava.",
     "importLink": "Koppla Garmin eller importera från Strava"
@@ -721,10 +721,10 @@
     "wornShort": "Sliten"
   },
   "equipmentKinds": {
-    "shoe": "Skor"
+    "shoe": "Skor",
+    "bike": "Cyklar"
   },
   "shoes": {
-    "title": "Skor",
     "brand": "Märke (valfritt)",
     "retire": "Pensionera",
     "retireLabel": "Pensionera {{name}}",

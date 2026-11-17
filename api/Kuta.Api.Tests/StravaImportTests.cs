@@ -118,30 +118,32 @@ public class StravaParserTests
     }
 
     [Fact]
-    public void Shoes_match_metadata_by_label_but_keep_distinct_ids_and_fall_back_without_metadata()
+    public void Gear_keeps_Strava_names_and_distinct_ids_and_takes_brands_from_metadata_by_kind()
     {
         using var csv = new MemoryStream(Encoding.UTF8.GetBytes(
             StravaFixture.Csv(StravaFixture.Row("1", "") + ",123.0,Brand Model Custom,",
                 StravaFixture.Row("2", "") + ",g456,Brand Model Custom,",
                 StravaFixture.Row("3", "") + ",789,Brand Model,",
-                StravaFixture.Row("4", "") + ",,,42",
+                StravaFixture.Row("4", "") + ",,Road bike,b42",
                 StravaFixture.Row("5", "") + ",999,,")));
         var rows = StravaImport.ReadManifest(csv);
-        using var metadata = new MemoryStream("Shoe Name,Shoe Brand,Shoe Model\nCustom,Brand,Model\n,Brand,Model"u8.ToArray());
-        var shoes = StravaImport.ReadShoes(metadata, rows);
-        Assert.Equal(new[] { "g123", "g456", "g789", "g999" }, shoes.Select(s => s.Id));
-        Assert.Equal(new StravaShoe("g123", "Custom", "Brand"), shoes[0]);
-        Assert.Equal(new StravaShoe("g456", "Custom", "Brand"), shoes[1]);
-        Assert.Equal(new StravaShoe("g789", "Model", "Brand"), shoes[2]);
-        Assert.Equal(new StravaShoe("g999", "Strava g999", null), shoes[3]);
-        Assert.Equal("Brand Model Custom", StravaImport.ReadShoes(null, rows)[0].Name);
+        using var shoeMetadata = new MemoryStream("Shoe Name,Shoe Brand,Shoe Model\nCustom,Brand,Model\n,Brand,Model"u8.ToArray());
+        using var bikeMetadata = new MemoryStream("Bike Name,Bike Brand,Bike Model\nRoad bike,Bike brand,Model"u8.ToArray());
+        var gear = StravaImport.ReadGear(shoeMetadata, bikeMetadata, rows);
+        Assert.Equal(new[] { "g123", "g456", "g789", "b42", "g999" }, gear.Select(s => s.Id));
+        Assert.Equal(new StravaGear("g123", "shoe", "Brand Model Custom", "Brand"), gear[0]);
+        Assert.Equal(new StravaGear("g456", "shoe", "Brand Model Custom", "Brand"), gear[1]);
+        Assert.Equal(new StravaGear("g789", "shoe", "Brand Model", "Brand"), gear[2]);
+        Assert.Equal(new StravaGear("b42", "bike", "Road bike", "Bike brand"), gear[3]);
+        Assert.Equal(new StravaGear("g999", "shoe", "Strava g999", null), gear[4]);
+        Assert.Null(StravaImport.ReadGear(null, null, rows)[0].Brand);
     }
 
     [Theory]
     [InlineData("-1")]
     [InlineData("12.5")]
     [InlineData("NaN")]
-    public void Invalid_shoe_ids_are_rejected(string id)
+    public void Invalid_gear_ids_are_rejected(string id)
     {
         using var csv = new MemoryStream(Encoding.UTF8.GetBytes(StravaFixture.Csv(StravaFixture.Row("1", "") + $",{id},Shoe,")));
         Assert.Throws<InvalidDataException>(() => StravaImport.ReadManifest(csv));
@@ -271,7 +273,7 @@ public class StravaUploadTests(KutaFactory factory) : IClassFixture<KutaFactory>
             Assert.Equal(0, result.Duplicates);
             Assert.Equal(1, result.EquipmentImported);
             var shoe = Assert.Single((await client.GetFromJsonAsync<EquipmentSummary[]>("/api/equipment", ct))!);
-            Assert.Equal(("Custom", "Brand", 1800d, 600L), (shoe.Name, shoe.Brand, shoe.DistanceM, shoe.DurationS));
+            Assert.Equal(("Brand Model Custom", "Brand", 1800d, 600L), (shoe.Name, shoe.Brand, shoe.DistanceM, shoe.DurationS));
             Assert.Equal((0d, 0L), (shoe.InitialDistanceM, shoe.InitialDurationS));
             Assert.Equal(new[] { "4", "5" }, result.FailedActivityIds);
             var rows = (await conn.QueryAsync<(Guid Id, string? Title, string Privacy, short? Hr, string? Key)>(

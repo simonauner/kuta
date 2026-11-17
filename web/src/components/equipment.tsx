@@ -53,11 +53,8 @@ export function EquipmentSection() {
     },
   })
   return (
-    <section className="mt-8 border-t pt-6" aria-labelledby="equipment-heading">
-      <div className="flex items-center justify-between gap-3">
-        <Heading level={2} id="equipment-heading">
-          {t('shoes.title')}
-        </Heading>
+    <section className="mt-8 border-t pt-6">
+      <div className="flex items-center justify-end gap-3">
         <Button size="sm" variant="secondary-outline" onClick={() => setEditing(null)}>
           {t('equipment.add')}
         </Button>
@@ -78,7 +75,7 @@ export function EquipmentSection() {
             aria-labelledby={retired ? 'retired-equipment-heading' : 'active-equipment-heading'}
           >
             <Heading
-              level={3}
+              level={2}
               id={retired ? 'retired-equipment-heading' : 'active-equipment-heading'}
             >
               {t(retired ? 'equipment.retiredHeading' : 'equipment.activeHeading')}
@@ -349,7 +346,7 @@ function EquipmentFormModal({
                 inputMode="decimal"
                 min={0.001}
                 step="any"
-                placeholder="700"
+                placeholder={selectedKind === 'shoe' ? '700' : undefined}
                 value={limitKm}
                 onChange={(e) => setLimitKm(e.currentTarget.value)}
               />

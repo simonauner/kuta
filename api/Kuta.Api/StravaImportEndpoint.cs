@@ -155,7 +155,7 @@ public static class StravaImportEndpoint
 
 public static class StravaImportJob
 {
-    public sealed record Archive(ZipArchive Zip, List<StravaActivity> Rows, List<StravaShoe> Shoes,
+    public sealed record Archive(ZipArchive Zip, List<StravaActivity> Rows, List<StravaGear> Gear,
         Dictionary<string, ZipArchiveEntry> Entries) : IDisposable
     {
         public void Dispose() => Zip.Dispose();
@@ -174,9 +174,11 @@ public static class StravaImportJob
             if (!entries.TryGetValue("activities.csv", out var manifest)) throw new InvalidDataException("Missing activities.csv.");
             using var csv = new MemoryStream(StravaImport.ReadFile(manifest, new StravaImport.ExpansionBudget(StravaImport.MaxFileBytes), cancellationToken));
             var rows = StravaImport.ReadManifest(csv);
-            using var shoeCsv = entries.TryGetValue("shoes.csv", out var shoeEntry)
-                ? new MemoryStream(StravaImport.ReadFile(shoeEntry, new StravaImport.ExpansionBudget(StravaImport.MaxFileBytes), cancellationToken)) : null;
-            return new Archive(zip, rows, StravaImport.ReadShoes(shoeCsv, rows), entries);
+            MemoryStream? Optional(string name) => entries.TryGetValue(name, out var entry)
+                ? new MemoryStream(StravaImport.ReadFile(entry, new StravaImport.ExpansionBudget(StravaImport.MaxFileBytes), cancellationToken)) : null;
+            using var shoeCsv = Optional("shoes.csv");
+            using var bikeCsv = Optional("bikes.csv");
+            return new Archive(zip, rows, StravaImport.ReadGear(shoeCsv, bikeCsv, rows), entries);
         }
         catch
         {
@@ -207,7 +209,7 @@ public static class StravaImportJob
                     throw new JobFailedException("jobCancelled");
             }
             await ReportAsync(new(0, rows.Count, 0, 0, 0));
-            var (equipment, equipmentImported) = await StravaEquipment.ImportAsync(conn, userId, archive.Shoes, cancellationToken);
+            var (equipment, equipmentImported) = await StravaEquipment.ImportAsync(conn, userId, archive.Gear, cancellationToken);
             var equipmentLinked = 0;
             var imported = 0;
             var duplicates = 0;
@@ -225,8 +227,8 @@ public static class StravaImportJob
                 if (await conn.ExecuteScalarAsync<bool>(
                     "select exists(select 1 from activities where user_id = @userId and strava_activity_id = @Id)", new { userId, row.Id }))
                 {
-                    if (equipmentId is { } existingShoe && await StravaEquipment.AttachMissingAsync(
-                        conn, userId, existingShoe, row.Id, null, cancellationToken)) equipmentLinked++;
+                    if (equipmentId is { } existingGear && await StravaEquipment.AttachMissingAsync(
+                        conn, userId, existingGear, row.Id, null, cancellationToken)) equipmentLinked++;
                     duplicates++;
                     continue;
                 }
@@ -265,12 +267,12 @@ public static class StravaImportJob
                 try
                 {
                     var id = await ActivityStorage.SaveAsync(conn, store, userId, parsed, "strava", row.Title, row.Id,
-                        bytes, extension, cancellationToken, equipmentIds: equipmentId is { } shoeId ? [shoeId] : [], description: row.Description, tags: row.Tags);
+                        bytes, extension, cancellationToken, equipmentIds: equipmentId is { } gearEquipmentId ? [gearEquipmentId] : [], description: row.Description, tags: row.Tags);
                     if (id is null)
                     {
                         duplicates++;
-                        if (equipmentId is { } duplicateShoe && await StravaEquipment.AttachMissingAsync(
-                            conn, userId, duplicateShoe, row.Id, bytes is null ? null : SHA256.HashData(bytes), cancellationToken))
+                        if (equipmentId is { } duplicateGear && await StravaEquipment.AttachMissingAsync(
+                            conn, userId, duplicateGear, row.Id, bytes is null ? null : SHA256.HashData(bytes), cancellationToken))
                             equipmentLinked++;
                     }
                     else imported++;

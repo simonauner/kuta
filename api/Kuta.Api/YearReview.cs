@@ -135,7 +135,7 @@ public static class YearReview
             from activity_equipment ae
             join equipment e on e.id = ae.equipment_id
             join activities a on a.id = ae.activity_id
-            where a.user_id = @userId
+            where a.user_id = @userId and e.kind = 'shoe' -- the slide is "Shoe of the year"
                 and a.started_at >= make_timestamp(@year, 1, 1, 0, 0, 0) at time zone @timeZone
                 and a.started_at < make_timestamp(@year + 1, 1, 1, 0, 0, 0) at time zone @timeZone
             group by e.id, e.name

@@ -19,9 +19,10 @@ public class StravaEquipmentTests(KutaFactory factory) : IClassFixture<KutaFacto
                 await conn.ExecuteAsync("insert into auth.users(id,email) values(@id,@email)", new { id, email = $"strava-gear-{id}@example.com" });
                 await conn.ExecuteAsync("insert into users(id,display_name) values(@id,'Synthetic runner')", new { id });
             }
-            StravaShoe[] shoes = [new("g1", "Same name", "Brand"), new("g2", "Same name", "Brand")];
+            StravaGear[] shoes = [new("g1", "shoe", "Same name", "Brand"), new("g2", "shoe", "Same name", "Brand"), new("b1", "bike", "Same name", "Brand")];
             var imported = await StravaEquipment.ImportAsync(conn, owner, shoes, ct);
-            Assert.Equal(2, imported.Imported);
+            Assert.Equal(3, imported.Imported);
+            Assert.Equal("bike", (await EquipmentEndpoints.LoadAsync(conn, owner)).Single(e => e.Id == imported.Ids["b1"]).Kind);
             var first = imported.Ids["g1"];
             var second = imported.Ids["g2"];
             Assert.NotEqual(first, second);

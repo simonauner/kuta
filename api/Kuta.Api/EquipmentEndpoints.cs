@@ -11,7 +11,7 @@ public sealed class InvalidEquipmentException : Exception;
 
 public static class EquipmentEndpoints
 {
-    public static readonly string[] Kinds = ["shoe"];
+    public static readonly string[] Kinds = ["shoe", "bike"];
     public static readonly ApiError InvalidEquipment = new("Välj giltig utrustning som tillhör dig.", "invalidEquipment");
 
     public static ApiError? Validate(EquipmentRequest req) =>
