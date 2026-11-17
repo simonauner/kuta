@@ -359,4 +359,42 @@ public class GroupsTests(KutaFactory factory) : IClassFixture<KutaFactory>
         }
         finally { await conn.ExecuteAsync("delete from auth.users where email = any(@emails)", new { emails }); }
     }
+
+    [Fact]
+    public async Task Group_feed_shows_only_public_activities_of_accepted_members_and_only_to_members()
+    {
+        var ct = TestContext.Current.CancellationToken;
+        await using var conn = await factory.Services.GetRequiredService<NpgsqlDataSource>().OpenConnectionAsync(ct);
+        using var viewer = factory.CreateClient();
+        using var outsider = factory.CreateClient();
+        await TestSession.CreateRunnerAsync(factory, viewer, conn, $"feed-{Guid.NewGuid():N}@example.com", "Viewer", ct);
+        await TestSession.CreateRunnerAsync(factory, outsider, conn, $"feed-{Guid.NewGuid():N}@example.com", "Outsider", ct);
+        var viewerId = (await viewer.GetFromJsonAsync<JsonElement>("/api/me", ct)).GetProperty("id").GetGuid();
+        var outsiderId = (await outsider.GetFromJsonAsync<JsonElement>("/api/me", ct)).GetProperty("id").GetGuid();
+        var (member, pending, blocker) = (Guid.NewGuid(), Guid.NewGuid(), Guid.NewGuid());
+        await using (var tx = await conn.BeginTransactionAsync(ct))
+        {
+            await conn.ExecuteAsync("""
+                insert into auth.users (id) select unnest(@ids);
+                insert into users (id, display_name) select unnest(@ids), 'Runner';
+                insert into follow_blocks (blocker_id, blocked_id) values (@blocker, @viewerId);
+                insert into activities (user_id, source, sport, title, started_at, duration_s, distance_m, privacy) values
+                    (@member, 'manual', 'running', 'shown', now(), 1800, 5000, 'public'),
+                    (@member, 'manual', 'running', 'followers', now(), 1800, 5000, 'followers'),
+                    (@member, 'manual', 'running', 'private', now(), 1800, 5000, 'private'),
+                    (@pending, 'manual', 'running', 'pending', now(), 1800, 5000, 'public'),
+                    (@blocker, 'manual', 'running', 'blocker', now(), 1800, 5000, 'public'),
+                    (@outsiderId, 'manual', 'running', 'outsider', now(), 1800, 5000, 'public')
+                """, new { ids = new[] { member, pending, blocker }, member, pending, blocker, viewerId, outsiderId }, tx);
+            var group = await CreateGroupAsync(conn, tx, viewerId);
+            await AddMemberAsync(conn, tx, group, member, accepted: true, share: false);
+            await AddMemberAsync(conn, tx, group, blocker, accepted: true, share: false);
+            await AddMemberAsync(conn, tx, group, pending, accepted: false, share: false);
+            await tx.CommitAsync(ct);
+
+            var feed = await viewer.GetFromJsonAsync<JsonElement>($"/api/groups/{group}/feed", ct);
+            Assert.Equal(["shown"], feed.GetProperty("items").EnumerateArray().Select(i => i.GetProperty("title").GetString()));
+            Assert.Equal(HttpStatusCode.NotFound, (await outsider.GetAsync($"/api/groups/{group}/feed", ct)).StatusCode);
+        }
+    }
 }

@@ -1352,7 +1352,10 @@
     "similarClubs": "There are already open clubs with similar names. Did you mean one of them? Otherwise you can continue anyway.",
     "saveAnyway": "Save anyway",
     "saved": "Your changes are saved.",
-    "createAnyway": "Create anyway"
+    "createAnyway": "Create anyway",
+    "feedTitle": "Activities",
+    "feedHint": "Members' public activities. Activities only followers or the owner can see are never shown here.",
+    "feedEmpty": "No public activities from the members yet."
   },
   "push": {
     "title": "Notifications on this device.",

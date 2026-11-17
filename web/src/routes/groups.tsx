@@ -3,6 +3,7 @@ import { Link, Navigate, useNavigate, useParams } from '@tanstack/react-router'
 import { useEffect, useState, type FormEvent, type ReactNode } from 'react'
 import { Settings } from 'lucide-react'
 import { useTranslation } from 'react-i18next'
+import { ActivityFeed } from '@/components/activity-feed'
 import { Avatar } from '@/components/avatar'
 import { ErrorMessage, ErrorText } from '@/components/error-message'
 import { QueryError } from '@/components/query-error'
@@ -494,6 +495,16 @@ function GroupContent({ group }: { group: GroupDetail }) {
         sharing={group.shareTotals}
         onGarminData={setBoardGarmin}
       />
+      <section aria-labelledby="group-feed-heading" className="space-y-3">
+        <Heading level={2} id="group-feed-heading">
+          {t('groups.feedTitle')}
+        </Heading>
+        <p className="text-metadata text-muted-foreground">{t('groups.feedHint')}</p>
+        <ActivityFeed
+          groupId={group.id}
+          emptyState={<p className="text-muted-foreground">{t('groups.feedEmpty')}</p>}
+        />
+      </section>
       <MemberSection group={group} change={change} />
       <ErrorText error={change.error} />
     </div>
