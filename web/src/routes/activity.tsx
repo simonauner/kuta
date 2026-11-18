@@ -1,6 +1,6 @@
 import { Stat } from '@/components/stat'
 import { SlowLoading } from '@/components/slow-loading'
-import { isCyclingSport, isRunningSport } from '@/lib/sports'
+import { isCyclingSport, isGymSport, isRunningSport } from '@/lib/sports'
 import { SportIcon } from '@/components/sport-icon'
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
 import { Link, useNavigate, useParams, useSearch } from '@tanstack/react-router'
@@ -147,6 +147,8 @@ export function ActivityPage() {
   const selectedPart = selection?.id === activityId ? selection.part : null
   const selectedSport = selectedPart?.sport ?? activity.data?.sport
   const mixed = (activity.data?.parts.length ?? 0) > 0 && !selectedPart
+  // Laps, elevation and a missing route say little about a gym session
+  const gym = isGymSport(selectedSport ?? '')
   const [routeColoring, setRouteColoring] = useState<'route' | RouteMetric>('route')
 
   const view = useMemo(() => {
@@ -156,7 +158,7 @@ export function ActivityPage() {
     const segments = routeSegments(streams)
     const coordinates = segments.flat()
     const series: ChartSeries[] = []
-    if (streams.alt)
+    if (streams.alt && !gym)
       series.push({
         label: t('activity.chartElevation'),
         values: streams.alt,
@@ -212,7 +214,7 @@ export function ActivityPage() {
       axis: chartAxis(streams),
       splits: mixed ? [] : splits(streams),
     }
-  }, [activity.data, selectedPart, selectedSport, mixed, t])
+  }, [activity.data, selectedPart, selectedSport, mixed, gym, t])
 
   const metric = routeColoring !== 'route' && view?.metrics[routeColoring] ? routeColoring : null
   const colored = useMemo(
@@ -413,12 +415,12 @@ export function ActivityPage() {
     </table>
   )
 
-  const tablePanels = ((!mixed && a.laps.length > 0) ||
+  const tablePanels = ((!mixed && !gym && a.laps.length > 0) ||
     (view && view.splits.length > 0) ||
     hasEfforts) && (
     <div>
       <div className="flex flex-wrap gap-2">
-        {!mixed && a.laps.length > 0 && (
+        {!mixed && !gym && a.laps.length > 0 && (
           <Button
             id={`${lapsId}-toggle`}
             type="button"
@@ -468,7 +470,7 @@ export function ActivityPage() {
         )}
       </div>
       {openPanel && sourceNote}
-      {!mixed && a.laps.length > 0 && (
+      {!mixed && !gym && a.laps.length > 0 && (
         <div
           id={lapsId}
           aria-hidden={!lapsOpen}
@@ -757,7 +759,7 @@ export function ActivityPage() {
                   setOpenPanel(
                     (open) =>
                       open ??
-                      (!mixed && a.laps.length > 0
+                      (!mixed && !gym && a.laps.length > 0
                         ? 'laps'
                         : view.splits.length > 0
                           ? 'splits'
@@ -786,7 +788,7 @@ export function ActivityPage() {
             )}
           </>
         ) : (
-          <p className="text-sm text-muted-foreground">{t('activity.noRoute')}</p>
+          !gym && <p className="text-sm text-muted-foreground">{t('activity.noRoute')}</p>
         )}
       </div>
 

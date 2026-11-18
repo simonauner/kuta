@@ -21,7 +21,7 @@ import { VisibilityField } from '@/components/activity-visibility'
 import { activityTitle, type ActivityDetail } from '@/lib/activity'
 import { Heading } from '@/components/ui/heading'
 import { Select } from '@/components/ui/select'
-import { sports as sportOptions } from '@/lib/sports'
+import { sports as sportOptions, isGymSport, isRunningSport } from '@/lib/sports'
 
 export function EditActivityPage() {
   const { activityId } = useParams({ from: '/app/activities/$activityId/edit' })
@@ -60,6 +60,15 @@ function EditActivityForm({ activity }: { activity: ActivityDetail }) {
     activity.courseLengthM === null ? '' : String(activity.courseLengthM / 1000),
   )
   const [equipmentIds, setEquipmentIds] = useState(activity.equipmentIds)
+  // Hidden for gym sports, but kept when the activity already uses them so they can still be undone;
+  // hidden choices are not saved
+  const gym = isGymSport(sport)
+  const showEquipment = !gym || activity.equipmentIds.length > 0
+  const showTags = !gym || activity.tags.length > 0
+  const showSplit = !gym || activity.parts.length > 0
+  // Only running (also within sport parts) has records
+  const showExcludeFromRecords =
+    isRunningSport(sport) || activity.parts.length > 0 || activity.excludeFromRecords
   const destination = {
     to: '/app/activities/$activityId' as const,
     params: { activityId: activity.id },
@@ -71,13 +80,13 @@ function EditActivityForm({ activity }: { activity: ActivityDetail }) {
         privacy,
         // A split activity takes its sport from the parts
         sport: sport !== activity.sport && draft === undefined ? sport : undefined,
-        excludeFromRecords,
+        excludeFromRecords: showExcludeFromRecords && excludeFromRecords,
         hideCompanions,
         courseLengthM: courseLengthM(sport, courseLength),
         title,
         description,
-        tags,
-        equipmentIds,
+        tags: showTags ? tags : [],
+        equipmentIds: showEquipment ? equipmentIds : [],
         multisport: draft ?? undefined,
         restoreParts: draft === null,
       }),
@@ -171,7 +180,7 @@ function EditActivityForm({ activity }: { activity: ActivityDetail }) {
           />
         )}
         <VisibilityField value={privacy} onChange={setPrivacy} disabled={save.isPending} />
-        {activity.streams && (
+        {activity.streams && showExcludeFromRecords && (
           <div className="space-y-2">
             <FormField label={t('activity.excludeFromRecords')} layout="choice">
               {(id) => (
@@ -201,21 +210,25 @@ function EditActivityForm({ activity }: { activity: ActivityDetail }) {
             <p className="text-xs text-muted-foreground">{t('companions.showHint')}</p>
           </div>
         )}
-        <MultisportEditor
-          activity={multisportView(activity, split)}
-          onChange={(draft) => {
-            setSplit(draft)
-            setSport(activity.sport)
-          }}
-          disabled={save.isPending}
-        />
-        <EquipmentPicker
-          value={equipmentIds}
-          initialIds={activity.equipmentIds}
-          onChange={setEquipmentIds}
-          disabled={save.isPending}
-        />
-        <TagPicker value={tags} onChange={setTags} disabled={save.isPending} />
+        {showSplit && (
+          <MultisportEditor
+            activity={multisportView(activity, split)}
+            onChange={(draft) => {
+              setSplit(draft)
+              setSport(activity.sport)
+            }}
+            disabled={save.isPending}
+          />
+        )}
+        {showEquipment && (
+          <EquipmentPicker
+            value={equipmentIds}
+            initialIds={activity.equipmentIds}
+            onChange={setEquipmentIds}
+            disabled={save.isPending}
+          />
+        )}
+        {showTags && <TagPicker value={tags} onChange={setTags} disabled={save.isPending} />}
         <ErrorText error={save.error} />
         {actions}
       </form>
