@@ -561,8 +561,9 @@ terränglöpning, virtuell löpning och orientering; Cykling alla cykeltyper ink
 vandring även snöskovandring; Längdskidåkning även topptur och rullskidor; Paddling kanot, kajak
 och SUP; Rodd även virtuell rodd. Simning i bassäng och öppet vatten är samma sport (`swimming`),
 eftersom Garmin anger vattentypen som undertyp och Strava inte skiljer dem åt. Övriga sporter är
-egna grupper med sportens nyckel. Grupperna definieras bara i `SportGroups.cs`, även med Garmins
-råa sportnamn (exempelvis `crosscountryskiing`); `GET /api/activities/sport-groups` ger
+egna grupper med sportens nyckel. Grupperna definieras bara i `SportGroups.cs`; FIT-importen
+översätter Garmins sport och undertyp till Kutas sporter i `FitSports.cs` (exempelvis Training med
+undertypen StrengthTraining till Styrketräning, okända sporter till Övrigt); `GET /api/activities/sport-groups` ger
 `[{ key, sports }]` och webben namnger grupperna under `sportGroups` i språkfilerna. Passlistans
 sportfilter och passens egna sport är oförändrade.
 

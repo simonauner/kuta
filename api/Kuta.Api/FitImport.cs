@@ -92,10 +92,12 @@ public static class FitImport
         }).OfType<ParsedActivity>().ToArray();
         if (legs.Length != sessions.Count || legs.Any(l => l.DurationS <= 0)) return null;
         var first = legs[0];
-        var parts = legs.Select((l, i) => new ActivityPart(i, l.Sport,
-            (int)Math.Round((l.StartedAt - first.StartedAt).TotalSeconds),
-            (int)Math.Round((l.StartedAt - first.StartedAt).TotalSeconds) + l.DurationS,
-            l.DistanceM, l.Sport is "running" or "walking" or "hiking")).ToArray();
+        var parts = legs.Select((l, i) =>
+        {
+            var sport = FitSports.Part(l.Sport);
+            var startS = (int)Math.Round((l.StartedAt - first.StartedAt).TotalSeconds);
+            return new ActivityPart(i, sport, startS, startS + l.DurationS, l.DistanceM, sport is "running" or "walking" or "hiking");
+        }).ToArray();
         if (parts.Zip(parts.Skip(1)).Any(p => p.First.EndS > p.Second.StartS)) return null;
         var sporting = parts.Where(p => p.Sport != "transition").Select(p => p.Sport).ToArray();
         var kind = sporting.SequenceEqual(new[] { "swimming", "cycling", "running" }) ? "triathlon"
@@ -184,7 +186,7 @@ public static class FitImport
             cadence is { } c ? (short)Math.Round((c + (fractional ?? 0)) * stepsPerCycle) : null;
 
         return new ParsedActivity(
-            Sport: session.GetSport()?.ToString().ToLowerInvariant() ?? "running",
+            Sport: FitSports.From(session.GetSport(), session.GetSubSport()),
             StartedAt: System.DateTime.SpecifyKind(startedAt, DateTimeKind.Utc),
             DurationS: (int)Math.Round(session.GetTotalElapsedTime() ?? 0),
             MovingS: session.GetTotalTimerTime() is { } timer ? (int)Math.Round(timer) : null,

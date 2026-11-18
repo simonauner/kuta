@@ -1,19 +1,18 @@
 public record SportGroup(string Key, string[] Sports);
 
 // Sports counted together in goals and statistics. The keys are our own group names; sports without a group are their own group.
-// Garmin reports trail and open water as subtypes, so FIT activities already have "running" and "swimming";
-// the other names come from Strava and from Garmin's sport names (the Sport enum in lower case).
+// The names are our sport keys; FIT and Strava imports map their own sport names to them (FitSports, ActivitySports).
 public static class SportGroups
 {
     public static readonly SportGroup[] Named =
     [
         new("running", ["running", "trail run", "virtual run", "orienteering"]),
         new("cycling", ["cycling", "mountain bike ride", "gravel ride", "e-bike ride", "e-mountain bike ride",
-            "virtual ride", "velomobile", "handcycle", "ebiking"]),
+            "virtual ride", "velomobile", "handcycle"]),
         new("swimming", ["swimming"]),
         new("walking", ["walking", "hiking", "snowshoe"]),
-        new("cross-country skiing", ["nordic ski", "backcountry ski", "roller ski", "crosscountryskiing"]),
-        new("paddling", ["canoe", "kayaking", "stand up paddling", "paddling", "standuppaddleboarding"]),
+        new("cross-country skiing", ["nordic ski", "backcountry ski", "roller ski"]),
+        new("paddling", ["canoe", "kayaking", "stand up paddling"]),
         new("rowing", ["rowing", "virtual rowing"]),
     ];
 

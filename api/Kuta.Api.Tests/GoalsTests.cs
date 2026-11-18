@@ -30,7 +30,7 @@ public class GoalsTests(KutaFactory factory) : IClassFixture<KutaFactory>
     {
         Assert.Equal("running", SportGroups.GroupOf("trail run"));
         Assert.Equal("cycling", SportGroups.GroupOf("gravel ride"));
-        Assert.Equal("cross-country skiing", SportGroups.GroupOf("crosscountryskiing"));
+        Assert.Equal("cross-country skiing", SportGroups.GroupOf("roller ski"));
         Assert.Equal("weight training", SportGroups.GroupOf("weight training"));
         foreach (var sport in ActivityInput.Sports)
             Assert.Single(SportGroups.All, g => g.Sports.Contains(sport));
