@@ -30,7 +30,7 @@ import {
   type ActivityStreams,
   type ActivityTag,
 } from '@/lib/activity'
-import { sports as sportOptions, knownSport } from '@/lib/sports'
+import { sports as sportOptions, knownSport, isGymSport } from '@/lib/sports'
 import { meQuery } from '@/lib/auth'
 import { equipmentQuery, lastUsedShoeQuery } from '@/lib/equipment'
 import { refreshActivityQueries } from '@/lib/activity-query'
@@ -75,14 +75,12 @@ export function NewActivityPage() {
   const lastUsedActive = shoes.data?.some(
     (item) => item.id === lastUsedShoe.data?.id && !item.retired,
   )
-  const equipmentIds =
-    equipmentChoice ?? (lastUsedActive && lastUsedShoe.data?.id ? [lastUsedShoe.data.id] : [])
 
   const [pendingFile, setPendingFile] = useState<File | null>(null) // waits for confirmation to replace filled fields
   const [batch, setBatch] = useState<File[] | null>(null) // several files are saved straight away
   const [file, setFile] = useState<File | null>(null)
   const [split, setSplit] = useState<MultisportDraft>(undefined)
-  const [tags, setTags] = useState<ActivityTag[]>([])
+  const [tagChoice, setTags] = useState<ActivityTag[]>([])
   const [title, setTitle] = useState('')
   const [description, setDescription] = useState('')
   const [sport, setSport] = useState<string | null>(null) // null = as in the file (or running)
@@ -115,6 +113,12 @@ export function NewActivityPage() {
     (importedMultisport
       ? fromFile.sport
       : (sport ?? (fromFile ? knownSport(fromFile.sport) : 'running')))
+  // Hidden for gym sports: then nothing is preselected and hidden choices are not saved
+  const showEquipmentAndTags = !isGymSport(selectedSport)
+  const equipmentIds = showEquipmentAndTags
+    ? (equipmentChoice ?? (lastUsedActive && lastUsedShoe.data?.id ? [lastUsedShoe.data.id] : []))
+    : []
+  const tags = showEquipmentAndTags ? tagChoice : []
 
   const save = useMutation({
     mutationFn: (draft: MultisportDraft) => {
@@ -140,8 +144,8 @@ export function NewActivityPage() {
         description,
         startedAt: new Date(startedAt).toISOString(),
         durationS: parseDuration(duration),
-        distanceM: Math.round(Number(distanceKm) * 1000),
-        elevationGainM: elevation === '' ? null : Number(elevation),
+        distanceM: isGymSport(selectedSport) ? 0 : Math.round(Number(distanceKm) * 1000),
+        elevationGainM: elevation === '' || isGymSport(selectedSport) ? null : Number(elevation),
         avgHr: avgHr === '' ? null : Number(avgHr),
         privacy: visibility,
         courseLengthM: courseLengthM(selectedSport, courseLength),
@@ -305,22 +309,25 @@ export function NewActivityPage() {
                   />
                 )}
               </FormField>
-              <FormField label={t('newActivity.distance')}>
-                {(id) => (
-                  <Input
-                    id={id}
-                    type="number"
-                    inputMode="decimal"
-                    min={0}
-                    max={1000}
-                    step={0.01}
-                    required
-                    disabled={locked}
-                    value={fromFile ? (fromFile.distanceM / 1000).toFixed(2) : distanceKm}
-                    onChange={(e) => setDistanceKm(e.currentTarget.value)}
-                  />
-                )}
-              </FormField>
+              {/* A gym session has no distance or elevation: the fields are hidden, distance 0 and no elevation are saved */}
+              {!isGymSport(selectedSport) && (
+                <FormField label={t('newActivity.distance')}>
+                  {(id) => (
+                    <Input
+                      id={id}
+                      type="number"
+                      inputMode="decimal"
+                      min={0}
+                      max={1000}
+                      step={0.01}
+                      required
+                      disabled={locked}
+                      value={fromFile ? (fromFile.distanceM / 1000).toFixed(2) : distanceKm}
+                      onChange={(e) => setDistanceKm(e.currentTarget.value)}
+                    />
+                  )}
+                </FormField>
+              )}
               <FormField label={t('newActivity.duration')}>
                 {(id) => (
                   <Input
@@ -335,20 +342,22 @@ export function NewActivityPage() {
                   />
                 )}
               </FormField>
-              <FormField label={t('newActivity.elevation')}>
-                {(id) => (
-                  <Input
-                    id={id}
-                    type="number"
-                    inputMode="numeric"
-                    min={0}
-                    max={20000}
-                    disabled={locked}
-                    value={fromFile ? Math.round(fromFile.elevationGainM ?? 0) : elevation}
-                    onChange={(e) => setElevation(e.currentTarget.value)}
-                  />
-                )}
-              </FormField>
+              {!isGymSport(selectedSport) && (
+                <FormField label={t('newActivity.elevation')}>
+                  {(id) => (
+                    <Input
+                      id={id}
+                      type="number"
+                      inputMode="numeric"
+                      min={0}
+                      max={20000}
+                      disabled={locked}
+                      value={fromFile ? Math.round(fromFile.elevationGainM ?? 0) : elevation}
+                      onChange={(e) => setElevation(e.currentTarget.value)}
+                    />
+                  )}
+                </FormField>
+              )}
               {me?.hrConsent && (
                 <FormField label={t('newActivity.avgHr')}>
                   {(id) => (
@@ -366,7 +375,7 @@ export function NewActivityPage() {
                 </FormField>
               )}
             </div>
-            {fromFile && (
+            {fromFile && !isGymSport(selectedSport) && (
               <MultisportEditor
                 key={`${file?.name}:${file?.lastModified}`}
                 activity={multisportView(
@@ -382,13 +391,17 @@ export function NewActivityPage() {
                 disabled={save.isPending}
               />
             )}
-            <EquipmentPicker
-              value={equipmentIds}
-              initialIds={[]}
-              onChange={setEquipmentIds}
-              disabled={save.isPending}
-            />
-            <TagPicker value={tags} onChange={setTags} disabled={save.isPending} />
+            {showEquipmentAndTags && (
+              <>
+                <EquipmentPicker
+                  value={equipmentIds}
+                  initialIds={[]}
+                  onChange={setEquipmentIds}
+                  disabled={save.isPending}
+                />
+                <TagPicker value={tags} onChange={setTags} disabled={save.isPending} />
+              </>
+            )}
             <VisibilityField value={visibility} onChange={setPrivacy} disabled={save.isPending} />
             {fromFile && (
               <p className="text-xs text-muted-foreground">

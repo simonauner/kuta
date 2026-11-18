@@ -77,3 +77,19 @@ export function isRunningSport(sport: string) {
 export function isCyclingSport(sport: string) {
   return sportIcons[knownSport(sport)] === 'bike'
 }
+
+// Gym and mobility sports: shoes, bikes, the endurance tags (race, intervals, long run…) and splitting into sports
+// rarely apply, so the forms hide them for these sports unless the activity already uses them.
+const gymSports: readonly string[] = [
+  'weight training',
+  'workout',
+  'crossfit',
+  'hiit',
+  'yoga',
+  'pilates',
+  'physical therapy',
+]
+
+export function isGymSport(sport: string) {
+  return gymSports.includes(sport)
+}
