@@ -144,8 +144,8 @@ export function NewActivityPage() {
         description,
         startedAt: new Date(startedAt).toISOString(),
         durationS: parseDuration(duration),
-        distanceM: Math.round(Number(distanceKm) * 1000),
-        elevationGainM: elevation === '' ? null : Number(elevation),
+        distanceM: isGymSport(selectedSport) ? 0 : Math.round(Number(distanceKm) * 1000),
+        elevationGainM: elevation === '' || isGymSport(selectedSport) ? null : Number(elevation),
         avgHr: avgHr === '' ? null : Number(avgHr),
         privacy: visibility,
         courseLengthM: courseLengthM(selectedSport, courseLength),
@@ -309,29 +309,25 @@ export function NewActivityPage() {
                   />
                 )}
               </FormField>
-              {/* A gym session has no distance; left empty it is saved as 0 */}
-              <FormField
-                label={t(
-                  isGymSport(selectedSport)
-                    ? 'newActivity.distanceOptional'
-                    : 'newActivity.distance',
-                )}
-              >
-                {(id) => (
-                  <Input
-                    id={id}
-                    type="number"
-                    inputMode="decimal"
-                    min={0}
-                    max={1000}
-                    step={0.01}
-                    required={!isGymSport(selectedSport)}
-                    disabled={locked}
-                    value={fromFile ? (fromFile.distanceM / 1000).toFixed(2) : distanceKm}
-                    onChange={(e) => setDistanceKm(e.currentTarget.value)}
-                  />
-                )}
-              </FormField>
+              {/* A gym session has no distance or elevation: the fields are hidden, distance 0 and no elevation are saved */}
+              {!isGymSport(selectedSport) && (
+                <FormField label={t('newActivity.distance')}>
+                  {(id) => (
+                    <Input
+                      id={id}
+                      type="number"
+                      inputMode="decimal"
+                      min={0}
+                      max={1000}
+                      step={0.01}
+                      required
+                      disabled={locked}
+                      value={fromFile ? (fromFile.distanceM / 1000).toFixed(2) : distanceKm}
+                      onChange={(e) => setDistanceKm(e.currentTarget.value)}
+                    />
+                  )}
+                </FormField>
+              )}
               <FormField label={t('newActivity.duration')}>
                 {(id) => (
                   <Input
@@ -346,20 +342,22 @@ export function NewActivityPage() {
                   />
                 )}
               </FormField>
-              <FormField label={t('newActivity.elevation')}>
-                {(id) => (
-                  <Input
-                    id={id}
-                    type="number"
-                    inputMode="numeric"
-                    min={0}
-                    max={20000}
-                    disabled={locked}
-                    value={fromFile ? Math.round(fromFile.elevationGainM ?? 0) : elevation}
-                    onChange={(e) => setElevation(e.currentTarget.value)}
-                  />
-                )}
-              </FormField>
+              {!isGymSport(selectedSport) && (
+                <FormField label={t('newActivity.elevation')}>
+                  {(id) => (
+                    <Input
+                      id={id}
+                      type="number"
+                      inputMode="numeric"
+                      min={0}
+                      max={20000}
+                      disabled={locked}
+                      value={fromFile ? Math.round(fromFile.elevationGainM ?? 0) : elevation}
+                      onChange={(e) => setElevation(e.currentTarget.value)}
+                    />
+                  )}
+                </FormField>
+              )}
               {me?.hrConsent && (
                 <FormField label={t('newActivity.avgHr')}>
                   {(id) => (
