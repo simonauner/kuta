@@ -367,6 +367,7 @@
     },
     "startedAt": "Date and time",
     "distance": "Distance (km)",
+    "distanceOptional": "Distance (km, optional)",
     "duration": "Time (h:mm:ss)",
     "durationHint": "For example 45:00 or 1:02:30",
     "elevation": "Elevation gain (m)",

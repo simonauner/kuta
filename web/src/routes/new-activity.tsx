@@ -309,7 +309,14 @@ export function NewActivityPage() {
                   />
                 )}
               </FormField>
-              <FormField label={t('newActivity.distance')}>
+              {/* A gym session has no distance; left empty it is saved as 0 */}
+              <FormField
+                label={t(
+                  isGymSport(selectedSport)
+                    ? 'newActivity.distanceOptional'
+                    : 'newActivity.distance',
+                )}
+              >
                 {(id) => (
                   <Input
                     id={id}
@@ -318,7 +325,7 @@ export function NewActivityPage() {
                     min={0}
                     max={1000}
                     step={0.01}
-                    required
+                    required={!isGymSport(selectedSport)}
                     disabled={locked}
                     value={fromFile ? (fromFile.distanceM / 1000).toFixed(2) : distanceKm}
                     onChange={(e) => setDistanceKm(e.currentTarget.value)}

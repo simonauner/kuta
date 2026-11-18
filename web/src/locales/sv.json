@@ -367,6 +367,7 @@
     },
     "startedAt": "Datum och tid",
     "distance": "Distans (km)",
+    "distanceOptional": "Distans (km, valfritt)",
     "duration": "Tid (h:mm:ss)",
     "durationHint": "Till exempel 45:00 eller 1:02:30",
     "elevation": "Höjdmeter",
