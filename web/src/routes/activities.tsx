@@ -1,6 +1,6 @@
 import { FormField } from '@/components/ui/form-field'
 import { SportIcon } from '@/components/sport-icon'
-import { sports } from '@/lib/sports'
+import { isGymSport, sports } from '@/lib/sports'
 import { UnreviewedActivities } from '@/components/unreviewed-activities'
 import { TagLabels } from '@/components/activity-tags'
 import { activityTagsQuery, activityYearsQuery } from '@/lib/activity-query'
@@ -278,13 +278,10 @@ export function ActivitiesPage() {
                           {dateFormat.format(new Date(a.startedAt))}
                         </p>
                         <p className="mt-1 text-sm text-muted-foreground">
-                          {kmFormat.format(a.distanceM / 1000)} km · {formatDuration(a.durationS)} ·{' '}
-                          {formatSportPace(
-                            a.sport,
-                            a.durationS,
-                            a.distanceM,
-                            i18n.resolvedLanguage,
-                          )}
+                          {/* Distance and pace say nothing about a gym session */}
+                          {isGymSport(a.sport)
+                            ? formatDuration(a.durationS)
+                            : `${kmFormat.format(a.distanceM / 1000)} km · ${formatDuration(a.durationS)} · ${formatSportPace(a.sport, a.durationS, a.distanceM, i18n.resolvedLanguage)}`}
                           {a.avgHr !== null && ` · ${a.avgHr} bpm`}
                         </p>
                         <TagLabels tags={a.tags} />
