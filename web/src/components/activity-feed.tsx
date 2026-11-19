@@ -23,7 +23,7 @@ import {
   relativeDay,
   type ActivityCursor,
 } from '@/lib/activity'
-import { isCyclingSport } from '@/lib/sports'
+import { isCyclingSport, isGymSport } from '@/lib/sports'
 import { RecordMedal } from '@/components/record-award'
 import type { ActivityBestEffort, RecordDistance } from '@/lib/records'
 import type { SupporterTier } from '@/lib/auth'
@@ -132,15 +132,19 @@ export function ActivityFeed({
       activity.distanceM,
       i18n.resolvedLanguage,
     )
+    // Distance and pace say nothing about a gym session
+    const gym = isGymSport(activity.sport)
     return [
-      activity.distanceM >= 1 && [
-        t('activity.distance'),
-        `${number.format(activity.distanceM / 1000)} km`,
-      ],
-      pace !== '–' && [
-        t(isCyclingSport(activity.sport) ? 'activity.speed' : 'activity.pace'),
-        pace,
-      ],
+      !gym &&
+        activity.distanceM >= 1 && [
+          t('activity.distance'),
+          `${number.format(activity.distanceM / 1000)} km`,
+        ],
+      !gym &&
+        pace !== '–' && [
+          t(isCyclingSport(activity.sport) ? 'activity.speed' : 'activity.pace'),
+          pace,
+        ],
       [t('activity.time'), formatDuration(activity.durationS)],
     ].filter((m): m is [string, string] => !!m)
   }

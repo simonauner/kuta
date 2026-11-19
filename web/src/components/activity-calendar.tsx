@@ -4,7 +4,7 @@ import { useQuery } from '@tanstack/react-query'
 import { Link } from '@tanstack/react-router'
 import { api } from '@/lib/api'
 import { activityTitle, formatDuration, type ActivityTag } from '@/lib/activity'
-import type { Sport } from '@/lib/sports'
+import { isGymSport, type Sport } from '@/lib/sports'
 import { SportIcon } from '@/components/sport-icon'
 import { QueryError } from '@/components/query-error'
 import { SlowLoading } from '@/components/slow-loading'
@@ -150,8 +150,9 @@ export function ActivityCalendar({
                 <p className="text-metadata text-muted-foreground">{a.attribution}</p>
               )}
               <p className="text-metadata text-muted-foreground">
-                {timeFormat.format(new Date(a.startedAt))} · {kmFormat.format(a.distanceM / 1000)}{' '}
-                km · {formatDuration(a.durationS)}
+                {timeFormat.format(new Date(a.startedAt))} ·{' '}
+                {!isGymSport(a.sport) && `${kmFormat.format(a.distanceM / 1000)} km · `}
+                {formatDuration(a.durationS)}
               </p>
             </li>
           ))}
