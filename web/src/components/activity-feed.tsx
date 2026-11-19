@@ -49,6 +49,9 @@ type FeedItem = {
   recordElapsedS: number | null
   recordYear: number | null
   recordCount: number
+  // Health data, only on the viewer's own activities
+  avgHr: number | null
+  calories: number | null
 }
 type FeedPage = { items: FeedItem[]; nextCursor: ActivityCursor | null }
 
@@ -146,6 +149,13 @@ export function ActivityFeed({
           pace,
         ],
       [t('activity.time'), formatDuration(activity.durationS)],
+      // A gym session is summed up by effort instead
+      gym && activity.avgHr !== null && [t('activity.avgHr'), `${activity.avgHr} bpm`],
+      gym &&
+        activity.calories !== null && [
+          t('activity.calories'),
+          `${number.format(activity.calories)} kcal`,
+        ],
     ].filter((m): m is [string, string] => !!m)
   }
   return (

@@ -255,6 +255,7 @@ export function ActivityPage() {
         maxHr: null,
         aerobicTrainingEffect: null,
         anaerobicTrainingEffect: null,
+        calories: null,
         elevationGainM: null,
         streams: view?.streams ?? null,
         laps: original.laps.filter(
@@ -336,6 +337,10 @@ export function ActivityPage() {
     a.movingS !== null && [t('activity.movingTime'), formatDuration(a.movingS)],
     a.avgHr !== null && [t('activity.avgHr'), `${a.avgHr} bpm`],
     a.maxHr !== null && [t('activity.maxHr'), `${a.maxHr} bpm`],
+    a.calories !== null && [
+      t('activity.calories'),
+      `${new Intl.NumberFormat(i18n.resolvedLanguage).format(a.calories)} kcal`,
+    ],
     !mixed && cadence !== null && [t('activity.avgCadence'), `${cadence} ${cadenceUnit}`],
     temp !== null && [t('activity.avgTemp'), `${temp} °C`],
     a.aerobicTrainingEffect !== null && [

@@ -39,6 +39,8 @@ public class FitImportTests
         var parsed = FitImport.Parse(FitFile.Run(start, 60))!;
         Assert.Equal(new short[] { 100, 120, 140, 160, 175 }, parsed.HrZones);
         Assert.Null(parsed.WithoutHeartRate().HrZones);
+        // Calories are derived from heart rate and follow the same consent.
+        Assert.Equal((304, null), (parsed.Calories, parsed.WithoutHeartRate().Calories));
         Assert.Null(FitImport.Parse(FitFile.Run(start, 60, hrZones: [100, 140, 120, 160, 175]))!.HrZones);
     }
 }

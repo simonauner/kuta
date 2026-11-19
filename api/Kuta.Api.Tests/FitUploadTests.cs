@@ -75,12 +75,12 @@ public class FitUploadTests(KutaFactory factory) : IClassFixture<KutaFactory>
             Assert.True((await consent.Content.ReadFromJsonAsync<JsonElement>(ct)).GetProperty("hrConsent").GetBoolean());
             var evening = await Upload(client, FitFile.Run(start.AddHours(12), seconds: 300), ct);
             var eveningId = (await evening.Content.ReadFromJsonAsync<JsonElement>(ct)).GetProperty("id").GetGuid();
-            var hr = await conn.QuerySingleAsync<(short? AvgHr, short? MaxHr, int? Points, float? Aerobic, float? Anaerobic)>(
+            var hr = await conn.QuerySingleAsync<(short? AvgHr, short? MaxHr, int? Points, float? Aerobic, float? Anaerobic, int? Calories)>(
                 """
-                select a.avg_hr, a.max_hr, cardinality(s.hr), a.aerobic_training_effect, a.anaerobic_training_effect
+                select a.avg_hr, a.max_hr, cardinality(s.hr), a.aerobic_training_effect, a.anaerobic_training_effect, a.calories
                 from activities a join activity_streams s on s.activity_id = a.id where a.id = @eveningId
                 """, new { eveningId });
-            Assert.Equal(((short?)150, (short?)165, (int?)301, (float?)3.1f, (float?)0f), hr);
+            Assert.Equal(((short?)150, (short?)165, (int?)301, (float?)3.1f, (float?)0f, (int?)304), hr);
             Assert.Equal(new short[] { 100, 120, 140, 160, 175 },
                 await conn.QuerySingleAsync<short[]>("select hr_zones from activities where id = @eveningId", new { eveningId }));
             Assert.Equal(5, await conn.ExecuteScalarAsync<int>(
@@ -103,7 +103,7 @@ public class FitUploadTests(KutaFactory factory) : IClassFixture<KutaFactory>
                 where a.user_id = (select id from auth.users where email = @runner)
                   and (a.avg_hr is not null or s.hr is not null or a.raw_file_key is not null or a.aerobic_hr is not null
                        or a.aerobic_training_effect is not null or a.anaerobic_training_effect is not null
-                       or a.hr_zones is not null
+                       or a.hr_zones is not null or a.calories is not null
                        or exists (select 1 from activity_laps l where l.activity_id = a.id and l.avg_hr is not null))
                 """, new { runner }));
             Assert.Equal(0, await StoredFiles(conn, runner));
@@ -398,6 +398,7 @@ static class FitFile
         session.SetTotalAscent(0);
         session.SetTotalTrainingEffect(trainingEffect);
         session.SetTotalAnaerobicTrainingEffect(0f);
+        session.SetTotalCalories(304);
         encoder.Write(session);
 
         // The watch's heart rate zones, as Garmin writes them after the session

@@ -17,7 +17,7 @@ public record ActivityDetail(
     short? AvgHr, short? MaxHr, float? AvgSpeedMps, float? ElevationGainM, string? Device, ActivityStreams? Streams,
     IEnumerable<ActivityLap> Laps, string[] Tags, Guid[] EquipmentIds, ActivityPart[] Parts, bool PartsEdited, bool CanSplit, string? Description, ActivityPart[] OriginalParts, string OriginalSport, Guid UserId, string DisplayName, string Privacy, bool ExcludeFromRecords, string? Attribution,
     float? AerobicTrainingEffect, float? AnaerobicTrainingEffect,
-    short[]? HrZones, bool HideCompanions, double? CourseLengthM, Guid? SameCourseAs);
+    short[]? HrZones, bool HideCompanions, double? CourseLengthM, Guid? SameCourseAs, int? Calories);
 
 // What the form is prefilled with from a FIT file
 public record ActivityPreview(
@@ -349,7 +349,7 @@ public static class ActivityEndpoints
                    s.cadence, s.temp, a.tags,
                    array(select equipment_id from activity_equipment where activity_id = a.id order by equipment_id) as equipment_ids, a.parts_edited, a.description, coalesce(a.original_sport, a.sport), a.user_id, u.display_name, a.privacy, a.exclude_from_records,
                    {GarminAttribution.Sql("a")}, a.aerobic_training_effect, a.anaerobic_training_effect, a.hr_zones,
-                   a.hide_companions, a.course_length_m, a.same_course_as
+                   a.hide_companions, a.course_length_m, a.same_course_as, a.calories
             from activities a join users u on u.id = a.user_id left join activity_streams s on s.activity_id = a.id
             where a.id = @id and {SocialEndpoints.CanRead}
             """, conn, tx);
@@ -373,7 +373,7 @@ public static class ActivityEndpoints
                 System.DateTime.SpecifyKind(reader.GetDateTime(3), DateTimeKind.Utc), reader.GetInt32(4),
                 Value<int?>(5), reader.GetDouble(6), Value<short?>(7), Value<short?>(8), Value<float?>(9),
                 Value<float?>(10), Value<string>(11), streams, [], reader.GetFieldValue<string[]>(21), reader.GetFieldValue<Guid[]>(22), [], reader.GetBoolean(23), streams is not null && Multisport.CanSplit(streams.T, streams.Dist), Value<string>(24), [], reader.GetString(25), ownerId, reader.GetString(27), reader.GetString(28), reader.GetBoolean(29), Value<string>(30), Value<float?>(31), Value<float?>(32), Value<short[]>(33), reader.GetBoolean(34),
-                Value<double?>(35), Value<Guid?>(36));
+                Value<double?>(35), Value<Guid?>(36), Value<int?>(37));
         }
         var places = ownerId == userId ? [] : await PrivacyPlaces.LoadAsync(conn, ownerId, cancellationToken, tx);
         detail = detail with { Streams = RoutePrivacy.ForViewer(detail.Streams, ownerId, userId, places) };
@@ -386,7 +386,7 @@ public static class ActivityEndpoints
         // Full GPS streams and heart rate remain owner-only; feed map previews have separate privacy clipping.
         if (ownerId != userId)
             detail = detail with { AvgHr = null, MaxHr = null, HrZones = null, Device = null, EquipmentIds = [], SameCourseAs = null,
-                AerobicTrainingEffect = null, AnaerobicTrainingEffect = null,
+                AerobicTrainingEffect = null, AnaerobicTrainingEffect = null, Calories = null,
                 Streams = detail.Streams is { } streams ? RoutePrivacy.HideEndpointAltitude(streams with { Hr = null, Lat = null, Lon = null }) : null,
                 Laps = detail.Laps.Select(l => l with { AvgHr = null, MaxHr = null }).ToArray() };
         return detail;
