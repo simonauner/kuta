@@ -11,13 +11,13 @@ public sealed record ParsedActivity(
     int[] T, float?[]? Dist, short?[]? Hr, float?[]? Speed, float?[]? Alt, double?[]? Lat, double?[]? Lon,
     string? Device = null, short?[]? Cadence = null, short?[]? Temp = null, ParsedLap[]? Laps = null, ActivityPart[]? Parts = null,
     float? AerobicTrainingEffect = null, float? AnaerobicTrainingEffect = null,
-    short[]? HrZones = null)
+    short[]? HrZones = null, int? Calories = null)
 {
     // Without consent no heart rate (health data) is stored: neither summary, stream nor lap heart rate, nor the
-    // watch's training effect, which it derives from heart rate.
+    // watch's training effect and calories, which it derives from heart rate.
     public ParsedActivity WithoutHeartRate() => this with
     {
-        AvgHr = null, MaxHr = null, Hr = null, AerobicTrainingEffect = null, AnaerobicTrainingEffect = null, HrZones = null, Laps = Laps?.Select(l => l with { AvgHr = null, MaxHr = null }).ToArray(),
+        AvgHr = null, Calories = null, MaxHr = null, Hr = null, AerobicTrainingEffect = null, AnaerobicTrainingEffect = null, HrZones = null, Laps = Laps?.Select(l => l with { AvgHr = null, MaxHr = null }).ToArray(),
     };
 }
 
@@ -142,6 +142,7 @@ public static class FitImport
             AvgHr = null, MaxHr = legs.Max(l => l.MaxHr),
             // The watch rates each session on its own; there is no total for the whole activity.
             AerobicTrainingEffect = null, AnaerobicTrainingEffect = null,
+            Calories = legs.Any(l => l.Calories is not null) ? legs.Sum(l => l.Calories ?? 0) : null,
             ElevationGainM = legs.Any(l => l.ElevationGainM is not null) ? legs.Sum(l => l.ElevationGainM ?? 0) : null,
             T = samples.Select(s => s.T).ToArray(), Dist = samples.Select(s => s.D).ToArray(),
             Hr = Merge(l => l.Hr), Speed = Merge(l => l.Speed), Alt = Merge(l => l.Alt),
@@ -199,6 +200,7 @@ public static class FitImport
             Device: Device(fileId, devices),
             AerobicTrainingEffect: TrainingEffect(session.GetTotalTrainingEffect()),
             AnaerobicTrainingEffect: TrainingEffect(session.GetTotalAnaerobicTrainingEffect()),
+            Calories: session.GetTotalCalories(),
             T: records.Select(r => Seconds(r.Time)).ToArray(),
             Dist: dist,
             Hr: Channel(records, r => (short?)r.Hr),

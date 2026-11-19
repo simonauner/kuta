@@ -409,6 +409,7 @@
     "movingTime": "Rörelsetid",
     "avgHr": "Snittpuls",
     "maxHr": "Maxpuls",
+    "calories": "Kalorier",
     "splits": "Splits",
     "splitKm": "Km",
     "splitPace": "Tempo",

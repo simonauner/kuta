@@ -226,6 +226,8 @@ export type ActivityDetail = Activity & {
   // The watch's own Training Effect (0–5); owner only, needs heart rate consent
   aerobicTrainingEffect: number | null
   anaerobicTrainingEffect: number | null
+  // kcal from the watch or Strava; owner only, needs heart rate consent
+  calories: number | null
   streams: ActivityStreams | null
   originalParts: ActivityPart[]
   originalSport: string

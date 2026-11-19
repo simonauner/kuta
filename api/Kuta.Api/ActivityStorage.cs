@@ -77,18 +77,18 @@ public static class ActivityStorage
             """
             insert into activities (user_id, source, sport, title, started_at, duration_s, moving_s, distance_m,
                                     avg_hr, max_hr, hr_zones, avg_speed_mps, elevation_gain_m, route, device, raw_file_key, raw_file_sha256, strava_activity_id, tags, description, privacy, reviewed_at,
-                                    aerobic_training_effect, anaerobic_training_effect, course_length_m)
+                                    aerobic_training_effect, anaerobic_training_effect, course_length_m, calories)
             values (@userId, @source, @Sport, @title, @StartedAt, @DurationS, @MovingS, @DistanceM,
                     @AvgHr, @MaxHr, @HrZones, @AvgSpeedMps, @ElevationGainM, @route::geography, @Device, @key, @hash, @stravaId, @tags, @description, @privacy,
                     case when @source = 'garmin' then null else now() end, @AerobicTrainingEffect, @AnaerobicTrainingEffect,
-                    case when @Sport = 'orienteering' then @courseLengthM end)
+                    case when @Sport = 'orienteering' then @courseLengthM end, @Calories)
             on conflict do nothing returning id
             """,
             new
             {
                 userId, source, title, stravaId, description = ActivityInput.NormalizeDescription(description), parsed.Sport, parsed.StartedAt, parsed.DurationS, parsed.MovingS,
                 parsed.DistanceM, parsed.AvgHr, parsed.MaxHr, parsed.HrZones, parsed.AvgSpeedMps, parsed.ElevationGainM,
-                route = (object?)parsed.Route ?? DBNull.Value, parsed.Device, parsed.AerobicTrainingEffect, parsed.AnaerobicTrainingEffect, key, hash, tags = ActivityInput.NormalizeTags(tags), courseLengthM,
+                route = (object?)parsed.Route ?? DBNull.Value, parsed.Device, parsed.AerobicTrainingEffect, parsed.AnaerobicTrainingEffect, parsed.Calories, key, hash, tags = ActivityInput.NormalizeTags(tags), courseLengthM,
                 // Garmin activities are private until Garmin has had 30 days' notice of showing them to others (constraint in migration 025).
                 privacy = source == "garmin" ? "private" : privacy ?? profile.DefaultActivityPrivacy,
             }, tx);

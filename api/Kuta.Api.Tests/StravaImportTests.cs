@@ -84,6 +84,19 @@ public class StravaParserTests
         Assert.Equal(DateTimeKind.Utc, row.Summary.StartedAt.Kind);
     }
 
+    // Strava's calories are kept as whole kcal; an implausible value is dropped rather than failing the import.
+    [Fact]
+    public void Csv_reads_calories_and_drops_implausible_values()
+    {
+        List<StravaActivity> Read(string calories)
+        {
+            var text = StravaFixture.Csv(StravaFixture.Row("1", "") + ",,,,,," + calories).Replace("Tag\n", "Tag,Calories\n");
+            return StravaImport.ReadManifest(new MemoryStream(Encoding.UTF8.GetBytes(text)));
+        }
+        Assert.Equal(304, Assert.Single(Read("304.4")).Summary.Calories);
+        Assert.Null(Assert.Single(Read("60000")).Summary.Calories);
+    }
+
     [Fact]
     public void Csv_reads_multiline_description_and_known_tags_without_private_notes_and_allows_missing_column()
     {

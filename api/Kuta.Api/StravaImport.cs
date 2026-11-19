@@ -65,7 +65,8 @@ public static class StravaImport
             result.Add(new StravaActivity(id, title.Length == 0 ? null : title, filename,
                 new ParsedActivity(sport, start, duration, moving, Number("Distance") ?? 0,
                     HeartRate("Average Heart Rate"), HeartRate("Max Heart Rate"), Single("Average Speed"), Single("Elevation Gain"),
-                    null, [], null, null, null, null, null, null),
+                    null, [], null, null, null, null, null, null,
+                    Calories: Number("Calories") is { } kcal && kcal <= 50000 ? (int)Math.Round(kcal) : null),
                 GearId(Field("Gear"), 'g') ?? GearId(Field("Bike"), 'b'), string.IsNullOrWhiteSpace(Field("Activity Gear")) ? null : Field("Activity Gear").Trim(),
                 ActivityInput.NormalizeDescription(description),
                 // Strava's other tags (running, riding, offroad) describe the sport.
@@ -184,7 +185,7 @@ public static class StravaImport
             T = fit.T.Select(t => checked(t + offset)).ToArray(),
             Dist = fit.Dist, Hr = fit.Hr, Speed = fit.Speed, Alt = fit.Alt,
             Lat = fit.Lat, Lon = fit.Lon, Route = fit.Route,
-            Device = fit.Device, Cadence = fit.Cadence, Temp = fit.Temp,
+            Device = fit.Device, Cadence = fit.Cadence, Temp = fit.Temp, Calories = summary.Calories ?? fit.Calories,
             Laps = fit.Laps?.Select(l => l with { StartS = checked(l.StartS + offset) }).ToArray(),
         };
     }

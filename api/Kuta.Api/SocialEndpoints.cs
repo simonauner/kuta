@@ -10,7 +10,7 @@ public record FollowLists(IEnumerable<Runner> Following, IEnumerable<Runner> Fol
 public record FeedItem(Guid Id, Guid UserId, string DisplayName, string Sport, string? Title,
     DateTime StartedAt, int DurationS, double DistanceM, string Privacy, string? RouteGeoJson, string? SupporterTier,
     string? Attribution, Guid? AvatarId, int? MovingS, string? RecordStatus, int? RecordDistanceM, double? RecordElapsedS,
-    int? RecordYear, int RecordCount);
+    int? RecordYear, int RecordCount, short? AvgHr, int? Calories);
 public record FeedPage(IReadOnlyList<FeedItem> Items, ActivityCursor? NextCursor);
 
 public static class SocialEndpoints
@@ -252,7 +252,10 @@ public static class SocialEndpoints
             with page as materialized (
                 select a.id, a.user_id, u.display_name, a.sport, a.title, a.started_at, a.duration_s, a.moving_s,
                     {Multisport.DistanceSql("a")} as distance_m, a.privacy, a.route, u.privacy_seed,
-                    {Supporters.VisibleTier} as supporter_tier, {GarminAttribution.Sql("a")} as attribution, u.avatar_id
+                    {Supporters.VisibleTier} as supporter_tier, {GarminAttribution.Sql("a")} as attribution, u.avatar_id,
+                -- Heart rate and the calories derived from it are health data: only on the viewer's own activities.
+                case when a.user_id = @userId then a.avg_hr end as avg_hr,
+                case when a.user_id = @userId then a.calories end as calories
                 from activities a join users u on u.id = a.user_id
                 where {CanRead} and (
                     -- A group shows its members' public activities only: membership never grants read access.
@@ -292,7 +295,7 @@ public static class SocialEndpoints
             select id, user_id, display_name, sport, title, started_at, duration_s, distance_m, privacy,
                 case when st_isempty(preview.route) then null else st_asgeojson(preview.route, 4) end as route_geo_json,
                 supporter_tier, attribution, avatar_id, moving_s, record.record_status, record.record_distance_m,
-                record.record_elapsed_s, record.record_year, coalesce(record.record_count, 0) as record_count
+                record.record_elapsed_s, record.record_year, coalesce(record.record_count, 0) as record_count, avg_hr, calories
             from page
             -- The most notable record (by place, then previous personal best, then place in the year; then the longest distance) and how many there are
             left join lateral (
