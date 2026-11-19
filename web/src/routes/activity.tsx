@@ -303,13 +303,15 @@ export function ActivityPage() {
     orienteering && a.courseLengthM !== null
       ? courseStats(a.durationS, a.distanceM, a.courseLengthM)
       : null
+  // Distance, pace and elevation say nothing about a gym session
   const stats = [
-    [t('activity.distance'), `${number.format(a.distanceM / 1000)} km`],
+    !gym && [t('activity.distance'), `${number.format(a.distanceM / 1000)} km`],
     [t('activity.time'), formatDuration(a.durationS)],
-    !mixed && [
-      t(isCyclingSport(a.sport) ? 'activity.speed' : 'activity.pace'),
-      formatSportPace(a.sport, a.movingS ?? a.durationS, a.distanceM, i18n.resolvedLanguage),
-    ],
+    !mixed &&
+      !gym && [
+        t(isCyclingSport(a.sport) ? 'activity.speed' : 'activity.pace'),
+        formatSportPace(a.sport, a.movingS ?? a.durationS, a.distanceM, i18n.resolvedLanguage),
+      ],
     !mixed &&
       gapSplits.length > 0 && [
         t('activity.gap'),
@@ -329,7 +331,8 @@ export function ActivityPage() {
         maximumFractionDigits: 0,
       }).format(course.overdistance),
     ],
-    a.elevationGainM !== null && [t('activity.elevation'), `${Math.round(a.elevationGainM)} m`],
+    !gym &&
+      a.elevationGainM !== null && [t('activity.elevation'), `${Math.round(a.elevationGainM)} m`],
     a.movingS !== null && [t('activity.movingTime'), formatDuration(a.movingS)],
     a.avgHr !== null && [t('activity.avgHr'), `${a.avgHr} bpm`],
     a.maxHr !== null && [t('activity.maxHr'), `${a.maxHr} bpm`],
