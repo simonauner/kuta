@@ -34,7 +34,7 @@ Testerna följer med till den egna portserien med samma bas: `KUTA_PORTS=BAS dot
 
 ## Avsluta
 
-Stoppa bara skriptet som uppgiften startade, med Ctrl+C eller dess antecknade PID/session. Skriptet stoppar API och Vite men lämnar Supabase igång. Stoppa även Supabase om uppgiften startade den och användaren inte vill behålla miljön. När sessionen avslutas eller arkiveras ska den egna Supabase-instansen tas bort helt, inklusive Docker-volymer och workdir. Kör från det antecknade worktreet med rätt BAS, exempelvis:
+Stoppa bara skriptet som uppgiften startade, med Ctrl+C eller dess antecknade PID/session. Skriptet stoppar API och Vite. Med `--ports` stoppar det även Supabase-stacken om skriptet startade den, men behåller dess datavolymer; standardinstansen lämnas igång. Om skriptet dödats utan att hinna städa kör stacken kvar och startar om med Docker. När sessionen avslutas eller arkiveras ska den egna Supabase-instansen tas bort helt, inklusive Docker-volymer och workdir. Kör från det antecknade worktreet med rätt BAS, exempelvis:
 
 ```bash
 supabase stop --no-backup --workdir .context/supabase-55400

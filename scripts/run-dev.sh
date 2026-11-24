@@ -1,6 +1,7 @@
 #!/usr/bin/env bash
 # Starts Kuta locally in one terminal: Supabase (unless already running), the API and the web (Vite with hot reload).
-# Ctrl+C stops the API and the web. Supabase keeps running; the script prints how to stop it.
+# Ctrl+C stops the API and the web. With --ports it also stops the Supabase stack this run started (its data volumes are kept),
+# so stacks from finished sessions do not keep running; the shared default stack keeps running.
 # The API does not reload on changes (dotnet watch cannot be stopped with signals in SDK 10.0.402): restart the script.
 #
 #   scripts/run-dev.sh                 ports from 55300 (supabase/config.toml as is)
@@ -38,7 +39,20 @@ else
   sed "${rewrite[@]}" supabase/config.toml > "$workdir/supabase/config.toml"
 fi
 
+pids=()
+started_supabase=
+cleanup() {
+  trap - EXIT
+  kill "${pids[@]}" 2>/dev/null || true
+  wait 2>/dev/null || true
+  # Containers have restart policy unless-stopped: a stack left running comes back on every Docker start.
+  if [ -n "$started_supabase" ] && [ "$base" != 55300 ]; then supabase stop --workdir "$workdir" || true; fi
+}
+trap cleanup EXIT
+trap 'exit 130' INT TERM
+
 if ! supabase status --workdir "$workdir" >/dev/null 2>&1; then
+  started_supabase=1
   supabase start --workdir "$workdir"
   # The auth container can start before Kong and get stuck on Supabase's English default email; a restart loads our template.
   docker restart "supabase_auth_$project" >/dev/null
@@ -57,15 +71,6 @@ dotnet build api/Kuta.Api --nologo --verbosity quiet --artifacts-path "$build"
 # Prefix on every line to show which process is writing
 prefix() { awk -v p="[$1] " '{ print p $0; fflush() }'; }
 
-pids=()
-cleanup() {
-  trap - EXIT
-  kill "${pids[@]}" 2>/dev/null || true
-  wait 2>/dev/null || true
-}
-trap cleanup EXIT
-trap 'exit 130' INT TERM
-
 # exec + process substitution so that $! is the server itself and not the prefix process
 (cd api/Kuta.Api && export ASPNETCORE_ENVIRONMENT=Development \
   Urls="http://localhost:$((base + 2))" \
@@ -81,7 +86,11 @@ pids+=($!)
 echo "Web:     http://localhost:$base"
 echo "API:     http://localhost:$((base + 2))"
 echo "Mailpit: http://127.0.0.1:$((base + 24))"
-echo "Stop Supabase: supabase stop --workdir $workdir"
+if [ -n "$started_supabase" ] && [ "$base" != 55300 ]; then
+  echo "Supabase stops with the script; remove its data with: supabase stop --no-backup --workdir $workdir"
+else
+  echo "Stop Supabase: supabase stop --workdir $workdir"
+fi
 
 # Stop both when either of them exits; bash 3.2 on macOS lacks wait -n.
 while kill -0 "${pids[0]}" 2>/dev/null && kill -0 "${pids[1]}" 2>/dev/null; do sleep 1; done
