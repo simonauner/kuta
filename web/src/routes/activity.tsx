@@ -5,7 +5,7 @@ import { SportIcon } from '@/components/sport-icon'
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
 import { Link, useNavigate, useParams, useSearch } from '@tanstack/react-router'
 import { useId, useMemo, useState } from 'react'
-import { ChevronDown } from 'lucide-react'
+import { ArrowDown, ChevronDown } from 'lucide-react'
 import { useTranslation } from 'react-i18next'
 import { ActivityCharts, type ChartSeries } from '@/components/activity-charts'
 import { BackLink } from '@/components/back-link'
@@ -25,7 +25,13 @@ import { HeartRateZones } from '@/components/heart-rate-zones'
 import { ApiError } from '@/lib/api'
 import { activityQuery, refreshActivityQueries } from '@/lib/activity-query'
 import { api } from '@/lib/api'
-import { recordMeters, type RecordDistance, utcYear, type ActivityBestEffort } from '@/lib/records'
+import {
+  formatImprovement,
+  recordMeters,
+  type RecordDistance,
+  utcYear,
+  type ActivityBestEffort,
+} from '@/lib/records'
 import {
   activityTitle,
   chartAxis,
@@ -722,9 +728,18 @@ export function ActivityPage() {
                 key={e.distanceM}
                 className="flex flex-wrap items-center justify-between gap-x-4 gap-y-1 rounded-lg bg-muted/50 px-3 py-2"
               >
-                <span className="text-sm font-medium">
+                <span className="inline-flex items-center text-sm font-medium">
                   {t(`records.distances.${e.distanceM as RecordDistance}`)}
                   <span className="ml-3 tabular-nums">{formatDuration(e.elapsedS)}</span>
+                  {e.improvementS !== null && (
+                    <span className="ml-3 inline-flex items-center gap-0.5 font-normal text-muted-foreground tabular-nums">
+                      <ArrowDown className="size-3.5" aria-hidden="true" />
+                      <span aria-hidden="true">{formatImprovement(e.improvementS)}</span>
+                      <span className="sr-only">
+                        {t('records.improvedBy', { time: formatImprovement(e.improvementS) })}
+                      </span>
+                    </span>
+                  )}
                 </span>
                 <RecordAward status={e.recordStatus!} year={utcYear(e)} />
               </li>

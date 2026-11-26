@@ -1,6 +1,6 @@
 import assert from 'node:assert/strict'
 import { test } from 'node:test'
-import { recordMeters, trendChart } from '../src/lib/records.ts'
+import { formatImprovement, recordMeters, trendChart } from '../src/lib/records.ts'
 
 const effort = (achievedAt, elapsedS) => ({
   activityId: achievedAt,
@@ -89,4 +89,11 @@ test('monthly results provide a scale when there is no record history', () => {
     size,
   )
   assert.deepEqual([chart.fastest, chart.slowest, chart.months[0].y], [1500, 1500, 25])
+})
+
+test('improvement shows seconds under a minute and never rounds to zero', () => {
+  assert.equal(formatImprovement(5.6), '6 s')
+  assert.equal(formatImprovement(0.2), '1 s')
+  assert.equal(formatImprovement(59.4), '59 s')
+  assert.equal(formatImprovement(65), '1:05')
 })

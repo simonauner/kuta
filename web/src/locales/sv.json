@@ -263,6 +263,7 @@
     "date": "Datum",
     "time": "Tid",
     "improvement": "Förbättring",
+    "improvedBy": "{{time}} snabbare än tidigare bästa",
     "predictions": "Prognos",
     "predictionsBasis": "Baserad på {{distance}} på {{time}} den {{date}} (VDOT {{vdot}}).",
     "showActivity": "Visa aktiviteten",

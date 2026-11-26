@@ -9,6 +9,14 @@ export type StoredBestEffort = {
 export type ActivityBestEffort = StoredBestEffort & {
   recordStatus:
     'current' | 'second' | 'third' | 'previous' | 'year' | 'yearSecond' | 'yearThird' | null
+  // How much a new personal or year's best beat the best before it; null for other places or a first effort
+  improvementS: number | null
+}
+
+// "6 s" under a minute, otherwise "1:05". A margin that rounds to nothing still shows as a second.
+export function formatImprovement(seconds: number) {
+  const s = Math.max(1, Math.round(seconds))
+  return s < 60 ? `${s} s` : `${Math.floor(s / 60)}:${String(s % 60).padStart(2, '0')}`
 }
 
 // The year of the year places, which the API counts in UTC
