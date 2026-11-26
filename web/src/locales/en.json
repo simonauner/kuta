@@ -263,6 +263,7 @@
     "date": "Date",
     "time": "Time",
     "improvement": "Improvement",
+    "improvedBy": "{{time}} faster than the previous best",
     "predictions": "Prediction",
     "predictionsBasis": "Based on {{distance}} in {{time}} on {{date}} (VDOT {{vdot}}).",
     "showActivity": "Show activity",

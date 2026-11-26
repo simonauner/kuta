@@ -50,10 +50,12 @@ public class RecordTrendsTests(KutaFactory factory) : IClassFixture<KutaFactory>
                 order by achieved_at
                 """,
                 new { userId })).ToArray();
-            var statuses = new List<string?>();
+            var read = new List<ActivityBestEffort>();
             foreach (var effort in efforts)
-                statuses.Add(Assert.Single(await RecordTrends.ReadActivityAsync(conn, effort.ActivityId, userId)).RecordStatus);
-            Assert.Equal(new string?[] { "previous", "second", null, "third", "current" }, statuses);
+                read.Add(Assert.Single(await RecordTrends.ReadActivityAsync(conn, effort.ActivityId, userId)));
+            Assert.Equal(new string?[] { "previous", "second", null, "third", "current" }, read.Select(e => e.RecordStatus));
+            // Only a current or earlier record names its margin: the first effort beat nothing.
+            Assert.Equal(new double?[] { null, null, null, null, 10 }, read.Select(e => e.ImprovementS));
             Assert.Null(Assert.Single(await RecordTrends.ReadActivityAsync(conn, efforts[^1].ActivityId, otherId)).RecordStatus);
             var excludedId = await conn.QuerySingleAsync<Guid>(
                 "select id from activities where user_id = @userId and exclude_from_records", new { userId });
@@ -69,6 +71,16 @@ public class RecordTrendsTests(KutaFactory factory) : IClassFixture<KutaFactory>
                 "select activity_id from best_efforts where user_id = @userId and distance_m = 1000 order by achieved_at", new { userId }))
                 places.Add(Assert.Single(await RecordTrends.ReadActivityAsync(conn, id, userId)).RecordStatus);
             Assert.Equal(new string?[] { "current", "second", "third", "year", "yearSecond", "yearThird", null }, places);
+            // A year's best beats the year's earlier efforts; the first effort of a year has no margin.
+            Assert.Null(Assert.Single(await RecordTrends.ReadActivityAsync(conn,
+                await conn.QuerySingleAsync<Guid>("select activity_id from best_efforts where user_id = @userId and elapsed_s = 330", new { userId }),
+                userId)).ImprovementS);
+            await Effort(userId, "2028-01-01T12:00:00Z", 1000, 400);
+            await Effort(userId, "2028-01-02T12:00:00Z", 1000, 380);
+            var yearBest = Assert.Single(await RecordTrends.ReadActivityAsync(conn,
+                await conn.QuerySingleAsync<Guid>("select activity_id from best_efforts where user_id = @userId and elapsed_s = 380", new { userId }),
+                userId));
+            Assert.Equal(("year", 20d), (yearBest.RecordStatus, yearBest.ImprovementS!.Value));
 
             // Deleting the latest record promotes its predecessor, retaining the older equal-time effort.
             await conn.ExecuteAsync("delete from activities where id = @id", new { id = efforts[^1].ActivityId });
