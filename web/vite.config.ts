@@ -76,10 +76,14 @@ function configureHtmlRoutes(server: ViteDevServer | PreviewServer) {
       req.url = `/terms.html${url.search}`
     else if (url.pathname === '/features' || url.pathname === '/features/')
       req.url = `/features.html${url.search}`
+    else if (url.pathname === '/strava' || url.pathname === '/strava/')
+      req.url = `/strava.html${url.search}`
     else if (url.pathname === '/en' || url.pathname === '/en/')
       req.url = `/en/index.html${url.search}`
     else if (url.pathname === '/en/features' || url.pathname === '/en/features/')
       req.url = `/en/features.html${url.search}`
+    else if (url.pathname === '/en/strava' || url.pathname === '/en/strava/')
+      req.url = `/en/strava.html${url.search}`
     next()
   })
 }
@@ -103,8 +107,10 @@ export default defineConfig(({ mode }) => {
           privacy: path.resolve(import.meta.dirname, 'privacy.html'),
           terms: path.resolve(import.meta.dirname, 'terms.html'),
           features: path.resolve(import.meta.dirname, 'features.html'),
+          strava: path.resolve(import.meta.dirname, 'strava.html'),
           'en/landing': path.resolve(import.meta.dirname, 'en/index.html'),
           'en/features': path.resolve(import.meta.dirname, 'en/features.html'),
+          'en/strava': path.resolve(import.meta.dirname, 'en/strava.html'),
           app: path.resolve(import.meta.dirname, 'app.html'),
         },
       },
